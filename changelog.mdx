@@ -1,0 +1,170 @@
+---
+title: "WhiteBIT API Changelog"
+sidebarTitle: "Changelog"
+description: "Track all updates, improvements, and fixes to the WhiteBIT API Platform. This page documents both upcoming and previous changes to help you stay informed about our platform's evolution."
+---
+
+## Previous Changes
+
+<Update label="September 21, 2025">
+## Documentation Updates
+**Clarified Book Ticker stream update interval**
+
+Refined the description of the Book Ticker WebSocket stream to explicitly state instant BBO snapshot with incremental updates.
+
+<Card title="ws - Book Ticker" href="/public/websocket/book-ticker" icon="ticket" horizontal/>
+</Update>
+
+<Update label="September 21, 2025">
+## Flex Earn Endpoints
+**Introduced Smart Flex private endpoints**
+
+Added documentation for Smart Flex (Flex Earn) endpoints: list plans, manage investments, view histories, and configure auto-reinvestment.
+
+<CardGroup cols={2}>
+  <Card title="v4 - Get Flex Plans" href="/private/http-main-v4/get-flex-plans" icon="list" horizontal/>
+  <Card title="v4 - Get User Flex Investments" href="/private/http-main-v4/get-user-flex-investments" icon="wallet" horizontal/>
+  <Card title="v4 - Get Flex Investment History" href="/private/http-main-v4/get-flex-investment-history" icon="book" horizontal/>
+  <Card title="v4 - Get Flex Payment History" href="/private/http-main-v4/get-flex-payment-history" icon="credit-card" horizontal/>
+  <Card title="v4 - Create Flex Investment" href="/private/http-main-v4/create-flex-investment" icon="plus" horizontal/>
+  <Card title="v4 - Withdraw from Flex Investment" href="/private/http-main-v4/withdraw-from-flex-investment" icon="arrow-down" horizontal/>
+  <Card title="v4 - Close Flex Investment" href="/private/http-main-v4/close-flex-investment" icon="x" horizontal/>
+  <Card title="v4 - Update Flex Auto-Reinvestment" href="/private/http-main-v4/update-flex-auto-reinvestment" icon="recycle" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="July 16, 2025">
+## API Documentation Updates
+**Enhanced Query executed orders documentation**
+
+Updated documentation for `/api/v4/trade-account/order/history` endpoint to clarify date range filtering capabilities with `startDate` and `endDate` parameters.
+
+<Card title="Trade API - Query executed orders" href="/private/http-trade-v4/query-executed-orders" icon="shop" horizontal/>
+</Update>
+
+<Update label="July 14, 2025">
+## Public API Update
+**New Funding History endpoint**
+
+Added new endpoint `/api/v4/public/funding-history/{market}` to retrieve funding rate history for futures markets.
+
+<Card title="Public API - Funding History" href="/public/http-v4/funding-history" icon="clock-rotate-left" horizontal/>
+</Update>
+
+<Update label="July 10, 2025">
+## Private API Update
+
+**Issue JWT Token for Private API**
+
+New endpoint to issue JWT token for private API access.
+
+<Card title="v4 - Issue JWT Token" href="/private/http-main-v4/issue-jwt-token" icon="key" horizontal/>
+
+**Issue card token using JWT**
+
+New endpoint to issue a card token using JWT for secure transactions.
+
+<Card title="v4 - Issue Card Token" href="/private/http-main-v4/issue-card-token" icon="credit-card" horizontal/>
+
+**Withdraw endpoint update**
+
+Address now accepts card tokens for withdrawals.
+
+<Card title="v4 - Create Withdraw Request" href="/private/http-main-v4/create-withdraw-request" icon="arrow-up-from-bracket" horizontal/>
+</Update>
+
+<Update label="July 9, 2025">
+## Public WebSocket Update
+**Added BookTicker WebSocket stream**
+
+New bookTicker stream added to WebSocket API, providing real-time updates of best bid/ask prices and quantities for markets. Includes subscription (bookTicker_subscribe) and unsubscription (bookTicker_unsubscribe) methods for managing the data feed.
+
+<Card title="ws - Book Ticker" href="/public/websocket/book-ticker" icon="ticket" horizontal/>
+</Update>
+
+<Update label="July 9, 2025">
+## Trade Engine Update
+
+**Event time and update id introduced in WebSocket events**
+
+WebSocket events now include `event_time` and `update_id` fields. The `event_time` field provides the timestamp of the event, while the `update_id` field is a unique identifier for each update, allowing for better tracking and synchronization of events.
+
+<Card title="ws - Market Depth Subscribe" href="/public/websocket/depth" icon="store" horizontal/>
+
+**Hedge mode support**
+
+The Hedge mode is now available for all users. This mode allows you to hold both long and short positions in the same asset simultaneously, providing greater flexibility in managing your trades.
+
+<CardGroup cols={2}>
+  <Card title="v4 - Collateral Limit Order" href="/private/http-trade-v4/collateral-limit-order" icon="sliders" horizontal/>
+  <Card title="v4 - Collateral Stop Limit Order" href="/private/http-trade-v4/collateral-stop-limit-order" icon="flag" horizontal/>
+  <Card title="v4 - Collateral Market Order" href="/private/http-trade-v4/collateral-market-order" icon="store" horizontal/>
+  <Card title="v4 - Collateral OCO Order" href="/private/http-trade-v4/create-collateral-oco-order" icon="split" horizontal/>
+  <Card title="v4 - Collateral Trigger Market Order" href="/private/http-trade-v4/collateral-trigger-market-order" icon="rocket" horizontal/>
+  <Card title="v4 - Collateral Account Hedge Mode" href="/private/http-trade-v4/collateral-account-hedge-mode" icon="shield" horizontal/>
+  <Card title="v4 - Update Collateral Account Hedge Mode" href="/private/http-trade-v4/update-collateral-account-hedge-mode" icon="shield-check" horizontal/>
+  <Card title="ws - Orders Pending" href="/private/websocket/orders-pending" icon="clock" horizontal/>
+  <Card title="ws - Orders Executed" href="/private/websocket/orders-executed" icon="check" horizontal/>
+  <Card title="ws - Positions" href="/private/websocket/positions" icon="chart-bar" horizontal/>
+</CardGroup>
+
+**Queries Limited to the Last 6 Months**
+
+To enhance performance and focus on the most relevant data, our API limits data queries to the past 6 months. This means you will be able to retrieve data up to six months old from the current date.
+
+<CardGroup cols={2}>
+  <Card title="v4 - Convert History" href="/private/http-trade-v4/convert-history" icon="book" horizontal/>
+  <Card title="v4 - Executed order deals" href="/private/http-trade-v4/query-executed-order-deals" icon="handshake" horizontal/>
+  <Card title="v4 - Executed orders" href="/private/http-trade-v4/query-executed-orders" icon="check" horizontal/>
+  <Card title="v4 - Unexecuted (active) conditional orders" href="/private/http-trade-v4/query-unexecuted-conditional-orders" icon="clock" horizontal/>
+  <Card title="v4 - Collateral bulk limit order" href="/private/http-trade-v4/collateral-bulk-limit-order" icon="grid" horizontal/>
+  <Card title="v4 - Executed order history" href="/private/http-trade-v4/query-executed-order-history" icon="book" horizontal/>
+  <Card title="v4 - Positions history" href="/private/http-trade-v4/positions-history" icon="chart-bar" horizontal/>
+  <Card title="v1 - Order history" href="/private/http-trade-v1/query-order-history" icon="book" horizontal/>
+  <Card title="v1 - Executed History by single market" href="/private/http-trade-v1/query-executed-order-history-by-single-market" icon="file" horizontal/>
+  <Card title="v1 - Executed History by all markets" href="/private/http-trade-v1/query-executed-order-history-by-all-markets" icon="files" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="May 28, 2025">
+## Withdraw update
+
+**HTTP Main V4 API - Withdraw**
+
+The `paymentDescription` field is now mandatory for withdrawal requests from whitebit-tr.com.
+
+<Card title="v4 - Withdraw" href="/private/http-main-v4/create-withdraw-request" icon="arrow-down" horizontal/>
+</Update>
+
+<Update label="May 18, 2025">
+## Travel Rule Update
+
+**HTTP Main V4 API - Travel Rule**
+
+Added new statuses DEPOSIT_TRAVEL_RULE_FROZEN (27) and DEPOSIT_TRAVEL_RULE_FROZEN_PROCESSING (28) to the deposit endpoint.
+
+<Card title="v4 - Get Deposit/Withdraw History" href="/private/http-main-v4/get-deposit-withdraw-history" icon="book" horizontal/>
+</Update>
+
+<Update label="May 14, 2025">
+## Convert History Update
+
+**HTTP Trade V4 API - Convert**
+
+Added 30 days date range limit for convert history and default values for `from` and `to` parameters.
+
+<Card title="v4 - Convert History" href="/private/http-trade-v4/convert-history" icon="book" horizontal/>
+</Update>
+
+<Update label="March 30, 2025">
+## Deposit and Withdrawal Updates
+
+**HTTP Main V4 API - Birth Date Addition**
+
+Added beneficiary.birthDate field (Format: YYYY-MM-DD) to withdrawal requests and customer.birthDate (Format: YYYY-MM-DD) to deposit requests.
+
+<CardGroup cols={2}>
+  <Card title="v4 - Withdraw" href="/private/http-main-v4/create-withdraw-request" icon="arrow-down" horizontal/>
+  <Card title="v4 - Fiat Deposit" href="/private/http-main-v4/get-fiat-deposit-address" icon="arrow-up" horizontal/>
+</CardGroup>
+</Update>

@@ -1,0 +1,10 @@
+---
+title: "Create Sub-Account"
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/create
+---
+
+<Note>
+The `email` field requirement depends on the `shareKyc` parameter:
+- When `shareKyc` is `false` or not provided: `email` is **required**
+- When `shareKyc` is `true`: `email` is **optional**
+</Note>
