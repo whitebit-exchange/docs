@@ -1,0 +1,79 @@
+---
+title: "Private HTTP API V1"
+sidebarTitle: "Overview"
+description: "Private HTTP API V1 endpoints for trading (DEPRECATED - Use V4 alternatives instead)"
+deprecated: true
+---
+
+<Warning>
+**These endpoints are deprecated.** Use [V4 alternatives](/private/http-trade-v4/overview) instead
+</Warning>
+
+## Introduction
+
+Base URL is https://whitebit.com
+
+Endpoint example: https://whitebit.com/api/v1/{endpoint}
+
+All endpoints return time in Unix-time format.
+
+All endpoints return either a **JSON** object or array.
+
+For receiving responses from API calls please use http method **POST**
+
+## Error messages V1 format
+
+```json
+{
+  "code": 0,
+  "message": "MESSAGE",
+  "errors": {
+    "PARAM1": ["MESSAGE"],
+    "PARAM2": ["MESSAGE"]
+  }
+}
+```
+
+## Trading Endpoints
+
+### Account & Balance
+
+<CardGroup cols={2}>
+  <Card title="Trading Balance by Currency" icon="wallet" href="/private/http-trade-v1/trading-balance-by-currency">
+    Get trading balance for a specific currency
+  </Card>
+  <Card title="Trading Balances" icon="coins" href="/private/http-trade-v1/trading-balances">
+    Get all trading balances
+  </Card>
+</CardGroup>
+
+### Order Management
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" icon="chart-line" href="/private/http-trade-v1/create-limit-order">
+    Create a limit trading order
+  </Card>
+  <Card title="Cancel Order" icon="xmark" href="/private/http-trade-v1/cancel-order">
+    Cancel a specific order
+  </Card>
+</CardGroup>
+
+### Order Queries
+
+<CardGroup cols={2}>
+  <Card title="Query Unexecuted Orders" icon="clock" href="/private/http-trade-v1/query-unexecuted-active-orders">
+    Get active/unexecuted orders
+  </Card>
+  <Card title="Query Order History" icon="history" href="/private/http-trade-v1/query-order-history">
+    Get order history
+  </Card>
+  <Card title="Query Executed Order History (Single Market)" icon="chart-simple" href="/private/http-trade-v1/query-executed-order-history-by-single-market">
+    Get executed order history for a single market
+  </Card>
+  <Card title="Query Executed Order History (All Markets)" icon="globe" href="/private/http-trade-v1/query-executed-order-history-by-all-markets">
+    Get executed order history for all markets
+  </Card>
+  <Card title="Query Executed Order Deals" icon="handshake" href="/private/http-trade-v1/query-executed-order-deals">
+    Get executed order deals
+  </Card>
+</CardGroup>

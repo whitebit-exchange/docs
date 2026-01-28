@@ -1,0 +1,929 @@
+openapi: 3.0.3
+info:
+  title: WhiteBIT Private HTTP API V1 - Trade
+  version: 1.0.0
+  description: |
+    **DEPRECATED:** These endpoints are deprecated. Use [V4 alternatives](/private/http-trade-v4/overview) instead.
+    Private endpoints for trading operations including balance management and order execution.
+    **Authentication:** All endpoints require API key authentication with headers:
+    - X-TXC-APIKEY: Your API key
+    - X-TXC-PAYLOAD: Base64-encoded JSON payload
+    - X-TXC-SIGNATURE: HMAC SHA512 signature
+    
+    <Warning>
+    Rate limit: 1000 requests/10 sec.
+    </Warning>
+servers:
+  - url: https://whitebit.com
+    description: WhiteBIT Global Server
+  - url: https://whitebit.eu
+    description: WhiteBIT EU Server
+
+paths:
+  /api/v1/account/balance:
+    post:
+      summary: Trading balance by currency
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/trading-balance) instead.
+        This endpoint retrieves the trade balance by currency ticker.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Response Cache:** NONE
+      operationId: tradingBalanceByCurrency
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currency
+              properties:
+                currency:
+                  type: string
+                  description: "Currency's ticker. Example: BTC"
+                  example: "BTC"
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              currency: "BTC"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: string
+                    description: "Available balance of currency for trading"
+                    example: "0.2"
+                  freeze:
+                    type: string
+                    description: "Balance of currency on orders"
+                    example: "1.02"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Currency not found"
+
+  /api/v1/account/balances:
+    post:
+      summary: Trading balances
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/trading-balance) instead.
+        This endpoint retrieves all available balances for trading.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Response Cache:** NONE
+      operationId: tradingBalances
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ""
+                  result:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        available:
+                          type: string
+                          description: "Available balance"
+                        freeze:
+                          type: string
+                          description: "Frozen balance"
+                    example:
+                      BTC:
+                        available: "0.2"
+                        freeze: "1.02"
+                      ETH:
+                        available: "0.0000059"
+                        freeze: "0"
+
+  /api/v1/order/new:
+    post:
+      summary: Create limit order
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/create-limit-order) instead.
+        This endpoint creates limit trading order.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Response Cache:** NONE
+      operationId: createLimitOrder
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - side
+                - amount
+                - price
+              properties:
+                market:
+                  type: string
+                  description: "Available market. Example: BTC_USDT"
+                  example: "BTC_USDT"
+                side:
+                  type: string
+                  description: "Order type. Variables: 'buy' / 'sell'"
+                  enum: ["buy", "sell"]
+                  example: "buy"
+                amount:
+                  type: string
+                  description: "Amount of stock currency to buy or sell. Example: '0.001'"
+                  example: "0.001"
+                price:
+                  type: string
+                  description: "Price in money currency. Example: '9800'"
+                  example: "40000"
+                clientOrderId:
+                  type: string
+                  description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+                  example: "order1987111"
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              market: "BTC_USDT"
+              side: "buy"
+              amount: "0.001"
+              price: "40000"
+              clientOrderId: "order1987111"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+
+  /api/v1/order/cancel:
+    post:
+      summary: Cancel order
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/cancel-order) instead.
+        This endpoint cancels the existing order.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Response Cache:** NONE
+      operationId: cancelOrder
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - orderId
+              properties:
+                market:
+                  type: string
+                  description: "Available market. Example: BTC_USDT"
+                  example: "BTC_USDT"
+                orderId:
+                  type: integer
+                  description: "Order Id. Example: 4180284841"
+                  example: 4180284841
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              market: "BTC_USDT"
+              orderId: 4180284841
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+
+  /api/v1/orders:
+    post:
+      summary: Query unexecuted(active) orders
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-unexecuted-orders) instead.
+        This endpoint retrieves unexecuted orders only.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Response Cache:** NONE
+      operationId: queryUnexecutedOrders
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+              properties:
+                market:
+                  type: string
+                  description: "Available market. Example: BTC_USDT"
+                  example: "BTC_USDT"
+                limit:
+                  type: integer
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                  default: 50
+                  minimum: 1
+                  maximum: 100
+                  example: 100
+                offset:
+                  type: integer
+                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  default: 0
+                  minimum: 0
+                  maximum: 10000
+                  example: 0
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              market: "BTC_USDT"
+              offset: 0
+              limit: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+
+  /api/v1/account/order_history:
+    post:
+      summary: Query order history
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-orders) instead.
+        This endpoint retrieves orders history sorted by all markets.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
+        **Response Cache:** NONE
+      operationId: queryOrderHistory
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                  description: "Requested available market. Example: BTC_USDT"
+                  example: "BTC_USDT"
+                limit:
+                  type: integer
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                  default: 50
+                  minimum: 1
+                  maximum: 100
+                  example: 100
+                offset:
+                  type: integer
+                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  default: 0
+                  minimum: 0
+                  maximum: 10000
+                  example: 0
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              offset: 0
+              limit: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ""
+                  result:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/OrderHistoryItem'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  result:
+                    type: array
+                    items: {}
+                    example: []
+
+  /api/v1/account/executed_history:
+    post:
+      summary: Query executed order history by single market
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-history) instead.
+        This endpoint retrieves deals history sorted by single market.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
+        **Response Cache:** NONE
+      operationId: queryExecutedHistorySingleMarket
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+              properties:
+                market:
+                  type: string
+                  description: "Requested available market. Example: BTC_USDT"
+                  example: "BTC_USDT"
+                limit:
+                  type: integer
+                  description: "LIMIT is a special clause used to limit records that a particular query can return. Default: 50, Min: 1, Max: 100"
+                  default: 50
+                  minimum: 1
+                  maximum: 100
+                  example: 100
+                offset:
+                  type: integer
+                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  default: 0
+                  minimum: 0
+                  maximum: 10000
+                  example: 0
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              market: "BTC_USDT"
+              offset: 0
+              limit: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ""
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExecutedDeal'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  result:
+                    type: array
+                    items: {}
+                    example: []
+
+  /api/v1/account/executed_history/all:
+    post:
+      summary: Query executed order history by all markets
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-history) instead.
+        This endpoint retrieves orders history sorted by all markets.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
+        **Response Cache:** NONE
+      operationId: queryExecutedHistoryAllMarkets
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                  default: 50
+                  minimum: 1
+                  maximum: 100
+                  example: 100
+                offset:
+                  type: integer
+                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  default: 0
+                  minimum: 0
+                  maximum: 10000
+                  example: 0
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              offset: 0
+              limit: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ""
+                  result:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ExecutedDeal'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  result:
+                    type: array
+                    items: {}
+                    example: []
+
+  /api/v1/account/order:
+    post:
+      summary: Query executed order deals
+      description: |
+        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-deals) instead.
+        This endpoint retrieves more details on order deals history.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+        **Response Cache:** NONE
+      operationId: queryExecutedOrderDeals
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orderId
+              properties:
+                orderId:
+                  type: integer
+                  description: "Order ID. Example: 1234"
+                  example: 3135554375
+                limit:
+                  type: integer
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                  default: 50
+                  minimum: 1
+                  maximum: 100
+                  example: 100
+                offset:
+                  type: integer
+                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  default: 0
+                  minimum: 0
+                  maximum: 10000
+                  example: 0
+                request:
+                  type: string
+                  description: "Request path"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+            example:
+              orderId: 3135554375
+              offset: 0
+              limit: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ""
+                  result:
+                    type: object
+                    properties:
+                      limit:
+                        type: integer
+                        example: 50
+                      offset:
+                        type: integer
+                        example: 0
+                      records:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: "deal id"
+                              example: 149156519
+                            clientOrderId:
+                              type: string
+                              description: "custom client order id; \"clientOrderId\": \"\" - if not specified."
+                              example: "order1987111"
+                            amount:
+                              type: string
+                              description: "amount in stock"
+                              example: "598"
+                            time:
+                              type: number
+                              description: "timestamp of order creation"
+                              example: 1593342324.613711
+                            dealOrderId:
+                              type: integer
+                              description: "completed order ID"
+                              example: 3134995325
+                            role:
+                              type: integer
+                              description: "Role - 1 - maker, 2 - taker"
+                              example: 2
+                            deal:
+                              type: string
+                              description: "amount in money"
+                              example: "0.00419198"
+                            price:
+                              type: string
+                              description: "price"
+                              example: "0.00000701"
+                            fee:
+                              type: string
+                              description: "paid fee"
+                              example: "0.00000419198"
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  result:
+                    type: array
+                    items: {}
+                    example: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-TXC-APIKEY
+      description: |
+        API key authentication requires three headers:
+        - X-TXC-APIKEY: Your API key
+        - X-TXC-PAYLOAD: Base64-encoded JSON payload
+        - X-TXC-SIGNATURE: HMAC SHA512 signature of the payload
+
+  schemas:
+    OrderResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+          description: "order id"
+          example: 4180284841
+        clientOrderId:
+          type: string
+          description: "custom client order id; \"clientOrderId\": \"\" - if not specified."
+          example: "order1987111"
+        market:
+          type: string
+          description: "deal market"
+          example: "BTC_USDT"
+        side:
+          type: string
+          description: "order side"
+          enum: ["buy", "sell"]
+          example: "buy"
+        type:
+          type: string
+          description: "order type"
+          example: "limit"
+        timestamp:
+          type: number
+          description: "timestamp of order creation"
+          example: 1595792396.165973
+        dealMoney:
+          type: string
+          description: "if order finished - amount in money currency that finished"
+          example: "0"
+        dealStock:
+          type: string
+          description: "if order finished - amount in stock currency that finished"
+          example: "0"
+        amount:
+          type: string
+          description: "amount"
+          example: "0.001"
+        makerFee:
+          type: string
+          description: "maker fee ratio. If the number less than 0.0001 - its rounded to zero"
+          example: "0.001"
+        takerFee:
+          type: string
+          description: "taker fee ratio. If the number less than 0.0001 - its rounded to zero"
+          example: "0.001"
+        left:
+          type: string
+          description: "if order not finished - rest of amount that must be finished"
+          example: "0.001"
+        dealFee:
+          type: string
+          description: "fee in money that you pay if order is finished"
+          example: "0"
+        price:
+          type: string
+          description: "price"
+          example: "40000"
+
+    OrderHistoryItem:
+      type: object
+      properties:
+        amount:
+          type: string
+          description: "executed order amount"
+          example: "0.70326019"
+        price:
+          type: string
+          description: "executed order price, if executed order type is market it is equal to 0"
+          example: "0"
+        type:
+          type: string
+          description: "executed order type"
+          example: "market"
+        id:
+          type: integer
+          description: "executed order ID"
+          example: 3711942768
+        clientOrderId:
+          type: string
+          description: "custom client order ID; \"clientOrderId\": \"\" - if not specified."
+          example: "order11-23-3"
+        side:
+          type: string
+          description: "executed order side"
+          enum: ["buy", "sell"]
+          example: "sell"
+        ctime:
+          type: number
+          description: "timestamp of order creation"
+          example: 1594667731.724387
+        takerFee:
+          type: string
+          description: "taker fee ratio. If the number less than 0.0001 - it is rounded to zero"
+          example: "0.001"
+        ftime:
+          type: number
+          description: "executed order finish time"
+          example: 1594667731.724403
+        makerFee:
+          type: string
+          description: "maker fee ratio. If the number less than 0.0001 - its rounded to zero"
+          example: "0.001"
+        dealFee:
+          type: string
+          description: "executed order fee that user pay"
+          example: "0"
+        dealStock:
+          type: string
+          description: "executed order amount in stock"
+          example: "0.000076"
+        dealMoney:
+          type: string
+          description: "executed order amount in money"
+          example: "0.70407996"
+        marketName:
+          type: string
+          description: "market name"
+          example: "BTC_USDT"
+        status:
+          type: integer
+          description: "Order status: either 1 (finished) or 2 (canceled)"
+          example: 1
+
+    ExecutedDeal:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "order id"
+          example: 160305483
+        clientOrderId:
+          type: string
+          description: "custom client order id; \"clientOrderId\": \"\" - if not specified."
+          example: "order1987111"
+        time:
+          type: number
+          description: "timestamp of order creation"
+          example: 1594667731.724403
+        side:
+          type: string
+          description: "Order side \"sell\" / \"buy\""
+          enum: ["buy", "sell"]
+          example: "sell"
+        role:
+          type: integer
+          description: "Role - 1 - maker, 2 - taker"
+          example: 2
+        amount:
+          type: string
+          description: "amount in stock"
+          example: "0.000076"
+        price:
+          type: string
+          description: "price"
+          example: "9264.21"
+        deal:
+          type: string
+          description: "amount in money"
+          example: "0.70407996"
+        fee:
+          type: string
+          description: "fee that you pay"
+          example: "0.00070407996"
+
+    ErrorResponseV1:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: "Error code"
+        message:
+          type: string
+          description: "Error message"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: "Detailed error information"

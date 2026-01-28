@@ -1,0 +1,580 @@
+openapi: 3.0.3
+info:
+  title: Public HTTP API V1
+  description: |
+    WhiteBIT Public HTTP API V1 for market data and trading information.
+    Base URL: https://whitebit.com
+    All endpoints return time in Unix-time format.
+    All endpoints return either a JSON object or array.
+    For receiving responses from API calls please use http method GET.
+    If an endpoint requires parameters you should send them as query string.
+    Response is cached for specified duration per endpoint.
+    
+    <Warning>
+    Rate limit: 1000 requests/10 sec for all endpoints.
+    </Warning>
+  version: 1.0.0
+servers:
+  - url: https://whitebit.com
+    description: WhiteBIT Global Server
+  - url: https://whitebit.eu
+    description: WhiteBIT EU Server
+
+paths:
+  /api/v1/public/markets:
+    get:
+      summary: Market Info
+      description: |
+        This endpoint retrieves all information about available markets.
+
+        <Note>
+        Response is cached for: 1 second
+        </Note>
+        
+        <Warning>
+        Rate limit 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Public API V1
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of market pair
+                          example: BTC_USDT
+                        stock:
+                          type: string
+                          description: Ticker of stock currency
+                          example: BTC
+                        money:
+                          type: string
+                          description: Ticker of money currency
+                          example: USDT
+                        stockPrec:
+                          type: string
+                          description: Precision of stock currency
+                          example: "6"
+                        moneyPrec:
+                          type: string
+                          description: Precision of money currency
+                          example: "2"
+                        feePrec:
+                          type: string
+                          description: Precision of fee
+                          example: "4"
+                        makerFee:
+                          type: string
+                          description: Default maker fee ratio
+                          example: "0.001"
+                        takerFee:
+                          type: string
+                          description: Default taker fee ratio
+                          example: "0.001"
+                        minAmount:
+                          type: string
+                          description: Minimal amount of stock to trade
+                          example: "0.0001"
+        'default':
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
+
+  /api/v1/public/tickers:
+    get:
+      summary: Market Activity
+      description: |
+        This endpoint retrieves information about recent trading activity on all markets.
+
+        <Note>
+        Response is cached for: 1 second
+        </Note>
+        
+        <Warning>
+        Rate limit 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Public API V1
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  result:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        ticker:
+                          type: object
+                          properties:
+                            bid:
+                              type: string
+                              description: Highest bid
+                              example: "9412.1"
+                            ask:
+                              type: string
+                              description: Lowest ask
+                              example: "9416.33"
+                            low:
+                              type: string
+                              description: Lowest price for 24h
+                              example: "9203.13"
+                            high:
+                              type: string
+                              description: Highest price for 24h
+                              example: "9469.99"
+                            last:
+                              type: string
+                              description: Last deal price
+                              example: "9414.4"
+                            vol:
+                              type: string
+                              description: Volume in stock currency
+                              example: "27324.819448"
+                            deal:
+                              type: string
+                              description: Volume in money currency
+                              example: "254587570.43407191"
+                            change:
+                              type: string
+                              description: Change in percent between open and last prices
+                              example: "1.53"
+                        at:
+                          type: integer
+                          description: Timestamp in seconds
+                          example: 159423219
+        'default':
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
+
+  /api/v1/public/ticker:
+    get:
+      summary: Single market activity
+      description: |
+        This endpoint retrieves information about recent trading activity on the requested market.
+
+        <Note>
+        Response is cached for: 1 second
+        </Note>
+        
+        <Warning>
+        Rate limit 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Public API V1
+      parameters:
+        - name: market
+          in: query
+          required: true
+          description: "Available market. Example: BTC_USDT"
+          schema:
+            type: string
+            example: ETH_BTC
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  result:
+                    type: object
+                    properties:
+                      open:
+                        type: string
+                        description: Open price for day
+                        example: "9267.98"
+                      bid:
+                        type: string
+                        description: The highest bid currently available
+                        example: "9417.4"
+                      ask:
+                        type: string
+                        description: The lowest ask currently available
+                        example: "9421.64"
+                      low:
+                        type: string
+                        description: Lowest price for day
+                        example: "9203.13"
+                      high:
+                        type: string
+                        description: Highest price for day
+                        example: "9469.99"
+                      last:
+                        type: string
+                        description: Latest deal price
+                        example: "9419.55"
+                      volume:
+                        type: string
+                        description: Volume in stock
+                        example: "27303.824558"
+                      deal:
+                        type: string
+                        description: Volume in money
+                        example: "254399191.68843464"
+                      change:
+                        type: string
+                        description: Change between open and close price in percentage
+                        example: "1.63"
+        'default':
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
+
+  /api/v1/public/kline:
+    get:
+      summary: Kline
+      description: |
+        This endpoint retrieves information about market kline.
+
+        <Note>
+        Response is cached for: 1 second
+        </Note>
+        
+        <Warning>
+        Rate limit 1000 requests/10 sec.
+        </Warning>
+
+        Max numbers of candles cannot exceed: 1440
+      tags:
+        - Public API V1
+      parameters:
+        - name: market
+          in: query
+          required: true
+          description: "Available market. Example: BTC_USDT"
+          schema:
+            type: string
+            example: BTC_USDT
+        - name: start
+          in: query
+          required: false
+          description: "Start time in seconds, default value is one week earlier from the current time. Cannot be greater than end parameter. Example: 1596848400"
+          schema:
+            type: integer
+            example: 1596848400
+        - name: end
+          in: query
+          required: false
+          description: "End time in seconds, default value is current time. Cannot be less than start parameter. Example: 1596927600"
+          schema:
+            type: integer
+            example: 1596927600
+        - name: interval
+          in: query
+          required: false
+          description: "Possible values - 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M. By default in case start and end parameters were not specified, for minutes intervals the server will return candlesticks for a period of 1 day. For hours intervals will return candlesticks for 1 week, for days and week intervals will return candlesticks for 1 month and for month interval will return candlesticks for 1 year. Default value is 1h."
+          schema:
+            type: string
+            enum: [1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M]
+            default: 1h
+            example: 1h
+        - name: limit
+          in: query
+          required: false
+          description: "Possible values from 1 to 1440. Default value is 1440"
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1440
+            default: 1440
+            example: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  result:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        oneOf:
+                          - type: integer
+                          - type: string
+                      example: [1631440800, "45865.62", "45958.14", "45981.3", "45750.23", "15.327634", "703140.24230131"]
+                      description: "[Time in seconds, Open, Close, High, Low, Volume stock, Volume money]"
+        'default':
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
+
+  /api/v1/public/symbols:
+    get:
+      summary: Symbols
+      description: |
+        This endpoint retrieves information about all available markets for trading.
+
+        <Note>
+        Response is cached for: 1 second
+        </Note>
+        
+        <Warning>
+        Rate limit 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Public API V1
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  result:
+                    type: array
+                    items:
+                      type: string
+                      description: Name of market pair
+                    example: ["BTC_USDT", "ETH_BTC", "ETH_USDT"]
+        'default':
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
+
+  /api/v1/public/depth/result:
+    get:
+      summary: Order depth
+      description: |
+        This endpoint retrieves the current [order book](/glossary/#order-book) as two arrays ([bids](/glossary/#bid) / [asks](/glossary/#ask)).
+
+        <Note>
+        Response is cached for: 100 ms
+        </Note>
+        
+        <Warning>
+        Rate limit 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Public API V1
+      parameters:
+        - name: market
+          in: query
+          required: true
+          description: "Available market. Example: BTC_USDT"
+          schema:
+            type: string
+            example: BTC_USDT
+        - name: limit
+          in: query
+          required: false
+          description: "Limit of results. Default: 100 Max: 100 Example: 100"
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+            example: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asks:
+                    type: array
+                    description: Array of ask orders
+                    items:
+                      type: array
+                      items:
+                        type: string
+                      minItems: 2
+                      maxItems: 2
+                      example: ["9431.9", "0.705088"]
+                      description: "[Price, Amount]"
+                  bids:
+                    type: array
+                    description: Array of bid orders
+                    items:
+                      type: array
+                      items:
+                        type: string
+                      minItems: 2
+                      maxItems: 2
+                      example: ["9427.65", "0.547909"]
+                      description: "[Price, Amount]"
+        'default':
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
+
+  /api/v1/public/history:
+    get:
+      summary: Trade History
+      description: |
+        This endpoint retrieves [trades](/glossary/#trade) that have been executed for the requested [market](/glossary/#market).
+
+        <Note>
+        Response is cached for: 1 second
+        </Note>
+        
+        <Warning>
+        Rate limit 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Public API V1
+      parameters:
+        - name: market
+          in: query
+          required: true
+          description: "Available market. Example: BTC_USDT"
+          schema:
+            type: string
+            example: BTC_USDT
+        - name: lastId
+          in: query
+          required: true
+          description: "Largest id of last returned result. Example: request [deals](/glossary#deals) starting from id equals to 6"
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          description: "Limit of results. Default: 50 Example: 100"
+          schema:
+            type: integer
+            default: 50
+            example: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Deal id
+                          example: 156720314
+                        time:
+                          type: number
+                          format: double
+                          description: Deal time in seconds
+                          example: 1594240477.849703
+                        price:
+                          type: string
+                          description: Deal price
+                          example: "9429.66"
+                        amount:
+                          type: string
+                          description: Deal amount
+                          example: "0.002784"
+                        type:
+                          type: string
+                          description: Deal type (buy or sell)
+                          enum: [buy, sell]
+                          example: sell
+        'default':
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
+
+components:
+  schemas:
+    ErrorV1:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Error message
+          example: ERROR MESSAGE
+        params:
+          type: array
+          items:
+            type: string
+          example: []
+
+tags:
+  - name: Public API V1
+    description: Public endpoints for market data and trading information

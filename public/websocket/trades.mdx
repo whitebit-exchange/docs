@@ -1,0 +1,48 @@
+---
+asyncapi: "/asyncapi/public/trades.yaml /ws"
+title: Market Trades
+---
+
+## Subscription Behavior
+
+<Warning>
+For each WebSocket connection, you can subscribe to either specific markets or all markets. **Every new subscription replaces the existing one.**
+</Warning>
+
+### Subscribe to Specific Markets
+
+To receive trade updates for specific markets, provide market names in the `params` array:
+
+```json
+{
+    "id": 9,
+    "method": "trades_subscribe",
+    "params": [
+        "ETH_BTC",
+        "BTC_USDT"
+    ]
+}
+```
+
+### Subscribe to All Markets
+
+To receive trade updates for all available markets, send an empty `params` array:
+
+```json
+{
+    "id": 9,
+    "method": "trades_subscribe",
+    "params": []
+}
+```
+
+## RPI Field
+
+Trade updates may include an `rpi` field:
+
+- `rpi: true` - The trade involved a Retail Price Improvement (RPI) order
+- `rpi: false` or absent - Regular trade
+
+<Info>
+RPI orders provide better execution prices than the current best bid/ask for retail traders.
+</Info>

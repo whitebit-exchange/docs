@@ -1,0 +1,27 @@
+---
+asyncapi: "/asyncapi/public/market_today.yaml /ws"
+title: Market statistics for current day UTC
+---
+
+## Overview
+
+This endpoint provides market statistics for the current day in UTC timezone, resetting daily at UTC midnight.
+
+## Field Descriptions
+
+- **last**: Current last trade price
+- **open**: Opening price at today's start (UTC midnight)
+- **high**: Highest price reached today
+- **low**: Lowest price reached today
+- **volume**: Total trading volume today in [stock](/glossary#stock) currency
+- **deal**: Total trading volume today in [money](/glossary#money) currency
+
+<Note>
+All statistics reset to zero at UTC midnight (00:00 UTC) each day.
+</Note>
+
+## Query Limitation
+
+<Info>
+The query method (`marketToday_query`) accepts **only one market per request**. To get data for multiple markets, make separate requests or use the subscription method.
+</Info>

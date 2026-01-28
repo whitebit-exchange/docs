@@ -1,0 +1,540 @@
+---
+title: "Client Order ID"
+description: "This guide provides information about using `clientOrderId` in your trading operations, including best practices and common use cases."
+---
+
+## Overview
+<Card >
+The `clientOrderId` is an optional identifier that allows you to track and manage your orders with your own custom identifiers. It provides an additional layer of order management and tracking capabilities alongside the exchange-provided `orderId`.
+</Card>
+## Specifications
+<CardGroup>
+<Card title="Type & Requirements">
+- Type: String
+- Mandatory: No
+- Uniqueness: Must be unique per account
+</Card>
+<Card title="Allowed Characters">
+- Latin letters
+- Numbers
+- Dashes (-)
+- Dots (.)
+- Underscores (\_)
+</Card>
+</CardGroup>
+
+<Card title="Length and Format Guidelines">
+- Recommended length: 32 characters
+- Case-sensitive: “Order1” and “order1” are different IDs
+- Leading/trailing spaces are not allowed
+- Cannot be an empty string if provided
+</Card>
+## Best Practices
+<Tabs>
+<Tab title="Naming Convention">
+**Structured Naming Convention**
+
+```javascript
+// Format: strategy-pair-type-timestamp
+const clientOrderId = "scalp-btcusdt-limit-1678234567";
+
+// Format: botId-strategy-sequence
+const clientOrderId = "bot123-grid-0001";
+
+// Format: userAccount-orderType-customSequence
+const clientOrderId = "trade15-market-a7b8c9";
+```
+</Tab>
+
+<Tab title="Timestamp">
+**Timestamp Integration**
+
+```bash
+const getClientOrderId = (prefix: string) => {
+  const timestamp = Date.now();
+  return `${prefix}-${timestamp}`;
+};
+
+// Usage
+const orderId = getClientOrderId("btc-dca"); // "btc-dca-1678234567890"
+```
+</Tab>
+
+
+<Tab title="Strategy">
+**Strategy Identification**
+
+```bash
+const generateStrategyOrderId = (
+  strategy: string,
+  pair: string,
+  action: string
+) => {
+  const sequence = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
+  return `${strategy}-${pair}-${action}-${sequence}`;
+};
+
+// Usage
+const orderId = generateStrategyOrderId("grid", "btcusdt", "buy");
+```
+</Tab>
+
+<Tab title="Examples">
+<CardGroup>
+<Card title="Basic Examples">
+- • spot-btcusdt-buy-001
+- • dca-ethusdt-sell-002
+- • grid-solusdt-buy-003
+</Card>
+<Card title="Advanced Examples">
+- • bot1-grid-btc-h4-001
+- • arb-eth-ftm-cross-002
+- • Dashes (-)
+- • hedge-btc-perp-003
+</Card>
+</CardGroup>
+</Tab>
+</Tabs>
+
+
+
+## Common Use Cases
+
+<Tabs>
+<Tab title="Limit Order">
+**Basic Limit Order**
+
+```javascript
+// Simple limit order with clientOrderId
+const limitOrderRequest = {
+  market: "BTC_USDT",
+  side: "buy",
+  amount: "0.01",
+  price: "40000",
+  clientOrderId: "limit-btc-buy-001"
+};
+```
+</Tab>
+
+<Tab title="Market Order">
+**Market Order with Strategy Tag**
+
+```bash
+// Market order for DCA strategy
+const marketOrderRequest = {
+  market: "BTC_USDT",
+  side: "buy",
+  amount: "50", // Buy BTC for 50 USDT
+  clientOrderId: "dca-btc-market-002"
+};
+```
+</Tab>
+
+
+<Tab title="Stop-Limit">
+**Stop-Limit Order with Position Tracking**
+
+```bash
+// Stop-limit order with position tracking
+const stopLimitOrderRequest = {
+  market: "BTC_USDT",
+  side: "sell",
+  amount: "0.01",
+  price: "39000",
+  activation_price: "39500",
+  clientOrderId: "pos1-sl-btc-001"
+};
+```
+</Tab>
+
+<Tab title="OTO Orders">
+**OTO (One-Triggers-Other) Orders**
+
+```bash
+// Main order with stop loss and take profit
+const otoOrderRequest = {
+  market: "BTC_USDT",
+  side: "buy",
+  amount: "0.01",
+  price: "40000",
+  clientOrderId: "oto-btc-main-001",
+  stopLoss: "38000",
+  takeProfit: "42000"
+};
+```
+</Tab>
+</Tabs>
+
+
+## Order Management
+<Card title="Tracking Orders">
+
+
+You can track orders using `clientOrderId` through the following endpoints:
+
+**1. Query Active Orders**
+
+Use the [Query Active Orders endpoint](/private/http-trade-v4/query-unexecuted-orders) (`/api/v4/orders`) to get all unexecuted orders:
+
+```javascript
+// Request
+const queryActiveOrders = {
+  market: "BTC_USDT",
+  clientOrderId: "dca-btc-market-002"
+};
+```
+<Note>
+Example response includes order details such as ID, status, and execution information:
+</Note>
+```bash
+{
+  "orderId": 4180284841,
+  "clientOrderId": "dca-btc-market-002",
+  "market": "BTC_USDT",
+  "side": "buy",
+  "type": "limit",
+  "timestamp": 1595792396.165973,
+  "dealMoney": "0",
+  "dealStock": "0",
+  "amount": "0.001",
+  "price": "40000",
+  "status": "NEW"
+}
+```
+
+**2. Query Order History**
+
+Use the [Query Order History endpoint](/private/http-trade-v4/query-executed-orders) (`/api/v4/trade-account/order/history`) to get executed orders:
+
+```javascript
+// Request
+const queryOrderHistory = {
+  market: "BTC_USDT",
+  clientOrderId: "grid-btc-sell-003",
+  limit: 50,
+  offset: 0
+};
+```
+<Note>
+Example response showing execution details and final order status:
+</Note>
+```bash
+{
+  "records": [
+    {
+      "orderId": 4180284841,
+      "clientOrderId": "grid-btc-sell-003",
+      "market": "BTC_USDT",
+      "side": "sell",
+      "type": "limit",
+      "timestamp": 1595792396.165973,
+      "dealMoney": "41.258268",
+      "dealStock": "0.001",
+      "amount": "0.001",
+      "price": "41258.27",
+      "status": "FILLED"
+    }
+  ]
+}
+```
+
+**3. Cancelling Orders Using ClientOrderId**
+
+Use the [Cancel Order endpoint](/private/http-trade-v4/cancel-order) (`/api/v4/order/cancel`) to cancel an order by its `clientOrderId`:
+
+```javascript
+// Request
+const cancelOrderRequest = {
+  market: "BTC_USDT",
+  clientOrderId: "dca-btc-market-002"
+};
+```
+<Note>
+**Important notes about order cancellation:**
+
+- Cancellation by `clientOrderId` takes priority over `orderId`
+- You can use either `orderId` or `clientOrderId`, but not both in the same request
+</Note>
+```json
+// Example response
+{
+  "orderId": 4180284841,
+  "clientOrderId": "dca-btc-market-002",
+  "market": "BTC_USDT",
+  "side": "buy",
+  "type": "limit",
+  "timestamp": 1595792396.165973,
+  "dealMoney": "0",
+  "dealStock": "0",
+  "amount": "0.001",
+  "left": "0.001",
+  "price": "40000",
+  "status": "CANCELED"
+}
+```
+</Card>
+## Error Handling
+
+#### Common Error Cases
+
+<CardGroup>
+  <Card title="Duplicate ID">
+    The <code>clientOrderId</code> must be unique per account.
+  </Card>
+
+  <Card title="Invalid Format">
+    Ensure the ID only contains allowed characters.
+  </Card>
+
+  <Card title="Length Limit">
+    The recommended length is 32 characters, with a maximum permissible length of 64 characters.
+  </Card>
+
+  <Card title="Order Not Found">
+    Handle cases where an order with the specified <code>clientOrderId</code> doesn’t exist.
+  </Card>
+</CardGroup>
+
+#### Example error handling:
+
+```javascript
+try {
+  const order = await queryOrderByClientId("dca-btc-market-002");
+  // Process order
+} catch (error) {
+  if (error.code === 36) {
+    console.error("Invalid clientOrderId format");
+  } else if (error.code === 2) {
+    console.error("Order not found");
+  } else {
+    console.error("Unexpected error:", error);
+  }
+}
+```
+
+## Example: Broker Implementation
+<Card title="Broker Implementation Guide">
+
+
+**ClientOrderId Structure**
+
+Format:
+
+`   brk-{clientId}-{orderType}-{purpose}-{timestamp}   `
+
+Example: `brk-ind123-limit-spot-1678234567`
+
+**Components:**
+
+- `brk`: Broker identifier prefix
+- `clientId`: Your internal client identifier
+- `orderType`: Order type (market/limit)
+- `purpose`: Trading purpose/strategy
+- `timestamp`: Ensures 24-hour uniqueness
+</Card>
+<CardGroup>
+  <Card title="Individual Clients">
+    `brk-ind123-market-spot-1678234567`
+  </Card>
+
+  <Card title="Corporate Clients">
+    `brk-corp789-limit-hedge-1678234567`
+  </Card>
+
+  <Card title="Managed Portfolios">
+    `brk-port555-market-dca-1678234567`
+  </Card>
+</CardGroup>
+
+### Trading Purpose Examples
+<CardGroup>
+<Card title="Spot Trading">
+
+`brk-ind123-market-spot-1678234567`
+</Card>
+<Card title="DCA Strategy">
+
+`brk-port555-market-dca-1678234567`
+</Card>
+<Card title="Grid Trading">
+
+`brk-ind123-limit-grid-1678234567`
+</Card>
+<Card title="Portfolio Rebalancing">
+`brk-port555-limit-rebal-1678234567`
+</Card>
+</CardGroup>
+### API Usage Example
+<Card>
+```javascript
+// Create an order for a client
+const createClientOrder = {
+  market: "BTC_USDT",
+  side: "buy",
+  amount: "0.01",
+  price: "40000",
+  clientOrderId: "brk-ind123-limit-spot-1678234567"
+};
+
+// Query client's active orders
+const queryClientOrders = {
+  market: "BTC_USDT",
+  clientOrderId: "brk-ind123-limit-spot-1678234567"
+};
+
+// Cancel client's order using clientOrderId
+const cancelClientOrder = {
+  market: "BTC_USDT",
+  clientOrderId: "brk-ind123-limit-spot-1678234567"
+};
+
+// Get historical data for client orders
+const getClientOrderHistory = {
+  market: "BTC_USDT",
+  clientOrderId: "brk-ind123-limit-spot-1678234567",
+  limit: 50,
+  offset: 0
+};
+```
+
+**This structured approach allows brokers to:**
+
+- Track orders for multiple clients
+- Identify order types and purposes
+- Maintain unique identifiers
+- Query and manage orders efficiently
+</Card>
+### Order Management for Brokers
+
+**Client Order Management**
+
+#### Cancelling Client Orders
+
+Brokers can efficiently cancel orders for any of their clients using the structured clientOrderId:
+
+```javascript
+// Function to cancel a client's order
+async function cancelClientOrder(clientId, orderPurpose, orderId) {
+  const cancelRequest = {
+    market: "BTC_USDT",
+    clientOrderId: `brk-${clientId}-limit-${orderPurpose}-${orderId}`
+  };
+
+  try {
+    const response = await api.post('/api/v4/order/cancel', cancelRequest);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to cancel order for client ${clientId}:`, error);
+    throw error;
+  }
+}
+
+// Example usage
+await cancelClientOrder('ind123', 'spot', '1678234567');
+```
+
+#### Retrieving Historical Client Orders
+
+Brokers can retrieve and analyze historical order data for reporting, analysis, and compliance:
+
+```javascript
+// Function to get client order history with optional filtering
+async function getClientOrderHistory(clientId, orderPurpose, startTime, endTime) {
+  // Base query parameters
+  const queryParams = {
+    market: "BTC_USDT",
+    limit: 100,
+    offset: 0
+  };
+
+  // Add clientOrderId filter if specific client and purpose
+  if (clientId && orderPurpose) {
+    // Using partial match prefix to get all orders matching the pattern
+    queryParams.clientOrderId = `brk-${clientId}-*-${orderPurpose}-*`;
+  }
+
+  // Add time range if specified
+  if (startTime) queryParams.start_time = startTime;
+  if (endTime) queryParams.end_time = endTime;
+
+  try {
+    const response = await api.get('/api/v4/trade-account/order/history', { params: queryParams });
+    return response.data.records;
+  } catch (error) {
+    console.error("Failed to fetch client order history:", error);
+    throw error;
+  }
+}
+
+// Example: Get all spot trades for a specific client
+const clientSpotOrders = await getClientOrderHistory('ind123', 'spot',
+  Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
+  Date.now() // now
+);
+
+// Example: Get all DCA orders across clients
+const allDcaOrders = await getClientOrderHistory(null, 'dca');
+```
+
+### Broker Analytics and Reporting
+
+With structured clientOrderId patterns, brokers can implement powerful analytics and reporting by parsing the IDs:
+
+```javascript
+// Parse clientOrderId to extract metadata
+function parseClientOrderId(clientOrderId) {
+  // Format: brk-{clientId}-{orderType}-{purpose}-{timestamp}
+  const parts = clientOrderId.split('-');
+  if (parts.length !== 5 || parts[0] !== 'brk') {
+    throw new Error('Invalid broker clientOrderId format');
+  }
+
+  return {
+    clientId: parts[1],
+    orderType: parts[2],
+    purpose: parts[3],
+    timestamp: parseInt(parts[4])
+  };
+}
+
+// Example usage for reporting
+function generateClientReport(orderHistory) {
+  const clientStats = {};
+
+  orderHistory.forEach(order => {
+    try {
+      const { clientId, purpose } = parseClientOrderId(order.clientOrderId);
+
+      if (!clientStats[clientId]) {
+        clientStats[clientId] = {
+          totalOrders: 0,
+          volume: 0,
+          byPurpose: {}
+        };
+      }
+
+      // Update client stats
+      clientStats[clientId].totalOrders++;
+      clientStats[clientId].volume += parseFloat(order.dealMoney);
+
+      // Update purpose-specific stats
+      if (!clientStats[clientId].byPurpose[purpose]) {
+        clientStats[clientId].byPurpose[purpose] = {
+          count: 0,
+          volume: 0
+        };
+      }
+
+      clientStats[clientId].byPurpose[purpose].count++;
+      clientStats[clientId].byPurpose[purpose].volume += parseFloat(order.dealMoney);
+
+    } catch (error) {
+      console.warn("Skipping order with invalid clientOrderId:", order.clientOrderId);
+    }
+  });
+
+  return clientStats;
+}
+```
