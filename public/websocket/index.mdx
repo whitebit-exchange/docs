@@ -1,0 +1,181 @@
+---
+title: Public WebSocket API
+sidebarTitle: Overview
+---
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+
+<CardGroup cols={2}>
+  <Card
+    title="Service"
+    href="/public/websocket/service"
+  />
+  <Card
+    title="Kline"
+    href="/public/websocket/kline"
+  />
+  <Card
+    title="Last price"
+    href="/public/websocket/lastprice"
+  />
+  <Card
+    title="Market statistics"
+    href="/public/websocket/market"
+  />
+  <Card
+    title="Market statistics for current day UTC"
+    href="/public/websocket/market-today"
+  />
+  <Card
+    title="Market trades"
+    href="/public/websocket/trades"
+  />
+  <Card
+    title="Market depth"
+    href="/public/websocket/depth"
+  />
+  <Card
+    title="Book Ticker"
+    href="/public/websocket/book-ticker"
+  />
+</CardGroup>
+
+## WebSocket Connection Management
+
+WebSocket endpoint is **```wss://api.whitebit.com/ws```**
+
+The API is based on [JSON RPC](https://www.jsonrpc.org/specification) of WebSocket protocol.
+
+⚠️️ **Connection Timeout** ⚠️️
+- Server closes websocket connection after **60 seconds of inactivity**
+- Inactivity is defined as no messages sent by the client
+
+### Maintaining Connection
+To keep the websocket connection active:
+- Send periodic ping messages every **50 seconds**
+- Handle potential connection closures gracefully in your application logic
+
+### Example Implementation
+
+```javascript
+// Establish websocket connection
+const socket = new WebSocket("wss://api.whitebit.com/ws");
+
+// Set up periodic ping
+setInterval(() => {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({
+            id: 0,
+            method: "ping",
+            params: [],
+        }));
+  }
+}, 50000); // Every 50 seconds
+```
+
+<Warning>
+  Rate limit 1000 ws connections per minute and 200 requests per minute in one connection.
+</Warning>
+
+**All endpoints return time in Unix-time format.**
+
+## ⤴️ Request message
+
+JSON Structure of request message:
+
+- `id` - **Integer**. Should be unique to handle response for your request.
+- `method` - **String**. Name of request.
+- `params` - **Array**. Here you pass params for method.
+
+🚫 WebSocket connection will be closed if invalid JSON was sent.
+
+### Types of request messages
+
+- Query (`ping`, `candles_request`, etc)
+- Subscription (`candles_subscribe`, `lastprice_subscribe`, etc). Repeated subscription will be cancelled for the same data type.
+
+## ⤵️ Response message
+
+JSON Structure of response message:
+
+- `id` - **Integer**. Id of request.
+- `result` - **Null** for failure, for success - look for responses below
+- `error` - **Null** for success, **JSON Object** for failure:
+  - `message` - Detailed text
+  - `code` - Error code
+
+| Code  | Message             |
+| ----- | ------------------- |
+| **1** | invalid argument    |
+| **2** | internal error      |
+| **3** | service unavailable |
+| **4** | method not found    |
+| **5** | service timeout     |
+
+## Types of response messages
+
+- Query result
+- Subscription status (success/failed)
+- Update events
+
+---
+
+## Examples
+
+**Example** messages for request with response:
+
+#### ⤴️ Request
+
+```json
+{
+  "id": 0,
+  "method": "ping",
+  "params": []
+}
+```
+
+#### ⤵️ Response
+
+```json
+{
+  "id": 0,
+  "result": "pong",
+  "error": null
+}
+```
+
+**Example** subscription:
+
+#### ⤴️ Request
+
+```json
+{
+  "id": 0,
+  "method": "candles_subscribe",
+  "params": []
+}
+```
+
+#### ⤵️ Response
+
+```json
+{
+  "id": 0,
+  "result": {
+    "status": "success"
+  },
+  "error": null
+}
+```
+
+#### 🔄 Update events
+
+```json
+{
+  "id": null,
+  "method": "candles_update",
+  "params": [] // look below for params
+}
+```

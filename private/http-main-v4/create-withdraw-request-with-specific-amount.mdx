@@ -1,0 +1,9 @@
+---
+title: "Create withdraw request with the specific withdraw amount (fee is not included)"
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/withdraw-pay
+---
+
+Example:
+
+- When you create base withdraw and set amount = 100 USD, receiver will recieve 100 USD - fee amount, and your balance will decrease by 100 USD.
+- When you use this endpoint and set amount = 100 USD, receiver will recieve 100 USD, and your balance will decrease by 100 USD + [fee](/glossary/#fee) amount.

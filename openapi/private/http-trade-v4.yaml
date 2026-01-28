@@ -1,0 +1,3244 @@
+openapi: 3.0.3
+info:
+  title: Private HTTP API V4 - Collateral Trading
+  description: |
+    WhiteBIT Private HTTP API V4 for collateral/margin trading operations.
+    
+    Base URL: https://whitebit.com
+    
+    All endpoints return time in Unix-time format.
+    All endpoints return either a JSON object or array.
+    For receiving responses from API calls please use http method POST.
+    
+    Authentication required for all endpoints.
+  version: 4.0.0
+servers:
+  - url: https://whitebit.com
+    description: WhiteBIT Global Server
+  - url: https://whitebit.eu
+    description: WhiteBIT EU Server
+
+paths:
+  /api/v4/collateral-account/balance:
+    post:
+      summary: Collateral Account Balance
+      description: |
+        This endpoint returns a current [collateral balance](/glossary#balance-collateral).
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "ticker": ["ticker is invalid."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ticker:
+                  type: string
+                  description: "[Asset](/glossary#assets) to be filtered. For example: BTC"
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Collateral account balance
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/balance-summary:
+    post:
+      summary: Collateral Account Balance Summary
+      description: |
+        This endpoint retrieves collateral account balance summary.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ticker:
+                  type: string
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Balance summary
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/collateral/limit:
+    post:
+      summary: Collateral Limit Order
+      description: |
+        This endpoint creates [limit order](/glossary#limit-order) using [collateral balance](/glossary#balance-collateral).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Note>
+        For open long position you have to use **buy**, for short **sell**. Also to close current position you have to place opposite order with current position amount.
+        </Note>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        - `32` - amount validation failed
+        - `33` - price validation failed
+        - `36` - clientOrderId validation failed
+        </Accordion>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - side
+                - amount
+                - price
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                  description: "Available margin [market](/glossary#market). Example: BTC_USDT"
+                side:
+                  type: string
+                  enum: [buy, sell]
+                  description: "Order type. Variables: 'buy' / 'sell'. For open long position use **buy**, for short **sell**."
+                amount:
+                  type: string
+                  description: "Amount of [stock](/glossary#stock) currency to buy or sell."
+                price:
+                  type: string
+                  description: "Price in [money](/glossary#money) currency. Example: '9800'"
+                clientOrderId:
+                  type: string
+                  description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores."
+                stopLoss:
+                  type: string
+                  description: "Stop loss price, if exist create [OTO](/glossary#OTO) with stop loss"
+                takeProfit:
+                  type: string
+                  description: "Take profit price, if exist create [OTO](/glossary#OTO) with take profit"
+                postOnly:
+                  type: boolean
+                  description: "Orders are guaranteed to be the [maker](/glossary#maker) order when [executed](/glossary#finished-orders)."
+                ioc:
+                  type: boolean
+                  description: "An immediate or cancel order (IOC) is an order that attempts to execute all or part immediately and then cancels any unfilled portion."
+                positionSide:
+                  type: string
+                  enum: [long, short, both]
+                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order created
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/collateral/bulk:
+    post:
+      summary: Collateral bulk limit order
+      description: |
+        This endpoint creates multiple collateral limit orders.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orders:
+                  type: array
+                  items:
+                    type: object
+                stopOnFail:
+                  type: boolean
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Orders created
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/collateral/market:
+    post:
+      summary: Collateral Market Order
+      description: |
+        This endpoint creates a collateral market order.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - side
+                - amount
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                amount:
+                  type: string
+                clientOrderId:
+                  type: string
+                stopLoss:
+                  type: string
+                takeProfit:
+                  type: string
+                positionSide:
+                  type: string
+                  enum: [long, short]
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order created
+        '422':
+          description: Internal validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/collateral/stop-limit:
+    post:
+      summary: Collateral Stop-Limit Order
+      description: |
+        This endpoint creates a collateral stop-limit order.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - side
+                - amount
+                - price
+                - activation_price
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                amount:
+                  type: string
+                price:
+                  type: string
+                activation_price:
+                  type: string
+                stopLoss:
+                  type: string
+                takeProfit:
+                  type: string
+                clientOrderId:
+                  type: string
+                positionSide:
+                  type: string
+                  enum: [long, short]
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order created
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/collateral/trigger-market:
+    post:
+      summary: Collateral Trigger Market Order
+      description: |
+        This endpoint creates a collateral trigger market order.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - side
+                - amount
+                - activation_price
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                amount:
+                  type: string
+                activation_price:
+                  type: string
+                clientOrderId:
+                  type: string
+                stopLoss:
+                  type: string
+                takeProfit:
+                  type: string
+                positionSide:
+                  type: string
+                  enum: [long, short]
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order created
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/summary:
+    post:
+      summary: Collateral Account Summary
+      description: |
+        This endpoint retrieves collateral account summary.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Account summary
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/positions:
+    post:
+      summary: Open Positions
+      description: |
+        This endpoint retrieves open positions.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Open positions
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/position/close:
+    post:
+      summary: Close Position
+      description: |
+        This endpoint closes a position.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - positionId
+                - market
+                - request
+                - nonce
+              properties:
+                positionId:
+                  type: integer
+                positionSide:
+                  type: string
+                  enum: [long, short]
+                market:
+                  type: string
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Position closed
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/positions/history:
+    post:
+      summary: Positions History
+      description: |
+        This endpoint retrieves positions history.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                positionId:
+                  type: integer
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Positions history
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/funding-history:
+    post:
+      summary: Funding History
+      description: |
+        This endpoint retrieves funding history.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Funding history
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/leverage:
+    post:
+      summary: Change Collateral Account Leverage
+      description: |
+        This endpoint changes account leverage.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - leverage
+                - request
+                - nonce
+              properties:
+                leverage:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Leverage changed
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/hedge-mode:
+    post:
+      summary: Collateral Account Hedge Mode
+      description: |
+        This endpoint retrieves hedge mode status.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Hedge mode status
+        '500':
+          description: Internal error
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/hedge-mode/update:
+    post:
+      summary: Update Collateral Account Hedge Mode
+      description: |
+        This endpoint updates hedge mode.
+        
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - hedgeMode
+                - request
+                - nonce
+              properties:
+                hedgeMode:
+                  type: boolean
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Hedge mode updated
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/orders/conditional:
+    post:
+      summary: Query unexecuted(active) conditional orders
+      description: |
+        This endpoint retrieves active conditional orders.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                offset:
+                  type: integer
+                  default: 0
+                limit:
+                  type: integer
+                  default: 50
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Active conditional orders
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/orders/oco:
+    post:
+      summary: Query unexecuted(active) OCO orders
+      description: |
+        This endpoint retrieves active OCO orders.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                offset:
+                  type: integer
+                  default: 0
+                limit:
+                  type: integer
+                  default: 50
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Active OCO orders
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/collateral/oco:
+    post:
+      summary: Create collateral OCO order
+      description: |
+        This endpoint creates a collateral OCO order.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - side
+                - amount
+                - price
+                - activation_price
+                - stop_limit_price
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                amount:
+                  type: string
+                price:
+                  type: string
+                activation_price:
+                  type: string
+                stop_limit_price:
+                  type: string
+                clientOrderId:
+                  type: string
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: OCO order created
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/conditional-cancel:
+    post:
+      summary: Cancel conditional order
+      description: |
+        This endpoint cancels a conditional order.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - id
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                id:
+                  type: integer
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order cancelled
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/oco-cancel:
+    post:
+      summary: Cancel OCO order
+      description: |
+        This endpoint cancels an OCO order.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - orderId
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                orderId:
+                  type: integer
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: OCO order cancelled
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/oto-cancel:
+    post:
+      summary: Cancel OTO order
+      description: |
+        This endpoint cancels an OTO order.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - otoId
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                otoId:
+                  type: integer
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: OTO order cancelled
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/convert/estimate:
+    post:
+      summary: Convert Estimate
+      description: |
+        This endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      operationId: convertEstimate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from
+                - to
+                - direction
+                - amount
+              properties:
+                from:
+                  type: string
+                  description: "From currency. Example: BTC"
+                  example: "BTC"
+                to:
+                  type: string
+                  description: "To currency. Example: USDT"
+                  example: "USDT"
+                direction:
+                  type: string
+                  description: "Convert amount direction, defines in which currency corresponding \"amount\" field is populated. Use \"to\" in case amount is in \"to\" currency, use \"from\" if amount is in \"from\" currency"
+                  enum: ["from", "to"]
+                  example: "to"
+                amount:
+                  type: string
+                  description: "Amount to convert or receive."
+                  example: "35,103.1"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+                request:
+                  type: string
+                  description: "Request path"
+            examples:
+              estimateReceive:
+                summary: "I would like to estimate convert of BTC to receive 35,103.1 USDT"
+                value:
+                  amount: "35,103.1"
+                  direction: "to"
+                  from: "BTC"
+                  to: "USDT"
+              estimateGive:
+                summary: "I would like to estimate convert of 1 BTC to USDT"
+                value:
+                  amount: "1"
+                  direction: "from"
+                  from: "BTC"
+                  to: "USDT"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: "Quote ID"
+                    example: "123"
+                  from:
+                    type: string
+                    description: "From currency"
+                    example: "BTC"
+                  to:
+                    type: string
+                    description: "To currency"
+                    example: "USDT"
+                  give:
+                    type: string
+                    description: "Amount to give"
+                    example: "50"
+                  receive:
+                    type: string
+                    description: "Amount to receive"
+                    example: "1714988.41577452"
+                  rate:
+                    type: string
+                    description: "Conversion rate"
+                    example: "34299.76831549"
+                  expireAt:
+                    type: integer
+                    description: "Quote expiration timestamp"
+                    example: 1699016476
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                termsNotAccepted:
+                  summary: "Terms Not Accepted"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      user: ["Terms of exchange are not accepted"]
+                directionInvalid:
+                  summary: "Direction Invalid"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      direction: ["Direction field does not exist in [from,to]."]
+                marketsNotAvailable:
+                  summary: "Markets Not Available"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      from: ["Conversion markets not available"]
+
+  /api/v4/convert/confirm:
+    post:
+      summary: Convert Confirm
+      description: |
+        This endpoint confirms an estimated quote.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      operationId: convertConfirm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quoteId
+              properties:
+                quoteId:
+                  type: string
+                  description: "Quote ID"
+                  example: "4050"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+                request:
+                  type: string
+                  description: "Request path"
+            example:
+              quoteId: "4050"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  finalGive:
+                    type: string
+                    description: "Final amount given"
+                    example: "0.00002901"
+                  finalReceive:
+                    type: string
+                    description: "Final amount received"
+                    example: "1"
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                quoteNotFound:
+                  summary: "Quote Not Found"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      quoteId: ["Quote could not be found"]
+
+  /api/v4/convert/history:
+    post:
+      summary: Convert History
+      description: |
+        This endpoint returns convert history.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
+      operationId: convertHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fromTicker:
+                  type: string
+                  description: "From currency. Example: BTC"
+                  example: "BTC"
+                toTicker:
+                  type: string
+                  description: "To currency. Example: USDT"
+                  example: "USDT"
+                from:
+                  type: string
+                  description: "From time filter. Example: 1699260637. Default: now()"
+                  example: "1699260637"
+                to:
+                  type: string
+                  description: "To time filter. Example: 1699260637. Default: now() +"
+                  example: "1699260637"
+                quoteId:
+                  type: string
+                  description: "Quote Id. Example: 4050"
+                  example: "4050"
+                limit:
+                  type: string
+                  description: "How many records to receive. Default: 100"
+                  example: "100"
+                offset:
+                  type: string
+                  description: "Amount to convert or receive. Default 0"
+                  example: "0"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+                request:
+                  type: string
+                  description: "Request path"
+            example:
+              fromTicker: "BTC"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: "Convert record ID"
+                          example: "4030"
+                        date:
+                          type: integer
+                          description: "Conversion timestamp"
+                          example: 1699020642
+                        give:
+                          type: string
+                          description: "Amount given"
+                          example: "0.00002901"
+                        receive:
+                          type: string
+                          description: "Amount received"
+                          example: "1"
+                        rate:
+                          type: string
+                          description: "Conversion rate"
+                          example: "34470.87211306"
+                        path:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              from:
+                                type: string
+                                example: "BTC"
+                              to:
+                                type: string
+                                example: "USDT"
+                              rate:
+                                type: string
+                                example: "34470.87211306"
+                  total:
+                    type: integer
+                    description: "Total number of records"
+                    example: 4
+                  limit:
+                    type: integer
+                    description: "Limit used in request"
+                    example: 1
+                  offset:
+                    type: integer
+                    description: "Offset used in request"
+                    example: 0
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                fromTickerInvalid:
+                  summary: "FromTicker Invalid"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      fromTicker: ["fromTicker is invalid."]
+                toTickerInvalid:
+                  summary: "ToTicker Invalid"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      toTicker: ["toTicker is invalid."]
+
+  /api/v4/market/fee:
+    post:
+      summary: Query Market Fee
+      description: |
+        This endpoint retrieves the maker and taker fees for a specific market. The `taker` and `maker` fields represent spot trading fees, while `futures_taker` and `futures_maker` represent futures trading fees. Futures fees return either the default values or custom values if set by the user.
+      tags:
+        - Market Fee
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: market
+          in: query
+          required: true
+          description: "Available market. Example: BTC_USDT"
+          schema:
+            type: string
+            example: BTC_USDT
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    nullable: true
+                    example: null
+                  taker:
+                    type: string
+                    description: Taker fee percentage
+                    example: "0.1"
+                  maker:
+                    type: string
+                    description: Maker fee percentage
+                    example: "0.1"
+                  futures_taker:
+                    type: string
+                    description: "Futures taker fee rate (default or custom if set by user)"
+                    example: "0.0002"
+                  futures_maker:
+                    type: string
+                    description: "Futures maker fee rate (default or custom if set by user)"
+                    example: "0.0001"
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: Query All Market Fees
+      description: |
+        This endpoint retrieves the maker and taker fees for all markets, including any custom fees. The `taker` and `maker` fields represent default spot trading fees, while `futures_taker` and `futures_maker` represent futures trading fees (returning default values or custom values if set by the user). The `custom_fee` object contains market-specific custom spot fees.
+      tags:
+        - Market Fee
+      security:
+        - ApiKeyAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    nullable: true
+                    example: null
+                  taker:
+                    type: string
+                    description: Default taker fee percentage
+                    example: "0.1"
+                  maker:
+                    type: string
+                    description: Default maker fee percentage
+                    example: "0.1"
+                  futures_taker:
+                    type: string
+                    description: "Futures taker fee rate (default or custom if set by user)"
+                    example: "0.0002"
+                  futures_maker:
+                    type: string
+                    description: "Futures maker fee rate (default or custom if set by user)"
+                    example: "0.0001"
+                  custom_fee:
+                    type: object
+                    description: Custom fees for specific markets
+                    additionalProperties:
+                      type: object
+                      properties:
+                        taker:
+                          type: string
+                        maker:
+                          type: string
+                    example:
+                      BTC_USDT:
+                        taker: "0.05"
+                        maker: "0.05"
+                      ETH_USDT:
+                        taker: "0.08"
+                        maker: "0.08"
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v4/trade-account/balance:
+    post:
+      summary: Trading Balance
+      description: |
+        This endpoint retrieves the [trade balance](/glossary#balance-spotbalance-trade) by currency [ticker](/glossary#ticker) or all balances.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "ticker": ["Ticker field should be a string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "ticker": ["Currency was not found."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 1,
+          "message": "Inner validation failed",
+          "errors": {
+            "amount": ["Invalid argument."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ticker:
+                  type: string
+                  description: "Currency's [ticker](/glossary#ticker). Example: BTC"
+                  example: BTC
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  example: "{{nonce}}"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    available:
+                      type: string
+                      description: Available balance of currency for trading
+                    freeze:
+                      type: string
+                      description: Balance of currency that is currently in active orders
+              example:
+                BTC:
+                  available: "0.123"
+                  freeze: "0.01"
+                USDT:
+                  available: "1000.50"
+                  freeze: "100.00"
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/new:
+    post:
+      summary: Create Limit Order
+      description: |
+        This endpoint creates [limit trading order](/glossary#limit-order).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        - `32` - amount validation failed
+        - `33` - price validation failed
+        - `36` - clientOrderId validation failed
+        - `37` - ioc and postOnly flags are both true
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field is required."],
+            "market": ["Market field is required."],
+            "price": ["Price field is required."],
+            "side": ["Side field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "side": ["Side field should contain only 'buy' or 'sell' values."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 33,
+          "message": "Validation failed",
+          "errors": {
+            "price": ["Price field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field should not be empty string."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LimitOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/bulk:
+    post:
+      summary: Bulk limit order
+      description: |
+        This endpoint creates bulk [limit trading orders](/glossary#limit-order).
+        
+        <Warning>
+        Limit: From 1 to 20 orders per request.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        - `32` - amount validation failed
+        - `33` - price validation failed
+        - `36` - clientOrderId validation failed
+        - `37` - ioc and postOnly flags are both true
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "orders": ["The orders must be an array."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orders:
+                  type: array
+                  description: "Array of limit orders"
+                  items:
+                    $ref: '#/components/schemas/BulkOrderItem'
+                stopOnFail:
+                  type: boolean
+                  description: "If true, stops processing remaining orders when one fails"
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Orders created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    result:
+                      $ref: '#/components/schemas/OrderResponse'
+                    error:
+                      type: string
+                      nullable: true
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/market:
+    post:
+      summary: Create market order
+      description: |
+        This endpoint creates [market trading order](/glossary#market-order).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        - `32` - amount validation failed
+        - `36` - clientOrderId validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field is required."],
+            "market": ["Market field is required."],
+            "side": ["Side field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/stock_market:
+    post:
+      summary: Create buy stock market order
+      description: |
+        This endpoint creates buy [stock](/glossary#stock) market trading [order](/glossary#orders).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        - `32` - amount validation failed
+        - `36` - clientOrderId validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field is required."],
+            "market": ["Market field is required."],
+            "side": ["Side field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/stop_limit:
+    post:
+      summary: Create stop-limit order
+      description: |
+        This endpoint creates [stop-limit trading order](/glossary#stop-limit-order).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        - `32` - amount validation failed
+        - `33` - price validation failed
+        - `36` - clientOrderId validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "activation_price": ["Activation price field is required."],
+            "amount": ["Amount field is required."],
+            "market": ["Market field is required."],
+            "price": ["Price field is required."],
+            "side": ["Side field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StopLimitOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/stop_market:
+    post:
+      summary: Create stop-market order
+      description: |
+        This endpoint creates [stop-market trading order](/glossary#stop-market-order).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        - `32` - amount validation failed
+        - `36` - clientOrderId validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "activation_price": ["Activation price field is required."],
+            "amount": ["Amount field is required."],
+            "market": ["Market field is required."],
+            "side": ["Side field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StopMarketOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/cancel:
+    post:
+      summary: Cancel order
+      description: |
+        Cancel existing [order](/glossary#orders).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Note>
+        - Modification by clientOrderId takes priority over orderId.
+        - The request supports working only with orderId or only with clientOrderId.
+        - You cannot pass both values at the same time.
+        </Note>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field is required."],
+            "orderId": ["OrderId field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 2,
+          "message": "Inner validation failed",
+          "errors": {
+            "orderId": ["Unexecuted order was not found."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                  description: "Available [market](/glossary#market). Example: BTC_USDT"
+                  example: BTC_USDT
+                orderId:
+                  type: integer
+                  description: "Order Id. Example: 4180284841. Required if clientOrderId is not set."
+                  example: 123456
+                clientOrderId:
+                  type: string
+                  description: "Custom client order id. Example: 'customId11'. Required if orderId is not set."
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/cancel/all:
+    post:
+      summary: Cancel all orders
+      description: |
+        Cancels all orders that meet the conditions [order](/glossary#orders).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "type": ["The type must be an array."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                  description: "Available [market](/glossary#market). Example: BTC_USDT"
+                  example: BTC_USDT
+                type:
+                  type: array
+                  description: "Order types value. Example: 'spot', 'margin', 'futures'"
+                  items:
+                    type: string
+                    enum: [spot, margin, futures]
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Orders cancelled successfully
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/orders:
+    post:
+      summary: Query unexecuted(active) orders
+      description: |
+        This endpoint retrieves [active orders](/glossary#active-orders) (orders not yet executed).
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+        
+        <Note>
+        Search across all markets is available only if clientOrderId and orderId are not provided.
+        </Note>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available"]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "limit": ["The limit may not be greater than 100."],
+            "offset": ["The offset may not be greater than 10000."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                  description: "Available [market](/glossary#market). Example: BTC_USDT"
+                  example: BTC_USDT
+                orderId:
+                  type: integer
+                  description: "Available orderId. Example: 3134995325"
+                clientOrderId:
+                  type: string
+                  description: "Available clientOrderId. Example: customId11"
+                offset:
+                  type: integer
+                  default: 0
+                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0"
+                limit:
+                  type: integer
+                  default: 50
+                  maximum: 100
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: List of active orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/trade-account/executed-history:
+    post:
+      summary: Query executed order history
+      description: |
+        This endpoint retrieves all deals for all markets. Can be filtered by single market if needed.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+        
+        <Note>
+        This method can retrieve data not older than 6 months from current month. For older data, use the Report on the History page in your account.
+        </Note>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "limit": ["Limit field should be an integer."],
+            "offset": ["Offset field should be an integer."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field format is invalid."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                  description: "Requested [market](/glossary#market). Example: BTC_USDT"
+                clientOrderId:
+                  type: string
+                  description: "Filter by custom order identifier"
+                startDate:
+                  type: integer
+                  description: "Start date in Unix-time format"
+                endDate:
+                  type: integer
+                  description: "End date in Unix-time format"
+                offset:
+                  type: integer
+                  default: 0
+                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0"
+                limit:
+                  type: integer
+                  default: 50
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Executed order history
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: "Deal ID"
+                      clientOrderId:
+                        type: string
+                        description: "Custom order ID (empty if not specified)"
+                      time:
+                        type: number
+                        description: "Timestamp of executed deal"
+                      side:
+                        type: string
+                        enum: [buy, sell]
+                      role:
+                        type: integer
+                        description: "1 - maker, 2 - taker"
+                      amount:
+                        type: string
+                        description: "Amount in stock currency"
+                      price:
+                        type: string
+                      deal:
+                        type: string
+                        description: "Amount in money currency"
+                      fee:
+                        type: string
+                        description: "Paid fee"
+                      orderId:
+                        type: integer
+                      feeAsset:
+                        type: string
+              example:
+                BTC_USDT:
+                  - id: 8846967538
+                    clientOrderId: "customId11"
+                    time: 1739310711.387599
+                    side: "buy"
+                    role: 2
+                    amount: "2.717"
+                    price: "3.3419"
+                    deal: "9.0799423"
+                    fee: "0.002717"
+                    orderId: 1164603916051
+                    feeAsset: "SUI"
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/trade-account/order:
+    post:
+      summary: Query executed order deals
+      description: |
+        This endpoint retrieves deals for a specific order.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orderId
+                - request
+                - nonce
+              properties:
+                orderId:
+                  type: integer
+                offset:
+                  type: integer
+                  default: 0
+                limit:
+                  type: integer
+                  default: 50
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order deals
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/trade-account/order/history:
+    post:
+      summary: Query executed orders
+      description: |
+        This endpoint retrieves order history.
+        
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                offset:
+                  type: integer
+                  default: 0
+                limit:
+                  type: integer
+                  default: 50
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order history
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/modify:
+    post:
+      summary: Modify order
+      description: |
+        This endpoint modifies existing [order](/glossary#orders).
+        
+        Supported order types: limit, stop limit, stop market.
+        
+        Request must contain one of the following parameters: amount, price, activationPrice.
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Note>
+        - Use total parameter instead of amount for modify buy stop market order.
+        - Modification by clientOrderId takes priority.
+        - The request supports working only with orderId or only with clientOrderId.
+        - You cannot pass both values at the same time.
+        </Note>
+        
+        <Accordion title="Error Codes">
+        **Status 400** (client errors): 1, 2, 6, 20, 24, 101, 158
+        
+        **Status 422** (business logic): 10, 11, 12, 13, 14, 15, 16, 17, 25, 27, 40, 42, 51, 103, 104, 105, 106, 111, 112, 113, 114, 115, 150, 151, 152, 153, 155, 157, 159, 160, 161, 162, 163, 250, 251, 300, 302, 330
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 2,
+          "message": "Inner validation failed",
+          "errors": {
+            "orderId": ["Unexecuted order was not found."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 10,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - request
+                - nonce
+              properties:
+                orderId:
+                  type: integer
+                  description: "Active order id. Required if clientOrderId is not set."
+                clientOrderId:
+                  type: string
+                  description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. Required if orderId is not set."
+                market:
+                  type: string
+                  description: "Available [market](/glossary#market). Example: BTC_USDT"
+                amount:
+                  type: string
+                  description: "Amount of [stock](/glossary#stock) currency to buy or sell. Example: '0.001' or 0.001"
+                total:
+                  type: string
+                  description: "Total of [money](/glossary#money) currency to buy or sell. Example: '0.001' or 0.001"
+                price:
+                  type: string
+                  description: "Price in [money](/glossary#money) currency. Example: '9800' or 9800"
+                activationPrice:
+                  type: string
+                  description: "Activation price in [money](/glossary#money) currency. Example: '10000' or 10000"
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Order modified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Bad request - client errors (invalid arguments, order not found, quote expired, activation price issues)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable entity - business logic validation failed (balance insufficient, trading restrictions, order type conflicts, price bands exceeded)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/kill-switch:
+    post:
+      summary: Sync kill-switch timer
+      description: |
+        This endpoint creates, updates, deletes [kill-switch timer](/glossary#kill-switch-timer).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Note>
+        - If timeout=null - delete existing timer by market.
+        - If types=null - create timer by market for all order types.
+        </Note>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field is required."],
+            "timeout": ["Timeout field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "timeout": ["Timeout should be at least 5."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - timeout
+              properties:
+                market:
+                  type: string
+                  description: "Available [market](/glossary#market). Example: BTC_USDT"
+                timeout:
+                  type: string
+                  description: "Timer value. Example: '5'-'600' or null"
+                types:
+                  type: array
+                  description: "Order types value. Example: 'spot', 'margin', 'futures' or null"
+                  items:
+                    type: string
+                    enum: [spot, margin, futures]
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Kill-switch timer synced
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v4/order/kill-switch/status:
+    post:
+      summary: Status kill-switch timer
+      description: |
+        This endpoint retrieves the status of [kill-switch timer](/glossary#kill-switch-timer).
+        
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+        
+        <Accordion title="Error Codes">
+        - `30` - default validation error code
+        - `31` - market validation failed
+        </Accordion>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                  description: "Available [market](/glossary#market). Example: BTC_USDT"
+                request:
+                  type: string
+                nonce:
+                  type: string
+      responses:
+        '200':
+          description: Kill-switch status
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-TXC-APIKEY
+      description: |
+        API Key authentication for private endpoints.
+        
+        Required headers:
+        - X-TXC-APIKEY: Your API key
+        - X-TXC-PAYLOAD: Base64 encoded JSON payload
+        - X-TXC-SIGNATURE: HMAC SHA512 signature
+  schemas:
+    LimitOrderRequest:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - price
+        - request
+        - nonce
+      properties:
+        market:
+          type: string
+          description: "Available [market](/glossary#market). Example: BTC_USDT"
+          example: BTC_USDT
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+        amount:
+          type: string
+          description: "Amount of [stock](/glossary#stock) currency to buy or sell. Example: '0.001' or 0.001"
+          example: "0.001"
+        price:
+          type: string
+          description: "Price in money currency. Example: '9800' or 9800"
+          example: "9800"
+        clientOrderId:
+          type: string
+          description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+        postOnly:
+          type: boolean
+          default: false
+          description: "[Orders](/glossary#orders) are guaranteed to be the [maker](/glossary#maker) order when [executed](/glossary#finished-orders). Variables: 'true' / 'false' Example: 'false'."
+        ioc:
+          type: boolean
+          default: false
+          description: "An immediate or cancel order (IOC) is an order that attempts to execute all or part immediately and then cancels any unfilled portion of the order. Variables: 'true' / 'false' Example: 'false'."
+        bboRole:
+          type: integer
+          enum: [1, 2]
+          description: "When you activate the [BBO](/glossary#bbo) option when placing Limit orders, the system automatically selects the best market prices for executing these orders in one of two ways. Variables: 1 - Queue Method / 2 - Counterparty Method. You can use 2 method with ioc flag. Example: 2."
+        stp:
+          type: string
+          enum: [no, cancel_both, cancel_new, cancel_old]
+          default: no
+          description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
+        rpi:
+          type: boolean
+          description: "Retail Price Improvement (RPI) order: Order type designed to offer better prices to retail users. It is post-only and can match only with orders from the Web or Mobile App. RPI orders can be placed only by the designated Market Makers. Example: true"
+          example: true
+        request:
+          type: string
+        nonce:
+          type: string
+
+    MarketOrderRequest:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - request
+        - nonce
+      properties:
+        market:
+          type: string
+          description: "Available [market](/glossary#market). Example: BTC_USDT"
+          example: BTC_USDT
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+        amount:
+          type: string
+          description: "Amount of [money](/glossary#money) currency to buy or amount in [stock](/glossary#stock) currency to sell. Example: '5 USDT' for buy (min total) and '0.001 BTC' for sell (min amount)."
+        clientOrderId:
+          type: string
+          description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+        stp:
+          type: string
+          enum: [no, cancel_both, cancel_new, cancel_old]
+          description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
+        request:
+          type: string
+        nonce:
+          type: string
+
+    StopLimitOrderRequest:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - price
+        - activation_price
+        - request
+        - nonce
+      properties:
+        market:
+          type: string
+          description: "Available [market](/glossary#market). Example: BTC_USDT"
+          example: BTC_USDT
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+        amount:
+          type: string
+          description: "Amount of [stock](/glossary#stock) currency to buy or sell. Example: '0.001' or 0.001"
+        price:
+          type: string
+          description: "Price in [money](/glossary#money) currency. Example: '9800' or 9800"
+        activation_price:
+          type: string
+          description: "Activation price in [money](/glossary#money) currency. Example: '10000' or 10000"
+        clientOrderId:
+          type: string
+          description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+        bboRole:
+          type: integer
+          enum: [1, 2]
+          description: "When you activate the [BBO](/glossary#bbo) option when placing Limit orders, the system automatically selects the best market prices for executing these orders in one of two ways. Variables: 1 - Queue Method / 2 - Counterparty Method."
+        stp:
+          type: string
+          enum: [no, cancel_both, cancel_new, cancel_old]
+          description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
+          example: "no"
+        request:
+          type: string
+        nonce:
+          type: string
+
+    StopMarketOrderRequest:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - activation_price
+        - request
+        - nonce
+      properties:
+        market:
+          type: string
+          description: "Available [market](/glossary#market). Example: BTC_USDT"
+          example: BTC_USDT
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+        amount:
+          type: string
+          description: "Amount of [money](/glossary#money) currency to buy or amount in [stock](/glossary#stock) currency to sell. Example: '0.01' or 0.01 for buy and '0.0001' for sell."
+        activation_price:
+          type: string
+          description: "Activation price in [money](/glossary#money) currency. Example: '10000' or 10000"
+        clientOrderId:
+          type: string
+          description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+        stp:
+          type: string
+          enum: [no, cancel_both, cancel_new, cancel_old]
+          description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
+          example: "no"
+        request:
+          type: string
+        nonce:
+          type: string
+
+    BulkOrderItem:
+      type: object
+      properties:
+        side:
+          type: string
+          enum: [buy, sell]
+        amount:
+          type: string
+        price:
+          type: string
+        market:
+          type: string
+        postOnly:
+          type: boolean
+        ioc:
+          type: boolean
+        clientOrderId:
+          type: string
+        rpi:
+          type: boolean
+          description: Enable Retail Price Improvement
+          example: true
+
+    OrderResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+          description: "Order ID"
+        clientOrderId:
+          type: string
+          description: "Custom client order ID; empty string if not specified"
+        market:
+          type: string
+          description: "Deal market"
+        side:
+          type: string
+          description: "Order side"
+        type:
+          type: string
+          description: "Order type"
+        timestamp:
+          type: number
+          description: "Timestamp of order creation"
+        dealMoney:
+          type: string
+          description: "If order finished - amount in money currency that is finished"
+        dealStock:
+          type: string
+          description: "If order finished - amount in stock currency that is finished"
+        amount:
+          type: string
+          description: "Amount"
+        left:
+          type: string
+          description: "If order not finished - rest of the amount that must be finished"
+        dealFee:
+          type: string
+          description: "Fee in money that you pay if order is finished"
+        price:
+          type: string
+          description: "Price"
+        postOnly:
+          type: boolean
+          description: "PostOnly flag"
+        ioc:
+          type: boolean
+          description: "IOC flag"
+        status:
+          type: string
+          description: "Order status"
+        stp:
+          type: string
+          description: "Self trade prevention mode"
+        positionSide:
+          type: string
+          description: "Position side (for collateral orders)"
+        rpi:
+          type: boolean
+          description: "RPI order flag - indicates whether Retail Price Improvement was enabled for this order"
+          example: true
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: "Error code"
+        message:
+          type: string
+          description: "Error message"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: "Detailed error information"
+tags:
+  - name: Collateral Trading
+    description: Endpoints for collateral/margin trading operations

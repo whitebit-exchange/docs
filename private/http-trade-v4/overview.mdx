@@ -1,0 +1,229 @@
+---
+title: "Overview"
+description: "Complete guide to WhiteBIT's Private HTTP API V4 for trading operations including spot, collateral, and convert endpoints."
+---
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+
+Base URL is https://whitebit.com
+
+Endpoint example: https://whitebit.com/api/v4/{endpoint}
+
+All endpoints return time in Unix-time format.
+
+All endpoints return either a **JSON** object or array.
+
+For receiving responses from API calls please use http method **POST**
+
+## Error messages V4 format
+
+All API V4 endpoints return errors in the following format:
+
+```json
+{
+  "code": 0,
+  "message": "MESSAGE",
+  "errors": {
+    "PARAM1": ["MESSAGE"],
+    "PARAM2": ["MESSAGE"]
+  }
+}
+```
+
+---
+
+## Market Fee
+
+Endpoints for querying market fees:
+
+<CardGroup cols={2}>
+  <Card title="Query Market Fee" icon="percent" href="/private/http-trade-v4/query-market-fee">
+    Retrieve maker and taker fees for a specific market
+  </Card>
+  <Card title="Query All Market Fees" icon="list" href="/private/http-trade-v4/query-all-market-fees">
+    Retrieve maker and taker fees for all markets
+  </Card>
+</CardGroup>
+
+---
+
+## Spot Trading
+
+Endpoints for spot trading operations:
+
+### Account & Balance
+
+<CardGroup cols={2}>
+  <Card title="Trading Balance" icon="wallet" href="/private/http-trade-v4/trading-balance">
+    Get trade balance by currency ticker or all balances
+  </Card>
+</CardGroup>
+
+### Order Management
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" icon="chart-line" href="/private/http-trade-v4/create-limit-order">
+    Create a limit trading order
+  </Card>
+  <Card title="Bulk Limit Order" icon="layer-group" href="/private/http-trade-v4/bulk-limit-order">
+    Create multiple limit orders (1-20 orders)
+  </Card>
+  <Card title="Create Market Order" icon="bolt" href="/private/http-trade-v4/create-market-order">
+    Create a market trading order
+  </Card>
+  <Card title="Create Buy Stock Market Order" icon="shopping-cart" href="/private/http-trade-v4/create-buy-stock-market-order">
+    Create buy stock market trading order
+  </Card>
+  <Card title="Create Stop-Limit Order" icon="stop" href="/private/http-trade-v4/create-stop-limit-order">
+    Create a stop-limit trading order
+  </Card>
+  <Card title="Create Stop-Market Order" icon="hand" href="/private/http-trade-v4/create-stop-market-order">
+    Create a stop-market trading order
+  </Card>
+  <Card title="Modify Order" icon="edit" href="/private/http-trade-v4/modify-order">
+    Modify an existing order
+  </Card>
+  <Card title="Cancel Order" icon="xmark" href="/private/http-trade-v4/cancel-order">
+    Cancel a specific order
+  </Card>
+  <Card title="Cancel All Orders" icon="trash" href="/private/http-trade-v4/cancel-all-orders">
+    Cancel all orders in a market
+  </Card>
+</CardGroup>
+
+### Order Queries
+
+<CardGroup cols={2}>
+  <Card title="Query Unexecuted Orders" icon="clock" href="/private/http-trade-v4/query-unexecuted-orders">
+    Get active/unexecuted orders
+  </Card>
+  <Card title="Query Executed Order History" icon="history" href="/private/http-trade-v4/query-executed-order-history">
+    Get executed order history
+  </Card>
+  <Card title="Query Executed Order Deals" icon="handshake" href="/private/http-trade-v4/query-executed-order-deals">
+    Get executed order deals
+  </Card>
+  <Card title="Query Executed Orders" icon="list-check" href="/private/http-trade-v4/query-executed-orders">
+    Get all executed orders
+  </Card>
+</CardGroup>
+
+### Kill Switch
+
+<CardGroup cols={2}>
+  <Card title="Sync Kill-Switch Timer" icon="timer" href="/private/http-trade-v4/sync-kill-switch-timer">
+    Synchronize kill-switch timer
+  </Card>
+  <Card title="Status Kill-Switch Timer" icon="circle-info" href="/private/http-trade-v4/status-kill-switch-timer">
+    Get kill-switch timer status
+  </Card>
+</CardGroup>
+
+---
+
+## Collateral Trading
+
+Endpoints for collateral (margin) trading operations:
+
+### Account & Balance
+
+<CardGroup cols={2}>
+  <Card title="Collateral Account Balance" icon="wallet" href="/private/http-trade-v4/collateral-account-balance">
+    Get collateral account balance
+  </Card>
+  <Card title="Collateral Account Balance Summary" icon="file-invoice-dollar" href="/private/http-trade-v4/collateral-account-balance-summary">
+    Get collateral account balance summary
+  </Card>
+  <Card title="Collateral Account Summary" icon="chart-pie" href="/private/http-trade-v4/collateral-account-summary">
+    Get complete collateral account summary
+  </Card>
+  <Card title="Change Collateral Account Leverage" icon="sliders" href="/private/http-trade-v4/change-collateral-account-leverage">
+    Change account leverage
+  </Card>
+  <Card title="Collateral Account Hedge Mode" icon="shield" href="/private/http-trade-v4/collateral-account-hedge-mode">
+    Get hedge mode status
+  </Card>
+  <Card title="Update Collateral Account Hedge Mode" icon="shield-halved" href="/private/http-trade-v4/update-collateral-account-hedge-mode">
+    Update hedge mode settings
+  </Card>
+</CardGroup>
+
+### Order Management
+
+<CardGroup cols={2}>
+  <Card title="Collateral Limit Order" icon="chart-line" href="/private/http-trade-v4/collateral-limit-order">
+    Create a collateral limit order
+  </Card>
+  <Card title="Collateral Bulk Limit Order" icon="layer-group" href="/private/http-trade-v4/collateral-bulk-limit-order">
+    Create multiple collateral limit orders
+  </Card>
+  <Card title="Collateral Market Order" icon="bolt" href="/private/http-trade-v4/collateral-market-order">
+    Create a collateral market order
+  </Card>
+  <Card title="Collateral Stop-Limit Order" icon="stop" href="/private/http-trade-v4/collateral-stop-limit-order">
+    Create a collateral stop-limit order
+  </Card>
+  <Card title="Collateral Trigger Market Order" icon="hand" href="/private/http-trade-v4/collateral-trigger-market-order">
+    Create a collateral trigger market order
+  </Card>
+  <Card title="Create Collateral OCO Order" icon="code-branch" href="/private/http-trade-v4/create-collateral-oco-order">
+    Create OCO (One-Cancels-Other) order
+  </Card>
+  <Card title="Cancel OCO Order" icon="xmark" href="/private/http-trade-v4/cancel-oco-order">
+    Cancel an OCO order
+  </Card>
+  <Card title="Cancel Conditional Order" icon="ban" href="/private/http-trade-v4/cancel-conditional-order">
+    Cancel a conditional order
+  </Card>
+  <Card title="Cancel OTO Order" icon="circle-xmark" href="/private/http-trade-v4/cancel-oto-order">
+    Cancel an OTO (One-Triggers-Other) order
+  </Card>
+</CardGroup>
+
+### Order Queries
+
+<CardGroup cols={2}>
+  <Card title="Query Unexecuted Conditional Orders" icon="list" href="/private/http-trade-v4/query-unexecuted-conditional-orders">
+    Get active conditional orders
+  </Card>
+  <Card title="Query Unexecuted OCO Orders" icon="code-branch" href="/private/http-trade-v4/query-unexecuted-oco-orders">
+    Get active OCO orders
+  </Card>
+</CardGroup>
+
+### Position Management
+
+<CardGroup cols={2}>
+  <Card title="Open Positions" icon="arrows-left-right" href="/private/http-trade-v4/open-positions">
+    Get all open positions
+  </Card>
+  <Card title="Close Position" icon="door-closed" href="/private/http-trade-v4/close-position">
+    Close a specific position
+  </Card>
+  <Card title="Positions History" icon="clock-rotate-left" href="/private/http-trade-v4/positions-history">
+    Get positions history
+  </Card>
+  <Card title="Funding History" icon="money-bill-transfer" href="/private/http-trade-v4/funding-history">
+    Get funding history
+  </Card>
+</CardGroup>
+
+---
+
+## Convert
+
+Endpoints for currency conversion operations:
+
+<CardGroup cols={2}>
+  <Card title="Convert Estimate" icon="calculator" href="/private/http-trade-v4/convert-estimate">
+    Get conversion estimate quote
+  </Card>
+  <Card title="Convert Confirm" icon="check" href="/private/http-trade-v4/convert-confirm">
+    Confirm and execute conversion
+  </Card>
+  <Card title="Convert History" icon="history" href="/private/http-trade-v4/convert-history">
+    Get conversion history
+  </Card>
+</CardGroup>

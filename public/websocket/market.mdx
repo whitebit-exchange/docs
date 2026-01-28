@@ -1,0 +1,25 @@
+---
+asyncapi: "/asyncapi/public/market.yaml /ws"
+title: Market Statistics
+---
+
+## Field Descriptions
+
+Understanding the market statistics fields:
+
+- **period**: The time window in seconds for the statistics
+- **last**: Current last trade price
+- **open**: The price at the beginning of the period (at 'now - period' time)
+- **close**: The price that closes/ends the period (typically same as `last` for current period)
+- **high**: Highest price reached during the period
+- **low**: Lowest price reached during the period
+- **volume**: Total trading volume in [stock](/glossary#stock) currency (base currency)
+- **deal**: Total trading volume in [money](/glossary#money) currency (quote currency)
+
+## Subscription Limitation
+
+<Warning>
+You can only subscribe for a **24-hour period** (86400 seconds). Custom period subscriptions are not supported.
+</Warning>
+
+For queries (`market_request`), you can specify any valid period. For subscriptions (`market_subscribe`), the period is fixed at 24 hours from the current time.
