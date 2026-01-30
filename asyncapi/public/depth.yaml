@@ -20,8 +20,6 @@ channels:
     description: |
       Order book depth operations.
 
-      **Update Interval**: Every 100ms (for subscriptions)
-
       **Update Behavior**:
       
       <Note>
@@ -32,11 +30,6 @@ channels:
       If 10 seconds have elapsed without a change in the depth subscription, a snapshot message will be pushed again (keepalive).
       </Info>
 
-      **Order Completion**: Finished orders will be represented as `[price, "0"]` in incremental updates.
-
-      **Multiple Subscriptions**: Supported via the fourth parameter flag. You can subscribe to as many markets as needed, with one subscription per market with specific parameters.
-
-      **Price Intervals**: "0" (no interval), "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"
     messages:
       depthRequest:
         $ref: '#/components/messages/depthRequest'
