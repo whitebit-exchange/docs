@@ -221,6 +221,13 @@ paths:
                     type: object
                 stopOnFail:
                   type: boolean
+                  default: false
+                  description: |
+                    Controls how the bulk order processor handles failures.
+
+                    When true: Processing stops at the first order that fails validation or execution. Only orders up to (but not including) the failed order are processed.
+
+                    When false (default): All orders in the bulk request are processed regardless of individual failures. Each order result is returned in the response array.
                 request:
                   type: string
                 nonce:
