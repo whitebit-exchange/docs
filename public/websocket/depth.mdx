@@ -23,6 +23,12 @@ After successful subscription, the server sends a **full snapshot** of the order
 If 10 seconds elapse without any order book changes, the server will push a full snapshot again as a keepalive mechanism.
 </Info>
 
+## Subscription Parameters
+
+- **Update interval**: Every 100ms (for subscriptions)
+- **Multiple subscriptions**: Supported via the fourth parameter flag. One subscription per market with specific parameters.
+- **Price intervals**: "0" (no interval), "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"
+
 ## Maintaining a Local Order Book
 
 To maintain an accurate local order book, follow this algorithm:
