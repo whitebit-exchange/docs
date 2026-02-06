@@ -25,6 +25,10 @@ paths:
       description: |
         This endpoint returns a current [collateral balance](/glossary#balance-collateral).
         
+        <Note>
+        Response is cached for: NONE
+        </Note>
+        
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
@@ -53,14 +57,32 @@ paths:
               properties:
                 ticker:
                   type: string
-                  description: "[Asset](/glossary#assets) to be filtered. For example: BTC"
+                  description: |
+                    [Asset](/glossary#assets) to be filtered. For example: BTC
+                    
+                    If not specified, returns balances for all assets.
+                  example: BTC
                 request:
                   type: string
+                  description: Request signature
                 nonce:
                   type: string
+                  description: Unique request identifier
       responses:
         '200':
-          description: Collateral account balance
+          description: Successful response - returns collateral balances by asset
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object with asset tickers as keys and balance amounts as values
+                additionalProperties:
+                  type: number
+                  description: Balance amount for the asset
+              example:
+                BTC: 1
+                USDT: 1000
+                ETH: 5.5
         '422':
           description: Inner validation failed
           content:
@@ -74,11 +96,27 @@ paths:
     post:
       summary: Collateral Account Balance Summary
       description: |
-        This endpoint retrieves collateral account balance summary.
+        This endpoint retrieves collateral account balance summary with detailed breakdown per asset.
+        
+        <Note>
+        Response is cached for: NONE
+        </Note>
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
+        
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "ticker": ["ticker is invalid."]
+          }
+        }
+        ```
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -92,13 +130,58 @@ paths:
               properties:
                 ticker:
                   type: string
+                  description: |
+                    Filter by requested asset. For example: BTC
+                    
+                    If not specified, returns summary for all assets.
+                  example: BTC
                 request:
                   type: string
+                  description: Request signature
                 nonce:
                   type: string
+                  description: Unique request identifier
       responses:
         '200':
-          description: Balance summary
+          description: Successful response - returns detailed balance information per asset
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    asset:
+                      type: string
+                      description: Asset ticker symbol
+                      example: BTC
+                    balance:
+                      type: string
+                      description: Current balance amount
+                      example: "0.5"
+                    borrow:
+                      type: string
+                      description: Amount currently borrowed
+                      example: "0"
+                    availableWithoutBorrow:
+                      type: string
+                      description: Available balance without using borrow
+                      example: "0.5"
+                    availableWithBorrow:
+                      type: string
+                      description: Available balance including borrowing capacity
+                      example: "123.456"
+              example:
+                - asset: "BTC"
+                  balance: "0.5"
+                  borrow: "0"
+                  availableWithoutBorrow: "0.5"
+                  availableWithBorrow: "123.456"
+                - asset: "USDT"
+                  balance: "1000"
+                  borrow: "0"
+                  availableWithoutBorrow: "1000"
+                  availableWithBorrow: "5000"
         '422':
           description: Inner validation failed
           content:
@@ -1521,19 +1604,15 @@ paths:
                     type: object
                     description: Custom fees for specific markets
                     additionalProperties:
-                      type: object
-                      properties:
-                        taker:
-                          type: string
-                        maker:
-                          type: string
+                      type: array
+                      items:
+                        type: string
+                      minItems: 2
+                      maxItems: 2
+                      description: "[maker fee, taker fee]"
                     example:
-                      BTC_USDT:
-                        taker: "0.05"
-                        maker: "0.05"
-                      ETH_USDT:
-                        taker: "0.08"
-                        maker: "0.08"
+                      BTC_USDT: ["0.1", "0.2"]
+                      ETH_USDT: ["0.1", "0.2"]
         '422':
           description: Validation failed
           content:
@@ -1656,6 +1735,7 @@ paths:
         - `31` - market validation failed
         - `32` - amount validation failed
         - `33` - price validation failed
+        - `35` - maker fee validation failed
         - `36` - clientOrderId validation failed
         - `37` - ioc and postOnly flags are both true
         </Accordion>
@@ -1723,6 +1803,115 @@ paths:
           }
         }
         ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": [
+              "Given amount is less than min amount 0.001",
+              "Min amount step = 0.000001"
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": ["ClientOrderId field should be a string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": [
+              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": [
+              "This client order id is already used by the current account."
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 37,
+          "message": "Validation failed",
+          "errors": {
+            "ioc": ["Either IOC or PostOnly flag in true state is allowed."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "total": ["Total(amount * price) is less than 5.05"]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": [
+              "Min amount step = 0.01"
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 33,
+          "message": "Validation failed",
+          "errors": {
+            "price": ["Price field should be at least 10", "Min price step = 0.000001"]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 33,
+          "message": "Validation failed",
+          "errors": {
+            "price": ["Price should be greater than 0."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 35,
+          "message": "Validation failed",
+          "errors": {
+            "maker_fee": ["Incorrect maker fee"]
+          }
+        }
+        ```
         </Accordion>
       tags:
         - Spot Trading
@@ -1785,6 +1974,51 @@ paths:
           }
         }
         ```
+        
+        Individual order errors (in multiply response):
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field is required."],
+            "market": ["Market field is required."],
+            "price": ["Price field is required."],
+            "side": ["Side field is required."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "side": ["Side field should contain only 'buy' or 'sell' values."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 33,
+          "message": "Validation failed",
+          "errors": {
+            "price": ["Price field should be numeric string or number."]
+          }
+        }
+        ```
         </Accordion>
       tags:
         - Spot Trading
@@ -1818,19 +2052,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: Orders created
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    result:
-                      $ref: '#/components/schemas/OrderResponse'
-                    error:
-                      type: string
-                      nullable: true
+          $ref: '#/components/responses/BulkLimitOrderResponse'
         '400':
           description: Inner validation failed
           content:
@@ -1878,6 +2100,16 @@ paths:
         
         ```json
         {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "side": ["Side field should contain only 'buy' or 'sell' values."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 32,
           "message": "Validation failed",
           "errors": {
@@ -1898,10 +2130,55 @@ paths:
         
         ```json
         {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field should not be empty string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 32,
           "message": "Validation failed",
           "errors": {
             "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": [
+              "Given amount is less than min amount 0.001",
+              "Min amount step = 0.000001"
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": ["ClientOrderId field should be a string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": [
+              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+            ]
           }
         }
         ```
@@ -1970,10 +2247,73 @@ paths:
         
         ```json
         {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "side": ["Side field should contain only 'buy' or 'sell' values."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field should not be empty string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 32,
           "message": "Validation failed",
           "errors": {
             "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": [
+              "Given amount is less than min amount 0.001",
+              "Min amount step = 0.000001"
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": ["ClientOrderId field should be a string."]
           }
         }
         ```
@@ -2045,6 +2385,36 @@ paths:
         
         ```json
         {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "side": ["Side field should contain only 'buy' or 'sell' values."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 33,
+          "message": "Validation failed",
+          "errors": {
+            "price": ["Price field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 31,
           "message": "Validation failed",
           "errors": {
@@ -2055,10 +2425,65 @@ paths:
         
         ```json
         {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field should not be empty string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 32,
           "message": "Validation failed",
           "errors": {
             "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": [
+              "Given amount is less than min amount 0.001",
+              "Min amount step = 0.000001"
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "total": ["Total(amount * price) is less than 5.05"]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": ["ClientOrderId field should be a string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": [
+              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+            ]
           }
         }
         ```
@@ -2128,6 +2553,26 @@ paths:
         
         ```json
         {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "side": ["Side field should contain only 'buy' or 'sell' values."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount field should be numeric string or number."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 31,
           "message": "Validation failed",
           "errors": {
@@ -2138,10 +2583,77 @@ paths:
         
         ```json
         {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field should not be empty string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 32,
           "message": "Validation failed",
           "errors": {
             "amount": ["Not enough balance."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": [
+              "Given amount is less than min amount 0.001",
+              "Min amount step = 0.000001"
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": ["ClientOrderId field should be a string."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": [
+              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 36,
+          "message": "Validation failed",
+          "errors": {
+            "clientOrderId": [
+              "This client order id is already used by the current account."
+            ]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 32,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount should be greater than 0."]
           }
         }
         ```
@@ -2207,10 +2719,43 @@ paths:
         
         ```json
         {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
           "code": 31,
           "message": "Validation failed",
           "errors": {
             "market": ["Market is not available."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "orderId": ["OrderId field should be an integer."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": [
+              "Market field should be a string.",
+              "Market field format is invalid."
+            ]
           }
         }
         ```
@@ -2309,6 +2854,19 @@ paths:
           "message": "Validation failed",
           "errors": {
             "type": ["The type must be an array."]
+          }
+        }
+        ```
+        
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": [
+              "Market field should be a string.",
+              "Market field format is invalid."
+            ]
           }
         }
         ```
@@ -2986,6 +3544,9 @@ components:
         - X-TXC-APIKEY: Your API key
         - X-TXC-PAYLOAD: Base64 encoded JSON payload
         - X-TXC-SIGNATURE: HMAC SHA512 signature
+  responses:
+    BulkLimitOrderResponse:
+      $ref: '#/components/schemas/BulkLimitOrderResponse'
   schemas:
     LimitOrderRequest:
       type: object
@@ -3237,6 +3798,18 @@ components:
           type: boolean
           description: "RPI order flag - indicates whether Retail Price Improvement was enabled for this order"
           example: true
+    BulkLimitOrderResponse:
+      type: array
+      description: Orders created
+      items:
+        type: object
+        properties:
+          result:
+            $ref: '#/components/schemas/OrderResponse'
+          error:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+            nullable: true
     ErrorResponse:
       type: object
       properties:
@@ -3256,3 +3829,5 @@ components:
 tags:
   - name: Collateral Trading
     description: Endpoints for collateral/margin trading operations
+  - name: Spot Trading
+    description: Endpoints for spot trading operations
