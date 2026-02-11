@@ -2,12 +2,34 @@
 
 Official documentation for WhiteBIT's REST and WebSocket APIs, built with Mintlify.
 
+## Prerequisites
+
+Before you begin, make sure the following tools are installed on your machine:
+
+| Tool | Minimum Version | Installation |
+|------|----------------|--------------|
+| [Node.js](https://nodejs.org/) | v18+ | [Download](https://nodejs.org/en/download/) or use [nvm](https://github.com/nvm-sh/nvm) |
+| npm | v9+ (ships with Node.js) | Included with Node.js |
+| [Mintlify CLI](https://mintlify.com/docs/development) | latest | `npm install -g mintlify@latest` |
+| [Redocly CLI](https://redocly.com/docs/cli/) | latest | `npm install -g @redocly/cli@latest` |
+| [AsyncAPI CLI](https://www.asyncapi.com/tools/cli) | latest | `npm install -g @asyncapi/cli` |
+
+Verify your setup:
+
+```bash
+node --version    # Should print v18.x or higher
+npm --version     # Should print 9.x or higher
+mint --version    # Mintlify CLI
+redocly --version # Redocly CLI
+asyncapi --version # AsyncAPI CLI
+```
+
 ## Quick Start
 
 Get the documentation running locally in 2 minutes:
 
 ```bash
-# Install Mintlify CLI
+# Install Mintlify CLI (if not already installed)
 npm install -g mintlify@latest
 
 # Start dev server
@@ -15,19 +37,6 @@ mint dev
 
 # Open http://localhost:3000
 ```
-
-**Full setup instructions** → [Validation Guide](docs/reference/validation.md)
-
-## Documentation Tasks
-
-Contributing to the API docs? Choose your task:
-
-### Common Tasks
-- **[Adding Parameters](docs/guides/01-adding-parameters.md)** - Add query, body, or WebSocket parameters
-- **[Adding Descriptions](docs/guides/02-adding-descriptions.md)** - Write endpoint overviews and descriptions
-- **[Parameter Exceptions](docs/guides/03-parameter-exceptions.md)** - Document optional, conditional, or exclusive parameters
-- **[Documenting Errors](docs/guides/04-documenting-errors.md)** - Add error codes and error responses
-- **[Adding New Endpoints](docs/guides/05-adding-new-endpoints.md)** - Complete workflow for new REST or WebSocket endpoints
 
 ## Contributing
 
@@ -37,16 +46,7 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for:
 - Pull request process
 - Review checklists for tech writers, DevRel engineers, and developers
 
-## Reference Documentation
-
-### Quick Access
-- **[File Structure Decision Tree](docs/reference/file-structure.md)** - Which file should I edit?
-- **[Style Guide](docs/reference/style-guide.md)** - Writing standards and best practices
-- **[Quick Reference](docs/reference/quick-reference.md)** - Tables, patterns, error codes
-- **[Common Pitfalls](docs/reference/common-pitfalls.md)** - Avoid frequent mistakes
-- **[Validation Guide](docs/reference/validation.md)** - Local dev environment and testing
-
-### External Resources
+## External Resources
 - [OpenAPI 3.0.3 Specification](https://spec.openapis.org/oas/v3.0.3.html)
 - [AsyncAPI 3.0.0 Specification](https://www.asyncapi.com/docs/reference/specification/v3.0.0)
 - [Mintlify Documentation](https://mintlify.com/docs)
@@ -63,9 +63,6 @@ mintlify-docs/
 │   └── private/       # Private channels
 ├── public/            # MDX docs for public APIs
 ├── private/           # MDX docs for private APIs
-├── docs/              # Internal documentation
-│   ├── guides/        # Step-by-step task guides
-│   └── reference/     # Reference materials
 └── docs.json          # Navigation configuration
 ```
 
@@ -73,11 +70,9 @@ mintlify-docs/
 
 **For technical questions**:
 - Check existing similar endpoints in the codebase
-- See [Validation Guide](docs/reference/validation.md)
 - Search OpenAPI/AsyncAPI specifications
 
 **For style questions**:
-- Consult [Style Guide](docs/reference/style-guide.md)
 - Ask tech writer team lead
 - Check [glossary](/glossary.mdx) for terminology
 
@@ -106,10 +101,4 @@ find asyncapi -name "*.yaml" -exec asyncapi validate {} \;
 mint dev
 ```
 
-See [Validation Guide](docs/reference/validation.md) for detailed instructions.
-
 ---
-
-**Last Updated**: 2026-01-30  
-**Maintainers**: Technical Writing Team, DevRel Team  
-**Questions?**: Contact team leads or post in #documentation-help
