@@ -275,8 +275,7 @@ paths:
           "code": 0,
           "message": "Validation failed",
           "errors": {
-            "ticker": ["The ticker field is required."],
-            "provider": ["The provider field is required."]
+            "amount": ["Amount is too little for deposit"]
           }
         }
         ```
@@ -286,7 +285,83 @@ paths:
           "code": 0,
           "message": "Validation failed",
           "errors": {
-            "amount": ["Current limit exceeded"]
+            "provider": ["Cannot find currency for specified provider"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "uniqueId": ["The unique id has already been taken."]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["The amount must be a number."],
+            "provider": ["The selected provider is invalid."],
+            "ticker": ["The selected ticker is invalid."]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 10,
+          "message": "Failed to generate deposit url"
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["The amount field is required."],
+            "provider": ["The provider field is required."],
+            "ticker": ["The ticker field is required."],
+            "uniqueId": ["The unique id field is required."]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "successLink": [
+              "Your domain is incorrect. Please contact support for more details"
+            ],
+            "failureLink": [
+              "Your domain is incorrect. Please contact support for more details"
+            ]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "success": false,
+          "message": "You don't have permission to use this endpoint. Please contact support for more details",
+          "code": 0
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "successLink": ["Uri domain must have only https scheme"],
+            "failureLink": ["Uri domain must have only https scheme"]
           }
         }
         ```
@@ -494,7 +569,7 @@ paths:
               nonceWindow: false
               nonce: "{{nonce}}"
       responses:
-        "201":
+        "200":
           description: Validation succeeded and JWT token is returned
           content:
             application/json:
@@ -610,6 +685,12 @@ paths:
       description: |
         This endpoint issues a [card token](/glossary#card-token) for the specified card number.
 
+        **Request Headers:**
+        - `Authorization`: JWT token from the [Issue JWT token](/private/http-main-v4/issue-jwt-token) response field `data.token` (**Required**)
+        - `Content-Type`: `application/json` (**Required**)
+
+        Use the `data.token` value returned by [Issue JWT token](/private/http-main-v4/issue-jwt-token) as the `Authorization` header when calling this Fiat Gateway endpoint.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -619,7 +700,7 @@ paths:
         </Note>
       operationId: issueCardToken
       servers:
-        - url: https://whitebit.com
+        - url: https://fgw.whitebit.com
       requestBody:
         required: true
         content:
@@ -1289,6 +1370,39 @@ paths:
                       amount:
                         - "This currency has no active pairs or it may have been delisted. Its rate cannot be calculated at the moment."
                         - "Current limit exceeded"
+                accountVerification:
+                  summary: Account must be verified for fiat currencies
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["Your account must be verified"]
+                invalidMethod:
+                  summary: Invalid method
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      method: ["The selected method is invalid."]
+                amountTooSmall:
+                  summary: Amount too small
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["The amount must be at least 0.00000001."]
+                invalidAmount:
+                  summary: Invalid amount format
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["The amount must be a number.", "Invalid number"]
+                throttling:
+                  summary: Rate limiting/throttling
+                  value:
+                    message: "Too Many Attempts."
+                    code: 0
         "422":
           description: |
             Inner validation failed
@@ -1301,6 +1415,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
+              examples:
+                notEnoughBalance:
+                  summary: Not enough balance
+                  value:
+                    code: 3
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["You don't have such amount for transfer (available 34.68, in amount: 1000000)"]
 
   /api/v4/main-account/history:
     post:
@@ -1314,7 +1436,7 @@ paths:
         - `Successful` - 3, 7
         - `Canceled` - 4, 9
         - `Unconfirmed by user` - 5
-        - `Frozen` - 21
+        - `Additional data required` - 21
         - `Uncredited` - 22
         - `Pending` - 15
 
@@ -1329,7 +1451,7 @@ paths:
         - `Successful` - 3, 7
         - `Canceled` - 4
         - `Unconfirmed by user` - 5
-        - `Frozen` - 21
+        - `Additional data required` - 21
         - `Partially successful` - 18
 
         <Warning>
@@ -1469,8 +1591,52 @@ paths:
                     errors:
                       limit: ["The limit field is required."]
                       offset: ["The offset field is required."]
-                      transactionMethod:
-                        ["The transaction method field is required."]
+                      transactionMethod: ["The transaction method field is required."]
+                invalidTicker:
+                  summary: Invalid ticker
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: ["The selected ticker is invalid."]
+                invalidTransactionMethod:
+                  summary: Invalid transaction method
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      transactionMethod: ["The selected transaction method is invalid."]
+                limitOffsetTooLarge:
+                  summary: Limit or offset too large
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      limit: ["The limit may not be greater than 100."]
+                      offset: ["The offset may not be greater than 10000."]
+                limitOffsetTooSmall:
+                  summary: Limit or offset too small
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      limit: ["The limit must be at least 1."]
+                      offset: ["The offset must be at least 0."]
+                invalidLimitOffset:
+                  summary: Invalid limit or offset type
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      limit: ["The limit must be an integer."]
+                      offset: ["The offset must be an integer."]
+                invalidStatus:
+                  summary: Invalid status
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      status: ["The selected status is invalid."]
         "422":
           description: Inner validation failed
           content:
@@ -1620,6 +1786,28 @@ paths:
                     message: "Validation failed"
                     errors:
                       ticker: ["The ticker field is required."]
+                invalidTicker:
+                  summary: Invalid ticker
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: ["The selected ticker is invalid."]
+                unsupportedNetwork:
+                  summary: Unsupported network
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      network: ["Unsupported network"]
+                invalidTypes:
+                  summary: Invalid data types
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      network: ["The network must be a string."]
+                      ticker: ["The ticker must be a string."]
         "422":
           description: Inner validation failed
           content:
@@ -3565,6 +3753,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                aliasOrEmailInvalid:
+                  summary: Alias or email invalid
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      alias: ["Alias already exists."]
+                      email: ["Email is invalid."]
+                emailRequired:
+                  summary: Email required when shareKyc is false
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      email: ["The email field is required."]
 
   /api/v4/sub-account/delete:
     post:
@@ -4447,6 +4651,18 @@ paths:
                       $ref: "#/components/schemas/MiningReward"
         "422":
           description: Request validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+              example:
+                code: 422
+                message: "Incorrect timestamp"
 
   /api/v4/mining/hashrate:
     post:
@@ -4511,6 +4727,18 @@ paths:
                               type: string
         "422":
           description: Request validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+              example:
+                code: 422
+                message: "Incorrect timestamp"
 
   /api/v4/credit-line/loans/info:
     post:
@@ -4552,6 +4780,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreditLine"
+              example:
+                asset: "BTC"
+                amount: "1.5"
+                totalFunding: "0.5"
+                currentLtv: "25"
+                initialLtv: "60"
+                marginCallLtv: "75"
+                liquidationLtv: "85"
+                createdAt: 1715339355
         "400":
           description: No active loan
           content:
@@ -4559,8 +4796,27 @@ paths:
               schema:
                 type: object
                 properties:
-                  error:
+                  code:
+                    type: integer
+                  message:
                     type: string
+              example:
+                code: 0
+                message: "No active loan at the moment"
+        "404":
+          description: Loans not available - contact support
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+              example:
+                code: 0
+                message: ""
 
 components:
   securitySchemes:

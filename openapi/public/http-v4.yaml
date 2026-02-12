@@ -467,6 +467,21 @@ paths:
                       type: boolean
                       description: "Indicates that the trade originates from a Retail Price Improvement (RPI) order."
                       example: true
+              example:
+                - tradeID: 158056419
+                  price: "9186.13"
+                  quote_volume: "0.0021"
+                  base_volume: "0.0021"
+                  trade_timestamp: 1594391747
+                  type: "sell"
+                  rpi: true
+                - tradeID: 158056416
+                  price: "9186.13"
+                  quote_volume: "0.002751"
+                  base_volume: "0.002751"
+                  trade_timestamp: 1594391746
+                  type: "sell"
+                  rpi: false
         'default':
           description: Error response
           content:
@@ -671,6 +686,38 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/FuturesMarket'
+              example:
+                success: true
+                message: null
+                result:
+                  - ticker_id: "BTC_PERP"
+                    stock_currency: "BTC"
+                    money_currency: "USDT"
+                    last_price: "24005.5"
+                    stock_volume: "196965.591"
+                    money_volume: "4737879075.7817"
+                    bid: "24005.4"
+                    ask: "24005.6"
+                    high: "24295.1"
+                    low: "23765.3"
+                    product_type: "Perpetual"
+                    open_interest: "6000"
+                    index_price: "24019.25"
+                    index_name: "Bitcoin"
+                    index_currency: "BTC"
+                    funding_rate: "0.000044889033693137"
+                    next_funding_rate_timestamp: "1660665600000"
+                    brackets:
+                      "1": 0
+                      "2": 0
+                      "3": 0
+                      "5": 0
+                      "10": 0
+                      "20": 0
+                      "50": 20
+                      "100": 50
+                    max_leverage: 100
+                    funding_interval_minutes: 300
 
   /api/v4/public/funding-history/{market}:
     get:
