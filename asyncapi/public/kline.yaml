@@ -19,18 +19,6 @@ channels:
     address: /ws
     description: |
       Candlestick data operations.
-
-      **Update Interval**: 0.5 seconds (for subscriptions)
-
-      **Interval Constraints**:
-      
-      The requested interval must meet the following conditions:
-      - If the number is less than 60, then 60 must be divisible by the requested number without a remainder
-      - Less than 3600 (1 hour) - the number must be divisible by 60 without a remainder, and 3600 must be divisible by the requested number without a remainder
-      - Less than 86400 (day) - the number must be divisible by 3600 without a remainder, and 86400 must be divisible by the requested number without a remainder
-      - Less than 86400 * 7 (week) - the number must be divisible by 86400 without a remainder
-      - Equal to 86400 * 7 (week)
-      - Equal to 86400 * 30 (30 days)
     messages:
       candlesRequest:
         $ref: '#/components/messages/candlesRequest'

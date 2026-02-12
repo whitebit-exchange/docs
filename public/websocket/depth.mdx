@@ -10,15 +10,14 @@ The Market Depth endpoint provides real-time order book data with support for bo
 ### Update Behavior
 
 <Note>
-    After successful subscription, the server sends a **full snapshot** of the order book as the first `depth_update` message. All subsequent messages are **incremental updates** containing only the changes since the last update.
+After successful subscription, the server sends a **full snapshot** of the order book as the first `depth_update` message. All subsequent messages are **incremental updates** containing only the changes since the last update.
 </Note>
 
 <Note>
-    Public `depth` updates exclude Retail Price Improvement (RPI) orders. The `depth_update` stream includes only regular order book liquidity.
+Public `depth` updates exclude Retail Price Improvement (RPI) orders. The `depth_update` stream includes only regular order book liquidity.
 
-    Private active order endpoints and private WebSocket streams return RPI orders. The exchange UI order book (web and mobile) displays RPI orders.
+Private active order endpoints and private WebSocket streams return RPI orders. The exchange UI order book (web and mobile) displays RPI orders.
 </Note>
-
 
 ### Understanding Updates
 
@@ -369,5 +368,4 @@ public class OrderBookClient {
     }
 }
 ```
-
 </CodeGroup>
