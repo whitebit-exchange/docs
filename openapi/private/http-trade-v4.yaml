@@ -121,13 +121,19 @@ paths:
         <Note>
         For open long position you have to use **buy**, for short **sell**. Also to close current position you have to place opposite order with current position amount.
         </Note>
+
+        <Note>
+          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+        </Note>
+
         
         <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        - `32` - amount validation failed
-        - `33` - price validation failed
-        - `36` - clientOrderId validation failed
+          - `30` - default validation error code
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `33` - price validation failed
+          - `36` - clientOrderId validation failed
+          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
         </Accordion>
       tags:
         - Collateral Trading
@@ -175,6 +181,13 @@ paths:
                 ioc:
                   type: boolean
                   description: "An immediate or cancel order (IOC) is an order that attempts to execute all or part immediately and then cancels any unfilled portion."
+                rpi:
+                  type: boolean
+                  description: |
+                    Enables Retail Price Improvement (RPI) mode.
+
+                    RPI orders are post-only by design and cannot be used with `ioc=true`. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+                  example: true
                 positionSide:
                   type: string
                   enum: [long, short, both]
@@ -219,6 +232,51 @@ paths:
                   type: array
                   items:
                     type: object
+                    properties:
+                      market:
+                        type: string
+                        description: "Available margin [market](/glossary#market). Example: BTC_USDT"
+                      side:
+                        type: string
+                        enum: [buy, sell]
+                        description: "Order type. Variables: 'buy' / 'sell'."
+                      amount:
+                        type: string
+                        description: "Amount of [stock](/glossary#stock) currency to buy or sell."
+                      price:
+                        type: string
+                        description: "Price in [money](/glossary#money) currency."
+                      clientOrderId:
+                        type: string
+                        description: "Identifier must be unique and contain letters, numbers, dashes, dots, or underscores."
+                      stopLoss:
+                        type: string
+                        description: "Stop loss price. Creates an [OTO](/glossary#OTO) order with stop loss."
+                      takeProfit:
+                        type: string
+                        description: "Take profit price. Creates an [OTO](/glossary#OTO) order with take profit."
+                      postOnly:
+                        type: boolean
+                        description: "Ensures the order adds liquidity and executes as maker."
+                      ioc:
+                        type: boolean
+                        description: |
+                          Immediate-or-cancel (IOC) executes all or part of an order immediately and cancels any unfilled portion.
+
+                          IOC does not support `rpi=true` because RPI uses post-only behavior by design.
+                          The API returns error code `37` when an order item sets both `ioc=true` and `rpi=true`.
+                      rpi:
+                        type: boolean
+                        description: |
+                          Enables Retail Price Improvement (RPI) mode.
+
+                          RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
+                          The API returns error code `37` when an order item sets both `rpi=true` and `ioc=true`.
+                        example: true
+                      positionSide:
+                        type: string
+                        enum: [long, short, both]
+                        description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                 stopOnFail:
                   type: boolean
                 request:
@@ -1425,7 +1483,13 @@ paths:
     post:
       summary: Query Market Fee
       description: |
-        This endpoint retrieves the maker and taker fees for a specific market. The `taker` and `maker` fields represent spot trading fees, while `futures_taker` and `futures_maker` represent futures trading fees. Futures fees return either the default values or custom values if set by the user.
+        This endpoint retrieves the effective maker and taker fees for the API key owner for a specific market.
+
+        The `taker` and `maker` fields represent spot trading fees. The `futures_taker` and `futures_maker` fields represent futures trading fees.
+
+        When called with a sub-account API key, the response reflects the effective sub-account fees, including custom overrides where applicable.
+
+        RPI executions may apply custom fees or rebates. Use this endpoint to verify effective fees when using RPI via sub-accounts.
       tags:
         - Market Fee
       security:
@@ -1476,7 +1540,13 @@ paths:
     get:
       summary: Query All Market Fees
       description: |
-        This endpoint retrieves the maker and taker fees for all markets, including any custom fees. The `taker` and `maker` fields represent default spot trading fees, while `futures_taker` and `futures_maker` represent futures trading fees (returning default values or custom values if set by the user). The `custom_fee` object contains market-specific custom spot fees.
+        This endpoint retrieves the effective maker and taker fees for the API key owner for all markets, including any custom fees.
+
+        The `taker` and `maker` fields represent default spot trading fees. The `futures_taker` and `futures_maker` fields represent futures trading fees (default or custom if set by the user). The `custom_fee` object contains market-specific custom spot fees.
+
+        When called with a sub-account API key, the response reflects the effective sub-account fees, including custom overrides where applicable.
+
+        RPI executions may apply custom fees or rebates. Use this endpoint to verify effective fees when using RPI via sub-accounts.
       tags:
         - Market Fee
       security:
@@ -1643,14 +1713,19 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Note>
+          - RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
+          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+        </Note>
         
         <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        - `32` - amount validation failed
-        - `33` - price validation failed
-        - `36` - clientOrderId validation failed
-        - `37` - ioc and postOnly flags are both true
+          - `30` - default validation error code
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `33` - price validation failed
+          - `36` - clientOrderId validation failed
+          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
         </Accordion>
         
         <Accordion title="Errors">
@@ -1756,16 +1831,22 @@ paths:
         This endpoint creates bulk [limit trading orders](/glossary#limit-order).
         
         <Warning>
-        Limit: From 1 to 20 orders per request.
+          Limit: From 1 to 20 orders per request.
         </Warning>
+
+        <Note>
+          - RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
+          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+        </Note>
+
         
         <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        - `32` - amount validation failed
-        - `33` - price validation failed
-        - `36` - clientOrderId validation failed
-        - `37` - ioc and postOnly flags are both true
+          - `30` - default validation error code
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `33` - price validation failed
+          - `36` - clientOrderId validation failed
+          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
         </Accordion>
         
         <Accordion title="Errors">
@@ -3016,7 +3097,13 @@ components:
         ioc:
           type: boolean
           default: false
-          description: "An immediate or cancel order (IOC) is an order that attempts to execute all or part immediately and then cancels any unfilled portion of the order. Variables: 'true' / 'false' Example: 'false'."
+          description: |
+            Immediate-or-cancel (IOC) executes all or part of an order immediately and cancels any unfilled portion.
+
+            IOC does not support `rpi=true` because RPI uses post-only behavior by design.
+            The API returns error code `37` when a request sets both `ioc=true` and `rpi=true`.
+
+            Refer to [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
         bboRole:
           type: integer
           enum: [1, 2]
@@ -3028,7 +3115,15 @@ components:
           description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
         rpi:
           type: boolean
-          description: "Retail Price Improvement (RPI) order: Order type designed to offer better prices to retail users. It is post-only and can match only with orders from the Web or Mobile App. RPI orders can be placed only by the designated Market Makers. Example: true"
+          description: |
+            Enables Retail Price Improvement (RPI) mode.
+
+            RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
+            The API returns error code `37` when a request sets both `rpi=true` and `ioc=true`.
+            RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
+            RPI executions may apply custom fees or rebates, especially when trading via sub-accounts. Use Query Market Fee / Query All Market Fees to verify effective fees.
+
+            Refer to [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: true
         request:
           type: string
@@ -3165,11 +3260,20 @@ components:
           type: boolean
         ioc:
           type: boolean
+          description: |
+            Immediate-or-cancel (IOC) executes all or part of an order immediately and cancels any unfilled portion.
+
+            IOC does not support `rpi=true` because RPI uses post-only behavior by design.
+            The API returns error code `37` when an order item sets both `ioc=true` and `rpi=true`.
         clientOrderId:
           type: string
         rpi:
           type: boolean
-          description: Enable Retail Price Improvement
+          description: |
+            Enables Retail Price Improvement (RPI) mode.
+
+            RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
+            The API returns error code `37` when an order item sets both `rpi=true` and `ioc=true`.
           example: true
 
     OrderResponse:
@@ -3228,7 +3332,7 @@ components:
           description: "Position side (for collateral orders)"
         rpi:
           type: boolean
-          description: "RPI order flag - indicates whether Retail Price Improvement was enabled for this order"
+          description: "Indicates Retail Price Improvement (RPI) mode for the order."
           example: true
     ErrorResponse:
       type: object
