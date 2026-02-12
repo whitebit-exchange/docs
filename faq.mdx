@@ -5,6 +5,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
+## Rate limits and errors
 
 <AccordionGroup>
 <Accordion title="Why am I getting a 429 error and can't make requests?">
@@ -19,21 +20,33 @@ If the rate limit for an endpoint is exceeded, you will receive a 429 error. To 
 CORS requests to this endpoint are forbidden for security reasons. Make the request from your backend instead of client-side.
 </Accordion>
 
+<Accordion title="Why am I getting nonce errors?">
+Nonce errors occur when timestamps or request ordering are invalid. To resolve:
+
+1. Debug your code implementation
+2. Recreate your API keys
+3. Ensure your system time is properly synchronized
+</Accordion>
+
 <Accordion title="Why am I getting a 403 error when making requests to the Smartplan endpoints?">
 These endpoints are restricted to B2B partner services only. To gain access:
 
-- Contact [support@whitebit.com](https://docs.whitebit.com/faq/)
+- Contact [support@whitebit.com](mailto:support@whitebit.com)
 - Request permissions for Smartplan endpoints
 - Provide your use case details
 </Accordion>
+</AccordionGroup>
 
+## WebSocket
+
+<AccordionGroup>
 <Accordion title="Can I get information on pairs for multiple time periods in the WebSocket Kline method?">
-There are two solutions:
+Yes, you can use multiple WebSocket connections or the HTTP method. There are two solutions:
 
 1. Open multiple WebSocket connections
 2. Use the equivalent HTTP method instead
 
-For more details, see the [Kline documentation](https://whitebit-exchange.github.io/api-docs/public/websocket/#kline).
+For more details, see the [Kline documentation](/public/websocket/kline).
 </Accordion>
 
 <Accordion title="Why can't I see trade history for a pair in the last 24 hours?">
@@ -43,17 +56,13 @@ The system only shows the last 100 deals by default. To see more:
 - Accumulate and store the data on your side
 - Process the data as needed for your use case
 </Accordion>
+</AccordionGroup>
 
-<Accordion title="Why am I getting nonce errors?">
-To resolve nonce errors:
+## Transfers and withdrawals
 
-1. Debug your code implementation
-2. Recreate your API keys
-3. Ensure your system time is properly synchronized
-</Accordion>
-
+<AccordionGroup>
 <Accordion title="Why doesn't the transfer between balances occur when transferring assets via API?">
-When making transfers and withdrawals:
+Transfers may take up to 2 seconds to complete. When making transfers and withdrawals:
 
 - Wait for transfers to complete (approximately 2 seconds)
 - Don't initiate withdrawals before transfer completion
@@ -64,18 +73,26 @@ When making transfers and withdrawals:
 This occurs when the withdrawal amount plus the fee exceeds your available balance. Remember to:
 
 - Account for withdrawal fees in your calculations
-- Check the [fees documentation](https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#fees)
+- Check the [fees documentation](/private/http-main-v4/get-fees)
 - Ensure sufficient balance for both amount and fees
 </Accordion>
+</AccordionGroup>
 
-<Accordion title="Is https required for Webhook API communication? What port is used?">
+## Webhooks
+
+<AccordionGroup>
+<Accordion title="Do I need HTTPS for Webhook API communication? What port is used?">
 Yes, HTTPS is required:
 
 - Communication occurs over port 443
 - SSL/TLS encryption is mandatory
 - HTTP connections are not supported
 </Accordion>
+</AccordionGroup>
 
+## API and assets
+
+<AccordionGroup>
 <Accordion title="How can I check if deposits and withdrawals are available for a specific currency?">
 You can check currency status through the assets endpoint:
 
@@ -83,44 +100,57 @@ You can check currency status through the assets endpoint:
 - This endpoint provides real-time status of all currencies
 - Check the currency-specific enabled/disabled flags
 </Accordion>
+</AccordionGroup>
 
+## Security and API keys
+
+<AccordionGroup>
 <Accordion title="How do I ensure my API keys are secure?">
-To maintain API key security:
+Keep your keys private and never share them. To maintain API key security:
 
 - Never share your API keys
 - Store keys securely (use environment variables)
 - Restrict IP addresses when possible
 - Use the minimum required permissions
-- Rotate keys periodically
+
+For details, see the [Authentication guide](/private/http-auth).
 </Accordion>
 
 <Accordion title="What should I do if I suspect my API key is compromised?">
-If you suspect key compromise:
+Immediately revoke the key and create new ones. If you suspect key compromise:
 
 1. Immediately delete the compromised key
 2. Review account activity for unauthorized actions
 3. Create new API keys with fresh permissions
 4. Update your application with the new keys
 5. Contact support if unauthorized activity is detected
-</Accordion>
 
+For details, see the [Authentication guide](/private/http-auth).
+</Accordion>
+</AccordionGroup>
+
+## API usage
+
+<AccordionGroup>
 <Accordion title="How can I optimize my API usage for high-frequency trading?">
-For optimal API performance:
+Use WebSocket for real-time data, batch requests, and implement rate limiting. For optimal API performance:
 
 - Use WebSocket for real-time data
 - Batch requests when possible
 - Implement proper rate limiting
 - Cache frequently accessed data
-- Monitor network latency
+
+For details, see the [WebSocket API](/public/websocket).
 </Accordion>
 
-<Accordion title="What's the best way to handle API disconnections?">
-To handle disconnections effectively:
+<Accordion title="How do I handle API disconnections?">
+Implement automatic reconnection with exponential backoff. To handle disconnections effectively:
 
 - Implement automatic reconnection logic
 - Use exponential backoff for retries
 - Maintain local order state
-- Log all critical operations
 - Set up monitoring and alerts
+
+For details, see the [WebSocket API](/public/websocket).
 </Accordion>
 </AccordionGroup>
