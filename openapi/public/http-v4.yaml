@@ -402,6 +402,11 @@ paths:
         Response is cached for: 1 second
         </Note>
 
+        <Note>
+          Public trade data can include executions that originate from RPI orders. Public order book feeds (`depth`, `bookTicker`) exclude RPI orders. Users view RPI orders only in private active orders and in the exchange UI order book (web and mobile).
+        </Note>
+
+
         <Warning>
         Rate limit 2000 requests/10 sec.
         </Warning>
@@ -460,7 +465,7 @@ paths:
                       example: sell
                     rpi:
                       type: boolean
-                      description: Indicates whether the trade involved a Retail Price Improvement (RPI) order
+                      description: "Indicates that the trade originates from a Retail Price Improvement (RPI) order."
                       example: true
               example:
                 - tradeID: 158056419
