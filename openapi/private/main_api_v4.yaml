@@ -745,6 +745,98 @@ paths:
                     message: "Too Many Attempts."
                     code: 0
 
+  /api/v4/main-account/refund-deposit:
+    post:
+      tags:
+        - Deposit
+      summary: Refund deposit
+      description: |
+        This endpoint allows you to refund a deposit. Refund is available only for canceled and approved for refund deposits.
+
+        You typically obtain the `transactionId` from the `deposit.canceled` webhook (field `uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface when support notifies you that a refund is available.
+
+        The refund address must support the same network and asset as the original deposit. It cannot be a WhiteBIT address. The address does not have to be the same as the one the deposit came from.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        Response is cached for: NONE
+        </Note>
+
+        <Note>
+        Refunds are processed manually by the finance department. Processing is not instant. Use webhooks to receive status updates.
+        </Note>
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 0,
+          "message": "Transaction not refundable"
+        }
+        ```
+
+        Validation errors (missing or invalid parameters) return HTTP 400 with `code: 0` and an `errors` object.
+        </Accordion>
+      operationId: refundDeposit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - transactionId
+                - address
+                - request
+                - nonce
+              properties:
+                transactionId:
+                  type: string
+                  format: uuid
+                  description: |
+                    Transaction UUID of the deposit. Obtain from the [deposit.canceled](/platform/webhook) webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface.
+                  example: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+                address:
+                  type: string
+                  description: |
+                    Destination wallet address for the refund. The address must support the same network and asset as the original deposit. Cannot be a WhiteBIT address. Does not have to match the original deposit address.
+                  example: "0x1234567890abcdef1234567890abcdef12345678"
+                request:
+                  type: string
+                  description: Request signature
+                nonce:
+                  type: string
+                  description: Unique request identifier
+            example:
+              transactionId: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+              address: "0x1234567890abcdef1234567890abcdef12345678"
+              request: "signature"
+              nonce: "unique_id"
+      responses:
+        "200":
+          description: Refund request accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Transaction ID of the deposit (echoed from request)
+                example:
+                  id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+        "400":
+          description: Validation failed or transaction not refundable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/v4/main-account/withdraw:
     post:
       tags:
