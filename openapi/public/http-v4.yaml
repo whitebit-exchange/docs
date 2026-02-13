@@ -142,7 +142,7 @@ paths:
         </Note>
 
         <Warning>
-        Rate limit 2000 requests/10 sec.
+        Rate limit: 2000 requests/10 sec. See [Public API V4 overview](/public/http-v4/index) for rate limit details.
         </Warning>
       tags:
         - Public API V4
@@ -212,7 +212,7 @@ paths:
         </Note>
 
         <Warning>
-        Rate limit 2000 requests/10 sec.
+        Rate limit: 2000 requests/10 sec. See [Public API V4 overview](/public/http-v4/index) for rate limit details.
         </Warning>
       tags:
         - Public API V4
@@ -359,14 +359,14 @@ paths:
     get:
       summary: Depth
       description: |
-        This endpoint retrieves depth price levels within ±2% of the market last price.
+        This endpoint retrieves depth price levels within ±2% of the market last price. Use it when you need lightweight order book data for a narrow price band around the current market price. The ±2% constraint limits the response to price levels near the last traded price, reducing payload size compared to the full order book.
 
         <Note>
         Response is cached for: 1 sec
         </Note>
 
         <Warning>
-        Rate limit 2000 requests/10 sec.
+        Rate limit: 2000 requests/10 sec. See [Public API V4 overview](/public/http-v4/index) for rate limit details.
         </Warning>
       tags:
         - Public API V4
@@ -495,7 +495,7 @@ paths:
         </Note>
 
         <Warning>
-        Rate limit 2000 requests/10 sec.
+        Rate limit: 2000 requests/10 sec. See [Public API V4 overview](/public/http-v4/index) for rate limit details.
         </Warning>
       tags:
         - Public API V4
@@ -1041,7 +1041,7 @@ components:
             minItems: 2
             maxItems: 2
             example: ["9184.41", "0.773162"]
-            description: "[Price, Amount]"
+            description: "[price, quantity] — price in quote currency, quantity in base currency"
         bids:
           type: array
           description: Array of bid orders
@@ -1052,7 +1052,7 @@ components:
             minItems: 2
             maxItems: 2
             example: ["9181.19", "0.010873"]
-            description: "[Price, Amount]"
+            description: "[price, quantity] — price in quote currency, quantity in base currency"
 
     FeeInfo:
       type: object
