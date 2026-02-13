@@ -1,0 +1,25 @@
+---
+title: "Order Parameter Rules"
+description: "Defines unsupported parameter combinations for order requests and explains related validation errors."
+---
+## Overview
+
+This guide describes parameter combinations that the API does not support and explains how to resolve related errors.
+
+---
+
+## Retail Price Improvement (RPI) and IOC
+
+RPI orders use post-only behavior by design. An RPI order does not support the IOC flag.
+
+### Issue
+
+A request sets both `rpi=true` and `ioc=true`.
+
+### Result
+
+The API rejects the request and returns error code `37`.
+
+### Fix
+
+Remove `ioc` when using `rpi`, or disable `rpi` when IOC behavior is required.
