@@ -749,13 +749,33 @@ paths:
     post:
       tags:
         - Deposit
-      summary: Refund deposit
+      summary: Refund a deposit
       description: |
-        This endpoint allows you to refund a deposit. Refund is available only for canceled and approved for refund deposits.
+        Refund a deposit. Refund is available only for canceled deposits that support approves for refund.
 
-        You typically obtain the `transactionId` from the `deposit.canceled` webhook (field `uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface when support notifies you that a refund is available.
+        Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
 
-        The refund address must support the same network and asset as the original deposit. It cannot be a WhiteBIT address. The address does not have to be the same as the one the deposit came from.
+        The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT address. The refund address can differ from the original deposit sender address.
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 0,
+          "message": "Transaction not refundable"
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "transactionId": ["The transaction id field is required."],
+            "address": ["The address field is required."]
+          }
+        }
+        ```
+        </Accordion>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -766,19 +786,8 @@ paths:
         </Note>
 
         <Note>
-        Refunds are processed manually by the finance department. Processing is not instant. Use webhooks to receive status updates.
+        The finance department processes refunds manually. Processing is not instant. Use webhooks to receive status updates.
         </Note>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 0,
-          "message": "Transaction not refundable"
-        }
-        ```
-
-        Validation errors (missing or invalid parameters) return HTTP 400 with `code: 0` and an `errors` object.
-        </Accordion>
       operationId: refundDeposit
       requestBody:
         required: true
@@ -805,18 +814,20 @@ paths:
                   example: "0x1234567890abcdef1234567890abcdef12345678"
                 request:
                   type: string
-                  description: Request signature
+                  description: |
+                    Base64-encoded request body. See the [authentication guide](/private/http-auth) for signature generation details.
                 nonce:
                   type: string
-                  description: Unique request identifier
+                  description: |
+                    A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
             example:
               transactionId: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
               address: "0x1234567890abcdef1234567890abcdef12345678"
-              request: "signature"
-              nonce: "unique_id"
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         "200":
-          description: Refund request accepted
+          description: System accepts refund request
           content:
             application/json:
               schema:
@@ -831,7 +842,7 @@ paths:
                 example:
                   id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
         "400":
-          description: Validation failed or transaction not refundable
+          description: Validation fails or transaction does not qualify for refund
           content:
             application/json:
               schema:
