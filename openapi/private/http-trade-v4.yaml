@@ -1585,13 +1585,15 @@ paths:
     post:
       summary: Query Market Fee
       description: |
-        This endpoint retrieves the effective maker and taker fees for the API key owner for a specific market.
+        This endpoint returns maker and taker fees for a specific market.
 
-        The `taker` and `maker` fields represent spot trading fees. The `futures_taker` and `futures_maker` fields represent futures trading fees.
+        The `maker` and `taker` fields represent spot trading fees. The `futures_maker` and `futures_taker` fields represent futures trading fees.
 
-        When called with a sub-account API key, the response reflects the effective sub-account fees, including custom overrides where applicable.
+        The system calculates the effective futures fee as the lower value between the user-specific custom fee and the market-specific fee.
 
-        RPI executions may apply custom fees or rebates. Use this endpoint to verify effective fees when using RPI via sub-accounts.
+        When the market fee is lower than the assigned custom fee, the system returns the market fee.
+
+        Example: If the custom futures taker fee equals `0.026` and the market fee equals `0.02`, the response returns `0.02`.
       tags:
         - Market Fee
       security:
@@ -1600,7 +1602,14 @@ paths:
         - name: market
           in: query
           required: true
-          description: "Available market. Example: BTC_USDT"
+          description: |
+            Market to query.
+
+            If the request includes the `market` parameter, the system returns fees for the specified market only.
+
+            When fee values are identical across markets, the response contains identical values regardless of the specified market.
+
+            Example: BTC_USDT
           schema:
             type: string
             example: BTC_USDT
@@ -1626,11 +1635,17 @@ paths:
                     example: "0.1"
                   futures_taker:
                     type: string
-                    description: "Futures taker fee rate (default or custom if set by user)"
+                    description: |
+                      Futures taker fee rate for the specified market.
+
+                      The system returns the lower value between the assigned custom fee and the market-specific fee.
                     example: "0.0002"
                   futures_maker:
                     type: string
-                    description: "Futures maker fee rate (default or custom if set by user)"
+                    description: |
+                      Futures maker fee rate for the specified market.
+
+                      The system returns the lower value between the assigned custom fee and the market-specific fee.
                     example: "0.0001"
         '422':
           description: Validation failed
@@ -1642,13 +1657,13 @@ paths:
     get:
       summary: Query All Market Fees
       description: |
-        This endpoint retrieves the effective maker and taker fees for the API key owner for all markets, including any custom fees.
+        This endpoint returns maker and taker fees for all markets, including assigned custom fees.
 
-        The `taker` and `maker` fields represent default spot trading fees. The `futures_taker` and `futures_maker` fields represent futures trading fees (default or custom if set by the user). The `custom_fee` object contains market-specific custom spot fees.
+        The `maker` and `taker` fields represent default spot trading fees.
 
-        When called with a sub-account API key, the response reflects the effective sub-account fees, including custom overrides where applicable.
+        The `futures_maker` and `futures_taker` fields represent effective futures fees. The effective futures fee equals the lower value between the assigned custom fee and the default market fee.
 
-        RPI executions may apply custom fees or rebates. Use this endpoint to verify effective fees when using RPI via sub-accounts.
+        The `custom_fee` object contains market-specific custom spot fees.
       tags:
         - Market Fee
       security:
