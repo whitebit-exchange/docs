@@ -751,7 +751,7 @@ paths:
         - Deposit
       summary: Refund a deposit
       description: |
-        Refund a deposit. Refund is available only for canceled deposits that support approves for refund.
+        Refund a deposit. Refund is available only for canceled deposits.
 
         Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
 
@@ -786,7 +786,7 @@ paths:
         </Note>
 
         <Note>
-        The finance department processes refunds manually. Processing is not instant. Use webhooks to receive status updates.
+        Refund processing is not instant. Use webhooks to receive status updates.
         </Note>
       operationId: refundDeposit
       requestBody:
