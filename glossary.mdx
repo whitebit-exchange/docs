@@ -321,54 +321,65 @@ The number of digits to the right of the decimal point.
 ## Q
 
 ## R
+	<AccordionGroup>
+		<Accordion title="Retail Price Improvement (RPI)">
+			Retail Price Improvement (RPI) defines a limit order mode that improves execution for retail users and keeps the order out of public market data feeds.
 
+			**Visibility**
+
+			Public `depth` and `bookTicker` feeds exclude RPI orders in both WebSocket and REST responses. Private active order endpoints and private WebSocket streams return RPI orders. The exchange UI order book (web and mobile) displays RPI orders.
+
+			**IOC compatibility**
+
+			RPI orders use post-only behavior by design. An RPI order does not support the IOC flag. The API returns error code `37` when a request sets both `rpi=true` and `ioc=true`.
+
+			**Fees**
+
+			RPI executions apply a specific fee or rebate model defined for the account. When a user trades through a sub-account, the system applies the effective sub-account fee configuration. Use the `Query Market Fee` or `Query All Market Fees` endpoints to retrieve effective fees.
+		</Accordion>
+	</AccordionGroup>
 ## S
 
 <AccordionGroup>
-<Accordion title="Smart plans">
+	<Accordion title="Smart Plans">
+		See [Crypto Lending](#crypto-lending)
+	</Accordion>
 
-See [Crypto Lending](#crypto-lending)
-</Accordion>
+	<Accordion title="SMART Staking">
+		See [Crypto Lending](#crypto-lending)
+	</Accordion>
 
-<Accordion title="SMART staking">
+	<Accordion title="STP">
+		Self Trade Prevention (STP) is a mechanism that prevents traders from executing trades against their own [orders](#orders). This feature helps avoid unintentional self-trading and ensures market integrity by automatically canceling or modifying orders that would result in a self-match.
+	</Accordion>
 
-See [Crypto Lending](#crypto-lending)
-</Accordion>
+	<Accordion title="Spot trading">
+		Buying and selling [assets](#assets) for immediate settlement
+	</Accordion>
 
-<Accordion title="STP">
+	<Accordion title="Stock">
+		[Asset](#assets) that can be traded on an exchange.
+	</Accordion>
 
-Self Trade Prevention (STP) is a mechanism that prevents traders from executing trades against their own [orders](#orders). This feature helps avoid unintentional self-trading and ensures market integrity by automatically canceling or modifying orders that would result in a self-match.
-</Accordion>
+	<Accordion title="Stop limit order">
+		This [order](#orders) has both the [stop](#stop-price) and the limit prices. When the specified market price at this [pair](#market) is reached the order gets activated and is being completed as a basic [limit order](#limit-order).
+	</Accordion>
 
-<Accordion title="Spot trading">
+	<Accordion title="Stop market order">
+		This [order](#orders) is completed when the market price reaches a price set by you in advance (the [stop price](#stop-price)). This type of order is often used to prevent losses in the context of market volatility.
+	</Accordion>
 
-Buying and selling [assets](#assets) for immediate settlement
-</Accordion>
+	<Accordion title="Stop price">
+		A price set by you in advance
+	</Accordion>
 
-<Accordion title="Stock">
+	<Accordion title="Sub-Account">
+		A sub-account is an account managed by a main account. A main account assigns specific permissions to a sub-account (for example, a main account disables [margin trading](#margin-trading)).
 
-An [asset](#assets) that you can trade on an exchange.
-</Accordion>
+		A sub-account can use a custom trading fee or rebate model defined for that sub-account. Use [`Query Market Fee`](/private/http-trade-v4/query-market-fee) and [`Query All Market Fees`](/private/http-trade-v4/query-all-market-fees) to retrieve effective fees when an API key belongs to a sub-account.
 
-<Accordion title="Stop limit order">
-
-A stop limit order has both the [stop](#stop-price) and the limit prices. When the specified market price at the [pair](#market) is reached, the order activates and completes as a basic [limit order](#limit-order).
-</Accordion>
-
-<Accordion title="Stop market order">
-
-A stop market order is completed when the market price reaches a price that you set in advance (the [stop price](#stop-price)). This type of order is often used to prevent losses in the context of market volatility.
-</Accordion>
-
-<Accordion title="Stop price">
-
-A price that you set in advance.
-</Accordion>
-
-<Accordion title="Sub-Account">
-
-An account with specific permissions (for example, margin trading disabled) that the main user manages.
-</Accordion>
+		RPI trading uses account-specific fees or rebates. When a user places RPI orders through a sub-account, the system applies the effective sub-account fees. Use [`Query Market Fee`](/private/http-trade-v4/query-market-fee) and [`Query All Market Fees`](/private/http-trade-v4/query-all-market-fees) to verify fees for RPI executions.
+	</Accordion>
 </AccordionGroup>
 
 ## T
@@ -416,9 +427,8 @@ The total number of shares or contracts that buyers and sellers exchange in a [m
 
 <AccordionGroup>
 <Accordion title="WhiteBIT Codes">
-
-WhiteBIT Codes let you turn your funds into a unique alphanumeric code.
-</Accordion>
+		WhiteBIT Codes let you turn your funds into a unique alphanumeric code. Easy and free to use.
+	</Accordion>
 </AccordionGroup>
 
 ## X

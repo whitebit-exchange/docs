@@ -745,6 +745,109 @@ paths:
                     message: "Too Many Attempts."
                     code: 0
 
+  /api/v4/main-account/refund-deposit:
+    post:
+      tags:
+        - Deposit
+      summary: Refund a deposit
+      description: |
+        Refund a deposit. Refund is available only for canceled deposits that support approves for refund.
+
+        Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
+
+        The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT address. The refund address can differ from the original deposit sender address.
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 0,
+          "message": "Transaction not refundable"
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "transactionId": ["The transaction id field is required."],
+            "address": ["The address field is required."]
+          }
+        }
+        ```
+        </Accordion>
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        Response is cached for: NONE
+        </Note>
+
+        <Note>
+        The finance department processes refunds manually. Processing is not instant. Use webhooks to receive status updates.
+        </Note>
+      operationId: refundDeposit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - transactionId
+                - address
+                - request
+                - nonce
+              properties:
+                transactionId:
+                  type: string
+                  format: uuid
+                  description: |
+                    Transaction UUID of the deposit. Obtain from the [deposit.canceled](/platform/webhook) webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface.
+                  example: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+                address:
+                  type: string
+                  description: |
+                    Destination wallet address for the refund. The address must support the same network and asset as the original deposit. Cannot be a WhiteBIT address. Does not have to match the original deposit address.
+                  example: "0x1234567890abcdef1234567890abcdef12345678"
+                request:
+                  type: string
+                  description: |
+                    Base64-encoded request body. See the [authentication guide](/private/http-auth) for signature generation details.
+                nonce:
+                  type: string
+                  description: |
+                    A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
+            example:
+              transactionId: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+              address: "0x1234567890abcdef1234567890abcdef12345678"
+              request: "{{request}}"
+              nonce: "{{nonce}}"
+      responses:
+        "200":
+          description: System accepts refund request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Transaction ID of the deposit (echoed from request)
+                example:
+                  id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+        "400":
+          description: Validation fails or transaction does not qualify for refund
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/v4/main-account/withdraw:
     post:
       tags:
