@@ -1,0 +1,139 @@
+---
+title: WebSocket API
+sidebarTitle: Overview
+description: "WhiteBIT WebSocket API — connection details, message formats, rate limits, and links to all available channels."
+---
+
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+## Connection
+
+WebSocket endpoint: **`wss://api.whitebit.com/ws`**
+
+The API is based on [JSON RPC](https://www.jsonrpc.org/specification) over the WebSocket protocol.
+
+All endpoints return time in Unix-time format.
+
+## Connection Timeout
+
+- The server closes the connection after **60 seconds of inactivity**.
+- Inactivity means no messages sent by the client.
+- Send a ping message every **50 seconds** to keep the connection alive.
+
+### Ping Example
+
+```javascript
+const socket = new WebSocket("wss://api.whitebit.com/ws");
+
+setInterval(() => {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({
+      id: 0,
+      method: "ping",
+      params: [],
+    }));
+  }
+}, 50000);
+```
+
+## Rate Limits
+
+<Warning>
+  Rate limit: 1000 WebSocket connections per minute and 200 requests per minute per connection.
+</Warning>
+
+## Request Message
+
+JSON structure of a request message:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | Integer | Unique identifier to match the response to your request |
+| `method` | String | Name of the method to call |
+| `params` | Array | Parameters for the method |
+
+🚫 The connection will be closed if invalid JSON is sent.
+
+### Types of Request Messages
+
+- **Query** — one-time requests (`ping`, `candles_request`, `balanceSpot_request`, etc.)
+- **Subscription** — streaming updates (`candles_subscribe`, `lastprice_subscribe`, `balanceSpot_subscribe`, etc.). Repeating a subscription cancels the previous one for the same data type.
+
+## Response Message
+
+JSON structure of a response message:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | Integer | ID of the original request |
+| `result` | Object / null | `null` on failure; see channel docs for success payloads |
+| `error` | Object / null | `null` on success; error object on failure |
+
+### Error Codes
+
+| Code | Message |
+|------|---------|
+| **1** | invalid argument |
+| **2** | internal error |
+| **3** | service unavailable |
+| **4** | method not found |
+| **5** | service timeout |
+
+### Types of Response Messages
+
+- **Query result** — direct response to a query request
+- **Subscription status** — success or failure of a subscription request
+- **Update events** — pushed by the server when subscribed data changes
+
+---
+
+## Examples
+
+**Query — ping/pong:**
+
+```json
+// ⤴️ Request
+{ "id": 0, "method": "ping", "params": [] }
+
+// ⤵️ Response
+{ "id": 0, "result": "pong", "error": null }
+```
+
+**Subscription:**
+
+```json
+// ⤴️ Request
+{ "id": 0, "method": "candles_subscribe", "params": [] }
+
+// ⤵️ Response
+{ "id": 0, "result": { "status": "success" }, "error": null }
+```
+
+**Update event:**
+
+```json
+{ "id": null, "method": "candles_update", "params": [] }
+```
+
+---
+
+## Authentication
+
+Private channels (Account Streams) require authorization before you can subscribe. After connecting, send an `authorize` request with your API credentials to gain access to private data such as balances, orders, deals, and positions.
+
+See the [Authorize](/private/websocket/authorize) channel page for the full request format, parameters, and examples.
+
+---
+
+## Channels
+
+<CardGroup cols={2}>
+  <Card title="Market Streams" icon="chart-line" href="/public/websocket/index">
+    Public channels for market data — kline, last price, trades, depth, book ticker, and more.
+  </Card>
+  <Card title="Account Streams" icon="lock" href="/private/websocket/index">
+    Private channels for account data — balances, orders, deals, positions, and borrows. Requires authorization.
+  </Card>
+</CardGroup>

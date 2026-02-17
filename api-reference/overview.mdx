@@ -1,0 +1,86 @@
+---
+title: API Reference
+sidebarTitle: Overview
+description: "WhiteBIT REST API overview — base URLs, rate limits, error formats, and quick links to all endpoint groups."
+---
+
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+## Base URL
+
+All REST API endpoints are available at:
+
+```
+https://whitebit.com/api/v4/{endpoint}
+```
+
+- **Public endpoints** use the `GET` method. Parameters are sent as query strings.
+- **Private endpoints** use the `POST` method. Parameters are sent as JSON in the request body.
+- All endpoints return time in Unix-time format and respond with JSON.
+
+## Authentication
+
+Private endpoints require API key authentication with HMAC-SHA512 signed requests. See the [Authentication Guide](/private/http-auth) for setup instructions, header requirements, and code examples.
+
+## Rate Limits
+
+| Scope | Limit |
+|-------|-------|
+| Public REST endpoints | 2000 requests / 10 sec |
+| Private REST endpoints | Varies per endpoint (see individual docs) |
+
+## Error Format
+
+All V4 endpoints return errors as JSON. The format differs slightly between public and private APIs:
+
+**Public endpoints:**
+
+```json
+{
+  "success": false,
+  "message": "ERROR MESSAGE",
+  "params": []
+}
+```
+
+**Private endpoints:**
+
+```json
+{
+  "code": 0,
+  "message": "MESSAGE",
+  "errors": {
+    "PARAM1": ["MESSAGE"],
+    "PARAM2": ["MESSAGE"]
+  }
+}
+```
+
+For full details, see the [Market Data overview](/public/http-v4/index) and [Spot Trading overview](/private/http-trade-v4/overview).
+
+---
+
+## Endpoint Groups
+
+<CardGroup cols={2}>
+  <Card title="Market Data" icon="chart-bar" href="/public/http-v4/index">
+    Public market info, orderbook, trades, fees, server status, and more. No authentication required.
+  </Card>
+  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/private/http-trade-v4/overview">
+    Place and manage spot orders, query execution history, and control kill-switch timers.
+  </Card>
+  <Card title="Collateral Trading" icon="scale-balanced" href="/private/http-trade-v4/collateral-overview">
+    Manage collateral positions, leverage, hedge mode, and collateral order types (limit, market, OCO, OTO).
+  </Card>
+  <Card title="Convert" icon="rotate" href="/private/http-trade-v4/convert-estimate">
+    Estimate, confirm, and review currency conversion operations.
+  </Card>
+  <Card title="Account & Wallet" icon="wallet" href="/private/http-main-v4/overview">
+    Main balance, deposits, withdrawals, transfers, codes, crypto lending, fees, and mining pool.
+  </Card>
+  <Card title="Sub-Accounts" icon="users" href="/private/http-main-v4/sub-accounts-overview">
+    Create and manage sub-accounts, balances, transfers, and API keys.
+  </Card>
+</CardGroup>

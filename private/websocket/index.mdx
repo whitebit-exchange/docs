@@ -1,204 +1,39 @@
 ---
+title: Account Streams
 sidebarTitle: Overview
-title: Private WebSocket API
 ---
+
+Browse the available private WebSocket channels below. For connection details, message format, and rate limits, see the [WebSocket Overview](/websocket/overview).
 
 <CardGroup cols={2}>
-  <Card
-    title="Authorize"
-    href="/private/websocket/authorize"
-  />
-  <Card
-    title="Balance Spot"
-    href="/private/websocket/balance-spot"
-  />
-  <Card
-    title="Balance Margin"
-    href="/private/websocket/balance-margin"
-  />
-  <Card
-    title="Orders Pending"
-    href="/private/websocket/orders-pending"
-  />
-  <Card
-    title="Orders Executed"
-    href="/private/websocket/orders-executed"
-  />
-  <Card
-    title="Deals"
-    href="/private/websocket/deals"
-  />
-  <Card
-    title="Positions"
-    href="/private/websocket/positions"
-  />
-  <Card
-    title="Margin Positions Events"
-    href="/private/websocket/margin-positions-events"
-  />
-  <Card
-    title="Borrows"
-    href="/private/websocket/borrows"
-  />
-  <Card
-    title="Borrows Events"
-    href="/private/websocket/borrows-events"
-  />
+  <Card title="Authorize" icon="key" href="/private/websocket/authorize">
+    Authenticate your WebSocket connection to access private channels
+  </Card>
+  <Card title="Balance Spot" icon="wallet" href="/private/websocket/balance-spot">
+    Real-time spot balance updates for your account
+  </Card>
+  <Card title="Balance Margin" icon="scale-balanced" href="/private/websocket/balance-margin">
+    Real-time margin balance updates for your account
+  </Card>
+  <Card title="Orders Pending" icon="clock" href="/private/websocket/orders-pending">
+    Stream of pending (open) orders and their updates
+  </Card>
+  <Card title="Orders Executed" icon="circle-check" href="/private/websocket/orders-executed">
+    Stream of executed orders and their updates
+  </Card>
+  <Card title="Deals" icon="handshake" href="/private/websocket/deals">
+    Real-time deal execution notifications
+  </Card>
+  <Card title="Positions" icon="chart-line-up" href="/private/websocket/positions">
+    Real-time position updates for margin trading
+  </Card>
+  <Card title="Margin Positions Events" icon="bell" href="/private/websocket/margin-positions-events">
+    Event notifications for margin position changes
+  </Card>
+  <Card title="Borrows" icon="money-bill-transfer" href="/private/websocket/borrows">
+    Real-time borrow status updates for margin trading
+  </Card>
+  <Card title="Borrows Events" icon="bell-exclamation" href="/private/websocket/borrows-events">
+    Event notifications for borrow changes and liquidations
+  </Card>
 </CardGroup>
-
-## WebSocket Connection Management
-
-WebSocket endpoint is **```wss://api.whitebit.com/ws```**
-
-The API is based on [JSON RPC](https://www.jsonrpc.org/specification) of WebSocket protocol.
-
-⚠️️ **Connection Timeout** ⚠️️
-- Server closes websocket connection after **60 seconds of inactivity**
-- Inactivity is defined as no messages sent by the client
-
-### Maintaining Connection
-To keep the websocket connection active:
-- Send periodic ping messages every **50 seconds**
-- Handle potential connection closures gracefully in your application logic
-
-### Example Implementation
-
-```javascript
-// Establish websocket connection
-const socket = new WebSocket("wss://api.whitebit.com/ws");
-
-// Set up periodic ping
-setInterval(() => {
-  if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({
-            id: 0,
-            method: "ping",
-            params: [],
-        }));
-  }
-}, 50000); // Every 50 seconds
-```
-
-<Warning>
-  Rate limit 1000 ws connections per minute and 200 requests per minute in one connection.
-</Warning>
-
-
-
-**All endpoints return time in Unix-time format.**
-
-## Order types
-
-| Order type ID | Description                            |
-| ------------- | -------------------------------------- |
-| 1             | Limit                                  |
-| 2             | Market                                 |
-| 202           | Market [stock](/glossary#stock) |
-| 3             | Stop limit                             |
-| 4             | Stop market                            |
-| 7             | Margin limit                           |
-| 8             | Margin market                          |
-| 9             | Margin stop limit                      |
-| 10            | Margin trigger-stop market             |
-| 14            | Margin normalization                   |
-
-## ⤴️ Request message
-
-JSON Structure of request message:
-
-- `id` - **Integer**. Should be unique to handle response for your request.
-- `method` - **String**. Name of request.
-- `params` - **Array**. Here you pass params for method.
-
-🚫 WebSocket connection will be closed if invalid JSON was sent.
-
-### Types of request messages
-
-- Query (`balanceSpot_request`, `ordersPending_request`, etc)
-- Subscription (`balanceSpot_subscribe`, `ordersPending_subscribe`, etc). Repeated subscription will be cancelled for the same data type.
-
-## ⤵️ Response message
-
-JSON Structure of response message:
-
-- `id` - **Integer**. Request ID.
-- `result` - **Null** for failure, for success - look for responses below
-- `error` - **Null** for success, **JSON Object** for failure:
-  - `message` - Detailed text
-  - `code` - Error code
-
-| Code  | Message             |
-| ----- | ------------------- |
-| **1** | invalid argument    |
-| **2** | internal error      |
-| **3** | service unavailable |
-| **4** | method not found    |
-| **5** | service timeout     |
-
-## Types of response messages
-
-- Query result
-- Subscription status (success/failed)
-- Update events
-
----
-
-## Examples
-
-**Example** messages for request with response:
-
-#### ⤴️ Request:
-
-```json
-{
-  "id": 0,
-  "method": "authorize",
-  "params": ["<get_your_token_via_api>", ""]
-}
-```
-
-#### ⤵️ Response:
-
-```json
-{
-  "id": 0,
-  "result": {
-    "status": "success"
-  },
-  "error": null
-}
-```
-
-**Example** subscription:
-
-#### ⤴️ Request:
-
-```json
-{
-  "id": 0,
-  "method": "balanceSpot_subscribe",
-  "params": []
-}
-```
-
-#### ⤵️ Response:
-
-```json
-{
-  "id": 0,
-  "result": {
-    "status": "success"
-  },
-  "error": null
-}
-```
-
-#### 🔄 Update events:
-
-```json
-{
-  "id": null,
-  "method": "balanceSpot_update",
-  "params": [] // look below for params
-}
-```

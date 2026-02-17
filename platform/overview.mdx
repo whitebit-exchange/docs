@@ -11,31 +11,22 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 WhiteBIT API provides comprehensive access to our trading platform through both `public` and `private` endpoints. By using any WhiteBIT API endpoints, you confirm your agreement to the [Terms of Use](https://whitebit.com/terms/api).
 
-## Public API Endpoints
+## REST API
 
-Public endpoints provide access to market data and other non-account-specific information:
+The REST API provides access to market data, trading, account management, and more. See the [API Reference](/api-reference/overview) for full details.
 
-- **Cache Policy**: All public endpoints return cached data with specific refresh intervals documented for each endpoint
-- **HTTP Method**: Use `GET` for all public requests
-- **Parameters**: Pass parameters via [query string](https://en.wikipedia.org/wiki/Query_string)
-- **Documentation**: [Public HTTP API v4](/public/http-v4) | [Public HTTP API v2](/public/http-v2) | [Public HTTP API v1](/public/http-v1)
-
-## Private API Endpoints
-
-Private endpoints provide secure access to account-specific functions like trading and balance management:
-
-- **Authentication**: Required for all private endpoints - [Authentication Guide](/private/http-auth)
+- **Market Data**: Public endpoints for market info, orderbook, trades, and statistics — use `GET` with [query string](https://en.wikipedia.org/wiki/Query_string) parameters
+- **Trading & Account**: Private endpoints for spot trading, collateral trading, account management, and sub-accounts — use `POST` with appropriate Body data and Headers
+- **Authentication**: Required for all private endpoints — [Authentication Guide](/private/http-auth)
 - **IP Restrictions**: Up to 5 trusted IPs can be configured for security
-- **HTTP Method**: Use `POST` with appropriate Body data and Headers
-- **Documentation**: [Private API v4 - Main](/private/http-main-v4) | [Private API v4 - Trade](/private/http-trade-v4)
 - **Helper Library**: [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) with examples in multiple languages
 
 ## WebSocket API
 
-WebSocket connections provide real-time data streaming and interaction:
+WebSocket connections provide real-time data streaming and interaction. See the [WebSocket Overview](/websocket/overview) for connection details.
 
-- [Public WebSocket API](/public/websocket) - Market data, klines, order book, trades, and statistics
-- [Private WebSocket API](/private/websocket) - Account data, balances, orders, and deals
+- [Market Streams](/public/websocket) — Market data, klines, order book, trades, and statistics
+- [Account Streams](/private/websocket) — Account data, balances, orders, and deals
 
 ## Other Integration Options
 
