@@ -15,11 +15,11 @@ Rate limit 429 errors occur when an endpoint exceeds the rate limit. To resolve:
 - Check the specific rate limit value in the endpoint documentation
 - Implement rate limiting in code
 
-For more details, see the [API v4 overview](/public/http-v4).
+For more details, see the [API v4 overview](/api-reference/market-data/overview).
 </Accordion>
 
 <Accordion title="CORS errors on ticker endpoint">
-CORS requests to the ticker endpoint are forbidden for security reasons. Make the request from a backend server instead of client-side code. For endpoint details, see the [Market activity endpoint](/public/http-v4/market-activity).
+CORS requests to the ticker endpoint are forbidden for security reasons. Make the request from a backend server instead of client-side code. For endpoint details, see the [Market activity endpoint](/api-reference/market-data/market-activity).
 </Accordion>
 
 <Accordion title="Nonce error troubleshooting">
@@ -29,7 +29,7 @@ Nonce errors occur when timestamps or request ordering are invalid. To resolve:
 2. Recreate API keys
 3. Ensure system time is properly synchronized
 
-For details on nonce requirements, see the [Authentication guide](/private/http-auth).
+For details on nonce requirements, see the [Authentication guide](/api-reference/authentication).
 </Accordion>
 
 <Accordion title="Smartplan endpoint 403 access errors">
@@ -39,7 +39,7 @@ Smartplan endpoints are restricted to B2B partner services only. To gain access:
 - Request permissions for Smartplan endpoints
 - Provide use case details
 
-For endpoint details, see the [Crypto Lending documentation](/private/http-main-v4/get-plans).
+For endpoint details, see the [Crypto Lending documentation](/api-reference/account-wallet/get-plans).
 </Accordion>
 </AccordionGroup>
 
@@ -52,7 +52,7 @@ Multiple time periods for pairs are available through multiple WebSocket connect
 1. Open multiple WebSocket connections
 2. Use the equivalent HTTP method instead
 
-For more details, see the [Kline documentation](/public/websocket/kline).
+For more details, see the [Kline documentation](/websocket/market-streams/kline).
 </Accordion>
 
 <Accordion title="Trade history limitations (24-hour window)">
@@ -62,7 +62,7 @@ The system shows only the last 100 deals by default. To access more:
 - Accumulate and store the data
 - Process the data as needed
 
-For more details, see the [Trades channel documentation](/public/websocket/trades).
+For more details, see the [Trades channel documentation](/websocket/market-streams/trades).
 </Accordion>
 </AccordionGroup>
 
@@ -76,14 +76,14 @@ Transfers may take up to 2 seconds to complete. When making transfers and withdr
 - Avoid initiating withdrawals before transfer completion
 - Implement proper error handling for transfer states
 
-For endpoint details, see the [Transfer between balances](/private/http-main-v4/transfer-between-balances) documentation.
+For endpoint details, see the [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) documentation.
 </Accordion>
 
 <Accordion title="Insufficient funds errors despite available balance">
 Insufficient funds errors occur when the withdrawal amount plus the fee exceeds available balance. Important considerations:
 
 - Account for withdrawal fees in calculations
-- Check the [fees documentation](/private/http-main-v4/get-fees)
+- Check the [fees documentation](/api-reference/account-wallet/get-fees)
 - Ensure sufficient balance for both amount and fees
 </Accordion>
 </AccordionGroup>
@@ -112,7 +112,7 @@ Check currency status through the assets endpoint:
 - The endpoint provides real-time status of all currencies
 - Check the currency-specific enabled/disabled flags
 
-For endpoint details and response schema, see the [Asset status list](/public/http-v4/asset-status-list) documentation.
+For endpoint details and response schema, see the [Asset status list](/api-reference/market-data/asset-status-list) documentation.
 </Accordion>
 </AccordionGroup>
 
@@ -122,13 +122,13 @@ For endpoint details and response schema, see the [Asset status list](/public/ht
 <Accordion title="API key security best practices">
 Store API keys securely using environment variables, restrict IP access, and use minimum required permissions. Never commit keys to version control.
 
-For details, see the [Authentication guide](/private/http-auth).
+For details, see the [Authentication guide](/api-reference/authentication).
 </Accordion>
 
 <Accordion title="Compromised API key response">
 Immediately delete the compromised key, review account activity for unauthorized actions, and create new API keys. Contact support if unauthorized activity is detected.
 
-For details, see the [Authentication guide](/private/http-auth).
+For details, see the [Authentication guide](/api-reference/authentication).
 </Accordion>
 </AccordionGroup>
 
@@ -138,12 +138,12 @@ For details, see the [Authentication guide](/private/http-auth).
 <Accordion title="High-frequency trading API optimization">
 Use WebSocket for real-time data, batch requests when possible, implement proper rate limiting, and cache frequently accessed data.
 
-For details, see the [WebSocket API](/public/websocket).
+For details, see the [WebSocket API](/websocket/market-streams/overview).
 </Accordion>
 
 <Accordion title="API disconnection handling">
 Implement automatic reconnection with exponential backoff. Maintain local order state and set up monitoring and alerts for connection issues.
 
-For details, see the [WebSocket API](/public/websocket).
+For details, see the [WebSocket API](/websocket/market-streams/overview).
 </Accordion>
 </AccordionGroup>
