@@ -1585,7 +1585,7 @@ paths:
     post:
       summary: Query Market Fee
       description: |
-        This endpoint returns maker and taker fees for a specific market.
+        Returns maker and taker fees for a specific market.
 
         The `maker` and `taker` fields represent spot trading fees. The `futures_maker` and `futures_taker` fields represent futures trading fees.
 
@@ -1636,16 +1636,12 @@ paths:
                   futures_taker:
                     type: string
                     description: |
-                      Futures taker fee rate for the specified market.
-
-                      The system returns the lower value between the assigned custom fee and the market-specific fee.
+                      Effective futures taker fee rate for the specified market. The system returns the lower value between the custom fee (if assigned) and the default market fee.
                     example: "0.0002"
                   futures_maker:
                     type: string
                     description: |
-                      Futures maker fee rate for the specified market.
-
-                      The system returns the lower value between the assigned custom fee and the market-specific fee.
+                      Effective futures maker fee rate for the specified market. The system returns the lower value between the custom fee (if assigned) and the default market fee.
                     example: "0.0001"
         '422':
           description: Validation failed
@@ -1657,7 +1653,7 @@ paths:
     get:
       summary: Query All Market Fees
       description: |
-        This endpoint returns maker and taker fees for all markets, including assigned custom fees.
+        Returns maker and taker fees for all markets, including assigned custom fees.
 
         The `maker` and `taker` fields represent default spot trading fees.
 

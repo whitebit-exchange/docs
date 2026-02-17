@@ -978,7 +978,7 @@ paths:
                   description: |
                     Travel Rule information data array.
 
-                    ⚠️ Required if currency is crypto and you are from [EEA](/glossary#european-economic-area-eea)
+                    ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
                   properties:
                     type:
                       type: string
@@ -986,25 +986,25 @@ paths:
                       description: |
                         Travel rule receiver type. Values: "individual" or "entity"
 
-                        ⚠️ Required if currency is crypto and you are from [EEA](/glossary#european-economic-area-eea)
+                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
                     vasp:
                       type: string
                       description: |
                         Travel rule destination platform (VASP) name.
 
-                        ⚠️ Required if currency is crypto and you are from [EEA](/glossary#european-economic-area-eea)
+                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
                     name:
                       type: string
                       description: |
                         Travel rule. If individual - first_name ; if entity - entity_name
 
-                        ⚠️ Required if currency is crypto and you are from [EEA](/glossary#european-economic-area-eea)
+                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
                     address:
                       type: string
                       description: |
                         Travel rule. If individual - last_name ; if entity - entity_address
 
-                        ⚠️ Required if currency is crypto and you are from [EEA](/glossary#european-economic-area-eea)
+                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
                 paymentDescription:
                   type: string
                   description: |
@@ -1549,7 +1549,7 @@ paths:
         - `Awaiting verification` - 27: The transaction has been frozen due to the lack of data required under the Travel Rule. The user is required to provide this data manually through the exchange interface.
         - `Confirmation in progress` - 28: The Travel Rule data provided by the user is currently being verified by WhiteBIT.
 
-        ⚠️ Due to regulatory requirements in Turkey and [EU](/glossary#european-economic-area-eea), every inbound crypto deposit must be put on hold (frozen) until transaction's origin being confirmed. Must be provided certain details if the transaction is from another Virtual Asset Service Provider (VASP) or verify the address if it is from a self-hosted wallet. Only after successful verification can the deposited funds be credited to account.
+        ⚠️ Due to regulatory requirements in Turkey and [EU](/glossary#european-economic-area-eea), the system places every inbound crypto deposit on hold (frozen) until confirming the transaction's origin. The sender must provide certain details if the transaction is from another Virtual Asset Service Provider (VASP) or verify the address if from a self-hosted wallet. The system credits deposited funds to the account only after successful verification.
 
         **Withdraw status codes:**
         - `Pending` - 1, 2, 6, 10, 11, 12, 13, 14, 15, 16, 17
@@ -4086,7 +4086,7 @@ paths:
                 properties:
                   transactionId:
                     type: string
-                    description: External identifier of the transaction. Use this value to correlate with transfer history responses.
+                    description: External identifier of the transaction. Correlate transfer history responses using the transactionId value.
         "400":
           description: Request validation failed
           content:
@@ -5003,7 +5003,7 @@ components:
           description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
         travelRule:
           type: object
-          description: "Travel Rule information data. Required if currency is crypto and you are from [EEA](/glossary#european-economic-area-eea)"
+          description: "Travel Rule information data. Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)"
         request:
           type: string
           description: "Request signature"
@@ -5378,7 +5378,7 @@ components:
       properties:
         transactionId:
           type: string
-          description: "Transaction identifier. Same value as id. Use this field to correlate with the transfer endpoint response."
+          description: "Transaction identifier. Same value as id. Correlate with the transfer endpoint response using the transactionId field."
         id:
           type: string
           description: "Transfer identifier"
