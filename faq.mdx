@@ -8,36 +8,36 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 ## Rate limits and errors
 
 <AccordionGroup>
-<Accordion title="Why am I getting a 429 error and can't make requests?">
-If the rate limit for an endpoint is exceeded, you will receive a 429 error. To resolve this:
+<Accordion title="Rate limit 429 errors">
+Rate limit 429 errors occur when an endpoint exceeds its rate limit. To resolve:
 
 - Wait for the rate limit window to reset
-- Check the specific rate limit value in the endpoint description
-- Consider implementing rate limiting in your code
+- Check the specific rate limit value in the endpoint documentation
+- Implement rate limiting in code
 
 For more details, see the [API v4 overview](/public/http-v4).
 </Accordion>
 
-<Accordion title="Why do I get a CORS error when requesting the whitebit.com/api/v4/public/ticker method?">
-CORS requests to this endpoint are forbidden for security reasons. Make the request from your backend instead of client-side. For endpoint details, see the [Market activity endpoint](/public/http-v4/market-activity).
+<Accordion title="CORS errors on ticker endpoint">
+CORS requests to the ticker endpoint are forbidden for security reasons. Make the request from a backend server instead of client-side code. For endpoint details, see the [Market activity endpoint](/public/http-v4/market-activity).
 </Accordion>
 
-<Accordion title="Why am I getting nonce errors?">
+<Accordion title="Nonce error troubleshooting">
 Nonce errors occur when timestamps or request ordering are invalid. To resolve:
 
-1. Debug your code implementation
-2. Recreate your API keys
-3. Ensure your system time is properly synchronized
+1. Debug the code implementation
+2. Recreate API keys
+3. Ensure system time is properly synchronized
 
 For details on nonce requirements, see the [Authentication guide](/private/http-auth).
 </Accordion>
 
-<Accordion title="Why am I getting a 403 error when making requests to the Smartplan endpoints?">
-These endpoints are restricted to B2B partner services only. To gain access:
+<Accordion title="Smartplan endpoint 403 access errors">
+Smartplan endpoints are restricted to B2B partner services only. To gain access:
 
 - Contact [support@whitebit.com](mailto:support@whitebit.com)
 - Request permissions for Smartplan endpoints
-- Provide your use case details
+- Provide use case details
 
 For endpoint details, see the [Crypto Lending documentation](/private/http-main-v4/get-plans).
 </Accordion>
@@ -46,8 +46,8 @@ For endpoint details, see the [Crypto Lending documentation](/private/http-main-
 ## WebSocket
 
 <AccordionGroup>
-<Accordion title="Can I get information on pairs for multiple time periods in the WebSocket Kline method?">
-Yes, you can use multiple WebSocket connections or the HTTP method. There are two solutions:
+<Accordion title="Multiple time periods in WebSocket Kline">
+Multiple time periods for pairs are available through multiple WebSocket connections or the HTTP method. Two solutions:
 
 1. Open multiple WebSocket connections
 2. Use the equivalent HTTP method instead
@@ -55,12 +55,12 @@ Yes, you can use multiple WebSocket connections or the HTTP method. There are tw
 For more details, see the [Kline documentation](/public/websocket/kline).
 </Accordion>
 
-<Accordion title="Why can't I see trade history for a pair in the last 24 hours?">
-The system only shows the last 100 deals by default. To see more:
+<Accordion title="Trade history limitations (24-hour window)">
+The system shows only the last 100 deals by default. To access more:
 
 - Subscribe to the WebSocket feed
-- Accumulate and store the data on your side
-- Process the data as needed for your use case
+- Accumulate and store the data
+- Process the data as needed
 
 For more details, see the [Trades channel documentation](/public/websocket/trades).
 </Accordion>
@@ -69,20 +69,20 @@ For more details, see the [Trades channel documentation](/public/websocket/trade
 ## Transfers and withdrawals
 
 <AccordionGroup>
-<Accordion title="Why doesn't my transfer between balances go through when I transfer assets via API?">
+<Accordion title="Transfer delays between balances">
 Transfers may take up to 2 seconds to complete. When making transfers and withdrawals:
 
 - Wait for transfers to complete (approximately 2 seconds)
-- Don't initiate withdrawals before transfer completion
+- Avoid initiating withdrawals before transfer completion
 - Implement proper error handling for transfer states
 
 For endpoint details, see the [Transfer between balances](/private/http-main-v4/transfer-between-balances) documentation.
 </Accordion>
 
-<Accordion title="Why do I get an insufficient funds error when I have assets on my balance?">
-This occurs when the withdrawal amount plus the fee exceeds your available balance. Remember to:
+<Accordion title="Insufficient funds errors despite available balance">
+Insufficient funds errors occur when the withdrawal amount plus the fee exceeds available balance. Important considerations:
 
-- Account for withdrawal fees in your calculations
+- Account for withdrawal fees in calculations
 - Check the [fees documentation](/private/http-main-v4/get-fees)
 - Ensure sufficient balance for both amount and fees
 </Accordion>
@@ -91,8 +91,8 @@ This occurs when the withdrawal amount plus the fee exceeds your available balan
 ## Webhooks
 
 <AccordionGroup>
-<Accordion title="Do I need HTTPS for Webhook API communication, and which port is used?">
-Yes, HTTPS is required:
+<Accordion title="Webhook HTTPS requirements and port">
+HTTPS is required for Webhook API communication:
 
 - Communication occurs over port 443
 - SSL/TLS encryption is mandatory
@@ -105,11 +105,11 @@ For more details, see the [Webhook documentation](/platform/webhook).
 ## API and assets
 
 <AccordionGroup>
-<Accordion title="How can I check if deposits and withdrawals are available for a specific currency?">
-You can check currency status through the assets endpoint:
+<Accordion title="Currency deposit and withdrawal availability">
+Check currency status through the assets endpoint:
 
 - URL: [https://whitebit.com/api/v4/public/assets](https://whitebit.com/api/v4/public/assets)
-- This endpoint provides real-time status of all currencies
+- The endpoint provides real-time status of all currencies
 - Check the currency-specific enabled/disabled flags
 
 For endpoint details and response schema, see the [Asset status list](/public/http-v4/asset-status-list) documentation.
@@ -119,14 +119,14 @@ For endpoint details and response schema, see the [Asset status list](/public/ht
 ## Security and API keys
 
 <AccordionGroup>
-<Accordion title="How do I ensure my API keys are secure?">
-Store your API keys securely using environment variables, restrict IP access, and use the minimum required permissions. Never share your keys.
+<Accordion title="API key security best practices">
+Store API keys securely using environment variables, restrict IP access, and use minimum required permissions. Never commit keys to version control.
 
 For details, see the [Authentication guide](/private/http-auth).
 </Accordion>
 
-<Accordion title="What should I do if I suspect my API key is compromised?">
-Immediately delete the compromised key, review your account activity for unauthorized actions, and create new API keys. Contact support if you detect unauthorized activity.
+<Accordion title="Compromised API key response">
+Immediately delete the compromised key, review account activity for unauthorized actions, and create new API keys. Contact support if unauthorized activity is detected.
 
 For details, see the [Authentication guide](/private/http-auth).
 </Accordion>
@@ -135,13 +135,13 @@ For details, see the [Authentication guide](/private/http-auth).
 ## API usage
 
 <AccordionGroup>
-<Accordion title="How can I optimize my API usage for high-frequency trading?">
+<Accordion title="High-frequency trading API optimization">
 Use WebSocket for real-time data, batch requests when possible, implement proper rate limiting, and cache frequently accessed data.
 
 For details, see the [WebSocket API](/public/websocket).
 </Accordion>
 
-<Accordion title="How do I handle API disconnections?">
+<Accordion title="API disconnection handling">
 Implement automatic reconnection with exponential backoff. Maintain local order state and set up monitoring and alerts for connection issues.
 
 For details, see the [WebSocket API](/public/websocket).
