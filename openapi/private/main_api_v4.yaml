@@ -4083,6 +4083,10 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  transactionId:
+                    type: string
+                    description: External identifier of the transaction. Use this value to correlate with transfer history responses.
         "400":
           description: Request validation failed
           content:
@@ -5372,9 +5376,13 @@ components:
     SubAccountTransfer:
       type: object
       properties:
+        transactionId:
+          type: string
+          description: "Transaction identifier. Same value as id. Use this field to correlate with the transfer endpoint response."
         id:
           type: string
           description: "Transfer identifier"
+          deprecated: true
         direction:
           type: string
           description: "Transfer direction (main_to_sub or sub_to_main)"
