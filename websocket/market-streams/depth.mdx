@@ -1,0 +1,371 @@
+---
+asyncapi: "/asyncapi/public/depth.yaml /ws"
+title: Order Book Depth
+---
+
+## Overview
+
+The Market Depth endpoint provides real-time order book data with support for both one-time queries and subscription-based updates.
+
+### Update Behavior
+
+<Note>
+After successful subscription, the server sends a **full snapshot** of the order book as the first `depth_update` message. All subsequent messages are **incremental updates** containing only the changes since the last update.
+</Note>
+
+<Note>
+Public `depth` updates exclude Retail Price Improvement (RPI) orders. The `depth_update` stream includes only regular order book liquidity.
+
+Private active order endpoints and private WebSocket streams return RPI orders. The exchange UI order book (web and mobile) displays RPI orders.
+</Note>
+
+### Understanding Updates
+
+- **First message** (`past_update_id` is absent): Full order book snapshot with all price levels
+- **Subsequent messages** (`past_update_id` is present): Only changed price levels
+- **Removed levels**: Shown as `[price, "0"]` - when amount is "0", remove that price level from your local order book
+
+<Info>
+If 10 seconds elapse without any order book changes, the server will push a full snapshot again as a keepalive mechanism.
+</Info>
+
+## Maintaining a Local Order Book
+
+To maintain an accurate local order book, follow this algorithm:
+
+1. Subscribe to depth updates
+2. Receive the first message (full snapshot) - initialize your order book
+3. For each incremental update:
+   - If amount is "0" → remove that price level
+   - If amount is not "0" → update existing level or insert new level at the correct sorted position
+4. Keep order book sorted: asks ascending, bids descending
+5. Truncate to your desired limit after each update
+
+## Code Examples
+
+<CodeGroup>
+
+```typescript TypeScript
+type IDepth = [string, string];
+
+interface OrderBook {
+    asks: IDepth[];
+    bids: IDepth[];
+}
+
+const ws = new WebSocket("wss://api.whitebit.com/ws");
+const orderBook: OrderBook = { asks: [], bids: [] };
+const LIMIT = 100;
+
+ws.addEventListener("open", () => {
+    ws.send(
+        JSON.stringify({
+            id: 1,
+            method: "depth_subscribe",
+            params: ["ETH_BTC", LIMIT, "0", true]
+        }),
+    );
+});
+
+ws.addEventListener("message", (event: MessageEvent) => {
+    const message = JSON.parse(event.data.toString());
+
+    if (message.method === "depth_update") {
+        const updateData = message.params[0] as Partial<OrderBook & { past_update_id?: number }>;
+        const isFirstMessage = !updateData.past_update_id;
+
+        if (isFirstMessage) {
+            // First message or keepalive snapshot is a full snapshot - replace order book
+            orderBook.asks = updateData.asks ?? [];
+            orderBook.bids = updateData.bids ?? [];
+        } else {
+            // Subsequent messages are incremental updates
+            applyUpdates(orderBook.asks, updateData.asks, "ask");
+            applyUpdates(orderBook.bids, updateData.bids, "bid");
+            truncateOrderBook(orderBook.asks);
+            truncateOrderBook(orderBook.bids);
+        }
+    }
+});
+
+function applyUpdates(orderBookSide: IDepth[], updates: IDepth[] | undefined, side: "ask" | "bid") {
+    if (updates === undefined) return;
+    for (const [price, amount] of updates) {
+        // Find the index of an entry in orderBookSide that matches the given price.
+        const priceIndex = orderBookSide.findIndex((level) => level[0] === price);
+
+        // If the amount is '0', it means this price level should be removed from the orderBookSide.
+        if (amount === "0") {
+            if (priceIndex !== -1) {
+                // Remove the existing price level since the amount is '0'.
+                orderBookSide.splice(priceIndex, 1);
+            }
+        } else {
+            // If the amount is not '0', either update the existing price level or add a new one.
+            if (priceIndex === -1) {
+                // Find the position where the new price level should be inserted.
+               const insertIndex = orderBookSide.findIndex((level) =>
+                    side === "ask" ? level[0] > price : level[0] < price
+                );
+
+                if (insertIndex === -1) {
+                    // Add to the end if there's no higher price level.
+                    orderBookSide.push([price, amount]);
+                } else {
+                    // Insert at the correct sorted position.
+                    orderBookSide.splice(insertIndex, 0, [price, amount]);
+                }
+            } else {
+                // Update the amount for the existing price level.
+                orderBookSide[priceIndex][1] = amount;
+            }
+        }
+    }
+}
+
+function truncateOrderBook(orderBookSide: IDepth[]) {
+    if (orderBookSide.length > LIMIT) {
+        // Only truncate if the length exceeds the LIMIT
+        orderBookSide.splice(LIMIT);
+    }
+}
+```
+
+```python Python
+import asyncio
+import json
+import websockets
+
+class OrderBook:
+    def __init__(self):
+        self.asks = []
+        self.bids = []
+
+LIMIT = 100
+
+async def depth_subscribe():
+    async with websockets.connect('wss://api.whitebit.com/ws') as ws:
+        await ws.send(json.dumps({
+            'id': 1,
+            'method': 'depth_subscribe',
+            'params': ['ETH_BTC', LIMIT, '0', True]
+        }))
+
+        async for message in ws:
+            data = json.loads(message)
+            if data.get('method') == 'depth_update':
+                handle_depth_update(data['params'])
+
+def handle_depth_update(params):
+    update_data = params[0]
+    is_first_message = update_data.get('past_update_id') is None
+
+    if is_first_message:
+        # First message or keepalive snapshot is a full snapshot - replace order book
+        order_book.asks = update_data.get('asks', [])
+        order_book.bids = update_data.get('bids', [])
+    else:
+        # Subsequent messages are incremental updates
+        apply_updates(order_book.asks, update_data.get('asks', []), "ask")
+        apply_updates(order_book.bids, update_data.get('bids', []), "bid")
+        truncate_order_book(order_book.asks)
+        truncate_order_book(order_book.bids)
+
+def apply_updates(order_book_side, updates, side):
+    for price, amount in updates:
+        price = str(price)
+        amount = str(amount)
+
+        # Find existing entry
+        price_index = next((i for i, level in enumerate(order_book_side) if level[0] == price), -1)
+
+        if amount == '0':
+            if price_index != -1:
+                # Remove the existing price level since the amount is '0'.
+                order_book_side.pop(price_index)
+        else:
+            if price_index == -1:
+                # Find the position where the new price level should be inserted.
+                insert_index = next((i for i, level in enumerate(order_book_side)
+                                     if (side == "ask" and level[0] > price) or
+                                     (side == "bid" and level[0] < price)), -1)
+                if insert_index == -1:
+                    # Add to the end if there's no higher price level.
+                    order_book_side.append([price, amount])
+                else:
+                    # Insert at the correct sorted position.
+                    order_book_side.insert(insert_index, [price, amount])
+            else:
+                # Update the amount for the existing price level.
+                order_book_side[price_index][1] = amount
+
+def truncate_order_book(order_book_side):
+    if len(order_book_side) > LIMIT:
+        del order_book_side[LIMIT:]
+
+order_book = OrderBook()
+
+asyncio.get_event_loop().run_until_complete(depth_subscribe())
+```
+
+```java Java
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.json.*;
+import javax.websocket.*;
+
+@ClientEndpoint
+public class OrderBookClient {
+    private static final int LIMIT = 100;
+    private static List<IDepth> asks = new ArrayList<>();
+    private static List<IDepth> bids = new ArrayList<>();
+    private static CountDownLatch latch;
+
+    public static void main(String[] args) throws URISyntaxException, InterruptedException {
+        latch = new CountDownLatch(1);
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+        URI uri = new URI("wss://api.whitebit.com/ws");
+        container.connectToServer(OrderBookClient.class, uri);
+        latch.await(1, TimeUnit.MINUTES);
+    }
+
+    @OnOpen
+    public void onOpen(Session session) throws Exception {
+        JsonObject message = Json.createObjectBuilder()
+                .add("id", 1)
+                .add("method", "depth_subscribe")
+                .add("params", Json.createArrayBuilder()
+                        .add("ETH_BTC")
+                        .add(LIMIT)
+                        .add("0")
+                        .add(true)
+                )
+                .build();
+        session.getBasicRemote().sendText(message.toString());
+    }
+
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        JsonReader reader = Json.createReader(new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8)));
+        JsonObject jsonMessage = reader.readObject();
+
+        if ("depth_update".equals(jsonMessage.getString("method"))) {
+            JsonArray params = jsonMessage.getJsonArray("params");
+            JsonObject updateData = params.getJsonObject(0);
+            boolean isFirstMessage = !updateData.containsKey("past_update_id") || 
+                                     updateData.isNull("past_update_id");
+
+            if (isFirstMessage) {
+                // First message or keepalive snapshot is a full snapshot - replace order book
+                asks = parseOrderBookSide(updateData.getJsonArray("asks"));
+                bids = parseOrderBookSide(updateData.getJsonArray("bids"));
+            } else {
+                // Subsequent messages are incremental updates
+                applyUpdates(asks, updateData.getJsonArray("asks"), "ask");
+                applyUpdates(bids, updateData.getJsonArray("bids"), "bid");
+                truncateOrderBook(asks);
+                truncateOrderBook(bids);
+            }
+        }
+    }
+
+    @OnClose
+    public void onClose(Session session, CloseReason reason) {
+        System.out.println("Connection closed: " + reason);
+        latch.countDown();
+    }
+
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        throwable.printStackTrace();
+        latch.countDown();
+    }
+
+    private static List<IDepth> parseOrderBookSide(JsonArray jsonArray) {
+        List<IDepth> orderBookSide = new ArrayList<>();
+        for (JsonValue value : jsonArray) {
+            JsonArray level = value.asJsonArray();
+            String price = level.getString(0);
+            String amount = level.getString(1);
+            orderBookSide.add(new IDepth(price, amount));
+        }
+        return orderBookSide;
+    }
+
+    private static void applyUpdates(List<IDepth> orderBookSide, JsonArray updates, String side) {
+        for (JsonValue value : updates) {
+            JsonArray level = value.asJsonArray();
+            String price = level.getString(0);
+            String amount = level.getString(1);
+
+            int priceIndex = -1;
+            for (int i = 0; i < orderBookSide.size(); i++) {
+                if (orderBookSide.get(i).getPrice().equals(price)) {
+                    priceIndex = i;
+                    break;
+                }
+            }
+
+            if ("0".equals(amount)) {
+                if (priceIndex != -1) {
+                    orderBookSide.remove(priceIndex);
+                }
+            } else {
+                if (priceIndex == -1) {
+                    int insertIndex = -1;
+                    for (int i = 0; i < orderBookSide.size(); i++) {
+                        if ((side.equals("ask") && orderBookSide.get(i).getPrice().compareTo(price) > 0) ||
+                            (side.equals("bid") && orderBookSide.get(i).getPrice().compareTo(price) < 0)) {
+                            insertIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (insertIndex == -1) {
+                        orderBookSide.add(new IDepth(price, amount));
+                    } else {
+                        orderBookSide.add(insertIndex, new IDepth(price, amount));
+                    }
+                } else {
+                    orderBookSide.get(priceIndex).setAmount(amount);
+                }
+            }
+        }
+    }
+
+    private static void truncateOrderBook(List<IDepth> orderBookSide) {
+        if (orderBookSide.size() > LIMIT) {
+            orderBookSide.subList(LIMIT, orderBookSide.size()).clear();
+        }
+    }
+
+    static class IDepth {
+        private final String price;
+        private String amount;
+
+        public IDepth(String price, String amount) {
+            this.price = price;
+            this.amount = amount;
+        }
+
+        public String getPrice() {
+            return price;
+        }
+
+        public String getAmount() {
+            return amount;
+        }
+
+        public void setAmount(String amount) {
+            this.amount = amount;
+        }
+    }
+}
+```
+</CodeGroup>

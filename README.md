@@ -61,8 +61,11 @@ mintlify-docs/
 ├── asyncapi/          # AsyncAPI specifications (WebSocket)
 │   ├── public/        # Public channels
 │   └── private/       # Private channels
-├── public/            # MDX docs for public APIs
-├── private/           # MDX docs for private APIs
+├── api-reference/    # REST API docs (market-data, spot-trading, collateral-trading,
+│                     # convert, account-wallet, sub-accounts, authentication, oauth)
+├── websocket/         # WebSocket docs (overview, market-streams, account-streams)
+├── platform/          # Platform feature docs (webhook, colocation, self-trade-prevention,
+│                     # oauth conceptual overview)
 └── docs.json          # Navigation configuration
 ```
 

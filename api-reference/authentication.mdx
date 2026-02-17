@@ -1,0 +1,112 @@
+---
+title: "Private HTTP API Authentication"
+sidebarTitle: "Authentication"
+---
+ 
+## Overview
+
+This guide explains how to authenticate with WhiteBit’s private HTTP API endpoints, which require authentication for security purposes.
+
+## Getting Started
+
+### Setting Up API Keys
+<Steps>
+<Step>
+ Navigate to [WhiteBit API Settings](https://whitebit.com/settings/api)
+</Step>
+<Step>
+ Select the appropriate configuration tab for your API keys
+    <Info>
+	 Different API keys provide access to different API endpoints
+	</Info>
+</Step>
+<Step>	
+Generate a new API key
+</Step>
+<Step>
+ **Recommended Security Measures:**
+	- Enable IP restrictions (specify up to 50 trusted IPs)
+	- Enable Endpoint access restrictions (select only necessary endpoints)
+</Step>
+</Steps>
+## Authentication Requirements
+
+All authenticated requests must:
+
+1. Use the `POST` HTTP method
+2. Include specific body data
+3. Contain required headers
+
+### Body Data Format
+
+Your request body must be a JSON object containing:
+
+| Field | Description | Example |
+| --- | --- | --- |
+| `request` | Request path without domain name | `'/api/v4/trade-account/balance'` |
+| `nonce` | An incrementing number larger than previous requests | `'1594297865'` |
+| `nonceWindow` | Optional boolean to enable time-based nonce validation | `true` |
+| Request-specific parameters | Additional parameters required by the endpoint | `"ticker": "BTC"` |
+
+**Example Request Body:**
+
+```bash
+{
+    "request": "/api/v4/trade-account/balance",
+    "nonce": 1594297865,
+    "nonceWindow": true,
+    "ticker": "BTC"
+}
+```
+
+#### About Nonce Values
+
+- A good practice is to use the Unix timestamp in milliseconds
+- Ensure each nonce is larger than previous requests
+- When `nonceWindow` is enabled:
+	- Provide Unix timestamp in milliseconds as the nonce
+	- Timestamp must be within ±5 seconds of server time
+	- Each nonce must be unique to prevent double processing
+	- Useful for high-frequency trading systems with concurrent requests
+
+### Required Headers
+
+Every authenticated request requires these headers:
+
+| Header | Value | Description |
+| --- | --- | --- |
+| `Content-type` | `application/json` | Specifies JSON format |
+| `X-TXC-APIKEY` | `your_api_key` | Your public WhiteBit API key |
+| `X-TXC-PAYLOAD` | `base64_encoded_payload` | Base64-encoded request body |
+| `X-TXC-SIGNATURE` | `signature` | HMAC-SHA512 signature (hex encoded) |
+
+The signature is created using: `hex(HMAC_SHA512(payload, key=api_secret))`
+
+## Implementation Examples
+
+We provide the [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) library with examples in multiple languages:
+
+- Python
+- PHP
+- NodeJS
+- Go
+- JavaScript
+- Kotlin
+- DotNet
+- Ruby
+- C++
+- Rust
+
+## Common Errors
+
+| Error Message | Cause | Solution |
+| --- | --- | --- |
+| ”Too many requests.” | Nonce value is not greater than previous request | Use incrementing nonce values |
+| ”This action is unauthorized. Enable your key in API settings” | Using disabled API key | Enable key in API settings or check IP restrictions |
+| ”You don’t have permission to use this endpoint.” | Endpoint access is restricted | Update endpoint access in API key settings |
+| ”Invalid payload” | Payload doesn’t match decoded value | Ensure proper base64 encoding of request body |
+| ”Unauthorized request.” | Request signed incorrectly | Verify signature creation process |
+| ”Nonce not provided.” | Missing nonce in request body | Include nonce in all requests |
+| ”Your nonce is more than 5 seconds lesser than the current nonce” | Invalid timestamp when using nonceWindow | Use current timestamp in milliseconds |
+| ”Invalid nonceWindow.” | nonceWindow is not a boolean | Ensure nonceWindow is set to true or false |
+| ”Request not provided.” | Missing request path in body | Include request path in all requests |

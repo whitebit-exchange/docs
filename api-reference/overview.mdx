@@ -22,7 +22,7 @@ https://whitebit.com/api/v4/{endpoint}
 
 ## Authentication
 
-Private endpoints require API key authentication with HMAC-SHA512 signed requests. See the [Authentication Guide](/private/http-auth) for setup instructions, header requirements, and code examples.
+Private endpoints require API key authentication with HMAC-SHA512 signed requests. See the [Authentication Guide](/api-reference/authentication) for setup instructions, header requirements, and code examples.
 
 ## Rate Limits
 
@@ -58,29 +58,32 @@ All V4 endpoints return errors as JSON. The format differs slightly between publ
 }
 ```
 
-For full details, see the [Market Data overview](/public/http-v4/index) and [Spot Trading overview](/private/http-trade-v4/overview).
+For full details, see the [Market Data overview](/api-reference/market-data/overview) and [Spot Trading overview](/api-reference/spot-trading/overview).
 
 ---
 
 ## Endpoint Groups
 
 <CardGroup cols={2}>
-  <Card title="Market Data" icon="chart-bar" href="/public/http-v4/index">
+  <Card title="Market Data" icon="chart-bar" href="/api-reference/market-data/overview">
     Public market info, orderbook, trades, fees, server status, and more. No authentication required.
   </Card>
-  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/private/http-trade-v4/overview">
+  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/api-reference/spot-trading/overview">
     Place and manage spot orders, query execution history, and control kill-switch timers.
   </Card>
-  <Card title="Collateral Trading" icon="scale-balanced" href="/private/http-trade-v4/collateral-overview">
+  <Card title="Collateral Trading" icon="scale-balanced" href="/api-reference/collateral-trading/overview">
     Manage collateral positions, leverage, hedge mode, and collateral order types (limit, market, OCO, OTO).
   </Card>
-  <Card title="Convert" icon="rotate" href="/private/http-trade-v4/convert-estimate">
+  <Card title="Convert" icon="rotate" href="/api-reference/convert/convert-estimate">
     Estimate, confirm, and review currency conversion operations.
   </Card>
-  <Card title="Account & Wallet" icon="wallet" href="/private/http-main-v4/overview">
+  <Card title="Account & Wallet" icon="wallet" href="/api-reference/account-wallet/overview">
     Main balance, deposits, withdrawals, transfers, codes, crypto lending, fees, and mining pool.
   </Card>
-  <Card title="Sub-Accounts" icon="users" href="/private/http-main-v4/sub-accounts-overview">
+  <Card title="Sub-Accounts" icon="users" href="/api-reference/sub-accounts/overview">
     Create and manage sub-accounts, balances, transfers, and API keys.
+  </Card>
+  <Card title="OAuth" icon="key" href="/api-reference/oauth/usage/oauth">
+    Third-party authorization: token exchange, refresh, and account endpoints.
   </Card>
 </CardGroup>
