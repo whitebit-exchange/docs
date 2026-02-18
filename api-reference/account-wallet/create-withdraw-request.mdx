@@ -5,7 +5,7 @@ openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/withdraw
 
 ## Withdrawal Scenarios Guide
 
-This endpoint supports **8 different withdrawal scenarios**. Each scenario requires different fields depending on the currency type, destination, and regulatory requirements. Use the example selector above to switch between scenarios.
+The endpoint supports **8 different withdrawal scenarios**. Each scenario requires different fields depending on the currency type, destination, and regulatory requirements. Use the example selector above to switch between scenarios.
 
 ### 🔹 Cryptocurrency Withdrawals
 
@@ -15,27 +15,27 @@ For standard cryptocurrencies like BTC, ETH, LTC, etc.
 - **Use when**: Withdrawing to a standard blockchain address
 
 #### **Scenario 2: Multi-Network Crypto (USDT, USDC)**
-For cryptocurrencies that exist on multiple blockchains.
+For cryptocurrencies existing on multiple blockchains.
 - **Required fields**: Same as above + `network`
 - **Networks**: ERC20 (Ethereum), TRC20 (Tron), BEP20 (BSC), OMNI, etc.
-- **Use when**: Withdrawing tokens that exist on multiple chains
+- **Use when**: Withdrawing tokens existing on multiple chains
 
 <Warning>
-**Critical**: Ensure the `network` matches your destination address type. Sending ERC20 USDT to a TRC20 address will result in **permanent loss of funds**. Verify the network on [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+**Critical**: Ensure the `network` matches the destination address type. Sending ERC20 USDT to a TRC20 address will result in **permanent loss of funds**. Verify the network on [Asset Status endpoint](/api-reference/market-data/asset-status-list).
 </Warning>
 
 #### **Scenario 3: Travel Rule Compliance (EEA Users)**
-Required for crypto withdrawals if you're from the European Economic Area (EEA).
+Required for crypto withdrawals when the account is registered in the European Economic Area (EEA).
 - **Required fields**: Standard crypto fields + `travelRule` object
 - **Travel rule types**: 
   - `individual` - Personal withdrawals (requires first name / last name)
   - `entity` - Business withdrawals (requires company name / address)
-- **Use when**: Your account is registered in EEA countries
+- **Use when**: The account is registered in EEA countries
 
 ### 🔹 Fiat Withdrawals (KYC Required)
 
 <Note>
-All fiat withdrawals require KYC verification. Ensure your account is verified before attempting fiat withdrawals.
+All fiat withdrawals require KYC verification. Ensure the account is verified before attempting fiat withdrawals.
 </Note>
 
 #### **Scenario 4: Basic Fiat Withdrawal**
@@ -47,8 +47,8 @@ Standard fiat withdrawal via VISAMASTER provider.
 #### **Scenario 5: Fiat with Partial Enable**
 For withdrawals exceeding standard limits with "partially successful" status support.
 - **Required fields**: Same as basic + `partialEnable: true` + `address` (encrypted card token)
-- **Use when**: Withdrawing larger amounts that might be processed partially
-- **Important**: Your application must handle "Partially successful" withdrawal status
+- **Use when**: Withdrawing larger amounts eligible for partial processing
+- **Important**: The application must handle "Partially successful" withdrawal status
 
 #### **Scenario 6: IBAN Transfers (UAH_IBAN)**
 Bank transfer withdrawals to IBAN accounts.
@@ -69,21 +69,21 @@ Withdrawals with extended beneficiary information.
 ## Amount and Fee Calculation
 
 <Tip>
-The `amount` field in this endpoint **includes** the withdrawal fee. The recipient receives `amount - fee`.
+The `amount` field in the request **includes** the withdrawal fee. The recipient receives `amount - fee`.
 </Tip>
 
 ### How it works:
 
-**Example with this endpoint** (`/withdraw`):
-- Your balance: 100 USDT
+**Example request** (`/withdraw`):
+- Balance: 100 USDT
 - Withdrawal fee: 2 USDT
-- You set `amount: "100"`
+- Request `amount: "100"`
 - **Result**: 100 USDT deducted from balance, recipient receives **98 USDT**
 
 **Alternative approach** (use `/withdraw-pay` instead):
-- Your balance: 100 USDT
+- Balance: 100 USDT
 - Withdrawal fee: 2 USDT  
-- You set `amount: "98"`
+- Request `amount: "98"`
 - **Result**: 102 USDT deducted from balance, recipient receives **98 USDT**
 
 <Note>
@@ -125,7 +125,7 @@ Different currencies have different address formats:
 - **Tron/TRC20**: Starts with `T`, 34 characters
 - **Fiat**: Card token or IBAN format
 
-**Validation happens on our side**, but double-check addresses before sending.
+The platform validates addresses, but double-check addresses before sending.
 
 ### ⚠️ Memo/Destination Tag
 
@@ -152,7 +152,7 @@ Fiat withdrawals require the correct provider:
 ### Step 1: Pre-Withdrawal Checks
 
 ```
-1. Check your balance: GET /api/v4/main-account/balance
+1. Check balance: GET /api/v4/main-account/balance
 2. Get withdrawal fees: POST /api/v4/main-account/fee  
 3. Verify currency is withdrawable: GET /api/v4/public/assets
    - Check "can_withdraw" status is "true"
@@ -168,7 +168,7 @@ POST /api/v4/main-account/withdraw
 
 **Success response**: `[]` (empty array)
 
-This means validation succeeded and the withdrawal process has started. The withdrawal is now queued for processing.
+Validation succeeded and the withdrawal process has started. The withdrawal is now queued for processing.
 
 ### Step 3: Monitor Status
 
@@ -176,7 +176,7 @@ This means validation succeeded and the withdrawal process has started. The with
 POST /api/v4/main-account/history
 ```
 
-Search by your `uniqueId` to track the transaction.
+Search by `uniqueId` to track the transaction.
 
 **Withdrawal status codes**:
 - **Successful**: 3, 7
@@ -201,7 +201,7 @@ For multi-network currencies (USDT, USDC, etc.), choosing the right network is c
 | **OMNI** | Very Slow | High | Legacy, rarely used |
 
 <Tip>
-**Default network**: If you don't specify a `network` parameter, the default network is used (typically ERC20 for USDT). Always specify the network explicitly to avoid confusion.
+**Default network**: If the `network` parameter is omitted, the default network is used (typically ERC20 for USDT). Always specify the network explicitly to avoid confusion.
 </Tip>
 
 ---
@@ -290,7 +290,7 @@ For multi-network currencies (USDT, USDC, etc.), choosing the right network is c
 - ✅ Address is correct and copied without errors
 - ✅ Network matches the destination (ERC20, TRC20, etc.)
 - ✅ Memo/tag included if required
-- ✅ Amount is within your balance minus fees
+- ✅ Amount is within the available balance minus fees
 - ✅ Unique ID is newly generated
 - ✅ Provider is correct (for fiat)
 </Tip>

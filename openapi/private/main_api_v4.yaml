@@ -59,14 +59,14 @@ paths:
         - Main Account
       summary: Get main balance
       description: |
-        This endpoint retrieves the [main balance](/glossary#balance-main) by currency [ticker](/glossary#ticker) or all balances.
+        The endpoint retrieves the [main balance](/glossary#balance-main) by currency [ticker](/glossary#ticker) or all balances.
 
         <Warning>
           Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getMainBalance
       requestBody:
@@ -126,7 +126,7 @@ paths:
         - Deposit
       summary: Get cryptocurrency deposit address
       description: |
-        This endpoint retrieves a deposit address of the cryptocurrency.
+        The endpoint retrieves a deposit address of the cryptocurrency.
 
         <Accordion title="Errors">
         ```json
@@ -165,7 +165,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
 
       operationId: getDepositAddress
@@ -183,12 +183,12 @@ paths:
                 ticker:
                   type: string
                   description: |
-                    Currencies ticker. Example: BTC ⚠️ Currency [ticker](/glossary#ticker) should not be [fiat](/glossary#fiat) and it’s “can_deposit” status must be “true”. You can find this status in [Asset Status endpoint](/public/http-v4/asset-status-list) response.
+                    Currencies ticker. Example: BTC ⚠️ Currency [ticker](/glossary#ticker) should not be [fiat](/glossary#fiat) and it’s “can_deposit” status must be “true”. See [Asset Status endpoint](/public/http-v4/asset-status-list) response for the status.
                   example: BTC
                 network:
                   type: string
                   description: |
-                    Cryptocurrency network. ⚠️ If currency has multiple networks like USDT - you need to specify network to be used. You can find [ticker](/glossary#ticker) networks list in “networks” field from response [Asset Status endpoint](/public/http-v4/asset-status-list).
+                    Cryptocurrency network. ⚠️ If currency has multiple networks like USDT, specify the network to use. See [ticker](/glossary#ticker) networks list in “networks” field from response [Asset Status endpoint](/public/http-v4/asset-status-list).
                   example: ERC20
                 request:
                   type: string
@@ -225,19 +225,19 @@ paths:
                         properties:
                           maxFee:
                             type: string
-                            description: Maximum fixed fee that you will pay
+                            description: Maximum fixed fee charged
                           minFee:
                             type: string
-                            description: Minimum fixed fee that you will pay
+                            description: Minimum fixed fee charged
                           percent:
                             type: string
-                            description: Percent of deposit that you will pay
+                            description: Percent of deposit as fee
                       maxAmount:
                         type: string
-                        description: Max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
+                        description: Max amount of deposit accepted by the exchange. Deposits exceeding this amount are rejected.
                       minAmount:
                         type: string
-                        description: Min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
+                        description: Min amount of deposit accepted by the exchange. Deposits below this amount are rejected.
               example:
                 account:
                   address: "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN"
@@ -265,9 +265,9 @@ paths:
         - Deposit
       summary: Get fiat deposit address
       description: |
-        This endpoint retrieves a deposit url of the [fiat](/glossary#fiat) invoice.
+        The endpoint retrieves a deposit url of the [fiat](/glossary#fiat) invoice.
 
-        Please, pay attention that this endpoint works on demand. It means that you need to contact WhiteBIT support and provide your API key to get access to this functionality.
+        The endpoint works on demand. Contact WhiteBIT support and provide the API key to get access to the functionality.
 
         <Accordion title="Errors">
         ```json
@@ -368,7 +368,7 @@ paths:
         </Accordion>
 
         <Warning>
-        If you have used VISAMASTER as [provider](/glossary#provider), you must pass [referer header](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Referer) when you go to the invoice link (for example, pass referer header when you go to https://someaddress.com). Otherwise if there is no header (for example, you go to https://someaddress.com from Telegram message) you will be redirected to the WhiteBIT homepage
+        When using VISAMASTER as [provider](/glossary#provider), pass the [referer header](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Referer) when opening the invoice link (e.g. when opening https://someaddress.com). If the header is missing (e.g. when opening the link from a Telegram message), the browser is redirected to the WhiteBIT homepage
         </Warning>
         
         <Warning>
@@ -376,7 +376,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getFiatDepositUrl
       requestBody:
@@ -538,11 +538,11 @@ paths:
         - JWT
       summary: Issue JWT token
       description: |
-        This endpoint issues a JWT token for the Fiat Gateway service.
+        The endpoint issues a JWT token for the Fiat Gateway service.
         The token is used to authenticate requests to the Fiat Gateway API.
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: issueJwtToken
       requestBody:
@@ -629,7 +629,7 @@ paths:
         - JWT
       summary: Get WebSocket Token
       description: |
-        This V4 endpoint can be used to retrieve the WebSocket token for user.
+        The V4 endpoint can be used to retrieve the WebSocket token for user.
         The token is required to authorize WebSocket connections for private API access.
         
         <Warning>
@@ -637,7 +637,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getWebSocketToken
       requestBody:
@@ -683,7 +683,7 @@ paths:
         - Deposit
       summary: Issue card token
       description: |
-        This endpoint issues a [card token](/glossary#card-token) for the specified card number.
+        The endpoint issues a [card token](/glossary#card-token) for the specified card number.
 
         **Request Headers:**
         - `Authorization`: JWT token from the [Issue JWT token](/private/http-main-v4/issue-jwt-token) response field `data.token` (**Required**)
@@ -696,7 +696,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: issueCardToken
       servers:
@@ -784,7 +784,7 @@ paths:
         </Warning>
 
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
 
         <Note>
@@ -856,14 +856,14 @@ paths:
         - Withdraw
       summary: Create withdraw request
       description: |
-        This endpoint creates withdraw for the specified ticker.
+        The endpoint creates withdraw for the specified ticker.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
         
         <Note>
@@ -894,7 +894,7 @@ paths:
                 amount:
                   type: string
                   description: |
-                    Withdraw amount (including [fee](/glossary#fee)). If you want fee to be added to the specified amount, you need to use /main-account/withdraw-pay request.
+                    Withdraw amount (including [fee](/glossary#fee)). To add the fee to the specified amount, use the /main-account/withdraw-pay request.
                   example: "0.9"
                 address:
                   type: string
@@ -911,7 +911,7 @@ paths:
                   description: |
                     Unique transaction identifier.
 
-                    ⚠️ Note that you should generate new unique id for each withdrawal request.
+                    ⚠️ Generate a new unique ID for each withdrawal request.
                   example: "24529041"
                 provider:
                   type: string
@@ -928,7 +928,7 @@ paths:
                   example: ERC20
                 partialEnable:
                   type: boolean
-                  description: Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as "true". In order to use this parameter your application should support "Partially successful" withdrawal status and latest updates in deposit/withdrawal history.
+                  description: Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as "true". To use this parameter, the application must support "Partially successful" withdrawal status and latest updates in deposit/withdrawal history.
                 beneficiary:
                   type: object
                   description: |
@@ -1116,7 +1116,7 @@ paths:
                   nonce: "{{nonce}}"
       responses:
         "201":
-          description: Validation succeeded and withdraw creation process is started. Go to deposit/withdraw history and check your request status by uniqueId.
+          description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
           content:
             application/json:
               schema:
@@ -1249,18 +1249,18 @@ paths:
         - Withdraw
       summary: Create withdraw request with specific withdraw amount (fee not included)
       description: |
-        This endpoint has the similar logic as /main-account/withdraw, but with the only difference: amount that is specified will not include [fee](/glossary#fee) (it will be calculated to make target withdraw amount equal to the specified amount).
+        The endpoint has the similar logic as /main-account/withdraw, but with the only difference: amount that is specified will not include [fee](/glossary#fee) (it will be calculated to make target withdraw amount equal to the specified amount).
 
         **Example:**
-        - When you create base withdraw and set amount = 100 USD, receiver will receive 100 USD - [fee](/glossary#fee) amount, and your balance will decrease by 100 USD.
-        - When you use this endpoint and set amount = 100 USD, receiver will receive 100 USD, and your balance will decrease by 100 USD + [fee](/glossary#fee) amount.
+        - When creating a base withdraw with amount = 100 USD, the receiver receives 100 USD minus the [fee](/glossary#fee), and the balance decreases by 100 USD.
+        - When using this endpoint with amount = 100 USD, the receiver receives 100 USD, and the balance decreases by 100 USD plus the [fee](/glossary#fee).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createWithdrawPay
       requestBody:
@@ -1271,7 +1271,7 @@ paths:
               $ref: "#/components/schemas/WithdrawRequest"
       responses:
         "201":
-          description: Validation succeeded and withdraw creation process is started. Go to deposit/withdraw history and check your request status by uniqueId.
+          description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
           content:
             application/json:
               schema:
@@ -1349,14 +1349,14 @@ paths:
         - Transfer
       summary: Transfer between balances
       description: |
-        This endpoint transfers the specified amount between [main](/glossary#balance-main), [trade](/glossary#balance-spotbalance-trade) and [collateral](/glossary#balance-collateral) balances.
+        The endpoint transfers the specified amount between [main](/glossary#balance-main), [trade](/glossary#balance-spotbalance-trade) and [collateral](/glossary#balance-collateral) balances.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
         
         <Note>
@@ -1382,7 +1382,7 @@ paths:
 
                     ⚠️ We highly recommend to use **from** and **to** fields, which provides more flexibility. This way will be deprecated in future.
 
-                    Example: **deposit** if you need to transfer from [main](/glossary#balance-main) to [trade](/glossary#balance-spotbalance-trade) / **withdraw** if you need to transfer from [trade](/glossary#balance-spotbalance-trade) balance to [main](/glossary#balance-main). For [collateral balances](/glossary#balance-collateral) you can use **collateral-deposit** to transfer from main to collateral balance and **collateral-withdraw** to transfer from collateral balance to main
+                    Example: **deposit** to transfer from [main](/glossary#balance-main) to [trade](/glossary#balance-spotbalance-trade) / **withdraw** to transfer from [trade](/glossary#balance-spotbalance-trade) balance to [main](/glossary#balance-main). For [collateral balances](/glossary#balance-collateral) use **collateral-deposit** to transfer from main to collateral and **collateral-withdraw** to transfer from collateral to main
 
                     **Not required** if **from** and **to** are set.
                   enum:
@@ -1407,7 +1407,7 @@ paths:
                   example: XLM
                 amount:
                   type: string
-                  description: "Amount to transfer. Max [precision](/glossary#precision) = 8, value should be greater than zero and less or equal your available balance."
+                  description: "Amount to transfer. Max [precision](/glossary#precision) = 8, value must be greater than zero and less than or equal to the available balance."
                   example: "0.9"
                 request:
                   type: string
@@ -1535,7 +1535,7 @@ paths:
         - Main Account
       summary: Get deposit/withdraw history
       description: |
-        This endpoint retrieves the history of deposits and withdraws.
+        The endpoint retrieves the history of deposits and withdraws.
 
         **Deposit status codes:**
         - `Successful` - 3, 7
@@ -1564,7 +1564,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getDepositWithdrawHistory
       requestBody:
@@ -1611,7 +1611,7 @@ paths:
                   minimum: 0
                   maximum: 10000
                   default: 0
-                  description: If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start.
+                  description: Use the OFFSET clause to return entries starting from a particular line.
                 status:
                   type: array
                   items:
@@ -1619,7 +1619,7 @@ paths:
                   description: |
                     Can be used for filtering transactions by status codes.
 
-                    ⚠️ Caution: You must use this parameter with appropriate `transactionMethod` and use valid status codes for this method. You can find them in the endpoint description above. Example: `"status": [3,7]`
+                    ⚠️ Caution: Use this parameter with the appropriate `transactionMethod` and valid status codes for that method. See the endpoint description above for valid codes. Example: `"status": [3,7]`
                 request:
                   type: string
                   description: Request signature
@@ -1755,7 +1755,7 @@ paths:
         - Deposit
       summary: Create new address for deposit
       description: |
-        This endpoint creates a new address even when the last created address is not used. This endpoint is not available by default, you need to contact support@whitebit.com in order to get permissions to use this endpoint.
+        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default, contact support@whitebit.com to get permissions to use the endpoint.
 
         **Address types:**
 
@@ -1769,7 +1769,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createNewAddress
       requestBody:
@@ -1845,10 +1845,10 @@ paths:
                     properties:
                       maxAmount:
                         type: string
-                        description: Max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
+                        description: Max amount of deposit accepted by the exchange. Deposits exceeding this amount are rejected.
                       minAmount:
                         type: string
-                        description: Min amount of deposit that accepted by exchange - if you deposit less than that number, it won't be accepted by exchange
+                        description: Min amount of deposit accepted by the exchange. Deposits below this amount are rejected.
                       fixedFee:
                         type: string
                         description: Fixed deposit fee
@@ -1858,13 +1858,13 @@ paths:
                         properties:
                           maxFee:
                             type: string
-                            description: Maximum fixed fee that you will pay
+                            description: Maximum fixed fee charged
                           minFee:
                             type: string
-                            description: Minimum fixed fee that you will pay
+                            description: Minimum fixed fee charged
                           percent:
                             type: string
-                            description: Percent of deposit that you will pay
+                            description: Percent of deposit as fee
               example:
                 account:
                   address: "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN"
@@ -1926,14 +1926,14 @@ paths:
         - Codes
       summary: Create code
       description: |
-        This endpoint creates [WhiteBIT code](/glossary#whitebit-codes).
+        The endpoint creates [WhiteBIT code](/glossary#whitebit-codes).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createCode
       requestBody:
@@ -1954,7 +1954,7 @@ paths:
                   example: ETH
                 amount:
                   type: string
-                  description: "Amount to transfer. Max [precision](/glossary#precision) = 8, value should be greater than zero and your [main balance](/glossary#balance-main)."
+                  description: "Amount to transfer. Max [precision](/glossary#precision) = 8, value must be greater than zero and less than or equal to the [main balance](/glossary#balance-main)."
                   example: "0.002"
                 passphrase:
                   type: string
@@ -2088,14 +2088,14 @@ paths:
         - Codes
       summary: Apply code
       description: |
-        This endpoint applies [WhiteBIT code](/glossary#whitebit-codes).
+        The endpoint applies [WhiteBIT code](/glossary#whitebit-codes).
 
         <Warning>
         Rate limit: 60 requests/1 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: applyCode
       requestBody:
@@ -2182,14 +2182,14 @@ paths:
         - Codes
       summary: Get my codes
       description: |
-        This endpoint retrieves the list of [WhiteBIT codes](/glossary#whitebit-codes) created by my account.
+        The endpoint retrieves the list of [WhiteBIT codes](/glossary#whitebit-codes) created by my account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getMyCodes
       requestBody:
@@ -2213,7 +2213,7 @@ paths:
                   minimum: 0
                   maximum: 10000
                   default: 0
-                  description: If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start.
+                  description: Use the OFFSET clause to return entries starting from a particular line.
                 request:
                   type: string
                   description: Request signature
@@ -2297,14 +2297,14 @@ paths:
         - Codes
       summary: Get codes history
       description: |
-        This endpoint retrieves the whole [codes](/glossary#whitebit-codes) history on your account.
+        The endpoint retrieves the whole [codes](/glossary#whitebit-codes) history for the account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getCodesHistory
       requestBody:
@@ -2328,7 +2328,7 @@ paths:
                   minimum: 0
                   maximum: 10000
                   default: 0
-                  description: If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start.
+                  description: Use the OFFSET clause to return entries starting from a particular line.
                 request:
                   type: string
                   description: Request signature
@@ -2418,16 +2418,16 @@ paths:
         - Crypto Lending - Fixed
       summary: Get plans
       description: |
-        This endpoint retrieves all active [plans](/glossary#crypto-lending).
+        The endpoint retrieves all active [plans](/glossary#crypto-lending).
         
         <Note>
-        These endpoints are available only for B2B partner services. You need to fill the institutional services form in order to get permissions to use these endpoints.
+        These endpoints are available only for B2B partner services. Fill the institutional services form to get permissions to use these endpoints.
         </Note>
 
         **Note:** When target currency is different from source currency, interest amount in target currency will be calculated using `interestRatio` value.
 
         **Examples:**
-        - When source currency = USDT, target currency = BTC and interest ratio = 40000, it means that you will receive interest in BTC that equals interest amount in USDT divided by interest ratio (in this case 0.000025 BTC per each 1 USDT of interest amount).
+        - When source currency = USDT, target currency = BTC and interest ratio = 40000, interest is received in BTC and equals the USDT interest amount divided by the interest ratio (e.g. 0.000025 BTC per 1 USDT of interest).
         - When source currency equals target currency, interest ratio equals 1.
 
         <Warning>
@@ -2435,7 +2435,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getFixedPlans
       requestBody:
@@ -2502,14 +2502,14 @@ paths:
         - Crypto Lending - Fixed
       summary: Invest
       description: |
-        This endpoint creates a new investment to the specified [invest plan](/glossary#crypto-lending).
+        The endpoint creates a new investment to the specified [invest plan](/glossary#crypto-lending).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createFixedInvestment
       requestBody:
@@ -2683,14 +2683,14 @@ paths:
         - Crypto Lending - Fixed
       summary: Close investment
       description: |
-        This endpoint closes active investment.
+        The endpoint closes active investment.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: closeFixedInvestment
       requestBody:
@@ -2746,14 +2746,14 @@ paths:
         - Crypto Lending - Fixed
       summary: Get investments history
       description: |
-        This endpoint retrieves an investments history.
+        The endpoint retrieves an investments history.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getFixedInvestmentsHistory
       requestBody:
@@ -2787,7 +2787,7 @@ paths:
                   minimum: 0
                   maximum: 10000
                   default: 0
-                  description: If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start.
+                  description: Use the OFFSET clause to return entries starting from a particular line.
                 request:
                   type: string
                   description: Request signature
@@ -2861,14 +2861,14 @@ paths:
         - Crypto Lending - Fixed
       summary: Get interest payments history
       description: |
-        This endpoint retrieves the history of interest payments.
+        The endpoint retrieves the history of interest payments.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getInterestPaymentHistory
       requestBody:
@@ -2898,7 +2898,7 @@ paths:
                   minimum: 0
                   maximum: 10000
                   default: 0
-                  description: If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start.
+                  description: Use the OFFSET clause to return entries starting from a particular line.
                 request:
                   type: string
                   description: Request signature
@@ -2966,7 +2966,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getFlexPlans
       requestBody:
@@ -3062,7 +3062,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getUserFlexInvestments
       requestBody:
@@ -3179,7 +3179,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getFlexInvestmentHistory
       requestBody:
@@ -3290,14 +3290,14 @@ paths:
       description: |
         Retrieve investment earnings history (ONLY DAILY_EARNING operations).
 
-        **Note:** This endpoint automatically filters to show ONLY DAILY_EARNING operations (type 4).
+        **Note:** The endpoint automatically filters to show ONLY DAILY_EARNING operations (type 4).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getFlexPaymentHistory
       requestBody:
@@ -3405,7 +3405,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createFlexInvestment
       requestBody:
@@ -3504,7 +3504,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: withdrawFromFlexInvestment
       requestBody:
@@ -3595,7 +3595,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: closeFlexInvestment
       requestBody:
@@ -3679,7 +3679,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: updateFlexAutoReinvestment
       requestBody:
@@ -3763,7 +3763,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getFees
       requestBody:
@@ -3798,7 +3798,7 @@ paths:
         - Sub-Account
       summary: Create Sub-Account
       description: |
-        This endpoint creates new [sub-account](/glossary#sub-account).
+        The endpoint creates new [sub-account](/glossary#sub-account).
 
         <Note>
         The `email` field requirement depends on the `shareKyc` parameter:
@@ -3811,7 +3811,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createSubAccount
       requestBody:
@@ -3881,14 +3881,14 @@ paths:
         - Sub-Account
       summary: Delete Sub-Account
       description: |
-        This endpoint deletes [sub-account](/glossary#sub-account).
+        The endpoint deletes [sub-account](/glossary#sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: deleteSubAccount
       requestBody:
@@ -3923,14 +3923,14 @@ paths:
         - Sub-Account
       summary: Edit Sub-Account
       description: |
-        This endpoint edits [sub-account](/glossary#sub-account).
+        The endpoint edits [sub-account](/glossary#sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: editSubAccount
       requestBody:
@@ -3982,14 +3982,14 @@ paths:
         - Sub-Account
       summary: List of Sub-Accounts
       description: |
-        This endpoint returns list of current user [sub-accounts](/glossary#sub-account).
+        The endpoint returns list of current user [sub-accounts](/glossary#sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: listSubAccounts
       requestBody:
@@ -4041,14 +4041,14 @@ paths:
         - Sub-Account
       summary: Sub-Account Transfer
       description: |
-        This endpoint creates transfer from main account to [sub-account](/glossary#sub-account) or vice versa.
+        The endpoint creates transfer from main account to [sub-account](/glossary#sub-account) or vice versa.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: subAccountTransfer
       requestBody:
@@ -4100,14 +4100,14 @@ paths:
         - Sub-Account
       summary: Block Sub-Account
       description: |
-        This endpoint blocks [sub-account](/glossary#sub-account).
+        The endpoint blocks [sub-account](/glossary#sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: blockSubAccount
       requestBody:
@@ -4142,14 +4142,14 @@ paths:
         - Sub-Account
       summary: Unblock Sub-Account
       description: |
-        This endpoint unblocks [sub-account](/glossary#sub-account).
+        The endpoint unblocks [sub-account](/glossary#sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: unblockSubAccount
       requestBody:
@@ -4184,14 +4184,14 @@ paths:
         - Sub-Account
       summary: Sub-Account Balances
       description: |
-        This endpoint returns [sub-account](/glossary#sub-account) balances.
+        The endpoint returns [sub-account](/glossary#sub-account) balances.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getSubAccountBalances
       requestBody:
@@ -4245,14 +4245,14 @@ paths:
         - Sub-Account
       summary: Get Sub-Account Transfer History
       description: |
-        This endpoint returns history of transfers between main account and [sub-account](/glossary#sub-account).
+        The endpoint returns history of transfers between main account and [sub-account](/glossary#sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getSubAccountTransferHistory
       requestBody:
@@ -4306,14 +4306,14 @@ paths:
         - Sub-Account API Keys
       summary: Create Sub-Account API Key
       description: |
-        This endpoint creates a new API key for a [sub-account](/glossary#sub-account).
+        The endpoint creates a new API key for a [sub-account](/glossary#sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createSubAccountApiKey
       requestBody:
@@ -4356,14 +4356,14 @@ paths:
         - Sub-Account API Keys
       summary: Edit Sub-Account API Key
       description: |
-        This endpoint updates an existing [sub-account](/glossary#sub-account) API key.
+        The endpoint updates an existing [sub-account](/glossary#sub-account) API key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: editSubAccountApiKey
       requestBody:
@@ -4413,14 +4413,14 @@ paths:
         - Sub-Account API Keys
       summary: Delete Sub-Account API Key
       description: |
-        This endpoint deletes a [sub-account](/glossary#sub-account) API key.
+        The endpoint deletes a [sub-account](/glossary#sub-account) API key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: deleteSubAccountApiKey
       requestBody:
@@ -4455,7 +4455,7 @@ paths:
         - Sub-Account API Keys
       summary: List Sub-Account API Keys
       description: |
-        This endpoint retrieves a list of API keys for a [sub-account](/glossary#sub-account).
+        The endpoint retrieves a list of API keys for a [sub-account](/glossary#sub-account).
         Note: For security reasons, the apiSecret field returns an empty string.
 
         <Warning>
@@ -4463,7 +4463,7 @@ paths:
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: listSubAccountApiKeys
       requestBody:
@@ -4515,14 +4515,14 @@ paths:
         - Sub-Account API Keys
       summary: Reset Sub-Account API Key
       description: |
-        This endpoint resets (regenerates) an existing [sub-account](/glossary#sub-account) API key.
+        The endpoint resets (regenerates) an existing [sub-account](/glossary#sub-account) API key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: resetSubAccountApiKey
       requestBody:
@@ -4557,14 +4557,14 @@ paths:
         - Sub-Account API Keys
       summary: List Sub-Account API Key IP Addresses
       description: |
-        This endpoint retrieves the list of IP addresses allowed for a [sub-account](/glossary#sub-account) API key.
+        The endpoint retrieves the list of IP addresses allowed for a [sub-account](/glossary#sub-account) API key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: listSubAccountApiKeyIpAddresses
       requestBody:
@@ -4604,14 +4604,14 @@ paths:
         - Sub-Account API Keys
       summary: Create Sub-Account API Key IP Address
       description: |
-        This endpoint adds a new IP address to the allowed list for a [sub-account](/glossary#sub-account) API key.
+        The endpoint adds a new IP address to the allowed list for a [sub-account](/glossary#sub-account) API key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: createSubAccountApiKeyIpAddress
       requestBody:
@@ -4655,14 +4655,14 @@ paths:
         - Sub-Account API Keys
       summary: Delete Sub-Account API Key IP Address
       description: |
-        This endpoint removes an IP address from the allowed list for a [sub-account](/glossary#sub-account) API key.
+        The endpoint removes an IP address from the allowed list for a [sub-account](/glossary#sub-account) API key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: deleteSubAccountApiKeyIpAddress
       requestBody:
@@ -4706,14 +4706,14 @@ paths:
         - Mining Pool
       summary: Get Rewards
       description: |
-        This endpoint returns rewards received from mining.
+        The endpoint returns rewards received from mining.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getMiningRewards
       requestBody:
@@ -4779,14 +4779,14 @@ paths:
         - Mining Pool
       summary: Get Mining Account Hashrate
       description: |
-        This endpoint returns hashrate of mining pool account.
+        The endpoint returns hashrate of mining pool account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getMiningHashrate
       requestBody:
@@ -4855,15 +4855,15 @@ paths:
         - Credit Line
       summary: List Credit Lines
       description: |
-        This endpoint returns an active loan.
-        This endpoint works on demand - contact WhiteBIT support to get access.
+        The endpoint returns an active loan.
+        The endpoint works on demand - contact WhiteBIT support to get access.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
       operationId: getCreditLineInfo
       requestBody:
@@ -4979,7 +4979,7 @@ components:
           description: "Currencies [ticker](/glossary#ticker). Example: BTC ⚠️ Currencies ticker must have \"can_deposit\" status equal to \"true\". Use [Asset Status endpoint](/public/http-v4/asset-status-list) to know more about currency."
         amount:
           type: string
-          description: "Withdraw amount (including [fee](/glossary#fee)). If you want fee to be added to the specified amount, you need to use /main-account/withdraw-pay request"
+          description: "Withdraw amount (including [fee](/glossary#fee)). To add the fee to the specified amount, use the /main-account/withdraw-pay request"
         address:
           type: string
           description: "Target address (wallet address for cryptocurrencies, identifier/[card token](/glossary#card-token) for [fiat](/glossary#fiat) currencies)"
@@ -4988,7 +4988,7 @@ components:
           description: "Required if currency is memoable. See [memo](/glossary#memodestination-tag) for details."
         uniqueId:
           type: string
-          description: "Unique transaction identifier. ⚠️ Note that you should generate new unique id for each withdrawal request."
+          description: "Unique transaction identifier. ⚠️ Generate a new unique ID for each withdrawal request."
         provider:
           type: string
           description: "[Fiat](/glossary#fiat) currency [provider](/glossary#provider). Example: VISAMASTER ⚠️ Currency provider should be taken from [Asset Status endpoint](/public/http-v4/asset-status-list) response. Required if currency is fiat."
@@ -4997,7 +4997,7 @@ components:
           description: "Cryptocurrency network. Available for [multinetwork](/glossary#multinetwork) currencies. Example: OMNI ⚠️ Currency network should be taken from [Asset Status endpoint](/public/http-v4/asset-status-list) response. Default for USDT is ERC20"
         partialEnable:
           type: boolean
-          description: "Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as \"true\". In order to use this parameter your application should support \"Partially successful\" withdrawal status and latest updates in deposit/withdrawal history."
+          description: "Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as \"true\". To use this parameter, the application must support \"Partially successful\" withdrawal status and latest updates in deposit/withdrawal history."
         beneficiary:
           type: object
           description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"

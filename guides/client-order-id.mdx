@@ -1,11 +1,11 @@
 ---
 title: "Client Order ID"
-description: "This guide provides information about using `clientOrderId` in your trading operations, including best practices and common use cases."
+description: "This guide provides information about using `clientOrderId` in trading operations, including best practices and common use cases."
 ---
 
 ## Overview
 <Card >
-The `clientOrderId` is an optional identifier that allows you to track and manage your orders with your own custom identifiers. It provides an additional layer of order management and tracking capabilities alongside the exchange-provided `orderId`.
+The `clientOrderId` is an optional identifier for tracking and managing orders with custom identifiers. It provides an additional layer of order management and tracking capabilities alongside the exchange-provided `orderId`.
 </Card>
 ## Specifications
 <CardGroup>
@@ -172,7 +172,7 @@ const otoOrderRequest = {
 <Card title="Tracking Orders">
 
 
-You can track orders using `clientOrderId` through the following endpoints:
+Track orders using `clientOrderId` through the following endpoints:
 
 **1. Query Active Orders**
 
@@ -255,7 +255,7 @@ const cancelOrderRequest = {
 **Important notes about order cancellation:**
 
 - Cancellation by `clientOrderId` takes priority over `orderId`
-- You can use either `orderId` or `clientOrderId`, but not both in the same request
+- Use either `orderId` or `clientOrderId`, but not both in the same request
 </Note>
 ```json
 // Example response
@@ -329,7 +329,7 @@ Example: `brk-ind123-limit-spot-1678234567`
 **Components:**
 
 - `brk`: Broker identifier prefix
-- `clientId`: Your internal client identifier
+- `clientId`: Internal client identifier
 - `orderType`: Order type (market/limit)
 - `purpose`: Trading purpose/strategy
 - `timestamp`: Ensures 24-hour uniqueness

@@ -35,27 +35,27 @@ sidebarTitle: "Webhook"
 
 ## How to use
 
-1. Go to your account on whitebit.com.
-2. Click on the API keys tab.
-3. Select the web-hook configuration tab for your API keys.
-4. Paste correct URI to your web server which will process web-hook calls.
+1. Log in to whitebit.com.
+2. Open the API keys tab.
+3. Select the web-hook configuration tab for the API keys.
+4. Paste the correct URI for the web server to process web-hook calls.
 5. Press Generate a new key button and toggle the activation switcher to "Activated".
 
 <Warning>
-Please pay attention that secret key will be shown only once, so make sure you save it in any secure key store
+The secret key is shown only once. Save it in a secure key store.
 </Warning>
 
 ## Requirements
 
 ### For web hook keys generation
 
-Before starting using webhooks, you'll be asked to verify ownership of the domain, you are set as webhook destination. You can do it in one of three ways
+Before using webhooks, verify ownership of the domain set as the webhook destination. Use one of three methods:
 
-1. You can add TXT DNS record to your domain with your webhook public key.
-2. You can add plain text file `whiteBIT-verification.txt` into your root domain folder and provide public web access to this file from your server. In this file should be placed your public webhook key.
-3. You can implement `/whiteBIT-verification` endpoint. This endpoint should respond with 200 OK and return JSON array which contains your public webhook key. For example: `["<your-public-webhook-key>"]`
+1. Add a TXT DNS record to the domain with the webhook public key.
+2. Add the plain text file `whiteBIT-verification.txt` to the root domain folder and provide public web access. Place the public webhook key in the file.
+3. Implement the `/whiteBIT-verification` endpoint to respond with 200 OK and return a JSON array containing the public webhook key. Example: `["<public-webhook-key>"]`
 
-Passing just one of these checks will be able you to switch webhook on
+Passing one of these checks enables the webhook.
 
 ### For processing web-hook requests
 
@@ -81,18 +81,18 @@ All web-hook requests are performing with
 
 **id** - string. Uuid to identify every request.
 
-**params** - the request payload. Here you can find useful data about passed actions, which triggered web hook call. Also in this field placed a [nonce](/glossary#nonce). **'nonce'** - a number that is always **greater** than the previous request’s nonce number
+**params** - the request payload. Contains data about the actions triggering the webhook call. The field also contains a [nonce](/glossary#nonce). **'nonce'** - a number always **greater** than the previous request’s nonce number
 
 #### Request headers
 
 Also, all request contains additional data in headers:
 
 1. `'Content-type': 'application/json'`
-2. `'X-TXC-APIKEY': api_key` - where api_key is your WhiteBit webhook API key
+2. `'X-TXC-APIKEY': api_key` - the WhiteBIT webhook API key
 3. `'X-TXC-PAYLOAD': payload'` - where payload is base64-encoded body data
 4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload), key=api_secret))`
 
-On consumer side you can process security headers to be sure request was performed by WhiteBIT.
+On the consumer side, process the security headers to verify the request originated from WhiteBIT.
 
 ## WebHook Methods
 
@@ -170,7 +170,7 @@ Performed when deposit was update. Request example:
 }
 ```
 
-Performed when deposit was processed, so it is available on your balance. Request example:
+Performed when the deposit was processed and is available on the balance. Request example:
 
 ```json
 {

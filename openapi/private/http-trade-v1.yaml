@@ -6,7 +6,7 @@ info:
     **DEPRECATED:** These endpoints are deprecated. Use [V4 alternatives](/private/http-trade-v4/overview) instead.
     Private endpoints for trading operations including balance management and order execution.
     **Authentication:** All endpoints require API key authentication with headers:
-    - X-TXC-APIKEY: Your API key
+    - X-TXC-APIKEY: The API key
     - X-TXC-PAYLOAD: Base64-encoded JSON payload
     - X-TXC-SIGNATURE: HMAC SHA512 signature
     
@@ -24,13 +24,13 @@ paths:
     post:
       summary: Trading balance by currency
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/trading-balance) instead.
-        This endpoint retrieves the trade balance by currency ticker.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/trading-balance) instead.
+        The endpoint retrieves the trade balance by currency ticker.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Response Cache:** NONE
+        **Response Cache:** The API does not cache the response.
       operationId: tradingBalanceByCurrency
       deprecated: true
       requestBody:
@@ -85,13 +85,13 @@ paths:
     post:
       summary: Trading balances
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/trading-balance) instead.
-        This endpoint retrieves all available balances for trading.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/trading-balance) instead.
+        The endpoint retrieves all available balances for trading.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Response Cache:** NONE
+        **Response Cache:** The API does not cache the response.
       operationId: tradingBalances
       deprecated: true
       requestBody:
@@ -144,13 +144,13 @@ paths:
     post:
       summary: Create limit order
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/create-limit-order) instead.
-        This endpoint creates limit trading order.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/create-limit-order) instead.
+        The endpoint creates limit trading order.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Response Cache:** NONE
+        **Response Cache:** The API does not cache the response.
       operationId: createLimitOrder
       deprecated: true
       requestBody:
@@ -216,13 +216,13 @@ paths:
     post:
       summary: Cancel order
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/cancel-order) instead.
-        This endpoint cancels the existing order.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/cancel-order) instead.
+        The endpoint cancels the existing order.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Response Cache:** NONE
+        **Response Cache:** The API does not cache the response.
       operationId: cancelOrder
       deprecated: true
       requestBody:
@@ -270,13 +270,13 @@ paths:
     post:
       summary: Query unexecuted(active) orders
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-unexecuted-orders) instead.
-        This endpoint retrieves unexecuted orders only.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-unexecuted-orders) instead.
+        The endpoint retrieves unexecuted orders only.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Response Cache:** NONE
+        **Response Cache:** The API does not cache the response.
       operationId: queryUnexecutedOrders
       deprecated: true
       requestBody:
@@ -301,7 +301,7 @@ paths:
                   example: 100
                 offset:
                   type: integer
-                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  description: "Use OFFSET to specify where the response entries start. Default: 0, Min: 0, Max: 10000"
                   default: 0
                   minimum: 0
                   maximum: 10000
@@ -336,14 +336,14 @@ paths:
     post:
       summary: Query order history
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-orders) instead.
-        This endpoint retrieves orders history sorted by all markets.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-orders) instead.
+        The endpoint retrieves orders history sorted by all markets.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
-        **Response Cache:** NONE
+        **Note:** This method can retrieve data not older than 6 months from the current month. For older data, use Report on the History page in the account.
+        **Response Cache:** The API does not cache the response.
       operationId: queryOrderHistory
       deprecated: true
       requestBody:
@@ -366,7 +366,7 @@ paths:
                   example: 100
                 offset:
                   type: integer
-                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  description: "Use OFFSET to specify where the response entries start. Default: 0, Min: 0, Max: 10000"
                   default: 0
                   minimum: 0
                   maximum: 10000
@@ -425,14 +425,14 @@ paths:
     post:
       summary: Query executed order history by single market
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-history) instead.
-        This endpoint retrieves deals history sorted by single market.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-history) instead.
+        The endpoint retrieves deals history sorted by single market.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
-        **Response Cache:** NONE
+        **Note:** This method can retrieve data not older than 6 months from the current month. For older data, use Report on the History page in the account.
+        **Response Cache:** The API does not cache the response.
       operationId: queryExecutedHistorySingleMarket
       deprecated: true
       requestBody:
@@ -457,7 +457,7 @@ paths:
                   example: 100
                 offset:
                   type: integer
-                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  description: "Use OFFSET to specify where the response entries start. Default: 0, Min: 0, Max: 10000"
                   default: 0
                   minimum: 0
                   maximum: 10000
@@ -515,14 +515,14 @@ paths:
     post:
       summary: Query executed order history by all markets
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-history) instead.
-        This endpoint retrieves orders history sorted by all markets.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-history) instead.
+        The endpoint retrieves orders history sorted by all markets.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
-        **Response Cache:** NONE
+        **Note:** This method can retrieve data not older than 6 months from the current month. For older data, use Report on the History page in the account.
+        **Response Cache:** The API does not cache the response.
       operationId: queryExecutedHistoryAllMarkets
       deprecated: true
       requestBody:
@@ -541,7 +541,7 @@ paths:
                   example: 100
                 offset:
                   type: integer
-                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  description: "Use OFFSET to specify where the response entries start. Default: 0, Min: 0, Max: 10000"
                   default: 0
                   minimum: 0
                   maximum: 10000
@@ -600,13 +600,13 @@ paths:
     post:
       summary: Query executed order deals
       description: |
-        **DEPRECATED:** This endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-deals) instead.
-        This endpoint retrieves more details on order deals history.
+        **DEPRECATED:** The endpoint is deprecated. Use [V4 endpoint](/private/http-trade-v4/query-executed-order-deals) instead.
+        The endpoint retrieves more details on order deals history.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        **Response Cache:** NONE
+        **Response Cache:** The API does not cache the response.
       operationId: queryExecutedOrderDeals
       deprecated: true
       requestBody:
@@ -631,7 +631,7 @@ paths:
                   example: 100
                 offset:
                   type: integer
-                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000"
+                  description: "Use OFFSET to specify where the response entries start. Default: 0, Min: 0, Max: 10000"
                   default: 0
                   minimum: 0
                   maximum: 10000
@@ -739,7 +739,7 @@ components:
       name: X-TXC-APIKEY
       description: |
         API key authentication requires three headers:
-        - X-TXC-APIKEY: Your API key
+        - X-TXC-APIKEY: The API key
         - X-TXC-PAYLOAD: Base64-encoded JSON payload
         - X-TXC-SIGNATURE: HMAC SHA512 signature of the payload
 
@@ -798,7 +798,7 @@ components:
           example: "0.001"
         dealFee:
           type: string
-          description: "fee in money that you pay if order is finished"
+          description: "fee in money paid when the order is finished"
           example: "0"
         price:
           type: string
@@ -851,7 +851,7 @@ components:
           example: "0.001"
         dealFee:
           type: string
-          description: "executed order fee that user pay"
+          description: "executed order fee paid"
           example: "0"
         dealStock:
           type: string
@@ -908,7 +908,7 @@ components:
           example: "0.70407996"
         fee:
           type: string
-          description: "fee that you pay"
+          description: "fee paid"
           example: "0.00070407996"
 
     ErrorResponseV1:
