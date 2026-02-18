@@ -1,89 +1,43 @@
 ---
-mode: "custom"
-title: "WhiteBIT Docs"
+title: "Home"
 ---
 import {ApiMonitorTable} from '/snippets/api-monitor.jsx';
 
-<div className="relative w-full flex items-center justify-center" style={{ height: '20rem', overflow: 'hidden'}}>
-
-<div
-  id="background-div-primary"
-  className="absolute inset-0 h-full bg-[#00000000] bg-cover bg-center"
-></div>
-
-<div
-  id="background-div"
-  className="absolute inset-0 h-full bg-cover bg-center"
-></div>
-
-
-<div style={{ position: 'absolute', textAlign: 'center', padding: '0 1rem' }}>
+<div className="w-full flex flex-col items-center justify-center py-6 text-center px-4">
   <div
-    className="text-5xl font-bold w-full text-[#252525] dark:text-[#D8AF48] leading-[1.2] tracking-tight"
+    className="text-5xl font-bold max-w-4xl text-[#252525] dark:text-[#D8AF48] leading-[1.2] tracking-tight"
   >
    <h1>WhiteBIT API Platform</h1>
   </div>
 
-    <p className="text-lg" style={{  fontWeight: '500' , maxWidth: '44rem', margin: '0 auto', marginTop: '0.5rem'}}>
-     Access the global cryptocurrency market with WhiteBIT's comprehensive trading APIs. Build powerful trading applications with our developer-friendly tools.
-    </p>
+  <p className="text-lg max-w-[44rem] mx-auto mt-2" style={{ fontWeight: '500' }}>
+    Access the global cryptocurrency market with WhiteBIT's comprehensive trading APIs. Build powerful trading applications with our developer-friendly tools.
+  </p>
 
-    <div className="flex items-center justify-center gap-4 mt-6">
-      <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
-        <span className='text-sm'>Low Latency</span>
-      </span>
-      <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
-        <span className='text-sm'>Global Access</span>
-      </span>
-      <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
-        <span className='text-sm'>24/7 Support</span>
-      </span>
-    </div>
-
-    <div className="flex items-center justify-center mb-8" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <button
-        type="button"
-        className="hidden w-full lg:flex items-center text-sm leading-6 py-4 pl-4 pr-4 text-gray-500 rounded-full"
-        id="home-search-entry"
-        style={{
-          marginTop: '2rem',
-          maxWidth: '40rem',
-          background: '#FFF',
-          boxShadow: '0px 1px 4px 0px rgba(8, 9, 10, 0.25), 0px 0px 0px 4px rgba(255, 255, 255, 0.20)',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
-        onClick={()=> document.getElementById('search-bar-entry').click()}
-      >
-        <svg
-          className="h-4 w-4 ml-1.5 flex-none bg-primary hover:bg-gray-600 dark:bg-primary-dark dark:hover:bg-white/70"
-          style={{
-          marginRight: '0.5rem',
-          maskImage:
-            'url("https://mintlify.b-cdn.net/v6.5.1/solid/magnifying-glass.svg")',
-          maskRepeat: 'no-repeat',
-          maskPosition: 'center center',
-          }}
-        />
-        Search or ask...
-      </button>
-    </div>
-
+  <div className="flex items-center justify-center gap-4 mt-6">
+    <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
+      <span className='text-sm'>Low Latency</span>
+    </span>
+    <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
+      <span className='text-sm'>Global Access</span>
+    </span>
+    <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
+      <span className='text-sm'>24/7 Support</span>
+    </span>
   </div>
 </div>
 
-<div className="mb-32 max-w-[70rem] mx-auto px-5 pt-7 pb-8">
+<div className="mb-32 max-w-6xl mx-auto px-6 pb-8">
 
-<div className='flex flex-col gap-4 mt-8'>
-<div className='flex items-center gap-4'>
+<div className='flex items-center gap-3 mt-0'>
 <h2 className='text-3xl'>API Activity</h2>
-<span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
+<span className='px-3 py-1.5 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
   <div className='w-2 h-2 bg-green-500 rounded-full'></div>
   <span className='text-sm'>Live Demo</span>
 </span>
 </div>
-<p>Watch our high-performance API handle thousands of trading operations in real-time. From market orders to advanced trading strategies, see the full spectrum of what's possible.</p>
-</div>
+
+<p className='mt-3'>Watch our high-performance API handle thousands of trading operations in real-time. From market orders to advanced trading strategies, see the full spectrum of what's possible.</p>
 
 <ApiMonitorTable/>
 
@@ -146,9 +100,9 @@ Ready to Get Started?
 
 Join thousands of developers building with WhiteBIT's API platform
 </p>
-<div className='flex justify-center items-enter gap-8 mt-8'>
-<button className="px-4 py-2 bg-[#EABE4D] hover:bg-[#EABE4A] rounded-xl text-black"><a href="https://whitebit.com/auth?redirect=/settings/api/api-keys">Create API Key</a></button>
-<button className="px-4 py-2 rounded-xl border border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"><a href="/platform/overview">Read the Docs</a></button>
+<div className='flex justify-center items-center gap-8 mt-8'>
+<a href="https://whitebit.com/auth?redirect=/settings/api/api-keys" className="px-4 py-2 bg-[#EABE4D] hover:bg-[#EABE4A] rounded-xl text-black no-underline">Create API Key</a>
+<a href="/platform/overview" className="px-4 py-2 rounded-xl border border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 no-underline">Read the Docs</a>
 </div>
 
 <div className="border-t border-gray-200 dark:border-gray-700 mt-12"></div>
