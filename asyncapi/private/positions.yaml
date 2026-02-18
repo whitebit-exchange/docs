@@ -3,7 +3,7 @@ info:
   title: WhiteBit Positions
   version: 1.0.0
   description: |
-    Subscribe to positions updates. This endpoint does NOT support query operations - only subscribe/update/unsubscribe.
+    Subscribe to positions updates. The channel does not support query operations — only subscribe, update, and unsubscribe.
 
 servers:
   production:
@@ -243,7 +243,7 @@ components:
                     description: "Date of position opening in Unix time"
                   mtime:
                     type: number
-                    description: "Date of position modifying (this is date of current event) in Unix time"
+                    description: "Date of position modification (the date of the current event) in Unix time"
                   amount:
                     type: string
                     description: "Position amount"
@@ -266,10 +266,10 @@ components:
                     description: "Liquidation state. Possible values: null, margin_call"
                   unrealized_funding:
                     type: string
-                    description: "Funding that will be paid on next position stage change (order, liquidation, etc)"
+                    description: "Funding to be paid on the next position stage change (order, liquidation, etc)"
                   funding:
                     type: string
-                    description: "Funding that has already been disbursed"
+                    description: "Funding already disbursed"
                   margin:
                     type: string
                     description: "Own funds amount in open position in **money**"

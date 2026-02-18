@@ -6,7 +6,7 @@ title: Market Trades
 ## Subscription Behavior
 
 <Warning>
-For each WebSocket connection, you can subscribe to either specific markets or all markets. **Every new subscription replaces the existing one.**
+For each WebSocket connection, subscribe to either specific markets or all markets. **Every new subscription replaces the existing one.**
 </Warning>
 
 ### Subscribe to Specific Markets
@@ -43,12 +43,12 @@ Trade updates may include an `rpi` field:
 - `rpi: true` - The trade involved a Retail Price Improvement (RPI) order
 - `rpi: false` or absent - Regular trade
 
-<Info>
+<Note>
 RPI orders provide better execution prices than the current best bid/ask for retail traders.
-</Info>
+</Note>
 
 <Note>
-Public trade updates can include executions that originate from RPI orders.
+Public trade updates can include executions originating from RPI orders.
 
 Public market data feeds do not expose RPI orders as visible liquidity in `depth` or `bookTicker`. RPI orders remain visible only in private active orders and in the exchange UI order book (web and mobile).
 </Note>

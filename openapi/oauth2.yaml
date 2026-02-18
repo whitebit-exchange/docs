@@ -14,14 +14,14 @@ paths:
     get:
       summary: OAuth 2.0 Authorization
       description: |
-        This endpoint initiates the OAuth 2.0 authorization flow for user authentication and obtaining an authorization code.
+        The endpoint initiates the OAuth 2.0 authorization flow for user authentication and obtaining an authorization code.
 
         **Using the State Parameter (Best Practice)**
 
         The `state` parameter is crucial for security in OAuth flows:
 
         - Generate a cryptographically secure random string
-        - Store it in the user's session before redirecting
+        - Store it in the session before redirecting
         - Validate it matches when handling the callback
         - This prevents CSRF attacks
         <Note>
@@ -33,7 +33,7 @@ paths:
         - name: clientId
           in: query
           required: true
-          description: Your application's client ID
+          description: The application's client ID
           schema:
             type: string
             example: YOUR_CLIENT_ID
@@ -52,7 +52,7 @@ paths:
     post:
       summary: Get Access Token
       description: |
-        This endpoint activates an access token by exchanging an authorization code.
+        The endpoint activates an access token by exchanging an authorization code.
 
         <Warning>
         **Important Notes:**
@@ -79,11 +79,11 @@ paths:
               properties:
                 client_id:
                   type: string
-                  description: Your application's client ID
+                  description: The application's client ID
                   example: YOUR_CLIENT_ID
                 client_secret:
                   type: string
-                  description: Your application's client secret
+                  description: The application's client secret
                   example: YOUR_CLIENT_SECRET
                 code:
                   type: string
@@ -197,11 +197,11 @@ paths:
               properties:
                 client_id:
                   type: string
-                  description: Your application's client ID
+                  description: The application's client ID
                   example: YOUR_CLIENT_ID
                 client_secret:
                   type: string
-                  description: Your application's client secret
+                  description: The application's client secret
                   example: YOUR_CLIENT_SECRET
                 token:
                   type: string

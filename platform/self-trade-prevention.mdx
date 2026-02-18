@@ -1,12 +1,12 @@
 ---
 title: "Self Trade Prevention (STP)"
 sidebarTitle: "Self Trade Prevention"
-description: "Self Trade Prevention (STP) is a mechanism that prevents traders from executing trades against their own orders. This feature helps maintain market integrity and avoid unintentional self-trading scenarios."
+description: "Self Trade Prevention (STP) is a mechanism to prevent traders from executing trades against the same trader's orders. The feature helps maintain market integrity and avoid unintentional self-trading scenarios."
 ---
 
 ## Overview
 
-When placing [orders](/glossary#orders), you can specify how the system should handle potential self-trades using the `stp` parameter. This parameter determines the behavior when an order would match against another order from the same account.
+When placing [orders](/glossary#orders), specify how the system should handle potential self-trades using the `stp` parameter. This parameter determines the behavior when an order would match against another order from the same account.
 
 ## STP Modes
 
@@ -21,7 +21,7 @@ The following STP modes are available:
 
 ## Usage
 
-You can specify the STP mode when placing any type of order:
+Specify the STP mode when placing any type of order:
 - [Limit orders](/glossary#limit-order)
 - [Market orders](/glossary#market-order)
 - [Stop-limit orders](/glossary#stop-limit-order)
@@ -57,12 +57,12 @@ STP is supported on the following API endpoints:
 
 ## Best Practices
 
-1. **Default Behavior**: If you don't specify an STP mode, the system defaults to `no`, allowing self-trades.
+1. **Default Behavior**: If no STP mode is specified, the system defaults to `no`, allowing self-trades.
 2. **Risk Management**: For automated trading systems or when running multiple strategies, it's recommended to use `cancel_both` or `cancel_new` to prevent unintentional self-trades.
 3. **Market Making**: When running [market making](/glossary#maker) strategies, consider using `cancel_new` to maintain existing orders' queue position.
 
 ## Response Handling
 
-When an order is affected by STP rules, the order response will include the `stp` field indicating the mode that was applied. The order status will reflect the outcome based on the STP mode:
+When an order is affected by STP rules, the order response includes the `stp` field indicating the applied mode. The order status will reflect the outcome based on the STP mode:
 - Orders canceled due to STP will have a "CANCELED" status
 - Successfully placed orders will proceed with normal status progression

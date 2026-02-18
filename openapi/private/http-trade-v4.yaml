@@ -23,10 +23,10 @@ paths:
     post:
       summary: Collateral Account Balance
       description: |
-        This endpoint returns a current [collateral balance](/glossary#balance-collateral).
+        The endpoint returns a current [collateral balance](/glossary#balance-collateral).
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
         
         <Warning>
@@ -96,10 +96,10 @@ paths:
     post:
       summary: Collateral Account Balance Summary
       description: |
-        This endpoint retrieves collateral account balance summary with detailed breakdown per asset.
+        The endpoint retrieves collateral account balance summary with detailed breakdown per asset.
         
         <Note>
-        Response is cached for: NONE
+        The API does not cache the response.
         </Note>
         
         <Warning>
@@ -195,14 +195,14 @@ paths:
     post:
       summary: Collateral Limit Order
       description: |
-        This endpoint creates [limit order](/glossary#limit-order) using [collateral balance](/glossary#balance-collateral).
+        The endpoint creates [limit order](/glossary#limit-order) using [collateral balance](/glossary#balance-collateral).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
         
         <Note>
-        For open long position you have to use **buy**, for short **sell**. Also to close current position you have to place opposite order with current position amount.
+        For open long position use **buy**, for short **sell**. To close current position, place opposite order with current position amount.
         </Note>
 
         <Note>
@@ -301,7 +301,7 @@ paths:
     post:
       summary: Collateral bulk limit order
       description: |
-        This endpoint creates multiple collateral limit orders.
+        The endpoint creates multiple collateral limit orders.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -407,7 +407,7 @@ paths:
     post:
       summary: Collateral Market Order
       description: |
-        This endpoint creates a collateral market order.
+        The endpoint creates a collateral market order.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -465,7 +465,7 @@ paths:
     post:
       summary: Collateral Stop-Limit Order
       description: |
-        This endpoint creates a collateral stop-limit order.
+        The endpoint creates a collateral stop-limit order.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -535,7 +535,7 @@ paths:
     post:
       summary: Collateral Trigger Market Order
       description: |
-        This endpoint creates a collateral trigger market order.
+        The endpoint creates a collateral trigger market order.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -596,7 +596,7 @@ paths:
     post:
       summary: Collateral Account Summary
       description: |
-        This endpoint retrieves collateral account summary.
+        The endpoint retrieves collateral account summary.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -626,7 +626,7 @@ paths:
     post:
       summary: Open Positions
       description: |
-        This endpoint retrieves open positions.
+        The endpoint retrieves open positions.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -664,7 +664,7 @@ paths:
     post:
       summary: Close Position
       description: |
-        This endpoint closes a position.
+        The endpoint closes a position.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -720,7 +720,7 @@ paths:
     post:
       summary: Positions History
       description: |
-        This endpoint retrieves positions history.
+        The endpoint retrieves positions history.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -768,7 +768,7 @@ paths:
     post:
       summary: Funding History
       description: |
-        This endpoint retrieves funding history.
+        The endpoint retrieves funding history.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -806,7 +806,7 @@ paths:
     post:
       summary: Change Collateral Account Leverage
       description: |
-        This endpoint changes account leverage.
+        The endpoint changes account leverage.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -850,7 +850,7 @@ paths:
     post:
       summary: Collateral Account Hedge Mode
       description: |
-        This endpoint retrieves hedge mode status.
+        The endpoint retrieves hedge mode status.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -882,7 +882,7 @@ paths:
     post:
       summary: Update Collateral Account Hedge Mode
       description: |
-        This endpoint updates hedge mode.
+        The endpoint updates hedge mode.
         
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -926,7 +926,7 @@ paths:
     post:
       summary: Query unexecuted(active) conditional orders
       description: |
-        This endpoint retrieves active conditional orders.
+        The endpoint retrieves active conditional orders.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -976,7 +976,7 @@ paths:
     post:
       summary: Query unexecuted(active) OCO orders
       description: |
-        This endpoint retrieves active OCO orders.
+        The endpoint retrieves active OCO orders.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -1026,7 +1026,7 @@ paths:
     post:
       summary: Create collateral OCO order
       description: |
-        This endpoint creates a collateral OCO order.
+        The endpoint creates a collateral OCO order.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1092,7 +1092,7 @@ paths:
     post:
       summary: Cancel conditional order
       description: |
-        This endpoint cancels a conditional order.
+        The endpoint cancels a conditional order.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1143,7 +1143,7 @@ paths:
     post:
       summary: Cancel OCO order
       description: |
-        This endpoint cancels an OCO order.
+        The endpoint cancels an OCO order.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1194,7 +1194,7 @@ paths:
     post:
       summary: Cancel OTO order
       description: |
-        This endpoint cancels an OTO order.
+        The endpoint cancels an OTO order.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1245,7 +1245,7 @@ paths:
     post:
       summary: Convert Estimate
       description: |
-        This endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
+        The endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1288,14 +1288,14 @@ paths:
                   description: "Request path"
             examples:
               estimateReceive:
-                summary: "I would like to estimate convert of BTC to receive 35,103.1 USDT"
+                summary: "Estimate convert of BTC to receive 35,103.1 USDT"
                 value:
                   amount: "35,103.1"
                   direction: "to"
                   from: "BTC"
                   to: "USDT"
               estimateGive:
-                summary: "I would like to estimate convert of 1 BTC to USDT"
+                summary: "Estimate convert of 1 BTC to USDT"
                 value:
                   amount: "1"
                   direction: "from"
@@ -1376,7 +1376,7 @@ paths:
     post:
       summary: Convert Confirm
       description: |
-        This endpoint confirms an estimated quote.
+        The endpoint confirms an estimated quote.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1444,12 +1444,12 @@ paths:
     post:
       summary: Convert History
       description: |
-        This endpoint returns convert history.
+        The endpoint returns convert history.
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-        **Note:** This method can retrieve data not older than 6 months from current month. If you need older data - you can use Report on the History page in your account.
+        **Note:** The endpoint can retrieve data not older than 6 months from current month. For older data, use the Report on the History page.
       operationId: convertHistory
       requestBody:
         required: true
@@ -1687,11 +1687,11 @@ paths:
                     example: "0.1"
                   futures_taker:
                     type: string
-                    description: "Futures taker fee rate (default or custom if set by user)"
+                    description: "Futures taker fee rate (default or custom if assigned)"
                     example: "0.0002"
                   futures_maker:
                     type: string
-                    description: "Futures maker fee rate (default or custom if set by user)"
+                    description: "Futures maker fee rate (default or custom if assigned)"
                     example: "0.0001"
                   custom_fee:
                     type: object
@@ -1717,7 +1717,7 @@ paths:
     post:
       summary: Trading Balance
       description: |
-        This endpoint retrieves the [trade balance](/glossary#balance-spotbalance-trade) by currency [ticker](/glossary#ticker) or all balances.
+        The endpoint retrieves the [trade balance](/glossary#balance-spotbalance-trade) by currency [ticker](/glossary#ticker) or all balances.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -1817,7 +1817,7 @@ paths:
     post:
       summary: Create Limit Order
       description: |
-        This endpoint creates [limit trading order](/glossary#limit-order).
+        The endpoint creates [limit trading order](/glossary#limit-order).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1930,7 +1930,7 @@ paths:
           "message": "Validation failed",
           "errors": {
             "clientOrderId": [
-              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+              "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
         }
@@ -1963,7 +1963,7 @@ paths:
           "code": 30,
           "message": "Validation failed",
           "errors": {
-            "total": ["Total(amount * price) is less than 5.05"]
+            "total": ["Total (amount * price) is less than 5.05"]
           }
         }
         ```
@@ -2046,7 +2046,7 @@ paths:
     post:
       summary: Bulk limit order
       description: |
-        This endpoint creates bulk [limit trading orders](/glossary#limit-order).
+        The endpoint creates bulk [limit trading orders](/glossary#limit-order).
         
         <Warning>
           Limit: From 1 to 20 orders per request.
@@ -2175,7 +2175,7 @@ paths:
     post:
       summary: Create market order
       description: |
-        This endpoint creates [market trading order](/glossary#market-order).
+        The endpoint creates [market trading order](/glossary#market-order).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -2280,7 +2280,7 @@ paths:
           "message": "Validation failed",
           "errors": {
             "clientOrderId": [
-              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+              "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
         }
@@ -2322,7 +2322,7 @@ paths:
     post:
       summary: Create buy stock market order
       description: |
-        This endpoint creates buy [stock](/glossary#stock) market trading [order](/glossary#orders).
+        The endpoint creates buy [stock](/glossary#stock) market trading [order](/glossary#orders).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -2457,7 +2457,7 @@ paths:
     post:
       summary: Create stop-limit order
       description: |
-        This endpoint creates [stop-limit trading order](/glossary#stop-limit-order).
+        The endpoint creates [stop-limit trading order](/glossary#stop-limit-order).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -2564,7 +2564,7 @@ paths:
           "code": 30,
           "message": "Validation failed",
           "errors": {
-            "total": ["Total(amount * price) is less than 5.05"]
+            "total": ["Total (amount * price) is less than 5.05"]
           }
         }
         ```
@@ -2585,7 +2585,7 @@ paths:
           "message": "Validation failed",
           "errors": {
             "clientOrderId": [
-              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+              "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
         }
@@ -2627,7 +2627,7 @@ paths:
     post:
       summary: Create stop-market order
       description: |
-        This endpoint creates [stop-market trading order](/glossary#stop-market-order).
+        The endpoint creates [stop-market trading order](/glossary#stop-market-order).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -2733,7 +2733,7 @@ paths:
           "message": "Validation failed",
           "errors": {
             "clientOrderId": [
-              "ClientOrderId field field should contain only latin letters, numbers and dashes."
+              "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
         }
@@ -2800,7 +2800,7 @@ paths:
         <Note>
         - Modification by clientOrderId takes priority over orderId.
         - The request supports working only with orderId or only with clientOrderId.
-        - You cannot pass both values at the same time.
+        - Do not pass both values at the same time.
         </Note>
         
         <Accordion title="Error Codes">
@@ -3021,7 +3021,7 @@ paths:
     post:
       summary: Query unexecuted(active) orders
       description: |
-        This endpoint retrieves [active orders](/glossary#active-orders) (orders not yet executed).
+        The endpoint retrieves [active orders](/glossary#active-orders) (orders not yet executed).
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -3077,7 +3077,7 @@ paths:
                 offset:
                   type: integer
                   default: 0
-                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0"
+                  description: "Starting line index (OFFSET). Default: 0, Min: 0"
                 limit:
                   type: integer
                   default: 50
@@ -3115,14 +3115,14 @@ paths:
     post:
       summary: Query executed order history
       description: |
-        This endpoint retrieves all deals for all markets. Can be filtered by single market if needed.
+        The endpoint retrieves all deals for all markets. Can be filtered by single market if needed.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
         
         <Note>
-        This method can retrieve data not older than 6 months from current month. For older data, use the Report on the History page in your account.
+        The endpoint can retrieve data not older than 6 months from current month. For older data, use the Report on the History page.
         </Note>
         
         <Accordion title="Errors">
@@ -3173,7 +3173,7 @@ paths:
                 offset:
                   type: integer
                   default: 0
-                  description: "If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0"
+                  description: "Starting line index (OFFSET). Default: 0, Min: 0"
                 limit:
                   type: integer
                   default: 50
@@ -3256,7 +3256,7 @@ paths:
     post:
       summary: Query executed order deals
       description: |
-        This endpoint retrieves deals for a specific order.
+        The endpoint retrieves deals for a specific order.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -3310,7 +3310,7 @@ paths:
     post:
       summary: Query executed orders
       description: |
-        This endpoint retrieves order history.
+        The endpoint retrieves order history.
         
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -3360,7 +3360,7 @@ paths:
     post:
       summary: Modify order
       description: |
-        This endpoint modifies existing [order](/glossary#orders).
+        The endpoint modifies existing [order](/glossary#orders).
         
         Supported order types: limit, stop limit, stop market.
         
@@ -3374,7 +3374,7 @@ paths:
         - Use total parameter instead of amount for modify buy stop market order.
         - Modification by clientOrderId takes priority.
         - The request supports working only with orderId or only with clientOrderId.
-        - You cannot pass both values at the same time.
+        - Do not pass both values at the same time.
         </Note>
         
         <Accordion title="Error Codes">
@@ -3480,7 +3480,7 @@ paths:
     post:
       summary: Sync kill-switch timer
       description: |
-        This endpoint creates, updates, deletes [kill-switch timer](/glossary#kill-switch-timer).
+        The endpoint creates, updates, deletes [kill-switch timer](/glossary#kill-switch-timer).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3578,7 +3578,7 @@ paths:
     post:
       summary: Status kill-switch timer
       description: |
-        This endpoint retrieves the status of [kill-switch timer](/glossary#kill-switch-timer).
+        The endpoint retrieves the status of [kill-switch timer](/glossary#kill-switch-timer).
         
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3644,7 +3644,7 @@ components:
         API Key authentication for private endpoints.
         
         Required headers:
-        - X-TXC-APIKEY: Your API key
+        - X-TXC-APIKEY: API key
         - X-TXC-PAYLOAD: Base64 encoded JSON payload
         - X-TXC-SIGNATURE: HMAC SHA512 signature
   responses:
@@ -3697,7 +3697,7 @@ components:
         bboRole:
           type: integer
           enum: [1, 2]
-          description: "When you activate the [BBO](/glossary#bbo) option when placing Limit orders, the system automatically selects the best market prices for executing these orders in one of two ways. Variables: 1 - Queue Method / 2 - Counterparty Method. You can use 2 method with ioc flag. Example: 2."
+          description: "When the [BBO](/glossary#bbo) option is activated for Limit orders, the system selects the best market prices for execution. Variables: 1 - Queue Method / 2 - Counterparty Method. Use method 2 with ioc flag. Example: 2."
         stp:
           type: string
           enum: [no, cancel_both, cancel_new, cancel_old]
@@ -3786,7 +3786,7 @@ components:
         bboRole:
           type: integer
           enum: [1, 2]
-          description: "When you activate the [BBO](/glossary#bbo) option when placing Limit orders, the system automatically selects the best market prices for executing these orders in one of two ways. Variables: 1 - Queue Method / 2 - Counterparty Method."
+          description: "When the [BBO](/glossary#bbo) option is activated for Limit orders, the system selects the best market prices for execution. Variables: 1 - Queue Method / 2 - Counterparty Method."
         stp:
           type: string
           enum: [no, cancel_both, cancel_new, cancel_old]
@@ -3901,7 +3901,7 @@ components:
           description: "If order not finished - rest of the amount that must be finished"
         dealFee:
           type: string
-          description: "Fee in money that you pay if order is finished"
+          description: "Fee in money currency when order is filled"
         price:
           type: string
           description: "Price"

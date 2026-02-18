@@ -6,8 +6,8 @@ info:
     Base URL: https://whitebit.com
     All endpoints return time in Unix-time format.
     All endpoints return either a JSON object or array.
-    For receiving responses from API calls please use http method GET.
-    If an endpoint requires parameters you should send them as query string.
+    Use HTTP method GET for API calls.
+    Send parameters as query string when an endpoint requires them.
     
     <Warning>
     Rate limit: 2000 requests/10 sec for most endpoints (specific limits noted per endpoint).
@@ -23,7 +23,7 @@ paths:
   /api/v4/public/platform/status:
     get:
       summary: Maintenance status
-      description: This endpoint retrieves maintenance status
+      description: The endpoint retrieves maintenance status
       tags:
         - Public API V4
       parameters: []
@@ -44,10 +44,10 @@ paths:
     get:
       summary: Market Info
       description: |
-        This endpoint retrieves all information about available spot and futures markets.
+        The endpoint retrieves all information about available spot and futures markets.
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -109,15 +109,15 @@ paths:
                       example: "0.001"
                     maxTotal:
                       type: string
-                      description: Maximum total(amount * price) of money to trade
+                      description: Maximum total (amount * price) of money to trade
                       example: "10000000000"
                     tradesEnabled:
                       type: boolean
-                      description: Is trading enabled
+                      description: Indicates whether trading is enabled
                       example: true
                     isCollateral:
                       type: boolean
-                      description: Is margin trading enabled
+                      description: Indicates whether margin trading is enabled
                       example: true
                     type:
                       type: string
@@ -135,10 +135,10 @@ paths:
     get:
       summary: Market activity
       description: |
-        This endpoint retrieves a 24-hour pricing and volume summary for each market pair available on the exchange.
+        The endpoint retrieves a 24-hour pricing and volume summary for each market pair available on the exchange.
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -159,11 +159,11 @@ paths:
                   properties:
                     base_id:
                       type: integer
-                      description: "CoinmarketCap Id of base currency; 0 - if unknown"
+                      description: "CoinMarketCap ID of base currency; 0 - if unknown"
                       example: 1
                     quote_id:
                       type: integer
-                      description: "CoinmarketCap Id of quote currency; 0 - if unknown"
+                      description: "CoinMarketCap ID of quote currency; 0 - if unknown"
                       example: 825
                     last_price:
                       type: string
@@ -179,7 +179,7 @@ paths:
                       example: "4723.286463"
                     isFrozen:
                       type: boolean
-                      description: Identifies if trades are closed
+                      description: Indicates whether trading is disabled
                       example: false
                     change:
                       type: string
@@ -205,10 +205,10 @@ paths:
     get:
       summary: Asset Status List
       description: |
-        This endpoint retrieves the assets status.
+        The endpoint retrieves the assets status.
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -303,10 +303,10 @@ paths:
     get:
       summary: Orderbook
       description: |
-        This endpoint retrieves the current [order book](/glossary#order-book) as two arrays ([bids](/glossary#bid) / [asks](/glossary#ask)) with additional parameters.
+        The endpoint retrieves the current [order book](/glossary#order-book) as two arrays ([bids](/glossary#bid) / [asks](/glossary#ask)) with additional parameters.
 
         <Note>
-        Response is cached for: 100 ms
+        The API caches the response for 100 ms
         </Note>
 
         <Warning>
@@ -335,7 +335,7 @@ paths:
         - name: level
           in: query
           required: false
-          description: "Optional parameter that allows API user to see different level of aggregation. Level 0 – default level, no aggregation. Starting from level 1 (lowest possible aggregation) and up to level 5 - different levels of aggregated orderbook."
+          description: "Optional parameter that controls the aggregation level. Level 0 – default, no aggregation. Levels 1–5 provide increasing aggregation of the order book."
           schema:
             type: integer
             minimum: 0
@@ -359,10 +359,10 @@ paths:
     get:
       summary: Depth
       description: |
-        This endpoint retrieves depth price levels within ±2% of the market last price. Use it when you need lightweight order book data for a narrow price band around the current market price. The ±2% constraint limits the response to price levels near the last traded price, reducing payload size compared to the full order book.
+        The endpoint retrieves depth price levels within ±2% of the market last price. Use when lightweight order book data is needed for a narrow price band around the current market price. The ±2% constraint limits the response to price levels near the last traded price, reducing payload size compared to the full order book.
 
         <Note>
-        Response is cached for: 1 sec
+        The API caches the response for 1 sec
         </Note>
 
         <Warning>
@@ -396,14 +396,14 @@ paths:
     get:
       summary: Recent Trades
       description: |
-        This endpoint retrieves the [trades](/glossary#deal-trade) that have been executed recently on the requested [market](/glossary#market).
+        The endpoint retrieves the [trades](/glossary#deal-trade) that have been executed recently on the requested [market](/glossary#market).
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Note>
-          Public trade data can include executions that originate from RPI orders. Public order book feeds (`depth`, `bookTicker`) exclude RPI orders. Users view RPI orders only in private active orders and in the exchange UI order book (web and mobile).
+          Public trade data can include executions that originate from RPI orders. Public order book feeds (`depth`, `bookTicker`) exclude RPI orders. RPI orders appear only in private active orders and in the exchange UI order book (web and mobile).
         </Note>
 
 
@@ -493,10 +493,10 @@ paths:
     get:
       summary: Fee
       description: |
-        This endpoint retrieves the list of [fees](/glossary#fee) and min/max amount for deposits and withdraws
+        The endpoint retrieves the list of [fees](/glossary#fee) and min/max amounts for deposits and withdrawals
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -571,10 +571,10 @@ paths:
     get:
       summary: Server Time
       description: |
-        This endpoint retrieves the current server time.
+        The endpoint retrieves the current server time.
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -600,10 +600,10 @@ paths:
     get:
       summary: Server Status
       description: |
-        This endpoint retrieves the current API life-state.
+        The endpoint retrieves the current API life-state.
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -627,10 +627,10 @@ paths:
     get:
       summary: Collateral Markets List
       description: |
-        This endpoint returns the list of [markets](/glossary#market) that available for [collateral](/glossary#collateral) trading
+        The endpoint returns the list of [markets](/glossary#market) that are available for [collateral](/glossary#collateral) trading
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -655,10 +655,10 @@ paths:
     get:
       summary: Available Futures Markets List
       description: |
-        This endpoint returns the list of available futures markets.
+        The endpoint returns the list of available futures markets.
 
         <Note>
-        Response is cached for: 1 second
+        The API caches the response for 1 second
         </Note>
 
         <Warning>
@@ -723,7 +723,7 @@ paths:
     get:
       summary: Funding History
       description: |
-        This endpoint returns the funding rate history for a specified futures market.
+        The endpoint returns the funding rate history for a specified futures market.
 
         <Warning>
         Rate limit 2000 requests/10 sec.
@@ -783,7 +783,7 @@ paths:
                   properties:
                     fundingTime:
                       type: string
-                      description: Timestamp when funding was executed
+                      description: Timestamp when the funding executed
                       example: "1752537600"
                     fundingRate:
                       type: string
@@ -795,20 +795,20 @@ paths:
                       example: BTC_PERP
                     settlementPrice:
                       type: string
-                      description: Price at which funding was settled
+                      description: Price at which the funding settled
                       example: "119816.5"
                     rateCalculatedTime:
                       type: string
-                      description: Timestamp when the funding rate was calculated
+                      description: Timestamp of the funding rate calculation
                       example: "1752508800"
 
   /api/v4/public/mining-pool:
     get:
       summary: Mining Pool Overview
       description: |
-        This endpoint returns an overall information about the current mining pool state.
+        The endpoint returns overall information about the current mining pool state.
 
-        HashRate info represents in the H units.
+        Hash rate is expressed in H units.
 
         <Warning>
         Rate limit 1000 requests/10 sec.
@@ -907,19 +907,19 @@ components:
           example: 1
         can_withdraw:
           type: boolean
-          description: Identifies whether withdrawals are enabled or disabled
+          description: Indicates withdrawal status (enabled or disabled)
           example: true
         can_deposit:
           type: boolean
-          description: Identifies whether deposits are enabled or disabled
+          description: Indicates deposit status (enabled or disabled)
           example: true
         min_withdraw:
           type: string
-          description: Identifies the single minimum withdrawal amount of a cryptocurrency
+          description: Minimum withdrawal amount for the asset
           example: "0.001"
         max_withdraw:
           type: string
-          description: Identifies the single maximum withdrawal amount of a cryptocurrency
+          description: Maximum withdrawal amount for the asset
           example: "2"
         maker_fee:
           type: string
@@ -935,7 +935,7 @@ components:
           example: "0.0001"
         max_deposit:
           type: string
-          description: "Max deposit amount, will not be returned if there is no limit, 0 if unlimited"
+          description: "Max deposit amount; omitted if no limit, 0 if unlimited"
           example: "0"
         currency_precision:
           type: integer
@@ -943,11 +943,11 @@ components:
           example: 18
         is_memo:
           type: boolean
-          description: Identifies if currency has memo address
+          description: Indicates whether the asset requires a memo address
           example: false
         memo:
           type: object
-          description: Identifies if currency requires memo for deposits/withdraws
+          description: Indicates whether the asset requires a memo for deposits and withdrawals
           properties:
             deposit:
               type: boolean
