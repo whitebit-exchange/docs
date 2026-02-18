@@ -31,7 +31,7 @@ Check `/glossary.mdx` for correct terms:
 | `<Warning>` | Rate limits, security warnings, breaking changes, data loss risks | Minor notes, helpful tips |
 | `<Note>` | Caching behavior, response formats, update intervals | Critical warnings |
 | `<Tip>` | Performance optimization, recommended patterns | Required information |
-| `<Accordion>` | Error codes (>5), multiple examples, long specifications | Short lists (<5 items) |
+| `<Accordion>` | Error codes (>5), multiple examples, long specifications | Short lists (&lt;5 items) |
 
 ## Content Guidelines
 

@@ -181,7 +181,7 @@ export const ApiMonitorTable = () => {
                 }}
               >
                 <td
-                  className="text-sm text-gray-400"
+                  className="text-xs text-gray-400"
                   style={{
                     minWidth: "150px",
                     padding: "10px 20px 10px 20px",
@@ -191,7 +191,7 @@ export const ApiMonitorTable = () => {
                   {log.time}
                 </td>
                 <td
-                  className="text-sm"
+                  className="text-xs"
                   style={{
                     minWidth: "80px",
                     padding: "10px 16px",
@@ -206,7 +206,7 @@ export const ApiMonitorTable = () => {
                   </span>
                 </td>
                 <td
-                  className="text-sm text-gray-300"
+                  className="text-xs text-gray-300"
                   style={{
                     minWidth: "280px",
                     maxWidth: "350px",
@@ -219,7 +219,7 @@ export const ApiMonitorTable = () => {
                   {log.endpoint}
                 </td>
                 <td
-                  className="text-sm"
+                  className="text-xs"
                   style={{
                     minWidth: "60px",
                     padding: "10px 8px",
@@ -234,7 +234,7 @@ export const ApiMonitorTable = () => {
                   </span>
                 </td>
                 <td
-                  className="text-sm text-gray-400"
+                  className="text-xs text-gray-400"
                   style={{
                     minWidth: "200px",
                     maxWidth: "500px",
@@ -268,25 +268,6 @@ export const ApiMonitorTable = () => {
             opacity: 1;
             transform: translateY(0);
           }
-        }
-
-        /* Custom scrollbar */
-        div::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-
-        div::-webkit-scrollbar-track {
-          background: #1a1d23;
-        }
-
-        div::-webkit-scrollbar-thumb {
-          background: #3a3f4b;
-          border-radius: 4px;
-        }
-
-        div::-webkit-scrollbar-thumb:hover {
-          background: #4a4f5b;
         }
       `}</style>
     </div>

@@ -95,9 +95,23 @@ export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
 
             const buttons = Array.from(document.querySelectorAll('button, [role="combobox"]'));
             const serverSelector = buttons.find(btn => {
+                // Skip if button is inside a link (Card component) or navigation element
+                if (btn.closest('a') || btn.closest('[class*="card"]') || btn.closest('nav')) {
+                    return false;
+                }
+                
                 const txt = btn.textContent || "";
-                return (txt.includes('Server') || txt.includes('whitebit.com') || txt.includes('whitebit.eu'))
-                    && !txt.includes('Run') && !txt.includes('Send');
+                
+                // Only match actual server selector dropdowns, not card titles
+                // Must include full server description like "Production Server" or "EU Server"
+                // OR be a combobox role (API playground selector)
+                const isServerDropdown = (
+                    (txt.includes('Production Server') || txt.includes('EU Server') || 
+                     txt.includes('WhiteBIT Global Server') || txt.includes('WhiteBIT EU Server')) &&
+                    !txt.includes('Run') && !txt.includes('Send')
+                ) || btn.getAttribute('role') === 'combobox';
+                
+                return isServerDropdown;
             });
 
             if (serverSelector) {

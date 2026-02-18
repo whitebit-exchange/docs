@@ -1,0 +1,306 @@
+---
+title: "Create withdraw request"
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/withdraw
+---
+
+## Withdrawal Scenarios Guide
+
+This endpoint supports **8 different withdrawal scenarios**. Each scenario requires different fields depending on the currency type, destination, and regulatory requirements. Use the example selector above to switch between scenarios.
+
+### 🔹 Cryptocurrency Withdrawals
+
+#### **Scenario 1: Simple Crypto Withdrawal**
+For standard cryptocurrencies like BTC, ETH, LTC, etc.
+- **Required fields**: `ticker`, `amount`, `address`, `uniqueId`
+- **Use when**: Withdrawing to a standard blockchain address
+
+#### **Scenario 2: Multi-Network Crypto (USDT, USDC)**
+For cryptocurrencies that exist on multiple blockchains.
+- **Required fields**: Same as above + `network`
+- **Networks**: ERC20 (Ethereum), TRC20 (Tron), BEP20 (BSC), OMNI, etc.
+- **Use when**: Withdrawing tokens that exist on multiple chains
+
+<Warning>
+**Critical**: Ensure the `network` matches your destination address type. Sending ERC20 USDT to a TRC20 address will result in **permanent loss of funds**. Verify the network on [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+</Warning>
+
+#### **Scenario 3: Travel Rule Compliance (EEA Users)**
+Required for crypto withdrawals if you're from the European Economic Area (EEA).
+- **Required fields**: Standard crypto fields + `travelRule` object
+- **Travel rule types**: 
+  - `individual` - Personal withdrawals (requires first name / last name)
+  - `entity` - Business withdrawals (requires company name / address)
+- **Use when**: Your account is registered in EEA countries
+
+### 🔹 Fiat Withdrawals (KYC Required)
+
+<Note>
+All fiat withdrawals require KYC verification. Ensure your account is verified before attempting fiat withdrawals.
+</Note>
+
+#### **Scenario 4: Basic Fiat Withdrawal**
+Standard fiat withdrawal via VISAMASTER provider.
+- **Required fields**: `ticker`, `amount`, `provider`, `uniqueId`
+- **Currencies**: UAH, USD, EUR, etc.
+- **Use when**: Standard fiat withdrawal within normal limits
+
+#### **Scenario 5: Fiat with Partial Enable**
+For withdrawals exceeding standard limits with "partially successful" status support.
+- **Required fields**: Same as basic + `partialEnable: true` + `address` (encrypted card token)
+- **Use when**: Withdrawing larger amounts that might be processed partially
+- **Important**: Your application must handle "Partially successful" withdrawal status
+
+#### **Scenario 6: IBAN Transfers (UAH_IBAN)**
+Bank transfer withdrawals to IBAN accounts.
+- **Required fields**: Standard fields + `beneficiary` object with:
+  - `firstName`, `lastName` (max 40 symbols, latin letters)
+  - `tin` (Tax Identification Number, 10 digits)
+- **Use when**: Withdrawing UAH to Ukrainian bank accounts via IBAN
+
+#### **Scenario 7: International Fiat (USD/EUR VISAMASTER)**
+Withdrawals with extended beneficiary information.
+- **Required fields**: Standard fields + `beneficiary` object with:
+  - `firstName`, `lastName`, `phone`, `email`, `birthDate` (YYYY-MM-DD)
+- **Use when**: Withdrawing USD or EUR via VISAMASTER_PAYCORE provider
+- **Currencies**: USD_VISAMASTER, EUR_VISAMASTER
+
+---
+
+## Amount and Fee Calculation
+
+<Tip>
+The `amount` field in this endpoint **includes** the withdrawal fee. The recipient receives `amount - fee`.
+</Tip>
+
+### How it works:
+
+**Example with this endpoint** (`/withdraw`):
+- Your balance: 100 USDT
+- Withdrawal fee: 2 USDT
+- You set `amount: "100"`
+- **Result**: 100 USDT deducted from balance, recipient receives **98 USDT**
+
+**Alternative approach** (use `/withdraw-pay` instead):
+- Your balance: 100 USDT
+- Withdrawal fee: 2 USDT  
+- You set `amount: "98"`
+- **Result**: 102 USDT deducted from balance, recipient receives **98 USDT**
+
+<Note>
+To specify the exact amount the recipient should receive (with fee added on top), use the [withdraw-pay endpoint](/api-reference/account-wallet/create-withdraw-request-with-specific-amount) instead.
+</Note>
+
+Check current fees via [Get Fees endpoint](/api-reference/account-wallet/get-fees) before creating withdrawals.
+
+---
+
+## Common Pitfalls & Best Practices
+
+### ⚠️ Unique ID Management
+
+<Warning>
+**Critical**: Generate a **NEW** `uniqueId` for each withdrawal request. 
+
+Reusing the same `uniqueId` will result in:
+```json
+{
+  "code": 0,
+  "message": "Validation failed",
+  "errors": {
+    "uniqueId": ["The unique id has already been taken."]
+  }
+}
+```
+</Warning>
+
+**Best practice**: Use a timestamp-based or UUID generator:
+- ✅ Good: `"24529041"`, `"withdrawal_1640995200_abc123"`
+- ❌ Bad: Reusing `"12345"` for multiple withdrawals
+
+### ⚠️ Address Validation
+
+Different currencies have different address formats:
+- **Bitcoin**: Starts with `1`, `3`, or `bc1` (SegWit)
+- **Ethereum/ERC20**: Starts with `0x`, 42 characters
+- **Tron/TRC20**: Starts with `T`, 34 characters
+- **Fiat**: Card token or IBAN format
+
+**Validation happens on our side**, but double-check addresses before sending.
+
+### ⚠️ Memo/Destination Tag
+
+Some currencies require a memo (destination tag):
+- **XLM (Stellar)**: Requires memo
+- **XRP (Ripple)**: Requires destination tag
+- **EOS**: Requires memo
+
+<Warning>
+Missing a required memo will result in **permanent loss of funds** or significant delays in recovery. Check currency requirements on [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+</Warning>
+
+### ⚠️ Provider Selection (Fiat)
+
+Fiat withdrawals require the correct provider:
+- Check available providers via [Asset Status endpoint](/api-reference/market-data/asset-status-list)
+- Common providers: `VISAMASTER`, `VISAMASTER_PAYCORE`, `UAH_IBAN`
+- Provider availability depends on currency and region
+
+---
+
+## Workflow: Complete Withdrawal Process
+
+### Step 1: Pre-Withdrawal Checks
+
+```
+1. Check your balance: GET /api/v4/main-account/balance
+2. Get withdrawal fees: POST /api/v4/main-account/fee  
+3. Verify currency is withdrawable: GET /api/v4/public/assets
+   - Check "can_withdraw" status is "true"
+   - Get available networks/providers
+   - Check minimum/maximum amounts
+```
+
+### Step 2: Create Withdrawal
+
+```
+POST /api/v4/main-account/withdraw
+```
+
+**Success response**: `[]` (empty array)
+
+This means validation succeeded and the withdrawal process has started. The withdrawal is now queued for processing.
+
+### Step 3: Monitor Status
+
+```
+POST /api/v4/main-account/history
+```
+
+Search by your `uniqueId` to track the transaction.
+
+**Withdrawal status codes**:
+- **Successful**: 3, 7
+- **Canceled**: 4, 9  
+- **Pending**: Other codes (see [history endpoint](/api-reference/account-wallet/get-deposit-withdraw-history) for full list)
+
+<Note>
+Cryptocurrency withdrawals are typically processed within 15-60 minutes depending on network congestion. Fiat withdrawals may take 1-5 business days depending on the payment provider.
+</Note>
+
+---
+
+## Network Selection Guide
+
+For multi-network currencies (USDT, USDC, etc.), choosing the right network is critical:
+
+| Network | Speed | Fee | Use When |
+|---------|-------|-----|----------|
+| **ERC20** (Ethereum) | Slow | High | Large amounts, highest security |
+| **TRC20** (Tron) | Fast | Very Low | Small/medium amounts, fastest option |
+| **BEP20** (BSC) | Fast | Low | Good balance of speed and cost |
+| **OMNI** | Very Slow | High | Legacy, rarely used |
+
+<Tip>
+**Default network**: If you don't specify a `network` parameter, the default network is used (typically ERC20 for USDT). Always specify the network explicitly to avoid confusion.
+</Tip>
+
+---
+
+## Error Handling
+
+### Common validation errors (400):
+
+**Missing required fields**:
+```json
+{
+  "code": 0,
+  "message": "Validation failed",
+  "errors": {
+    "address": ["The address field is required."],
+    "amount": ["The amount field is required."],
+    "ticker": ["The ticker field is required."],
+    "uniqueId": ["The unique id field is required."]
+  }
+}
+```
+
+**Invalid ticker**:
+```json
+{
+  "code": 0,
+  "message": "Validation failed",
+  "errors": {
+    "ticker": ["The selected ticker is invalid."]
+  }
+}
+```
+
+**KYC required**:
+```json
+{
+  "code": 0,
+  "message": "Validation failed",
+  "errors": {
+    "amount": [
+      "This currency has no active pairs or it may have been delisted.",
+      "Current limit exceeded"
+    ]
+  }
+}
+```
+
+### Inner validation errors (422):
+
+**Error codes**:
+- `1` - Currency is not withdrawable
+- `2` - Specified address is invalid  
+- `3` - Amount is too small
+- `4` - Amount is too small for the payment system
+- `5` - Not enough balance
+- `6` - Amount is less than or equals fee
+- `7` - Amount should be integer (zero precision currencies like NEO)
+- `8` - Target withdraw amount without fee equals zero
+- `9` - Address is unavailable (withdrawal to own address blocked)
+
+**Example**:
+```json
+{
+  "code": 5,
+  "message": "Inner validation failed",
+  "errors": {
+    "amount": ["Not enough money, Ethereum balance = 1"]
+  }
+}
+```
+
+---
+
+## Security Recommendations
+
+<Warning>
+**Always verify withdrawal requests**:
+1. Double-check the destination address
+2. Verify the network (for multi-network currencies)
+3. Confirm the amount and fee calculation
+4. Test with a small amount first for new addresses
+</Warning>
+
+<Tip>
+**Withdrawal safety checklist**:
+- ✅ Address is correct and copied without errors
+- ✅ Network matches the destination (ERC20, TRC20, etc.)
+- ✅ Memo/tag included if required
+- ✅ Amount is within your balance minus fees
+- ✅ Unique ID is newly generated
+- ✅ Provider is correct (for fiat)
+</Tip>
+
+---
+
+## Related Endpoints
+
+- [Create withdraw request with specific amount (fee not included)](/api-reference/account-wallet/create-withdraw-request-with-specific-amount) - Alternative endpoint where fee is added on top
+- [Get deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) - Monitor withdrawal status
+- [Get fees](/api-reference/account-wallet/get-fees) - Check current withdrawal fees
+- [Main balance](/api-reference/account-wallet/main-balance) - Check available balance before withdrawal
+- [Asset Status endpoint](/api-reference/market-data/asset-status-list) - Verify currency can be withdrawn and get network/provider info

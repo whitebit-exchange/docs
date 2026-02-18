@@ -1,0 +1,25 @@
+---
+asyncapi: "/asyncapi/public/book_ticker.yaml /ws"
+title: Book Ticker
+---
+## Overview
+
+The Book Ticker endpoint provides real-time best bid and best ask updates for a market.
+
+The stream sends updates whenever the best bid or best ask price changes.
+
+<Note>
+	Public `bookTicker_update` events exclude Retail Price Improvement (RPI) orders.
+
+	The stream includes only regular order book liquidity. Private active order endpoints and private WebSocket streams return RPI orders. The exchange UI order book (web and mobile) displays RPI orders.
+</Note>
+
+## Update Behavior
+
+The server sends a `bookTicker_update` message whenever the best bid or best ask changes.
+
+Each update contains:
+- Current best bid price and amount.
+- Current best ask price and amount.
+
+

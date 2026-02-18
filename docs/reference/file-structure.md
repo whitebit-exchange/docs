@@ -44,18 +44,17 @@ Creating new WebSocket feature?
 
 ### REST API
 
-- **Public**: `public/http-v{N}/<endpoint-name>.mdx`
-  - Example: `public/http-v4/market-info.mdx`
-
-- **Private**: `private/http-{api}-v{N}/<endpoint-name>.mdx`
-  - Example: `private/http-trade-v4/create-limit-order.mdx`
-  - Example: `private/http-main-v4/create-withdraw-request.mdx`
+- **api-reference/**: `api-reference/<category>/<endpoint-name>.mdx`
+  - Example: `api-reference/market-data/market-info.mdx`
+  - Example: `api-reference/spot-trading/create-limit-order.mdx`
+  - Example: `api-reference/account-wallet/create-withdraw-request.mdx`
 
 ### WebSocket API
 
-- **Public/Private**: `{public|private}/websocket/<feature>.mdx`
-  - Example: `public/websocket/depth.mdx`
-  - Example: `private/websocket/balance-spot.mdx`
+- **Market Streams** (public): `websocket/market-streams/<feature>.mdx`
+  - Example: `websocket/market-streams/depth.mdx`
+- **Account Streams** (private): `websocket/account-streams/<feature>.mdx`
+  - Example: `websocket/account-streams/balance-spot.mdx`
 
 ## Navigation Configuration
 
@@ -63,22 +62,34 @@ All page references go in `docs.json` at the root:
 
 ```json
 {
-  "navigation": [
-    {
-      "group": "REST API v4",
-      "pages": [
-        "private/http-trade-v4/create-limit-order",
-        "private/http-trade-v4/cancel-order"
-      ]
-    },
-    {
-      "group": "WebSocket API",
-      "pages": [
-        "public/websocket/depth",
-        "public/websocket/trades"
-      ]
-    }
-  ]
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Spot Trading",
+            "pages": [
+              "api-reference/spot-trading/create-limit-order",
+              "api-reference/spot-trading/cancel-order"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "WebSocket",
+        "groups": [
+          {
+            "group": "Market Streams",
+            "pages": [
+              "websocket/market-streams/depth",
+              "websocket/market-streams/trades"
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
