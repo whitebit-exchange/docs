@@ -5,17 +5,17 @@ sidebarTitle: "Authentication"
  
 ## Overview
 
-This guide explains how to authenticate with WhiteBit’s private HTTP API endpoints, which require authentication for security purposes.
+The Authentication guide explains how to authenticate with WhiteBIT’s private HTTP API endpoints, which require authentication for security purposes.
 
 ## Getting Started
 
 ### Setting Up API Keys
 <Steps>
 <Step>
- Navigate to [WhiteBit API Settings](https://whitebit.com/settings/api)
+ Navigate to [WhiteBIT API Settings](https://whitebit.com/settings/api)
 </Step>
 <Step>
- Select the appropriate configuration tab for your API keys
+ Select the appropriate configuration tab for API keys
     <Info>
 	 Different API keys provide access to different API endpoints
 	</Info>
@@ -39,7 +39,7 @@ All authenticated requests must:
 
 ### Body Data Format
 
-Your request body must be a JSON object containing:
+The request body must be a JSON object containing:
 
 | Field | Description | Example |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ Your request body must be a JSON object containing:
 
 **Example Request Body:**
 
-```bash
+```json
 {
     "request": "/api/v4/trade-account/balance",
     "nonce": 1594297865,
@@ -61,7 +61,7 @@ Your request body must be a JSON object containing:
 
 #### About Nonce Values
 
-- A good practice is to use the Unix timestamp in milliseconds
+- Use the Unix timestamp in milliseconds for nonce values
 - Ensure each nonce is larger than previous requests
 - When `nonceWindow` is enabled:
 	- Provide Unix timestamp in milliseconds as the nonce
@@ -76,15 +76,15 @@ Every authenticated request requires these headers:
 | Header | Value | Description |
 | --- | --- | --- |
 | `Content-type` | `application/json` | Specifies JSON format |
-| `X-TXC-APIKEY` | `your_api_key` | Your public WhiteBit API key |
+| `X-TXC-APIKEY` | `YOUR_API_KEY` | The public WhiteBIT API key |
 | `X-TXC-PAYLOAD` | `base64_encoded_payload` | Base64-encoded request body |
 | `X-TXC-SIGNATURE` | `signature` | HMAC-SHA512 signature (hex encoded) |
 
-The signature is created using: `hex(HMAC_SHA512(payload, key=api_secret))`
+Create the signature using: `hex(HMAC_SHA512(payload, key=api_secret))`
 
 ## Implementation Examples
 
-We provide the [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) library with examples in multiple languages:
+WhiteBIT provides the [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) library with examples in multiple languages:
 
 - Python
 - PHP
@@ -104,9 +104,15 @@ We provide the [API Quick Start Helper](https://github.com/whitebit-exchange/api
 | ”Too many requests.” | Nonce value is not greater than previous request | Use incrementing nonce values |
 | ”This action is unauthorized. Enable your key in API settings” | Using disabled API key | Enable key in API settings or check IP restrictions |
 | ”You don’t have permission to use this endpoint.” | Endpoint access is restricted | Update endpoint access in API key settings |
-| ”Invalid payload” | Payload doesn’t match decoded value | Ensure proper base64 encoding of request body |
+| ”Invalid payload” | Payload does not match decoded value | Ensure proper base64 encoding of request body |
 | ”Unauthorized request.” | Request signed incorrectly | Verify signature creation process |
 | ”Nonce not provided.” | Missing nonce in request body | Include nonce in all requests |
 | ”Your nonce is more than 5 seconds lesser than the current nonce” | Invalid timestamp when using nonceWindow | Use current timestamp in milliseconds |
 | ”Invalid nonceWindow.” | nonceWindow is not a boolean | Ensure nonceWindow is set to true or false |
 | ”Request not provided.” | Missing request path in body | Include request path in all requests |
+
+## Related resources
+
+- [API Reference Overview](/api-reference/overview) — Base URL, rate limits, and error format
+- [Market Data overview](/api-reference/market-data/overview) — Public endpoints (no authentication)
+- [Spot Trading overview](/api-reference/spot-trading/overview) — Private trading endpoints

@@ -23,7 +23,7 @@ channels:
       **Update Interval**: 1 second (for subscriptions)
 
       <Warning>
-      You can only subscribe for 86400s (24 hours from now).
+      Subscriptions support only 86400s (24 hours from now).
       </Warning>
     messages:
       marketRequest:
@@ -117,7 +117,7 @@ components:
             - period: Period in seconds (86400)
             - last: Last price (0.020981)
             - open: Open price at 'now - period' time (0.02035)
-            - close: Price that closes this period (0.020981)
+            - close: Closing price for the period (0.020981)
             - high: Highest price (0.020988)
             - low: Lowest price (0.020281)
             - volume: Volume in stock (135220.218)
@@ -215,10 +215,10 @@ components:
           description: Last price
         open:
           type: string
-          description: "Open price that was at 'now - period' time"
+          description: "Open price at 'now - period' time"
         close:
           type: string
-          description: Price that closes this period
+          description: Closing price for the period
         high:
           type: string
           description: Highest price in the period

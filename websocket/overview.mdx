@@ -14,7 +14,7 @@ WebSocket endpoint: **`wss://api.whitebit.com/ws`**
 
 The API is based on [JSON RPC](https://www.jsonrpc.org/specification) over the WebSocket protocol.
 
-All endpoints return time in Unix-time format.
+The API returns time in Unix-time format.
 
 ## Connection Timeout
 
@@ -50,7 +50,7 @@ JSON structure of a request message:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | Integer | Unique identifier to match the response to your request |
+| `id` | Integer | Unique identifier to match the response to the request |
 | `method` | String | Name of the method to call |
 | `params` | Array | Parameters for the method |
 
@@ -121,7 +121,7 @@ JSON structure of a response message:
 
 ## Authentication
 
-Private channels (Account Streams) require authorization before you can subscribe. After connecting, send an `authorize` request with your API credentials to gain access to private data such as balances, orders, deals, and positions.
+Private channels (Account Streams) require authorization before subscribing. After connecting, send an `authorize` request with API credentials to gain access to private data such as balances, orders, deals, and positions.
 
 See the [Authorize](/websocket/account-streams/authorize) channel page for the full request format, parameters, and examples.
 

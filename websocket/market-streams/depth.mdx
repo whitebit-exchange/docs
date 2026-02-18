@@ -5,7 +5,7 @@ title: Order Book Depth
 
 ## Overview
 
-The Market Depth endpoint provides real-time order book data with support for both one-time queries and subscription-based updates.
+The Market Depth channel provides real-time order book data with support for both one-time queries and subscription-based updates.
 
 ### Update Behavior
 
@@ -23,23 +23,23 @@ Private active order endpoints and private WebSocket streams return RPI orders. 
 
 - **First message** (`past_update_id` is absent): Full order book snapshot with all price levels
 - **Subsequent messages** (`past_update_id` is present): Only changed price levels
-- **Removed levels**: Shown as `[price, "0"]` - when amount is "0", remove that price level from your local order book
+- **Removed levels**: Shown as `[price, "0"]` - when amount is "0", remove the price level from the local order book
 
-<Info>
-If 10 seconds elapse without any order book changes, the server will push a full snapshot again as a keepalive mechanism.
-</Info>
+<Note>
+If 10 seconds elapse without any order book changes, the server pushes a full snapshot again as a keepalive mechanism.
+</Note>
 
 ## Maintaining a Local Order Book
 
-To maintain an accurate local order book, follow this algorithm:
+To maintain an accurate local order book, follow the algorithm below:
 
 1. Subscribe to depth updates
-2. Receive the first message (full snapshot) - initialize your order book
+2. Receive the first message (full snapshot) - initialize the order book
 3. For each incremental update:
-   - If amount is "0" → remove that price level
+   - If amount is "0" → remove the price level
    - If amount is not "0" → update existing level or insert new level at the correct sorted position
 4. Keep order book sorted: asks ascending, bids descending
-5. Truncate to your desired limit after each update
+5. Truncate to the desired limit after each update
 
 ## Code Examples
 
@@ -91,10 +91,10 @@ ws.addEventListener("message", (event: MessageEvent) => {
 function applyUpdates(orderBookSide: IDepth[], updates: IDepth[] | undefined, side: "ask" | "bid") {
     if (updates === undefined) return;
     for (const [price, amount] of updates) {
-        // Find the index of an entry in orderBookSide that matches the given price.
+        // Find the index of an entry in orderBookSide matching the given price.
         const priceIndex = orderBookSide.findIndex((level) => level[0] === price);
 
-        // If the amount is '0', it means this price level should be removed from the orderBookSide.
+        // If the amount is '0', remove the price level from the orderBookSide.
         if (amount === "0") {
             if (priceIndex !== -1) {
                 // Remove the existing price level since the amount is '0'.

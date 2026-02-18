@@ -5,8 +5,8 @@ info:
   description: |
     Authorize WebSocket connection using authentication token.
     
-    When you establish WS connection, you should authorize this ws connection via `authorize` method.
-    After successful authorization you will be able to send requests for balances, [orders](/glossary#orders) etc.
+    When establishing a WebSocket connection, authorize it via the `authorize` method.
+    After successful authorization, send requests for balances, [orders](/glossary#orders), and similar data.
     
     It only needs to be done successfully once.
 
@@ -63,7 +63,7 @@ components:
             id: 0
             method: authorize
             params:
-              - "<get_your_token_via_api>"
+              - "<WEB_SOCKET_TOKEN>"
               - "public"
 
     authorizeResponse:
