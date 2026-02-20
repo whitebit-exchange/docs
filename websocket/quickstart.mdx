@@ -1,0 +1,168 @@
+---
+title: "WebSocket Quickstart"
+sidebarTitle: "Quickstart"
+description: "Step-by-step guide to connect to the WhiteBIT WebSocket API and subscribe to real-time market data."
+---
+
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+Connect to the WhiteBIT WebSocket API and subscribe to real-time market data. The API uses JSON-RPC over WebSocket.
+
+## Prerequisites
+
+- A WebSocket client (browser, Node.js, Python, or similar)
+
+<Note>
+No API key is required for public channels.
+</Note>
+
+## Connection endpoint
+
+<RegionBaseUrl />
+
+The WebSocket endpoint is `wss://api.whitebit.com/ws`.
+
+The API uses [JSON-RPC](https://www.jsonrpc.org/specification) over WebSocket. All messages are JSON objects with `id`, `method`, and `params` fields.
+
+## Step 1: Establish a connection
+
+Open a WebSocket connection to the endpoint.
+
+<CodeGroup>
+
+```javascript JavaScript
+const socket = new WebSocket("wss://api.whitebit.com/ws");
+
+socket.onopen = () => {
+  console.log("Connected");
+};
+
+socket.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log("Received:", data);
+};
+```
+
+```python Python
+import asyncio
+import websockets
+import json
+
+async def connect():
+    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+        print("Connected")
+        async for message in ws:
+            data = json.loads(message)
+            print("Received:", data)
+
+asyncio.run(connect())
+```
+
+</CodeGroup>
+
+The connection opens when the WebSocket handshake completes.
+
+## Step 2: Keep the connection alive
+
+The server closes the connection after 60 seconds of inactivity. Send a ping message every 50 seconds to keep the connection alive.
+
+<CodeGroup>
+
+```javascript JavaScript
+const socket = new WebSocket("wss://api.whitebit.com/ws");
+
+setInterval(() => {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({
+      id: 0,
+      method: "ping",
+      params: [],
+    }));
+  }
+}, 50000);
+```
+
+```python Python
+import asyncio
+import websockets
+import json
+
+async def connect():
+    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+        async def keepalive():
+            while True:
+                await asyncio.sleep(50)
+                await ws.send(json.dumps({"id": 0, "method": "ping", "params": []}))
+
+        asyncio.create_task(keepalive())
+        async for message in ws:
+            data = json.loads(message)
+            print("Received:", data)
+
+asyncio.run(connect())
+```
+
+</CodeGroup>
+
+**Expected response:**
+
+```json
+{ "id": 0, "result": "pong", "error": null }
+```
+
+## Step 3: Subscribe to last price updates
+
+Subscribe to the [Last Price](/websocket/market-streams/lastprice) channel to receive real-time price updates for one or more markets.
+
+<CodeGroup>
+
+```javascript JavaScript
+socket.send(JSON.stringify({
+  id: 1,
+  method: "lastprice_subscribe",
+  params: ["BTC_USDT", "ETH_USDT"]
+}));
+```
+
+```python Python
+await ws.send(json.dumps({
+    "id": 1,
+    "method": "lastprice_subscribe",
+    "params": ["BTC_USDT", "ETH_USDT"]
+}))
+```
+
+</CodeGroup>
+
+**Expected subscription response:**
+
+```json
+{ "id": 1, "result": { "status": "success" }, "error": null }
+```
+
+## Step 4: Receive update events
+
+After a successful subscription, the server sends update events every second. Each event contains the market name and the latest price.
+
+**Example update event:**
+
+```json
+{
+  "id": null,
+  "method": "lastprice_update",
+  "params": ["BTC_USDT", "67500.50"]
+}
+```
+
+The `params` array contains `[market_name, last_price]`. Parse each `lastprice_update` event to display real-time prices.
+
+## Rate limits
+
+For rate limits, connection details, and error codes, see [WebSocket Overview](/websocket/overview).
+
+## What's next
+
+- [WebSocket Overview](/websocket/overview) — Connection details, error codes, and reconnection best practices
+- [Market Streams](/websocket/market-streams/overview) — All public channels (kline, trades, depth, book ticker)
+- [Account Streams](/websocket/account-streams/overview) — Private channels for balances, orders, and positions
+- [Authorize](/websocket/account-streams/authorize) — Authentication for private channels

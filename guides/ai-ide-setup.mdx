@@ -1,0 +1,116 @@
+---
+title: "IDE and AI client setup via MCP"
+sidebarTitle: "IDE setup via MCP"
+description: "Configure Cursor, VS Code, or Claude Desktop to search the full WhiteBIT documentation using the Model Context Protocol (MCP)."
+---
+
+Configure Cursor, VS Code, or Claude Desktop to connect to the WhiteBIT documentation MCP server. Once connected, AI tools gain direct, searchable access to all documentation pages and generate accurate code and answers from current documentation.
+
+**MCP server URL**: `https://docs.whitebit.com/mcp`
+
+## Prerequisites
+
+- Cursor, VS Code, or Claude Desktop installed
+- An active internet connection
+
+## What MCP provides
+
+The Model Context Protocol (MCP) gives AI tools direct access to the WhiteBIT documentation. Instead of relying on training data, the AI tool searches current documentation pages to generate accurate API code, answer integration questions, and surface the correct endpoint parameters.
+
+## Cursor
+
+### Automatic setup
+
+1. Navigate to any WhiteBIT documentation page.
+2. Select the **Copy page** dropdown next to the document title.
+3. Select **Connect to Cursor**.
+4. Cursor opens with the WhiteBIT MCP server configured automatically.
+
+### Manual setup
+
+1. Open the command palette with **Cmd+Shift+P** (macOS) or **Ctrl+Shift+P** (Windows/Linux).
+2. Search for **Open MCP settings** and select the result. The `mcp.json` file opens.
+3. Add the WhiteBIT documentation server configuration:
+
+```json
+{
+  "mcpServers": {
+    "whitebit-docs": {
+      "url": "https://docs.whitebit.com/mcp"
+    }
+  }
+}
+```
+
+4. Save the file.
+5. Restart Cursor.
+
+To verify the connection, ask Cursor: `What MCP tools do you have available?` The WhiteBIT documentation search tool appears in the response.
+
+## VS Code
+
+### Automatic setup
+
+1. Navigate to any WhiteBIT documentation page.
+2. Select the **Copy page** dropdown next to the document title.
+3. Select **Connect to VS Code**.
+4. VS Code opens with the WhiteBIT MCP server configured automatically.
+
+### Manual setup
+
+1. Install an MCP-compatible extension in VS Code.
+2. Open the extension's MCP server settings.
+3. Add the server URL: `https://docs.whitebit.com/mcp`.
+4. Save the configuration and restart VS Code.
+
+<Note>
+VS Code MCP support varies by extension. Check the extension documentation for specific configuration instructions.
+</Note>
+
+## Claude Desktop
+
+1. Navigate to [claude.ai/settings/connectors](https://claude.ai/settings/connectors) in a browser.
+2. Select **Add custom connector**.
+3. Enter the following details:
+   - **Name**: `WhiteBIT Docs`
+   - **URL**: `https://docs.whitebit.com/mcp`
+4. Select **Add**.
+5. When starting a Claude chat, select the attachments button and choose **WhiteBIT Docs** to activate the connector.
+
+## Test the connection
+
+After configuration, test the MCP connection by asking the AI tool:
+
+```text
+What MCP tools do you have available?
+```
+
+The WhiteBIT documentation search tool appears in the response. Then verify search access:
+
+```text
+Search for information about authentication in the WhiteBIT documentation.
+```
+
+The AI tool returns relevant content directly from the WhiteBIT API documentation.
+
+## Troubleshooting
+
+### MCP server connection failure
+
+Verify the server URL is exactly `https://docs.whitebit.com/mcp`. Check the internet connection, then restart the AI tool after making configuration changes.
+
+### Search tool not listed
+
+Confirm the MCP server was added correctly by reviewing the configuration. Remove the server entry, re-add it, and restart the AI tool. Check the AI tool's MCP support documentation for version requirements.
+
+### Search returns no results
+
+Try more general search terms. Use `authentication` instead of `HMAC-SHA512 private endpoint auth`. Confirm the MCP connection is active by asking `What MCP tools do you have available?` before searching.
+
+## What's next
+
+- [Contextual AI menu](/guides/ai-context-menu) — Copy page content and open pages in AI chat tools directly from the browser
+- [API Reference Quickstart](/api-reference/quickstart) — Step-by-step guide to the first REST API call
+- [Authentication](/api-reference/authentication) — Sign and authenticate private API requests
+- [Model Context Protocol documentation](https://modelcontextprotocol.io/docs/tutorials/use-remote-mcp-server) — MCP protocol reference for advanced configuration
+- [Mintlify MCP documentation](https://mintlify.com/docs/ai/model-context-protocol) — Mintlify-specific MCP server details

@@ -256,7 +256,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: candles_request
+          description: "Method name. Fixed value: `candles_request`."
         params:
           type: array
           description: |
@@ -305,7 +307,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: candles_subscribe
+          description: "Method name. Fixed value: `candles_subscribe`."
         params:
           type: array
           description: |
@@ -336,7 +340,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
 
@@ -350,7 +355,9 @@ components:
         id:
           type: "null"
         method:
+          type: string
           const: candles_update
+          description: "Method name. Fixed value: `candles_update`."
         params:
           type: array
           minItems: 1
@@ -369,7 +376,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          enum: [candles_unsubscribe]
+          const: candles_unsubscribe
+          description: "Method name. Fixed value: `candles_unsubscribe`."
         params:
           type: array
           items: {}

@@ -1,0 +1,93 @@
+---
+title: "REST API rate limits and error codes"
+sidebarTitle: "Rate limits and errors"
+description: "Reference for REST API rate limits, error formats, authentication error codes, and best practices."
+---
+
+Reference for REST API rate limits, error formats, and error codes.
+
+## REST API rate limits
+
+| Scope | Limit |
+|-------|-------|
+| Public REST endpoints | 2000 requests / 10 sec |
+| Private REST endpoints | Varies per endpoint (see individual endpoint pages) |
+
+Private endpoints such as [Main Balance](/api-reference/account-wallet/main-balance) have a rate limit of 1000 requests / 10 sec. Check each endpoint page for the endpoint-specific limit.
+
+When the rate limit is exceeded, the API returns HTTP status `429` (Too Many Requests). Use exponential backoff before retrying (see Best practices below).
+
+## REST API error format
+
+All v4 endpoints return errors as JSON. The format differs between public and private APIs.
+
+### Public endpoints
+
+```json
+{
+  "success": false,
+  "message": "ERROR MESSAGE",
+  "params": []
+}
+```
+
+### Private endpoints
+
+```json
+{
+  "code": 0,
+  "message": "MESSAGE",
+  "errors": {
+    "PARAM1": ["MESSAGE"],
+    "PARAM2": ["MESSAGE"]
+  }
+}
+```
+
+## Authentication error reference
+
+The following errors are returned by private REST endpoints when the request signature or credentials are invalid.
+
+| Error message | Cause | Resolution |
+|---------------|-------|------------|
+| "Too many requests." | Nonce value is not greater than previous request | Use incrementing nonce values |
+| "This action is unauthorized. Enable your key in API settings" | Using a disabled API key | Enable the key in API settings or check IP restrictions |
+| "You don't have permission to use this endpoint." | Endpoint access is restricted | Update endpoint access in API key settings |
+| "Invalid payload" | Payload does not match the decoded value | Ensure proper base64 encoding of the request body |
+| "Unauthorized request." | Request signed incorrectly | Verify the signature creation process |
+| "Nonce not provided." | Missing nonce in request body | Include nonce in all requests |
+| "Your nonce is more than 5 seconds lesser than the current nonce" | Invalid timestamp when using nonceWindow | Use current Unix timestamp in milliseconds |
+| "Invalid nonceWindow." | nonceWindow is not a boolean | Set nonceWindow to `true` or `false` |
+| "Request not provided." | Missing request path in body | Include the request path in all requests |
+
+## HTTP status codes
+
+| Status | Meaning |
+|--------|---------|
+| `200` | Success |
+| `400` | Bad request — invalid parameters |
+| `401` | Unauthorized — missing or invalid authentication |
+| `403` | Forbidden — insufficient permissions |
+| `404` | Not found — endpoint does not exist |
+| `429` | Too Many Requests — rate limit exceeded |
+| `500` | Internal server error — retry with backoff |
+
+## Best practices
+
+### Exponential backoff
+
+When rate limited, wait before retrying. Double the wait time after each failed attempt (1s → 2s → 4s → 8s).
+
+### Batch requests
+
+Combine multiple operations when the API supports batch endpoints. For example, use [Bulk Limit Order](/api-reference/spot-trading/bulk-limit-order) instead of multiple single order requests.
+
+### Nonce management
+
+For private endpoints, ensure each request uses a unique, incrementing nonce. Use Unix timestamp in milliseconds when `nonceWindow` is enabled. Avoid concurrent requests with the same nonce.
+
+## Related resources
+
+- [API Reference Overview](/api-reference/overview) — Base URL and endpoint groups
+- [Authentication](/api-reference/authentication) — Signing and header requirements
+- [WebSocket Overview](/websocket/overview) — WebSocket rate limits, error codes, and connection details

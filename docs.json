@@ -19,10 +19,28 @@
     }
   },
   "favicon": "/favicon.ico",
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
   "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "SDKs",
+          "icon": "code",
+          "href": "/sdks"
+        },
+        {
+          "anchor": "Changelog",
+          "icon": "clock-rotate-left",
+          "href": "/changelog"
+        }
+      ]
+    },
     "tabs": [
       {
         "tab": "Docs",
+        "icon": "book-open",
         "groups": [
           {
             "group": " ",
@@ -32,27 +50,32 @@
           },
           {
             "group": "Getting Started",
+            "icon": "rocket",
+            "root": "platform/overview",
             "pages": [
               "platform/overview"
             ]
           },
           {
-            "group": "OAuth",
-            "pages": [
-              "platform/oauth/overview",
-              "platform/oauth/usage/overview"
-            ]
-          },
-          {
-            "group": " ",
+            "group": "Platform Features",
+            "icon": "gear",
             "pages": [
               "platform/webhook",
               "platform/colocation",
-              "platform/self-trade-prevention"
+              "platform/self-trade-prevention",
+              {
+                "group": "OAuth",
+                "icon": "key",
+                "pages": [
+                  "platform/oauth/overview",
+                  "platform/oauth/usage/overview"
+                ]
+              }
             ]
           },
           {
             "group": "Guides",
+            "icon": "book",
             "pages": [
               "guides/client-order-id",
               "guides/fireblocks",
@@ -60,10 +83,19 @@
             ]
           },
           {
-            "group": " ",
+            "group": "AI Tools",
+            "icon": "sparkles",
+            "root": "guides/use-with-ai",
             "pages": [
-              "sdks",
-              "changelog",
+              "guides/use-with-ai",
+              "guides/ai-context-menu",
+              "guides/ai-ide-setup"
+            ]
+          },
+          {
+            "group": "Resources",
+            "icon": "circle-info",
+            "pages": [
               "glossary",
               "faq"
             ]
@@ -72,16 +104,23 @@
       },
       {
         "tab": "API Reference",
+        "icon": "square-terminal",
         "groups": [
           {
-            "group": " ",
+            "group": "Getting Started",
+            "icon": "rocket",
+            "root": "api-reference/overview",
             "pages": [
               "api-reference/overview",
-              "api-reference/authentication"
+              "api-reference/authentication",
+              "api-reference/quickstart",
+              "api-reference/rate-limits"
             ]
           },
           {
             "group": "Market Data",
+            "icon": "chart-bar",
+            "root": "api-reference/market-data/overview",
             "pages": [
               "api-reference/market-data/overview",
               {
@@ -122,6 +161,8 @@
           },
           {
             "group": "Spot Trading",
+            "icon": "arrow-right-arrow-left",
+            "root": "api-reference/spot-trading/overview",
             "pages": [
               "api-reference/spot-trading/overview",
               {
@@ -166,6 +207,8 @@
           },
           {
             "group": "Collateral Trading",
+            "icon": "scale-balanced",
+            "root": "api-reference/collateral-trading/overview",
             "pages": [
               "api-reference/collateral-trading/overview",
               {
@@ -213,6 +256,7 @@
           },
           {
             "group": "Convert",
+            "icon": "rotate",
             "pages": [
               "api-reference/convert/convert-estimate",
               "api-reference/convert/convert-confirm",
@@ -221,6 +265,8 @@
           },
           {
             "group": "Account & Wallet",
+            "icon": "wallet",
+            "root": "api-reference/account-wallet/overview",
             "pages": [
               "api-reference/account-wallet/overview",
               {
@@ -279,12 +325,19 @@
                   "api-reference/account-wallet/get-mining-account-hashrate"
                 ]
               },
-              "api-reference/account-wallet/get-fees",
-              "api-reference/account-wallet/list-credit-lines"
+              {
+                "group": "Fees & Credit",
+                "pages": [
+                  "api-reference/account-wallet/get-fees",
+                  "api-reference/account-wallet/list-credit-lines"
+                ]
+              }
             ]
           },
           {
             "group": "Sub-Accounts",
+            "icon": "users",
+            "root": "api-reference/sub-accounts/overview",
             "pages": [
               "api-reference/sub-accounts/overview",
               {
@@ -323,6 +376,7 @@
           },
           {
             "group": "OAuth",
+            "icon": "key",
             "pages": [
               "api-reference/oauth/usage/oauth",
               "api-reference/oauth/usage/get-access-token",
@@ -339,15 +393,21 @@
       },
       {
         "tab": "WebSocket",
+        "icon": "plug",
         "groups": [
           {
-            "group": " ",
+            "group": "Getting Started",
+            "icon": "rocket",
+            "root": "websocket/overview",
             "pages": [
-              "websocket/overview"
+              "websocket/overview",
+              "websocket/quickstart"
             ]
           },
           {
             "group": "Market Streams",
+            "icon": "chart-bar",
+            "root": "websocket/market-streams/overview",
             "pages": [
               "websocket/market-streams/overview",
               "websocket/market-streams/service",
@@ -362,6 +422,8 @@
           },
           {
             "group": "Account Streams",
+            "icon": "user-shield",
+            "root": "websocket/account-streams/overview",
             "pages": [
               "websocket/account-streams/overview",
               "websocket/account-streams/authorize",
@@ -405,6 +467,7 @@
       "chatgpt",
       "claude",
       "perplexity",
+      "grok",
       "mcp",
       "cursor",
       "vscode"

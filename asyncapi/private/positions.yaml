@@ -177,8 +177,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: positionsMargin_subscribe
-          description: Method name for positions subscription
+          description: "Method name. Fixed value: `positionsMargin_subscribe`."
         params:
           type: array
           items: {}
@@ -202,8 +203,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Subscription status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
@@ -219,8 +220,9 @@ components:
           type: "null"
           description: Update events have null id
         method:
+          type: string
           const: positionsMargin_update
-          description: Method name for positions updates
+          description: "Method name. Fixed value: `positionsMargin_update`."
         params:
           type: object
           properties:
@@ -296,7 +298,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          description: Unsubscribe method name
+          const: positionsMargin_unsubscribe
+          description: "Method name. Fixed value: `positionsMargin_unsubscribe`."
         params:
           type: array
           items: {}

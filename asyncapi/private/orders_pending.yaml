@@ -272,8 +272,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: ordersPending_request
-          description: Method name for pending orders query
+          description: "Method name. Fixed value: `ordersPending_request`."
         params:
           type: array
           minItems: 3
@@ -328,8 +329,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: ordersPending_subscribe
-          description: Method name for pending orders subscription
+          description: "Method name. Fixed value: `ordersPending_subscribe`."
         params:
           type: array
           items:
@@ -354,8 +356,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Subscription status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
@@ -371,8 +373,9 @@ components:
           type: "null"
           description: Update events have null id
         method:
+          type: string
           const: ordersPending_update
-          description: Method name for pending orders updates
+          description: "Method name. Fixed value: `ordersPending_update`."
         params:
           type: array
           minItems: 2
@@ -462,7 +465,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          description: Unsubscribe method name
+          const: ordersPending_unsubscribe
+          description: "Method name. Fixed value: `ordersPending_unsubscribe`."
         params:
           type: array
           items: {}

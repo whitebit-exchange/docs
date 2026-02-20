@@ -190,7 +190,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: lastprice_request
+          description: "Method name. Fixed value: `lastprice_request`."
         params:
           type: array
           minItems: 1
@@ -225,7 +227,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: lastprice_subscribe
+          description: "Method name. Fixed value: `lastprice_subscribe`."
         params:
           type: array
           items:
@@ -248,7 +252,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
 
@@ -262,7 +267,9 @@ components:
         id:
           type: "null"
         method:
+          type: string
           const: lastprice_update
+          description: "Method name. Fixed value: `lastprice_update`."
         params:
           type: array
           description: |
@@ -289,7 +296,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          enum: [lastprice_unsubscribe]
+          const: lastprice_unsubscribe
+          description: "Method name. Fixed value: `lastprice_unsubscribe`."
         params:
           type: array
           items: {}

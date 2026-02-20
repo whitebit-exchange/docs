@@ -243,7 +243,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: market_request
+          description: "Method name. Fixed value: `market_request`."
         params:
           type: array
           description: |
@@ -281,7 +283,9 @@ components:
         id:
           type: integer
         method:
+          type: string
           const: market_subscribe
+          description: "Method name. Fixed value: `market_subscribe`."
         params:
           type: array
           items:
@@ -304,7 +308,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
 
@@ -318,7 +323,9 @@ components:
         id:
           type: "null"
         method:
+          type: string
           const: market_update
+          description: "Method name. Fixed value: `market_update`."
         params:
           type: array
           description: |
@@ -343,7 +350,8 @@ components:
           type: integer
         method:
           type: string
-          enum: [market_unsubscribe]
+          const: market_unsubscribe
+          description: "Method name. Fixed value: `market_unsubscribe`."
         params:
           type: array
           items: {}

@@ -305,7 +305,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: depth_request
+          description: "Method name. Fixed value: `depth_request`."
         params:
           type: array
           description: |
@@ -347,7 +349,9 @@ components:
         id:
           type: integer
         method:
+          type: string
           const: depth_subscribe
+          description: "Method name. Fixed value: `depth_subscribe`."
         params:
           type: array
           description: |
@@ -385,7 +389,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
 
@@ -399,7 +404,9 @@ components:
         id:
           type: "null"
         method:
+          type: string
           const: depth_update
+          description: "Method name. Fixed value: `depth_update`."
         params:
           type: array
           description: |
@@ -427,7 +434,8 @@ components:
           type: integer
         method:
           type: string
-          enum: [depth_unsubscribe]
+          const: depth_unsubscribe
+          description: "Method name. Fixed value: `depth_unsubscribe`."
         params:
           type: array
           items: {}

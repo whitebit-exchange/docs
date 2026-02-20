@@ -174,8 +174,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: borrowsAccountMargin_subscribe
-          description: Method name for borrows events subscription
+          description: "Method name. Fixed value: `borrowsAccountMargin_subscribe`."
         params:
           type: array
           items: {}
@@ -199,8 +200,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Subscription status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
@@ -216,8 +217,9 @@ components:
           type: "null"
           description: Update events have null id
         method:
+          type: string
           const: borrowsAccountMargin_update
-          description: Method name for borrows events updates
+          description: "Method name. Fixed value: `borrowsAccountMargin_update`."
         params:
           type: array
           description: |
@@ -264,7 +266,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          description: Unsubscribe method name
+          const: borrowsAccountMargin_unsubscribe
+          description: "Method name. Fixed value: `borrowsAccountMargin_unsubscribe`."
         params:
           type: array
           items: {}

@@ -40,9 +40,11 @@ setInterval(() => {
 
 ## Rate Limits
 
-<Warning>
-  Rate limit: 1000 WebSocket connections per minute and 200 requests per minute per connection.
-</Warning>
+<Note>
+  Rate limit: 1,000 WebSocket connections per minute and 200 requests per minute per connection.
+</Note>
+
+For REST API rate limits, see [REST API rate limits and error codes](/api-reference/rate-limits).
 
 ## Request Message
 
@@ -137,3 +139,12 @@ See the [Authorize](/websocket/account-streams/authorize) channel page for the f
     Private channels for account data — balances, orders, deals, positions, and borrows. Requires authorization.
   </Card>
 </CardGroup>
+
+## Connection best practices
+
+Reuse a single WebSocket connection for multiple subscriptions instead of opening a new connection per channel. Each connection counts toward the 1,000 connections per minute limit.
+
+## Related resources
+
+- [API Reference Overview](/api-reference/overview) — Base URL and endpoint groups
+- [REST API rate limits and error codes](/api-reference/rate-limits) — REST rate limits, error formats, and authentication errors

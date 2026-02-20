@@ -221,8 +221,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: balanceSpot_request
-          description: Method name for balance query
+          description: "Method name. Fixed value: `balanceSpot_request`."
         params:
           type: array
           items:
@@ -267,8 +268,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: balanceSpot_subscribe
-          description: Method name for balance subscription
+          description: "Method name. Fixed value: `balanceSpot_subscribe`."
         params:
           type: array
           items:
@@ -293,8 +295,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Subscription status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
@@ -310,8 +312,9 @@ components:
           type: "null"
           description: Update events have null id
         method:
+          type: string
           const: balanceSpot_update
-          description: Method name for balance updates
+          description: "Method name. Fixed value: `balanceSpot_update`."
         params:
           type: array
           items:
@@ -340,7 +343,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          description: Unsubscribe method name
+          const: balanceSpot_unsubscribe
+          description: "Method name. Fixed value: `balanceSpot_unsubscribe`."
         params:
           type: array
           items: {}
