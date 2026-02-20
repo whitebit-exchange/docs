@@ -266,8 +266,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: ordersExecuted_request
-          description: Method name for executed orders query
+          description: "Method name. Fixed value: `ordersExecuted_request`."
         params:
           type: array
           description: |
@@ -332,8 +333,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: ordersExecuted_subscribe
-          description: Method name for executed orders subscription
+          description: "Method name. Fixed value: `ordersExecuted_subscribe`."
         params:
           type: array
           description: |
@@ -369,8 +371,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Subscription status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
@@ -386,8 +388,9 @@ components:
           type: "null"
           description: Update events have null id
         method:
+          type: string
           const: ordersExecuted_update
-          description: Method name for executed orders updates
+          description: "Method name. Fixed value: `ordersExecuted_update`."
         params:
           type: array
           items:
@@ -481,7 +484,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          description: Unsubscribe method name
+          const: ordersExecuted_unsubscribe
+          description: "Method name. Fixed value: `ordersExecuted_unsubscribe`."
         params:
           type: array
           items: {}

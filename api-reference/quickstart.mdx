@@ -1,0 +1,135 @@
+---
+title: "REST API Quickstart"
+sidebarTitle: "Quickstart"
+description: "Step-by-step guide to make the first public and private REST API calls to the WhiteBIT API."
+---
+
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+import { ApiMonitorTable } from '/snippets/api-monitor.jsx';
+
+This guide explains how to make the first public and private REST API calls to the WhiteBIT API.
+
+## Prerequisites
+
+- A WhiteBIT account ([Sign up](https://whitebit.com/auth))
+- An API key with appropriate permissions ([API Settings](https://whitebit.com/settings/api))
+- A programming language or HTTP client (cURL, Python, JavaScript, or similar)
+
+## Base URL and region
+
+<RegionBaseUrl />
+
+All REST API endpoints use the base path `/api/v4/{endpoint}`. Public endpoints use `GET`; private endpoints use `POST` with JSON in the request body.
+
+## Step 1: First public API call
+
+The [Server Status](/api-reference/market-data/server-status) endpoint returns the API life-state. No authentication is required.
+
+**Request:**
+
+<Tabs>
+  <Tab title="cURL">
+```bash
+curl -X GET "https://whitebit.com/api/v4/public/ping"
+```
+  </Tab>
+  <Tab title="Python">
+```python
+import requests
+
+response = requests.get("https://whitebit.com/api/v4/public/ping")
+print(response.json())
+```
+  </Tab>
+  <Tab title="JavaScript">
+```javascript
+const response = await fetch("https://whitebit.com/api/v4/public/ping");
+const data = await response.json();
+console.log(data);
+```
+  </Tab>
+</Tabs>
+
+**Expected response:**
+
+```json
+["pong"]
+```
+
+A response of `["pong"]` confirms the API is operational.
+
+## Step 2: Authentication setup
+
+Private endpoints require HMAC-SHA512 signed requests. The [Authentication](/api-reference/authentication) guide covers the full signing process.
+
+WhiteBIT provides the [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) library with examples in Python, PHP, Node.js, Go, JavaScript, Kotlin, .NET, Ruby, C++, and Rust. Use the helper for production integrations.
+
+**Required headers for private endpoints:**
+
+| Header | Value |
+|--------|-------|
+| `Content-type` | `application/json` |
+| `X-TXC-APIKEY` | The public API key |
+| `X-TXC-PAYLOAD` | Base64-encoded request body |
+| `X-TXC-SIGNATURE` | HMAC-SHA512 signature (hex encoded) |
+
+## Step 3: First authenticated API call
+
+The [Main Balance](/api-reference/account-wallet/main-balance) endpoint retrieves the main account balance. The request body must include `request` (the endpoint path) and `nonce` (unique identifier).
+
+**Request body:**
+
+```json
+{
+  "request": "/api/v4/main-account/balance",
+  "nonce": "1594297865000"
+}
+```
+
+**Example with cURL** (replace `YOUR_API_KEY` and `YOUR_SIGNATURE` with the signed payload):
+
+<Tabs>
+  <Tab title="cURL">
+```bash
+curl -X POST "https://whitebit.com/api/v4/main-account/balance" \
+  -H "Content-type: application/json" \
+  -H "X-TXC-APIKEY: YOUR_API_KEY" \
+  -H "X-TXC-PAYLOAD: BASE64_ENCODED_PAYLOAD" \
+  -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+  -d '{"request":"/api/v4/main-account/balance","nonce":"1594297865000"}'
+```
+  </Tab>
+  <Tab title="Python (with helper)">
+```python
+# Use the API Quick Start Helper: https://github.com/whitebit-exchange/api-quickstart
+from whitebit import Whitebit
+
+wb = Whitebit(api_key="YOUR_API_KEY", api_secret="YOUR_API_SECRET")
+balance = wb.main_account_balance()
+print(balance)
+```
+  </Tab>
+</Tabs>
+
+**Expected response:**
+
+```json
+{
+  "BTC": { "main_balance": "0" },
+  "USDT": { "main_balance": "100.50" }
+}
+```
+
+The response contains balance data for each asset. Omitted assets have a zero balance.
+
+## Live API activity
+
+<ApiMonitorTable />
+
+## What's next
+
+- [Authentication](/api-reference/authentication) — Full signing process and common errors
+- [Market Data](/api-reference/market-data/overview) — Public endpoints for orderbook, trades, and market info
+- [Spot Trading](/api-reference/spot-trading/overview) — Place and manage orders
+- [WebSocket Quickstart](/websocket/quickstart) — Real-time market data streams
+- [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) — Multi-language SDK for authentication and requests

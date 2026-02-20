@@ -229,7 +229,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: marketToday_query
+          description: "Method name. Fixed value: `marketToday_query`."
         params:
           type: array
           minItems: 1
@@ -262,7 +264,9 @@ components:
         id:
           type: integer
         method:
+          type: string
           const: marketToday_subscribe
+          description: "Method name. Fixed value: `marketToday_subscribe`."
         params:
           type: array
           items:
@@ -285,7 +289,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
 
@@ -299,7 +304,9 @@ components:
         id:
           type: "null"
         method:
+          type: string
           const: marketToday_update
+          description: "Method name. Fixed value: `marketToday_update`."
         params:
           type: array
           description: |
@@ -324,7 +331,8 @@ components:
           type: integer
         method:
           type: string
-          enum: [marketToday_unsubscribe]
+          const: marketToday_unsubscribe
+          description: "Method name. Fixed value: `marketToday_unsubscribe`."
         params:
           type: array
           items: {}

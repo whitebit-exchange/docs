@@ -93,8 +93,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: authorize
-          description: Method name for authorization
+          description: "Method name. Fixed value: `authorize`."
         params:
           type: array
           minItems: 2
@@ -124,8 +125,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Authorization status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
