@@ -1,7 +1,7 @@
 ---
 title: WebSocket API
 sidebarTitle: Overview
-description: "WhiteBIT WebSocket API — connection details, message formats, rate limits, and links to all available channels."
+description: "WhiteBIT WebSocket API — connection details, quickstart examples, message format, and links to all available channels."
 ---
 
 import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
@@ -16,17 +16,65 @@ The API is based on [JSON RPC](https://www.jsonrpc.org/specification) over the W
 
 The API returns time in Unix-time format.
 
-## Connection Timeout
+---
 
-- The server closes the connection after **60 seconds of inactivity**.
-- Inactivity means no messages sent by the client.
-- Send a ping message every **50 seconds** to keep the connection alive.
+## Quickstart
 
-### Ping Example
+### Prerequisites
 
-```javascript
+- A WebSocket client (browser, Node.js, Python, or similar)
+
+<Note>
+No API key is required for public channels.
+</Note>
+
+### Step 1: Establish a connection
+
+Open a WebSocket connection to the endpoint.
+
+<CodeGroup>
+
+```javascript JavaScript
 const socket = new WebSocket("wss://api.whitebit.com/ws");
 
+socket.onopen = () => {
+  console.log("Connected");
+};
+
+socket.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log("Received:", data);
+};
+```
+
+```python Python
+import asyncio
+import websockets
+import json
+
+async def connect():
+    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+        print("Connected")
+        async for message in ws:
+            data = json.loads(message)
+            print("Received:", data)
+
+asyncio.run(connect())
+```
+
+</CodeGroup>
+
+The connection opens when the WebSocket handshake completes.
+
+### Step 2: Keep the connection alive
+
+The server closes the connection after 60 seconds of inactivity. Send a ping message every 50 seconds to keep the connection alive.
+
+Add the following to the connection established in Step 1:
+
+<CodeGroup>
+
+```javascript JavaScript
 setInterval(() => {
   if (socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({
@@ -38,15 +86,106 @@ setInterval(() => {
 }, 50000);
 ```
 
-## Rate Limits
+```python Python
+import asyncio
+import websockets
+import json
 
-<Warning>
-  Rate limit: 1000 WebSocket connections per minute and 200 requests per minute per connection.
-</Warning>
+async def connect():
+    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+        async def keepalive():
+            while True:
+                await asyncio.sleep(50)
+                await ws.send(json.dumps({"id": 0, "method": "ping", "params": []}))
 
-## Request Message
+        asyncio.create_task(keepalive())
+        async for message in ws:
+            data = json.loads(message)
+            print("Received:", data)
 
-JSON structure of a request message:
+asyncio.run(connect())
+```
+
+</CodeGroup>
+
+**Expected response:**
+
+```json
+{ "id": 0, "result": "pong", "error": null }
+```
+
+### Step 3: Subscribe to last price updates
+
+Subscribe to the [Last Price](/websocket/market-streams/lastprice) channel to receive real-time price updates for one or more markets.
+
+Send the subscription message using the connection from Step 1:
+
+<CodeGroup>
+
+```javascript JavaScript
+socket.send(JSON.stringify({
+  id: 1,
+  method: "lastprice_subscribe",
+  params: ["BTC_USDT", "ETH_USDT"]
+}));
+```
+
+```python Python
+import asyncio
+import websockets
+import json
+
+async def connect():
+    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+        async def keepalive():
+            while True:
+                await asyncio.sleep(50)
+                await ws.send(json.dumps({"id": 0, "method": "ping", "params": []}))
+
+        asyncio.create_task(keepalive())
+
+        await ws.send(json.dumps({
+            "id": 1,
+            "method": "lastprice_subscribe",
+            "params": ["BTC_USDT", "ETH_USDT"]
+        }))
+
+        async for message in ws:
+            data = json.loads(message)
+            print("Received:", data)
+
+asyncio.run(connect())
+```
+
+</CodeGroup>
+
+**Expected subscription response:**
+
+```json
+{ "id": 1, "result": { "status": "success" }, "error": null }
+```
+
+### Step 4: Receive update events
+
+After a successful subscription, the server sends update events every second. Each event contains the market name and the latest price.
+
+**Example update event:**
+
+```json
+{
+  "id": null,
+  "method": "lastprice_update",
+  "params": ["BTC_USDT", "67500.50"]
+}
+```
+
+The `params` array contains `[market_name, last_price]`. Parse each `lastprice_update` event to display real-time prices.
+
+---
+
+## Message Format
+
+### Request message
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -54,16 +193,14 @@ JSON structure of a request message:
 | `method` | String | Name of the method to call |
 | `params` | Array | Parameters for the method |
 
-🚫 The connection will be closed if invalid JSON is sent.
+<Warning>The connection will be closed if invalid JSON is sent.</Warning>
 
-### Types of Request Messages
+**Types of request messages:**
 
 - **Query** — one-time requests (`ping`, `candles_request`, `balanceSpot_request`, etc.)
 - **Subscription** — streaming updates (`candles_subscribe`, `lastprice_subscribe`, `balanceSpot_subscribe`, etc.). Repeating a subscription cancels the previous one for the same data type.
 
-## Response Message
-
-JSON structure of a response message:
+### Response message
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -71,25 +208,13 @@ JSON structure of a response message:
 | `result` | Object / null | `null` on failure; see channel docs for success payloads |
 | `error` | Object / null | `null` on success; error object on failure |
 
-### Error Codes
-
-| Code | Message |
-|------|---------|
-| **1** | invalid argument |
-| **2** | internal error |
-| **3** | service unavailable |
-| **4** | method not found |
-| **5** | service timeout |
-
-### Types of Response Messages
+**Types of response messages:**
 
 - **Query result** — direct response to a query request
 - **Subscription status** — success or failure of a subscription request
 - **Update events** — pushed by the server when subscribed data changes
 
----
-
-## Examples
+### Examples
 
 **Query — ping/pong:**
 
@@ -119,11 +244,9 @@ JSON structure of a response message:
 
 ---
 
-## Authentication
+For connection limits, request limits, and error codes, see [WebSocket Rate Limits & Error Codes](/websocket/rate-limits).
 
-Private channels (Account Streams) require authorization before subscribing. After connecting, send an `authorize` request with API credentials to gain access to private data such as balances, orders, deals, and positions.
-
-See the [Authorize](/websocket/account-streams/authorize) channel page for the full request format, parameters, and examples.
+Private channels require authorization. See [WebSocket Authentication](/websocket/authentication) for the full setup flow.
 
 ---
 
@@ -137,3 +260,17 @@ See the [Authorize](/websocket/account-streams/authorize) channel page for the f
     Private channels for account data — balances, orders, deals, positions, and borrows. Requires authorization.
   </Card>
 </CardGroup>
+
+---
+
+## Connection best practices
+
+Reuse a single WebSocket connection for multiple subscriptions instead of opening a new connection per channel. See [WebSocket Rate Limits & Error Codes](/websocket/rate-limits) for connection and request limits, timeout behavior, and reconnection guidance.
+
+## Related resources
+
+- [WebSocket Authentication](/websocket/authentication) — Authorization flow for private Account Stream channels
+- [WebSocket Rate Limits & Error Codes](/websocket/rate-limits) — Connection limits, request limits, and error codes
+- [API Reference Overview](/api-reference/overview) — Base URL, quickstart, and endpoint groups
+- [Market Streams](/websocket/market-streams/overview) — All public channels (kline, trades, depth, book ticker)
+- [Account Streams](/websocket/account-streams/overview) — Private channels for balances, orders, and positions

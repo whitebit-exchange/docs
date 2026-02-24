@@ -19,40 +19,41 @@
     }
   },
   "favicon": "/favicon.ico",
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
   "navigation": {
     "tabs": [
       {
         "tab": "Docs",
+        "icon": "book-open",
         "groups": [
           {
             "group": " ",
-            "pages": [
-              "index"
-            ]
-          },
-          {
-            "group": "Getting Started",
             "pages": [
               "platform/overview"
             ]
           },
           {
-            "group": "OAuth",
-            "pages": [
-              "platform/oauth/overview",
-              "platform/oauth/usage/overview"
-            ]
-          },
-          {
-            "group": " ",
+            "group": "Platform Features",
+            "icon": "gear",
             "pages": [
               "platform/webhook",
               "platform/colocation",
-              "platform/self-trade-prevention"
+              "platform/self-trade-prevention",
+              {
+                "group": "OAuth",
+                "icon": "key",
+                "pages": [
+                  "platform/oauth/overview",
+                  "platform/oauth/usage/overview"
+                ]
+              }
             ]
           },
           {
             "group": "Guides",
+            "icon": "book",
             "pages": [
               "guides/client-order-id",
               "guides/fireblocks",
@@ -60,10 +61,18 @@
             ]
           },
           {
-            "group": " ",
+            "group": "AI Tools",
+            "icon": "sparkles",
             "pages": [
-              "sdks",
-              "changelog",
+              "guides/use-with-ai",
+              "guides/ai-context-menu",
+              "guides/ai-ide-setup"
+            ]
+          },
+          {
+            "group": "Resources",
+            "icon": "circle-info",
+            "pages": [
               "glossary",
               "faq"
             ]
@@ -72,16 +81,20 @@
       },
       {
         "tab": "API Reference",
+        "icon": "square-terminal",
         "groups": [
           {
-            "group": " ",
+            "group": "Getting Started",
+            "icon": "rocket",
             "pages": [
               "api-reference/overview",
-              "api-reference/authentication"
+              "api-reference/authentication",
+              "api-reference/rate-limits"
             ]
           },
           {
             "group": "Market Data",
+            "icon": "chart-bar",
             "pages": [
               "api-reference/market-data/overview",
               {
@@ -122,6 +135,7 @@
           },
           {
             "group": "Spot Trading",
+            "icon": "arrow-right-arrow-left",
             "pages": [
               "api-reference/spot-trading/overview",
               {
@@ -166,6 +180,7 @@
           },
           {
             "group": "Collateral Trading",
+            "icon": "scale-balanced",
             "pages": [
               "api-reference/collateral-trading/overview",
               {
@@ -213,6 +228,7 @@
           },
           {
             "group": "Convert",
+            "icon": "rotate",
             "pages": [
               "api-reference/convert/convert-estimate",
               "api-reference/convert/convert-confirm",
@@ -221,6 +237,7 @@
           },
           {
             "group": "Account & Wallet",
+            "icon": "wallet",
             "pages": [
               "api-reference/account-wallet/overview",
               {
@@ -279,12 +296,18 @@
                   "api-reference/account-wallet/get-mining-account-hashrate"
                 ]
               },
-              "api-reference/account-wallet/get-fees",
-              "api-reference/account-wallet/list-credit-lines"
+              {
+                "group": "Fees & Credit",
+                "pages": [
+                  "api-reference/account-wallet/get-fees",
+                  "api-reference/account-wallet/list-credit-lines"
+                ]
+              }
             ]
           },
           {
             "group": "Sub-Accounts",
+            "icon": "users",
             "pages": [
               "api-reference/sub-accounts/overview",
               {
@@ -323,6 +346,7 @@
           },
           {
             "group": "OAuth",
+            "icon": "key",
             "pages": [
               "api-reference/oauth/usage/oauth",
               "api-reference/oauth/usage/get-access-token",
@@ -339,15 +363,20 @@
       },
       {
         "tab": "WebSocket",
+        "icon": "plug",
         "groups": [
           {
-            "group": " ",
+            "group": "Getting Started",
+            "icon": "rocket",
             "pages": [
-              "websocket/overview"
+              "websocket/overview",
+              "websocket/authentication",
+              "websocket/rate-limits"
             ]
           },
           {
             "group": "Market Streams",
+            "icon": "chart-bar",
             "pages": [
               "websocket/market-streams/overview",
               "websocket/market-streams/service",
@@ -362,6 +391,7 @@
           },
           {
             "group": "Account Streams",
+            "icon": "user-shield",
             "pages": [
               "websocket/account-streams/overview",
               "websocket/account-streams/authorize",
@@ -405,6 +435,7 @@
       "chatgpt",
       "claude",
       "perplexity",
+      "grok",
       "mcp",
       "cursor",
       "vscode"
@@ -423,6 +454,14 @@
     }
   },
   "redirects": [
+    {
+      "source": "/api-reference/quickstart",
+      "destination": "/api-reference/overview"
+    },
+    {
+      "source": "/websocket/quickstart",
+      "destination": "/websocket/overview"
+    },
     {
       "source": "/private/http-auth",
       "destination": "/api-reference/authentication"

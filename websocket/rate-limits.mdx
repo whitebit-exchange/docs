@@ -1,0 +1,111 @@
+---
+title: "WebSocket Rate Limits & Error Codes"
+sidebarTitle: "Rate limits and errors"
+description: "Connection limits, request limits, timeout behavior, and error codes for the WhiteBIT WebSocket API."
+---
+
+Reference for WebSocket rate limits, connection timeout behavior, and error codes.
+
+---
+
+## Connection limits
+
+| Scope | Limit |
+|-------|-------|
+| New connections | 1,000 per minute |
+| Requests per connection | 200 per minute |
+
+Reuse a single WebSocket connection for multiple subscriptions. Opening a new connection per channel wastes the connection limit and adds latency.
+
+---
+
+## Connection timeout
+
+The server closes the connection after **60 seconds of inactivity**. Inactivity means no messages sent by the client.
+
+Send a `ping` request every **50 seconds** to keep the connection alive:
+
+```json
+{
+  "id": 0,
+  "method": "ping",
+  "params": []
+}
+```
+
+**Expected response:**
+
+```json
+{
+  "id": 0,
+  "result": "pong",
+  "error": null
+}
+```
+
+**Code example:**
+
+```javascript JavaScript
+const socket = new WebSocket("wss://api.whitebit.com/ws");
+
+setInterval(() => {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({
+      id: 0,
+      method: "ping",
+      params: []
+    }));
+  }
+}, 50000);
+```
+
+---
+
+## Error codes
+
+Errors are returned in the `error` field of a response message. The `error` object contains a `code` and a `message`.
+
+| Code | Message |
+|------|---------|
+| `1` | invalid argument |
+| `2` | internal error |
+| `3` | service unavailable |
+| `4` | method not found |
+| `5` | service timeout |
+
+**Error response format:**
+
+```json
+{
+  "id": 1,
+  "result": null,
+  "error": {
+    "code": 1,
+    "message": "invalid argument"
+  }
+}
+```
+
+<Note>
+The connection is closed immediately if invalid JSON is sent.
+</Note>
+
+---
+
+## Best practices
+
+**Reuse connections.** Each subscription does not require a new connection. Subscribe to multiple channels on a single connection to stay within the 1,000 connections per minute limit.
+
+**Implement reconnection logic.** Handle unexpected disconnections with exponential backoff (e.g., wait 1s, 2s, 4s, 8s between retries). Re-subscribe to all channels and re-authorize for private channels after reconnecting.
+
+**Batch subscriptions.** Subscribe to all required channels immediately after connecting rather than one at a time. Batching reduces round-trips and avoids hitting the 200 requests per minute per connection limit during setup.
+
+**Monitor ping latency.** A slow or missing `pong` response indicates network issues. Reconnect if no `pong` is received within 10 seconds of a `ping`.
+
+---
+
+## Related resources
+
+- [WebSocket Overview](/websocket/overview) — Connection endpoint, message format, and quickstart
+- [WebSocket Authentication](/websocket/authentication) — Authorization flow for private channels
+- [REST API Rate Limits & Error Codes](/api-reference/rate-limits) — REST-specific limits and error formats

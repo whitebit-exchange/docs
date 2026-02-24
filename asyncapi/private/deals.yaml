@@ -254,8 +254,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: deals_request
-          description: Method name for deals query
+          description: "Method name. Fixed value: `deals_request`."
         params:
           type: array
           description: |
@@ -353,8 +354,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: deals_subscribe
-          description: Method name for deals subscription
+          description: "Method name. Fixed value: `deals_subscribe`."
         params:
           type: array
           minItems: 1
@@ -383,8 +385,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Subscription status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
@@ -400,8 +402,9 @@ components:
           type: "null"
           description: Update events have null id
         method:
+          type: string
           const: deals_update
-          description: Method name for deals updates
+          description: "Method name. Fixed value: `deals_update`."
         params:
           type: array
           description: |
@@ -457,7 +460,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          description: Unsubscribe method name
+          const: deals_unsubscribe
+          description: "Method name. Fixed value: `deals_unsubscribe`."
         params:
           type: array
           items: {}
