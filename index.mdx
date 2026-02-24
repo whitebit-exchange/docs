@@ -1,7 +1,6 @@
 ---
 title: "Home"
 ---
-import {ApiMonitorTable} from '/snippets/api-monitor.jsx';
 
 <div className="w-full flex flex-col items-center justify-center py-6 text-center px-4">
   <div
@@ -29,67 +28,56 @@ import {ApiMonitorTable} from '/snippets/api-monitor.jsx';
 
 <div className="mb-32 max-w-6xl mx-auto px-6 pb-8">
 
-<div className='flex items-center gap-3 mt-0'>
-<h2 className='text-3xl'>API Activity</h2>
-<span className='px-3 py-1.5 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
-  <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-  <span className='text-sm'>Live Demo</span>
-</span>
-</div>
-
-<p className='mt-3'>Watch the high-performance API handle thousands of trading operations in real-time. From market orders to advanced trading strategies, see the full spectrum of what's possible.</p>
-
-<ApiMonitorTable/>
-
-<div className="border-t border-gray-200 dark:border-gray-700 mt-8 mb-8"></div>
-
-<div className='my-12'>
-    <div
-    className="text-3xl text-center font-bold w-full"
-  >
-Everything for developers
+<div className='my-8'>
+  <div className="text-3xl text-center font-bold w-full">
+    Explore the APIs
   </div>
-
-    <p className="text-lg text-center " style={{  fontWeight: '500' , maxWidth: '40rem', margin: '0 auto', marginTop: '0.5rem'}}>
-    Build powerful trading applications with a comprehensive suite of APIs and tools
-
-    </p>
-
+  <p className="text-lg text-center" style={{ fontWeight: '500', maxWidth: '40rem', margin: '0 auto', marginTop: '0.5rem' }}>
+    Three integration interfaces — pick the one that fits your use case
+  </p>
 </div>
-<CardGroup>
-<Card title="Advanced Trading" icon="bolt">
-Full access to spot trading, margin trading, and futures markets with high-performance execution.
-</Card>
 
-<Card title="Real-time Data" icon="chart-bar">
-  Live market data, order book updates, and trade execution via WebSocket with
-  millisecond latency.
-</Card>
-
-<Card title="Enterprise Grade" icon="shield">
-  High-performance infrastructure with exceptional uptime and industry-leading
-  security measures.
-</Card>
-
-<Card title="Global Compliance" icon="globe">
-  Built-in compliance tools and security features for safe trading across
-  jurisdictions.
-</Card>
-
-<Card title="Developer Tools" icon="code-simple">
-  Comprehensive SDKs, detailed documentation, and code examples to accelerate
-  the development process.
-</Card>
-
-<Card title="Market Coverage" icon="grid">
-Access to a wide range of spot and derivative markets with support for multiple trading pairs and instruments.
-
-</Card>
+<CardGroup cols={3}>
+  <Card title="REST API" icon="square-terminal" href="/api-reference/overview">
+    Full access to market data, spot trading, collateral trading, account management, and sub-accounts. Authenticated with HMAC-SHA512.
+  </Card>
+  <Card title="WebSocket API" icon="plug" href="/websocket/overview">
+    Real-time market streams and private account streams over persistent connections. Millisecond latency for prices, order books, and trades.
+  </Card>
+  <Card title="Platform Features" icon="gear" href="/platform/overview">
+    Webhooks, OAuth, colocation, and self-trade prevention. Extend your integration beyond core trading operations.
+  </Card>
 </CardGroup>
 
-<div className="border-t border-gray-200 dark:border-gray-700 mt-16 mb-12"></div>
+<div className="border-t border-gray-200 dark:border-gray-700 mt-12 mb-8"></div>
 
-<div className='my-12'>
+<div className='my-8'>
+  <div className="text-3xl text-center font-bold w-full">
+    Common starting points
+  </div>
+  <p className="text-lg text-center" style={{ fontWeight: '500', maxWidth: '40rem', margin: '0 auto', marginTop: '0.5rem' }}>
+    Jump directly to the section that matches what you are building
+  </p>
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Market Data" icon="chart-bar" href="/api-reference/market-data/overview">
+    Public endpoints for order books, trade history, ticker prices, fees, and server status. No authentication required.
+  </Card>
+  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/api-reference/spot-trading/overview">
+    Place and manage limit, market, stop-limit, and stop-market orders. Query execution history and control kill-switch timers.
+  </Card>
+  <Card title="Account & Wallet" icon="wallet" href="/api-reference/account-wallet/overview">
+    Main balance, deposits, withdrawals, internal transfers, codes, and crypto lending.
+  </Card>
+  <Card title="SDKs & Helpers" icon="code" href="https://github.com/whitebit-exchange/api-quickstart">
+    Multi-language API Quick Start Helper with examples in Python, Node.js, Go, PHP, Rust, and more.
+  </Card>
+</CardGroup>
+
+<div className="border-t border-gray-200 dark:border-gray-700 mt-12 mb-8"></div>
+
+<div className='my-8'>
     <div
     className="text-3xl text-center font-bold w-full"
   >
