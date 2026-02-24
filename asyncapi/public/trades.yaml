@@ -241,7 +241,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: trades_request
+          description: "Method name. Fixed value: `trades_request`."
         params:
           type: array
           description: |
@@ -285,7 +287,9 @@ components:
         id:
           type: integer
         method:
+          type: string
           const: trades_subscribe
+          description: "Method name. Fixed value: `trades_subscribe`."
         params:
           type: array
           description: Market names (empty array to subscribe to all markets)
@@ -308,7 +312,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
 
@@ -322,7 +327,9 @@ components:
         id:
           type: "null"
         method:
+          type: string
           const: trades_update
+          description: "Method name. Fixed value: `trades_update`."
         params:
           type: array
           description: |
@@ -350,7 +357,8 @@ components:
           type: integer
         method:
           type: string
-          enum: [trades_unsubscribe]
+          const: trades_unsubscribe
+          description: "Method name. Fixed value: `trades_unsubscribe`."
         params:
           type: array
           items: {}

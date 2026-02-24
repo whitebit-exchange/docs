@@ -1,0 +1,112 @@
+---
+title: "WebSocket Authentication"
+sidebarTitle: "Authentication"
+description: "How to authorize a WebSocket connection for access to private Account Stream channels."
+---
+
+Private WebSocket channels (Account Streams) require authorization before subscribing. Use a two-step flow: obtain a short-lived token via the REST API, then send an `authorize` request on the WebSocket connection.
+
+Authorization is required once per connection. After a successful `authorize` response, the connection can subscribe to any private channel without re-authorizing.
+
+---
+
+## Step 1: Get a WebSocket token
+
+Call `POST /api/v4/profile/websocket_token` to obtain a token. Sign the request using the standard [HMAC-SHA512 authentication](/api-reference/authentication) process — authentication is required for this endpoint.
+
+<Note>
+Rate limit: 10 requests per 60 seconds.
+</Note>
+
+**Request body:**
+
+```json
+{
+  "request": "/api/v4/profile/websocket_token",
+  "nonce": "1594297865000"
+}
+```
+
+**Response:**
+
+```json
+{
+  "websocket_token": "your_current_token"
+}
+```
+
+The `websocket_token` value is used as the credential in the next step. Tokens are short-lived — request a fresh token before each new WebSocket connection.
+
+See [Get WebSocket Token](/api-reference/account-wallet/profile-websocket-token) for the full endpoint reference.
+
+---
+
+## Step 2: Authorize the connection
+
+After establishing the WebSocket connection, send an `authorize` request before subscribing to any private channel.
+
+**Request:**
+
+```json
+{
+  "id": 0,
+  "method": "authorize",
+  "params": [
+    "your_websocket_token",
+    "public"
+  ]
+}
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `params[0]` | STRING | The WebSocket token from Step 1 |
+| `params[1]` | STRING | Constant value — always `"public"` |
+
+**Success response:**
+
+```json
+{
+  "id": 0,
+  "result": {
+    "status": "success"
+  },
+  "error": null
+}
+```
+
+Once the connection receives `"status": "success"`, subscribe to any Account Stream channel without further authorization.
+
+---
+
+## Error handling
+
+If authorization fails, the `error` field contains a non-null object:
+
+```json
+{
+  "id": 0,
+  "result": null,
+  "error": {
+    "code": 1,
+    "message": "invalid argument"
+  }
+}
+```
+
+Common causes:
+
+| Cause | Resolution |
+|-------|------------|
+| Expired or invalid token | Request a new token from `POST /api/v4/profile/websocket_token` |
+| Incorrect `params[1]` value | Always pass the string `"public"` as the second parameter |
+| Connection not established | Ensure the WebSocket handshake completes before sending `authorize` |
+
+---
+
+## Related resources
+
+- [Authorize channel](/websocket/account-streams/authorize) — AsyncAPI spec for the `authorize` method
+- [Account Streams](/websocket/account-streams/overview) — All private channels requiring authorization
+- [REST API Authentication](/api-reference/authentication) — How to sign the token request
+- [Get WebSocket Token](/api-reference/account-wallet/profile-websocket-token) — REST endpoint reference

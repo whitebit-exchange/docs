@@ -239,8 +239,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: balanceMargin_request
-          description: Method name for margin balance query
+          description: "Method name. Fixed value: `balanceMargin_request`."
         params:
           type: array
           items:
@@ -291,8 +292,9 @@ components:
           type: integer
           description: Unique request identifier
         method:
+          type: string
           const: balanceMargin_subscribe
-          description: Method name for margin balance subscription
+          description: "Method name. Fixed value: `balanceMargin_subscribe`."
         params:
           type: array
           items:
@@ -317,8 +319,8 @@ components:
           properties:
             status:
               type: string
-              enum: [success]
-              description: Subscription status
+              const: success
+              description: "Fixed value: `success`."
         error:
           type: "null"
           description: Error object (null on success)
@@ -334,8 +336,9 @@ components:
           type: "null"
           description: Update events have null id
         method:
+          type: string
           const: balanceMargin_update
-          description: Method name for margin balance updates
+          description: "Method name. Fixed value: `balanceMargin_update`."
         params:
           type: array
           items:
@@ -371,7 +374,8 @@ components:
           description: Unique request identifier
         method:
           type: string
-          description: Unsubscribe method name
+          const: balanceMargin_unsubscribe
+          description: "Method name. Fixed value: `balanceMargin_unsubscribe`."
         params:
           type: array
           items: {}
