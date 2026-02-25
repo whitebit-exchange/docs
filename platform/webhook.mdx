@@ -329,3 +329,52 @@ Performed when withdraw was completed. Request example:
   "id": "uuid"
 }
 ```
+
+### WhiteBIT refund successful
+
+Performed when a refund was completed successfully. Request example:
+
+```json
+{
+  "method": "refund.successful",
+  "params": {
+    "transactionId": "5e112b38-...",
+    "status": "completed",
+    "refundAddress": "GDTSOI56...",
+    "depositAmount": "100",
+    "currency": "Tether USDT",
+    "ticker": "USDT",
+    "network": "ERC-20",
+    "createdAt": 1733924412,
+    "processedAt": 1733925012,
+    "refundNetworkFee": "1",
+    "refundAmount": "99",
+    "refundHash": "0x767ebd2...",
+    "nonce": 0
+  },
+  "id": "uuid"
+}
+```
+
+### WhiteBIT refund failed
+
+Performed when a refund failed. The refund failed because the destination address is unsuitable or other reasons prevent the refund. Try a different address or contact support. Request example:
+
+```json
+{
+  "method": "refund.failed",
+  "params": {
+    "transactionId": "5e112b38-...",
+    "status": "failed",
+    "refundAddress": "GDTSOI56...",
+    "depositAmount": "100",
+    "currency": "Tether USDT",
+    "ticker": "USDT",
+    "network": "ERC-20",
+    "createdAt": 1733924412,
+    "processedAt": 1733925012,
+    "nonce": 0
+  },
+  "id": "uuid"
+}
+```
