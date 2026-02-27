@@ -1269,6 +1269,13 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/WithdrawRequest"
+            example:
+              ticker: ETH
+              amount: "0.9"
+              address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
+              uniqueId: "24529041"
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         "201":
           description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
@@ -3903,6 +3910,8 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
       responses:
         "200":
           description: Sub-account deleted successfully
@@ -3910,6 +3919,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -3962,6 +3972,12 @@ paths:
                     collateralEnabled:
                       type: boolean
                       description: Enable transfers to collateral balance
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+              alias: training
+              permissions:
+                spotEnabled: true
+                collateralEnabled: false
       responses:
         "200":
           description: Sub-account edited successfully
@@ -3969,6 +3985,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4122,6 +4139,8 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
       responses:
         "200":
           description: Sub-account blocked successfully
@@ -4129,6 +4148,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4164,6 +4184,8 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
       responses:
         "200":
           description: Sub-account unblocked successfully
@@ -4171,6 +4193,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4209,6 +4232,9 @@ paths:
                 ticker:
                   type: string
                   description: Currency's ticker (if not provided, returns data by all currencies)
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+              ticker: USDC
       responses:
         "200":
           description: Successful response
@@ -4227,6 +4253,11 @@ paths:
                         type: string
                       collateral:
                         type: string
+              example:
+                USDC:
+                  - main: "42"
+                    spot: "10"
+                    collateral: "14"
         "422":
           description: Account is not confirmed
           content:
@@ -4393,6 +4424,14 @@ paths:
                         type: string
                       enable:
                         type: boolean
+            example:
+              apiKeyId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              title: Trading Bot Key
+              urls:
+                - url: /api/v4/main-account/withdraw
+                  enable: false
+                - url: /api/v4/main-account/balance
+                  enable: true
       responses:
         "200":
           description: API key updated successfully
@@ -4400,6 +4439,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4435,6 +4475,8 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to delete
+            example:
+              apiKeyId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
       responses:
         "200":
           description: API key deleted successfully
@@ -4442,6 +4484,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4537,6 +4580,8 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to reset
+            example:
+              apiKeyId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
       responses:
         "200":
           description: API key reset successfully
@@ -4544,6 +4589,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
