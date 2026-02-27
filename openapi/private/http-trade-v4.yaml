@@ -68,6 +68,10 @@ paths:
                 nonce:
                   type: string
                   description: Unique request identifier
+            example:
+              ticker: BTC
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns collateral balances by asset
@@ -141,6 +145,10 @@ paths:
                 nonce:
                   type: string
                   description: Unique request identifier
+            example:
+              ticker: BTC
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns detailed balance information per asset
@@ -279,15 +287,56 @@ paths:
                   example: true
                 positionSide:
                   type: string
-                  enum: [long, short, both]
+                  enum: [LONG, SHORT, BOTH]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.01"
+              price: "40000"
+              postOnly: false
+              ioc: false
+              clientOrderId: order1987111
+              stopLoss: "50000"
+              takeProfit: "30000"
+              positionSide: LONG
+              rpi: true
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                orderId: 4180284841
+                clientOrderId: order1987111
+                market: BTC_USDT
+                side: buy
+                type: limit
+                timestamp: 1595792396.165973
+                dealMoney: "0"
+                dealStock: "0"
+                amount: "0.01"
+                left: "0.001"
+                dealFee: "0"
+                price: "40000"
+                postOnly: false
+                ioc: false
+                status: FILLED
+                stp: "no"
+                oto:
+                  otoId: 29457221
+                  stopLoss: "30000"
+                  takeProfit: "50000"
+                positionSide: LONG
+                rpi: true
         '422':
           description: Inner validation failed
           content:
@@ -370,7 +419,7 @@ paths:
                         example: true
                       positionSide:
                         type: string
-                        enum: [long, short, both]
+                        enum: [LONG, SHORT, BOTH]
                         description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                 stopOnFail:
                   type: boolean
@@ -385,9 +434,95 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              orders:
+                - side: buy
+                  amount: "0.02"
+                  price: "40000"
+                  market: BTC_PERP
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  positionSide: LONG
+                  rpi: true
+                - side: sell
+                  amount: "0.0001"
+                  price: "41000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  positionSide: LONG
+                  rpi: true
+                - side: sell
+                  amount: "0.02"
+                  price: "0.030"
+                  market: ETH_BTC
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  positionSide: LONG
+                  rpi: true
+              stopOnFail: true
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Orders created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+                - result:
+                    orderId: 4326248250
+                    clientOrderId: ""
+                    market: BTC_USDT
+                    side: buy
+                    type: limit
+                    timestamp: 1684916268.825564
+                    dealMoney: "641.988"
+                    dealStock: "0.02"
+                    amount: "0.02"
+                    left: "0"
+                    dealFee: "1.283976"
+                    ioc: false
+                    postOnly: false
+                    price: "40000"
+                    status: FILLED
+                    stp: "no"
+                    positionSide: LONG
+                    rpi: true
+                  error: null
+                - result: null
+                  error:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                        - Given amount is less than min amount 0.001.
+                - result:
+                    orderId: 4326248251
+                    clientOrderId: ""
+                    market: ETH_BTC
+                    side: sell
+                    type: limit
+                    timestamp: 1684916268.825564
+                    dealMoney: "641.988"
+                    dealStock: "0.02"
+                    amount: "0.02"
+                    left: "0"
+                    dealFee: "1.283976"
+                    ioc: false
+                    postOnly: false
+                    price: "0.030"
+                    status: FILLED
+                    stp: "no"
+                    positionSide: LONG
+                    rpi: true
+                  error: null
         '400':
           description: Inner validation failed
           content:
@@ -444,14 +579,44 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.01"
+              clientOrderId: order1987111
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                orderId: 4180284841
+                clientOrderId: order1987111
+                market: BTC_USDT
+                side: sell
+                type: market
+                timestamp: 1595792396.165973
+                dealMoney: "0"
+                dealStock: "0"
+                amount: "0.001"
+                left: "0.001"
+                dealFee: "0"
+                status: FILLED
+                stp: "no"
+                oto:
+                  otoId: 29457221
+                  stopLoss: "50000"
+                  takeProfit: "40000"
+                positionSide: LONG
         '422':
           description: Internal validation failed
           content:
@@ -508,14 +673,51 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.001"
+              price: "40000"
+              activation_price: "40000"
+              stopLoss: "30000"
+              takeProfit: "50000"
+              clientOrderId: order1987111
+              positionSide: LONG
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                orderId: 4180284841
+                clientOrderId: order1987111
+                market: BTC_USDT
+                side: buy
+                type: stop limit
+                timestamp: 1595792396.165973
+                dealMoney: "0"
+                dealStock: "0"
+                amount: "0.001"
+                left: "0.001"
+                dealFee: "0"
+                price: "40000"
+                activation_price: "40000"
+                status: FILLED
+                stp: "no"
+                oto:
+                  otoId: 29457221
+                  stopLoss: "30000"
+                  takeProfit: "50000"
+                positionSide: LONG
         '400':
           description: Inner validation failed
           content:
@@ -575,14 +777,46 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.01"
+              activation_price: "40000"
+              clientOrderId: order1987111
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                orderId: 4180284841
+                clientOrderId: order1987111
+                market: BTC_USDT
+                side: sell
+                type: stop market
+                timestamp: 1595792396.165973
+                dealMoney: "0"
+                dealStock: "0"
+                amount: "0.001"
+                left: "0.001"
+                dealFee: "0"
+                activation_price: "40000"
+                status: FILLED
+                stp: "no"
+                oto:
+                  otoId: 29457221
+                  stopLoss: "50000"
+                  takeProfit: "30000"
+                positionSide: LONG
         '422':
           description: Inner validation failed
           content:
@@ -616,9 +850,27 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Account summary
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                equity: "9817.676478608323"
+                margin: "3880.64387"
+                freeMargin: "10739.489348608323"
+                unrealizedFunding: "0"
+                pnl: "4802.45674"
+                leverage: 100
+                marginFraction: "0.0497228995828862"
+                maintenanceMarginFraction: "0.0065990118926067"
+                futuresEquity: "9817.676478608323"
+                futuresFreeMargin: "10739.489348608323"
         '503':
           description: Service temporarily unavailable
 
@@ -648,9 +900,62 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
       responses:
         '200':
           description: Open positions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    positionId: { type: integer }
+                    market: { type: string }
+                    openDate: { type: number }
+                    modifyDate: { type: number }
+                    amount: { type: string }
+                    basePrice: { type: string }
+                    liquidationPrice: { type: string, nullable: true }
+                    liquidationState: { type: string, nullable: true }
+                    pnl: { type: string }
+                    pnlPercent: { type: string }
+                    margin: { type: string }
+                    freeMargin: { type: string }
+                    funding: { type: string }
+                    unrealizedFunding: { type: string }
+                    tpsl:
+                      type: object
+                      nullable: true
+                      properties:
+                        takeProfitId: { type: integer }
+                        takeProfit: { type: string }
+                        stopLossId: { type: integer }
+                        stopLoss: { type: string }
+                    positionSide: { type: string }
+              example:
+                - positionId: 527
+                  market: BTC_USDT
+                  openDate: 1651568067.789679
+                  modifyDate: 1651568067.789679
+                  amount: "0.1"
+                  basePrice: "45658.349"
+                  liquidationPrice: null
+                  liquidationState: null
+                  pnl: "-168.42"
+                  pnlPercent: "-0.43"
+                  margin: "8316.74"
+                  freeMargin: "619385.67"
+                  funding: "0"
+                  unrealizedFunding: "0.0019142920201966"
+                  tpsl:
+                    takeProfitId: 123
+                    takeProfit: "50000"
+                    stopLossId: 124
+                    stopLoss: "35000"
+                  positionSide: LONG
         '422':
           description: Inner validation failed
           content:
@@ -689,16 +994,29 @@ paths:
                   type: integer
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 market:
                   type: string
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              positionId: 123
+              positionSide: LONG
+              market: BTC_USDT
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Position closed
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+                description: Empty array indicates success
+              example: []
         '400':
           description: Inner validation failed
           content:
@@ -744,9 +1062,38 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              positionId: 1
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Positions history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+                - positionId: 111
+                  market: BTC_USDT
+                  openDate: 1650400589.882613
+                  modifyDate: 1650400589.882613
+                  amount: "0.1"
+                  basePrice: "45658.349"
+                  realizedFunding: "0"
+                  liquidationPrice: null
+                  liquidationState: null
+                  orderDetail:
+                    id: 97067934
+                    tradeAmount: "0.1"
+                    price: "41507.59"
+                    tradeFee: "415.07"
+                    fundingFee: null
+                    realizedPnl: null
+                  positionSide: LONG
         '400':
           description: Inner validation failed
           content:
@@ -790,9 +1137,35 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_PERP
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Funding history
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                records:
+                  - market: BTC_PERP
+                    fundingTime: "1734451200"
+                    fundingRate: "0.00017674"
+                    fundingAmount: "-0.171053531892"
+                    positionAmount: "0.019"
+                    settlementPrice: "50938.2"
+                    rateCalculatedTime: "1734364800"
+                  - market: BTC_PERP
+                    fundingTime: "1734451200"
+                    fundingRate: "-0.000177877800093587"
+                    fundingAmount: "-0.0054997859133136"
+                    positionAmount: "-0.001"
+                    settlementPrice: "30918.9"
+                    rateCalculatedTime: "1734364800"
+                limit: 100
+                offset: 0
         '422':
           description: Inner validation failed
           content:
@@ -834,9 +1207,19 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              leverage: 5
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Leverage changed
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                leverage: 5
         '422':
           description: Inner validation failed
           content:
@@ -870,9 +1253,18 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Hedge mode status
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                hedgeMode: true
         '500':
           description: Internal error
         '503':
@@ -908,6 +1300,10 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              hedgeMode: true
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Hedge mode updated
@@ -954,9 +1350,97 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              offset: 0
+              limit: 100
       responses:
         '200':
           description: Active conditional orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  limit: { type: integer }
+                  offset: { type: integer }
+                  total: { type: integer }
+                  records:
+                    type: array
+                    items:
+                      type: object
+              example:
+                limit: 100
+                offset: 0
+                total: 2
+                records:
+                  - id: 117703764513
+                    type: oco
+                    stop_loss:
+                      orderId: 117703764514
+                      clientOrderId: ""
+                      market: BTC_USDT
+                      side: buy
+                      type: stop limit
+                      timestamp: 1594605801.49815
+                      dealMoney: "0"
+                      dealStock: "0"
+                      amount: "2.241379"
+                      takerFee: "0.001"
+                      makerFee: "0.001"
+                      left: "2.241379"
+                      dealFee: "0"
+                      post_only: false
+                      mtime: 1662478154.941582
+                      price: "19928.79"
+                      activation_price: "29928.79"
+                      activation_condition: gte
+                      activated: 0
+                      status: FILLED
+                      stp: "no"
+                      positionSide: LONG
+                    take_profit:
+                      orderId: 117703764515
+                      clientOrderId: ""
+                      market: BTC_USDT
+                      side: buy
+                      type: limit
+                      timestamp: 1662478154.941582
+                      dealMoney: "0"
+                      dealStock: "0"
+                      amount: "0.635709"
+                      takerFee: "0.001"
+                      makerFee: "0.001"
+                      left: "0.635709"
+                      dealFee: "0"
+                      post_only: false
+                      mtime: 1662478154.941582
+                      price: "9928.79"
+                      status: FILLED
+                      stp: "no"
+                      positionSide: LONG
+                  - id: 29457221
+                    type: oto
+                    stopLossPrice: "30000"
+                    takeProfitPrice: "50000"
+                    conditionalOrder:
+                      orderId: 3686033640
+                      clientOrderId: "customId11"
+                      market: BTC_USDT
+                      side: buy
+                      type: limit
+                      timestamp: 1594605801.49815
+                      dealMoney: "0"
+                      dealStock: "0"
+                      amount: "2.241379"
+                      takerFee: "0.001"
+                      makerFee: "0.001"
+                      left: "2.241379"
+                      dealFee: "0"
+                      price: "40000"
+                      status: FILLED
+                      stp: "no"
+                      positionSide: LONG
         '400':
           description: Inner validation failed
           content:
@@ -1004,9 +1488,66 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              offset: 0
+              limit: 100
       responses:
         '200':
           description: Active OCO orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    stop_loss: { type: object }
+                    take_profit: { type: object }
+              example:
+                - id: 117703764513
+                  stop_loss:
+                    orderId: 117703764514
+                    clientOrderId: ""
+                    market: BTC_USDT
+                    side: buy
+                    type: stop limit
+                    timestamp: 1594605801.49815
+                    dealMoney: "0"
+                    dealStock: "0"
+                    amount: "2.241379"
+                    takerFee: "0.001"
+                    makerFee: "0.001"
+                    left: "2.241379"
+                    dealFee: "0"
+                    post_only: false
+                    mtime: 1662478154.941582
+                    price: "19928.79"
+                    activation_price: "29928.79"
+                    activation_condition: gte
+                    activated: 0
+                    status: FILLED
+                    stp: "no"
+                  take_profit:
+                    orderId: 117703764515
+                    clientOrderId: ""
+                    market: BTC_USDT
+                    side: buy
+                    type: limit
+                    timestamp: 1662478154.941582
+                    dealMoney: "0"
+                    dealStock: "0"
+                    amount: "0.635709"
+                    takerFee: "0.001"
+                    makerFee: "0.001"
+                    left: "0.635709"
+                    dealFee: "0"
+                    post_only: false
+                    mtime: 1662478154.941582
+                    price: "9928.79"
+                    status: FILLED
+                    stp: "no"
         '400':
           description: Inner validation failed
           content:
@@ -1070,9 +1611,68 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.001"
+              price: "40000"
+              activation_price: "41000"
+              stop_limit_price: "42000"
+              clientOrderId: order1987111
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: OCO order created
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 117703764513
+                stop_loss:
+                  orderId: 117703764514
+                  clientOrderId: ""
+                  market: BTC_USDT
+                  side: buy
+                  type: stop limit
+                  timestamp: 1594605801.49815
+                  dealMoney: "0"
+                  dealStock: "0"
+                  amount: "2.241379"
+                  takerFee: "0.001"
+                  makerFee: "0.001"
+                  left: "2.241379"
+                  dealFee: "0"
+                  post_only: false
+                  mtime: 1662478154.941582
+                  price: "19928.79"
+                  activation_price: "29928.79"
+                  activation_condition: gte
+                  activated: 0
+                  status: FILLED
+                  stp: "no"
+                  positionSide: LONG
+                take_profit:
+                  orderId: 117703764515
+                  clientOrderId: ""
+                  market: BTC_USDT
+                  side: buy
+                  type: limit
+                  timestamp: 1662478154.941582
+                  dealMoney: "0"
+                  dealStock: "0"
+                  amount: "0.635709"
+                  takerFee: "0.001"
+                  makerFee: "0.001"
+                  left: "0.635709"
+                  dealFee: "0"
+                  post_only: false
+                  mtime: 1662478154.941582
+                  price: "9928.79"
+                  status: FILLED
+                  stp: "no"
+                  positionSide: LONG
         '400':
           description: Inner validation failed
           content:
@@ -1121,9 +1721,21 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              id: 117703764514
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Order cancelled
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+                description: Empty array indicates success
+              example: []
         '400':
           description: Inner validation failed
           content:
@@ -1172,9 +1784,59 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              orderId: 117703764514
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: OCO order cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: 117703764513
+                stop_loss:
+                  orderId: 117703764514
+                  clientOrderId: ""
+                  market: BTC_USDT
+                  side: buy
+                  type: stop limit
+                  timestamp: 1594605801.49815
+                  dealMoney: "0"
+                  dealStock: "0"
+                  amount: "2.241379"
+                  takerFee: "0.001"
+                  makerFee: "0.001"
+                  left: "2.241379"
+                  dealFee: "0"
+                  post_only: false
+                  mtime: 1662478154.941582
+                  price: "19928.79"
+                  activation_price: "29928.79"
+                  activation_condition: gte
+                  activated: 0
+                  status: CANCELED
+                  stp: "no"
+                take_profit:
+                  orderId: 117703764515
+                  clientOrderId: ""
+                  market: BTC_USDT
+                  side: buy
+                  type: limit
+                  timestamp: 1662478154.941582
+                  dealMoney: "0"
+                  dealStock: "0"
+                  amount: "0.635709"
+                  left: "0.635709"
+                  dealFee: "0"
+                  post_only: false
+                  mtime: 1662478154.941582
+                  price: "9928.79"
+                  status: CANCELED
+                  stp: "no"
         '400':
           description: Inner validation failed
           content:
@@ -1223,9 +1885,21 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              otoId: 117703764514
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: OTO order cancelled
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+                description: Empty array indicates success
+              example: []
         '400':
           description: Inner validation failed
           content:
@@ -2153,6 +2827,32 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              orders:
+                - side: buy
+                  amount: "0.02"
+                  price: "40000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  rpi: true
+                - side: sell
+                  amount: "0.0001"
+                  price: "41000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  rpi: true
+                - side: sell
+                  amount: "0.02"
+                  price: "41000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  rpi: true
       responses:
         '200':
           $ref: '#/components/responses/BulkLimitOrderResponse'
@@ -2999,9 +3699,22 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              type:
+                - spot
+                - margin
+                - futures
       responses:
         '200':
           description: Orders cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+                description: Empty array indicates success
+              example: []
         '400':
           description: Inner validation failed
           content:
@@ -3649,7 +4362,39 @@ components:
         - X-TXC-SIGNATURE: HMAC SHA512 signature
   responses:
     BulkLimitOrderResponse:
-      $ref: '#/components/schemas/BulkLimitOrderResponse'
+      description: Orders created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BulkLimitOrderResponse'
+          example:
+            - result:
+                orderId: 4326248250
+                clientOrderId: ""
+                market: BTC_USDT
+                side: buy
+                type: limit
+                timestamp: 1684916268.825564
+                dealMoney: "641.988"
+                dealStock: "0.02"
+                amount: "0.02"
+                left: "0"
+                dealFee: "1.283976"
+                ioc: false
+                postOnly: false
+                price: "40000"
+                status: FILLED
+                stp: "no"
+                positionSide: BOTH
+                rpi: true
+              error: null
+            - result: null
+              error:
+                code: 32
+                message: Validation failed
+                errors:
+                  amount:
+                    - Given amount is less than min amount 0.001.
   schemas:
     LimitOrderRequest:
       type: object
