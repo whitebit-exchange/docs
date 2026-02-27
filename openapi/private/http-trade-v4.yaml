@@ -12,6 +12,9 @@ info:
     
     Authentication required for all endpoints.
   version: 4.0.0
+  license:
+    name: WhiteBIT Terms of Service
+    url: https://whitebit.com/terms
 servers:
   - url: https://whitebit.com
     description: WhiteBIT Global Server
@@ -22,6 +25,7 @@ paths:
   /api/v4/collateral-account/balance:
     post:
       summary: Collateral Account Balance
+      operationId: collateralAccountBalance
       description: |
         The endpoint returns a current [collateral balance](/glossary#balance-collateral).
         
@@ -68,6 +72,10 @@ paths:
                 nonce:
                   type: string
                   description: Unique request identifier
+            example:
+              ticker: BTC
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns collateral balances by asset
@@ -95,6 +103,7 @@ paths:
   /api/v4/collateral-account/balance-summary:
     post:
       summary: Collateral Account Balance Summary
+      operationId: collateralAccountBalanceSummary
       description: |
         The endpoint retrieves collateral account balance summary with detailed breakdown per asset.
         
@@ -141,6 +150,10 @@ paths:
                 nonce:
                   type: string
                   description: Unique request identifier
+            example:
+              ticker: BTC
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns detailed balance information per asset
@@ -194,6 +207,7 @@ paths:
   /api/v4/order/collateral/limit:
     post:
       summary: Collateral Limit Order
+      operationId: createCollateralLimitOrder
       description: |
         The endpoint creates [limit order](/glossary#limit-order) using [collateral balance](/glossary#balance-collateral).
         
@@ -279,12 +293,26 @@ paths:
                   example: true
                 positionSide:
                   type: string
-                  enum: [long, short, both]
+                  enum: [LONG, SHORT, BOTH]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.01"
+              price: "40000"
+              postOnly: false
+              ioc: false
+              clientOrderId: order1987111
+              stopLoss: "50000"
+              takeProfit: "30000"
+              positionSide: LONG
+              rpi: true
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - order created
@@ -420,6 +448,7 @@ paths:
   /api/v4/order/collateral/bulk:
     post:
       summary: Collateral bulk limit order
+      operationId: createCollateralBulkOrder
       description: |
         The endpoint creates multiple collateral limit orders.
         
@@ -490,7 +519,7 @@ paths:
                         example: true
                       positionSide:
                         type: string
-                        enum: [long, short, both]
+                        enum: [LONG, SHORT, BOTH]
                         description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                 stopOnFail:
                   type: boolean
@@ -505,6 +534,38 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              orders:
+                - side: buy
+                  amount: "0.02"
+                  price: "40000"
+                  market: BTC_PERP
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  positionSide: LONG
+                  rpi: true
+                - side: sell
+                  amount: "0.0001"
+                  price: "41000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  positionSide: LONG
+                  rpi: true
+                - side: sell
+                  amount: "0.02"
+                  price: "0.030"
+                  market: ETH_BTC
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  positionSide: LONG
+                  rpi: true
+              stopOnFail: true
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns array of order results
@@ -683,6 +744,7 @@ paths:
   /api/v4/order/collateral/market:
     post:
       summary: Collateral Market Order
+      operationId: createCollateralMarketOrder
       description: |
         The endpoint creates a collateral market order.
         
@@ -721,11 +783,18 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.01"
+              clientOrderId: order1987111
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - market order created
@@ -841,6 +910,7 @@ paths:
   /api/v4/order/collateral/stop-limit:
     post:
       summary: Collateral Stop-Limit Order
+      operationId: createCollateralStopLimitOrder
       description: |
         The endpoint creates a collateral stop-limit order.
         
@@ -885,11 +955,23 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.001"
+              price: "40000"
+              activation_price: "40000"
+              stopLoss: "30000"
+              takeProfit: "50000"
+              clientOrderId: order1987111
+              positionSide: LONG
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - stop-limit order created
@@ -1021,6 +1103,7 @@ paths:
   /api/v4/order/collateral/trigger-market:
     post:
       summary: Collateral Trigger Market Order
+      operationId: createCollateralTriggerMarketOrder
       description: |
         The endpoint creates a collateral trigger market order.
         
@@ -1062,11 +1145,19 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.01"
+              activation_price: "40000"
+              clientOrderId: order1987111
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - trigger market order created
@@ -1187,6 +1278,7 @@ paths:
   /api/v4/collateral-account/summary:
     post:
       summary: Collateral Account Summary
+      operationId: collateralAccountSummary
       description: |
         The endpoint retrieves collateral account summary.
         
@@ -1208,6 +1300,9 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns collateral account summary
@@ -1252,12 +1347,19 @@ paths:
                 pnl: "150.25"
                 leverage: 3
                 marginFraction: "0.3333"
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '503':
           description: Service temporarily unavailable
 
   /api/v4/collateral-account/positions:
     post:
       summary: Open Positions
+      operationId: getOpenPositions
       description: |
         The endpoint retrieves open positions.
 
@@ -1404,7 +1506,7 @@ paths:
                   amount: "0.1"
                   basePrice: "45658.349"
                   liquidationPrice: null
-                  liquidationState: null
+                  liquidationState: margin_call
                   pnl: "-168.42"
                   pnlPercent: "-0.43"
                   margin: "8316.74"
@@ -1424,7 +1526,7 @@ paths:
                   amount: "0.1"
                   basePrice: "5658.349"
                   liquidationPrice: null
-                  liquidationState: null
+                  liquidationState: margin_call
                   pnl: "-168.42"
                   pnlPercent: "-0.43"
                   margin: "8316.74"
@@ -1445,6 +1547,7 @@ paths:
   /api/v4/collateral-account/position/close:
     post:
       summary: Close Position
+      operationId: closePosition
       description: |
         The endpoint closes a position.
         
@@ -1471,13 +1574,19 @@ paths:
                   type: integer
                 positionSide:
                   type: string
-                  enum: [long, short]
+                  enum: [LONG, SHORT, BOTH]
                 market:
                   type: string
                 request:
                   type: string
                 nonce:
                   type: string
+            example:
+              positionId: 123
+              positionSide: LONG
+              market: BTC_USDT
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Position closed
@@ -1501,6 +1610,7 @@ paths:
   /api/v4/collateral-account/positions/history:
     post:
       summary: Positions History
+      operationId: getPositionsHistory
       description: |
         The endpoint retrieves positions history.
         
@@ -1526,6 +1636,11 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              positionId: 1
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns array of position history
@@ -1620,7 +1735,7 @@ paths:
                   basePrice: "45658.349"
                   realizedFunding: "0"
                   liquidationPrice: null
-                  liquidationState: null
+                  liquidationState: margin_call
                   orderDetail:
                     id: 97067934
                     tradeAmount: "0.1"
@@ -1649,6 +1764,7 @@ paths:
   /api/v4/collateral-account/funding-history:
     post:
       summary: Funding History
+      operationId: getFundingHistory
       description: |
         The endpoint retrieves funding history.
 
@@ -1775,6 +1891,7 @@ paths:
   /api/v4/collateral-account/leverage:
     post:
       summary: Change Collateral Account Leverage
+      operationId: changeCollateralAccountLeverage
       description: |
         The endpoint changes account leverage.
         
@@ -1804,6 +1921,10 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              leverage: 5
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - leverage changed
@@ -1830,6 +1951,7 @@ paths:
   /api/v4/collateral-account/hedge-mode:
     post:
       summary: Collateral Account Hedge Mode
+      operationId: getCollateralHedgeMode
       description: |
         The endpoint retrieves hedge mode status.
         
@@ -1851,6 +1973,9 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns hedge mode status
@@ -1865,6 +1990,12 @@ paths:
                     example: true
               example:
                 hedgeMode: true
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Internal error
         '503':
@@ -1873,6 +2004,7 @@ paths:
   /api/v4/collateral-account/hedge-mode/update:
     post:
       summary: Update Collateral Account Hedge Mode
+      operationId: updateHedgeMode
       description: |
         The endpoint updates hedge mode.
         
@@ -1900,6 +2032,10 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              hedgeMode: true
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - hedge mode updated
@@ -1917,6 +2053,7 @@ paths:
   /api/v4/orders/conditional:
     post:
       summary: Query unexecuted(active) conditional orders
+      operationId: getConditionalOrders
       description: |
         The endpoint retrieves active conditional orders.
         
@@ -1946,6 +2083,10 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              offset: 0
+              limit: 100
       responses:
         '200':
           description: Successful response - returns paginated conditional orders (OCO and OTO types)
@@ -2123,6 +2264,7 @@ paths:
   /api/v4/orders/oco:
     post:
       summary: Query unexecuted(active) OCO orders
+      operationId: getOcoOrders
       description: |
         The endpoint retrieves active OCO orders.
         
@@ -2152,6 +2294,10 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              offset: 0
+              limit: 100
       responses:
         '200':
           description: Successful response - returns array of active OCO orders
@@ -2356,6 +2502,7 @@ paths:
   /api/v4/order/collateral/oco:
     post:
       summary: Create collateral OCO order
+      operationId: createCollateralOcoOrder
       description: |
         The endpoint creates a collateral OCO order.
         
@@ -2401,6 +2548,16 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              side: buy
+              amount: "0.001"
+              price: "40000"
+              activation_price: "41000"
+              stop_limit_price: "42000"
+              clientOrderId: order1987111
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - OCO order created
@@ -2655,6 +2812,7 @@ paths:
   /api/v4/order/conditional-cancel:
     post:
       summary: Cancel conditional order
+      operationId: cancelConditionalOrder
       description: |
         The endpoint cancels a conditional order.
         
@@ -2685,6 +2843,11 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              id: 117703764514
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Order cancelled
@@ -2706,6 +2869,7 @@ paths:
   /api/v4/order/oco-cancel:
     post:
       summary: Cancel OCO order
+      operationId: cancelOcoOrder
       description: |
         The endpoint cancels an OCO order.
         
@@ -2736,6 +2900,11 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              orderId: 117703764514
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - OCO order cancelled
@@ -2966,6 +3135,7 @@ paths:
   /api/v4/order/oto-cancel:
     post:
       summary: Cancel OTO order
+      operationId: cancelOtoOrder
       description: |
         The endpoint cancels an OTO order.
         
@@ -2996,6 +3166,11 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              otoId: 117703764514
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
           description: OTO order cancelled
@@ -3024,6 +3199,8 @@ paths:
         Rate limit: 10000 requests/10 sec.
         </Warning>
       operationId: convertEstimate
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -3155,6 +3332,8 @@ paths:
         Rate limit: 10000 requests/10 sec.
         </Warning>
       operationId: convertConfirm
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -3224,6 +3403,8 @@ paths:
         </Warning>
         **Note:** The endpoint can retrieve data not older than 6 months from current month. For older data, use the Report on the History page.
       operationId: convertHistory
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -3357,6 +3538,7 @@ paths:
   /api/v4/market/fee:
     post:
       summary: Query Market Fee
+      operationId: getMarketFee
       description: |
         Returns maker and taker fees for a specific market.
 
@@ -3425,6 +3607,7 @@ paths:
 
     get:
       summary: Query All Market Fees
+      operationId: getAllMarketFees
       description: |
         Returns maker and taker fees for all markets, including assigned custom fees.
 
@@ -3489,6 +3672,7 @@ paths:
   /api/v4/trade-account/balance:
     post:
       summary: Trading Balance
+      operationId: tradeAccountBalance
       description: |
         The endpoint retrieves the [trade balance](/glossary#balance-spotbalance-trade) by currency [ticker](/glossary#ticker) or all balances.
         
@@ -3589,6 +3773,7 @@ paths:
   /api/v4/order/new:
     post:
       summary: Create Limit Order
+      operationId: createLimitOrder
       description: |
         The endpoint creates [limit trading order](/glossary#limit-order).
         
@@ -3818,6 +4003,7 @@ paths:
   /api/v4/order/bulk:
     post:
       summary: Bulk limit order
+      operationId: createBulkLimitOrder
       description: |
         The endpoint creates bulk [limit trading orders](/glossary#limit-order).
         
@@ -3926,6 +4112,32 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              orders:
+                - side: buy
+                  amount: "0.02"
+                  price: "40000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  rpi: true
+                - side: sell
+                  amount: "0.0001"
+                  price: "41000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  rpi: true
+                - side: sell
+                  amount: "0.02"
+                  price: "41000"
+                  market: BTC_USDT
+                  postOnly: false
+                  ioc: false
+                  clientOrderId: ""
+                  rpi: true
       responses:
         '200':
           $ref: '#/components/responses/BulkLimitOrderResponse'
@@ -3947,6 +4159,7 @@ paths:
   /api/v4/order/market:
     post:
       summary: Create market order
+      operationId: createMarketOrder
       description: |
         The endpoint creates [market trading order](/glossary#market-order).
         
@@ -4094,6 +4307,7 @@ paths:
   /api/v4/order/stock_market:
     post:
       summary: Create buy stock market order
+      operationId: createStockMarketOrder
       description: |
         The endpoint creates buy [stock](/glossary#stock) market trading [order](/glossary#orders).
         
@@ -4229,6 +4443,7 @@ paths:
   /api/v4/order/stop_limit:
     post:
       summary: Create stop-limit order
+      operationId: createStopLimitOrder
       description: |
         The endpoint creates [stop-limit trading order](/glossary#stop-limit-order).
         
@@ -4399,6 +4614,7 @@ paths:
   /api/v4/order/stop_market:
     post:
       summary: Create stop-market order
+      operationId: createStopMarketOrder
       description: |
         The endpoint creates [stop-market trading order](/glossary#stop-market-order).
         
@@ -4563,6 +4779,7 @@ paths:
   /api/v4/order/cancel:
     post:
       summary: Cancel order
+      operationId: cancelOrder
       description: |
         Cancel existing [order](/glossary#orders).
         
@@ -4701,6 +4918,7 @@ paths:
   /api/v4/order/cancel/all:
     post:
       summary: Cancel all orders
+      operationId: cancelAllOrders
       description: |
         Cancels all orders that meet the conditions [order](/glossary#orders).
         
@@ -4772,6 +4990,12 @@ paths:
                   type: string
                 nonce:
                   type: string
+            example:
+              market: BTC_USDT
+              type:
+                - spot
+                - margin
+                - futures
       responses:
         '200':
           description: Orders cancelled successfully
@@ -4793,6 +5017,7 @@ paths:
   /api/v4/orders:
     post:
       summary: Query unexecuted(active) orders
+      operationId: getActiveOrders
       description: |
         The endpoint retrieves [active orders](/glossary#active-orders) (orders not yet executed).
         
@@ -4887,6 +5112,7 @@ paths:
   /api/v4/trade-account/executed-history:
     post:
       summary: Query executed order history
+      operationId: getExecutedOrderHistory
       description: |
         The endpoint retrieves all deals for all markets. Can be filtered by single market if needed.
         
@@ -5028,6 +5254,7 @@ paths:
   /api/v4/trade-account/order:
     post:
       summary: Query executed order deals
+      operationId: getOrderDeals
       description: |
         The endpoint retrieves deals for a specific order.
         
@@ -5161,6 +5388,7 @@ paths:
   /api/v4/trade-account/order/history:
     post:
       summary: Query executed orders
+      operationId: getOrderHistory
       description: |
         The endpoint retrieves order history.
         
@@ -5319,6 +5547,7 @@ paths:
   /api/v4/order/modify:
     post:
       summary: Modify order
+      operationId: modifyOrder
       description: |
         The endpoint modifies existing [order](/glossary#orders).
         
@@ -5439,6 +5668,7 @@ paths:
   /api/v4/order/kill-switch:
     post:
       summary: Sync kill-switch timer
+      operationId: setKillSwitch
       description: |
         The endpoint creates, updates, deletes [kill-switch timer](/glossary#kill-switch-timer).
         
@@ -5566,6 +5796,7 @@ paths:
   /api/v4/order/kill-switch/status:
     post:
       summary: Status kill-switch timer
+      operationId: getKillSwitchStatus
       description: |
         The endpoint retrieves the status of [kill-switch timer](/glossary#kill-switch-timer).
         
@@ -5670,7 +5901,11 @@ components:
         - X-TXC-SIGNATURE: HMAC SHA512 signature
   responses:
     BulkLimitOrderResponse:
-      $ref: '#/components/schemas/BulkLimitOrderResponse'
+      description: Orders created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BulkLimitOrderResponse'
   schemas:
     LimitOrderRequest:
       type: object
@@ -5947,63 +6182,19 @@ components:
           example: true
     BulkLimitOrderResponse:
       type: array
-      description: Orders created
       items:
         type: object
         properties:
           result:
-            $ref: '#/components/schemas/OrderResponse'
+            type: object
+            allOf:
+              - $ref: '#/components/schemas/OrderResponse'
+            nullable: true
           error:
+            type: object
             allOf:
               - $ref: '#/components/schemas/ErrorResponse'
             nullable: true
-      example:
-        - result:
-            orderId: 4326248250
-            clientOrderId: ""
-            market: "BTC_USDT"
-            side: "buy"
-            type: "limit"
-            timestamp: 1684916268.825564
-            dealMoney: "641.988"
-            dealStock: "0.02"
-            amount: "0.02"
-            left: "0"
-            dealFee: "1.283976"
-            ioc: false
-            postOnly: false
-            price: "40000"
-            status: "FILLED"
-            stp: "no"
-            positionSide: "BOTH"
-            rpi: true
-          error: null
-        - result: null
-          error:
-            code: 32
-            message: "Validation failed"
-            errors:
-              amount: ["Given amount is less than min amount 0.001."]
-        - result:
-            orderId: 4326248250
-            clientOrderId: ""
-            market: "BTC_USDT"
-            side: "sell"
-            type: "limit"
-            timestamp: 1684916268.825564
-            dealMoney: "641.988"
-            dealStock: "0.02"
-            amount: "0.02"
-            left: "0"
-            dealFee: "1.283976"
-            ioc: false
-            postOnly: false
-            price: "41000"
-            status: "FILLED"
-            stp: "no"
-            positionSide: "BOTH"
-            rpi: true
-          error: null
     ErrorResponse:
       type: object
       properties:
