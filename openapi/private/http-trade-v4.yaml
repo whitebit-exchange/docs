@@ -68,10 +68,6 @@ paths:
                 nonce:
                   type: string
                   description: Unique request identifier
-            example:
-              ticker: BTC
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns collateral balances by asset
@@ -145,10 +141,6 @@ paths:
                 nonce:
                   type: string
                   description: Unique request identifier
-            example:
-              ticker: BTC
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns detailed balance information per asset
@@ -287,39 +279,118 @@ paths:
                   example: true
                 positionSide:
                   type: string
-                  enum: [LONG, SHORT, BOTH]
+                  enum: [long, short, both]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                 request:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              side: buy
-              amount: "0.01"
-              price: "40000"
-              postOnly: false
-              ioc: false
-              clientOrderId: order1987111
-              stopLoss: "50000"
-              takeProfit: "30000"
-              positionSide: LONG
-              rpi: true
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Order created
+          description: Successful response - order created
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  orderId:
+                    type: integer
+                    description: Unique order identifier
+                    example: 4180284841
+                  clientOrderId:
+                    type: string
+                    description: Custom client order identifier. Empty string if not specified
+                    example: "order1987111"
+                  market:
+                    type: string
+                    description: Market name
+                    example: "BTC_USDT"
+                  side:
+                    type: string
+                    description: Order side
+                    enum: [buy, sell]
+                    example: "buy"
+                  type:
+                    type: string
+                    description: Order type
+                    example: "limit"
+                  timestamp:
+                    type: number
+                    description: Timestamp of order creation in Unix format
+                    example: 1595792396.165973
+                  dealMoney:
+                    type: string
+                    description: Amount in money currency that is finished
+                    example: "0"
+                  dealStock:
+                    type: string
+                    description: Amount in stock currency that is finished
+                    example: "0"
+                  amount:
+                    type: string
+                    description: Order amount
+                    example: "0.01"
+                  left:
+                    type: string
+                    description: Remaining amount that must be finished
+                    example: "0.001"
+                  dealFee:
+                    type: string
+                    description: Fee in money that is paid when order is finished
+                    example: "0"
+                  price:
+                    type: string
+                    description: Order price
+                    example: "40000"
+                  postOnly:
+                    type: boolean
+                    description: Post-only flag
+                    example: false
+                  ioc:
+                    type: boolean
+                    description: Immediate or cancel flag
+                    example: false
+                  status:
+                    type: string
+                    description: Order status
+                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+                    example: "FILLED"
+                  stp:
+                    type: string
+                    description: Self trade prevention mode
+                    example: "no"
+                  oto:
+                    type: object
+                    description: OTO order data when stopLoss or takeProfit is specified
+                    nullable: true
+                    properties:
+                      otoId:
+                        type: integer
+                        description: OTO order identifier
+                        example: 29457221
+                      stopLoss:
+                        type: string
+                        description: Stop loss order price
+                        example: "30000"
+                      takeProfit:
+                        type: string
+                        description: Take profit order price
+                        example: "50000"
+                  positionSide:
+                    type: string
+                    description: Position side
+                    enum: [LONG, SHORT, BOTH]
+                    example: "LONG"
+                  rpi:
+                    type: boolean
+                    description: Retail Price Improvement flag
+                    example: true
               example:
                 orderId: 4180284841
-                clientOrderId: order1987111
-                market: BTC_USDT
-                side: buy
-                type: limit
+                clientOrderId: "order1987111"
+                market: "BTC_USDT"
+                side: "buy"
+                type: "limit"
                 timestamp: 1595792396.165973
                 dealMoney: "0"
                 dealStock: "0"
@@ -329,13 +400,13 @@ paths:
                 price: "40000"
                 postOnly: false
                 ioc: false
-                status: FILLED
+                status: "FILLED"
                 stp: "no"
                 oto:
                   otoId: 29457221
                   stopLoss: "30000"
                   takeProfit: "50000"
-                positionSide: LONG
+                positionSide: "LONG"
                 rpi: true
         '422':
           description: Inner validation failed
@@ -419,7 +490,7 @@ paths:
                         example: true
                       positionSide:
                         type: string
-                        enum: [LONG, SHORT, BOTH]
+                        enum: [long, short, both]
                         description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                 stopOnFail:
                   type: boolean
@@ -434,54 +505,126 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              orders:
-                - side: buy
-                  amount: "0.02"
-                  price: "40000"
-                  market: BTC_PERP
-                  postOnly: false
-                  ioc: false
-                  clientOrderId: ""
-                  positionSide: LONG
-                  rpi: true
-                - side: sell
-                  amount: "0.0001"
-                  price: "41000"
-                  market: BTC_USDT
-                  postOnly: false
-                  ioc: false
-                  clientOrderId: ""
-                  positionSide: LONG
-                  rpi: true
-                - side: sell
-                  amount: "0.02"
-                  price: "0.030"
-                  market: ETH_BTC
-                  postOnly: false
-                  ioc: false
-                  clientOrderId: ""
-                  positionSide: LONG
-                  rpi: true
-              stopOnFail: true
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Orders created
+          description: Successful response - returns array of order results
           content:
             application/json:
               schema:
                 type: array
+                description: Array of order creation results. Each item contains either a successful result or an error.
                 items:
                   type: object
+                  properties:
+                    result:
+                      type: object
+                      nullable: true
+                      description: Order data when successful, null when failed
+                      properties:
+                        orderId:
+                          type: integer
+                          description: Unique order identifier
+                          example: 4326248250
+                        clientOrderId:
+                          type: string
+                          description: Custom client order identifier. Empty string if not specified
+                          example: ""
+                        market:
+                          type: string
+                          description: Market name
+                          example: "BTC_USDT"
+                        side:
+                          type: string
+                          description: Order side
+                          enum: [buy, sell]
+                          example: "buy"
+                        type:
+                          type: string
+                          description: Order type
+                          example: "limit"
+                        timestamp:
+                          type: number
+                          description: Timestamp of order creation in Unix format
+                          example: 1684916268.825564
+                        dealMoney:
+                          type: string
+                          description: Amount in money currency that is finished
+                          example: "641.988"
+                        dealStock:
+                          type: string
+                          description: Amount in stock currency that is finished
+                          example: "0.02"
+                        amount:
+                          type: string
+                          description: Order amount
+                          example: "0.02"
+                        left:
+                          type: string
+                          description: Remaining amount that must be finished
+                          example: "0"
+                        dealFee:
+                          type: string
+                          description: Fee in money that is paid when order is finished
+                          example: "1.283976"
+                        price:
+                          type: string
+                          description: Order price
+                          example: "40000"
+                        postOnly:
+                          type: boolean
+                          description: Post-only flag
+                          example: false
+                        ioc:
+                          type: boolean
+                          description: Immediate or cancel flag
+                          example: false
+                        status:
+                          type: string
+                          description: Order status
+                          enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+                          example: "FILLED"
+                        stp:
+                          type: string
+                          description: Self trade prevention mode
+                          example: "no"
+                        positionSide:
+                          type: string
+                          description: Position side
+                          enum: [LONG, SHORT, BOTH]
+                          example: "LONG"
+                        rpi:
+                          type: boolean
+                          description: Retail Price Improvement flag
+                          example: true
+                    error:
+                      type: object
+                      nullable: true
+                      description: Error details when order creation failed, null when successful
+                      properties:
+                        code:
+                          type: integer
+                          description: Error code
+                          example: 32
+                        message:
+                          type: string
+                          description: Error message
+                          example: "Validation failed"
+                        errors:
+                          type: object
+                          description: Detailed validation errors
+                          additionalProperties:
+                            type: array
+                            items:
+                              type: string
+                          example:
+                            amount: ["Given amount is less than min amount 0.001."]
               example:
                 - result:
                     orderId: 4326248250
                     clientOrderId: ""
-                    market: BTC_USDT
-                    side: buy
-                    type: limit
+                    market: "BTC_USDT"
+                    side: "buy"
+                    type: "limit"
                     timestamp: 1684916268.825564
                     dealMoney: "641.988"
                     dealStock: "0.02"
@@ -491,24 +634,23 @@ paths:
                     ioc: false
                     postOnly: false
                     price: "40000"
-                    status: FILLED
+                    status: "FILLED"
                     stp: "no"
-                    positionSide: LONG
+                    positionSide: "LONG"
                     rpi: true
                   error: null
                 - result: null
                   error:
                     code: 32
-                    message: Validation failed
+                    message: "Validation failed"
                     errors:
-                      amount:
-                        - Given amount is less than min amount 0.001.
+                      amount: ["Given amount is less than min amount 0.001."]
                 - result:
-                    orderId: 4326248251
+                    orderId: 4326248250
                     clientOrderId: ""
-                    market: ETH_BTC
-                    side: sell
-                    type: limit
+                    market: "BTC_USDT"
+                    side: "sell"
+                    type: "limit"
                     timestamp: 1684916268.825564
                     dealMoney: "641.988"
                     dealStock: "0.02"
@@ -517,10 +659,10 @@ paths:
                     dealFee: "1.283976"
                     ioc: false
                     postOnly: false
-                    price: "0.030"
-                    status: FILLED
+                    price: "41000"
+                    status: "FILLED"
                     stp: "no"
-                    positionSide: LONG
+                    positionSide: "LONG"
                     rpi: true
                   error: null
         '400':
@@ -579,44 +721,114 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [LONG, SHORT, BOTH]
+                  enum: [long, short]
                 request:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              side: buy
-              amount: "0.01"
-              clientOrderId: order1987111
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Order created
+          description: Successful response - market order created
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  orderId:
+                    type: integer
+                    description: Unique order identifier
+                    example: 4180284841
+                  clientOrderId:
+                    type: string
+                    description: Custom client order identifier. Empty string if not specified
+                    example: "order1987111"
+                  market:
+                    type: string
+                    description: Market name
+                    example: "BTC_USDT"
+                  side:
+                    type: string
+                    description: Order side
+                    enum: [buy, sell]
+                    example: "sell"
+                  type:
+                    type: string
+                    description: Order type
+                    example: "market"
+                  timestamp:
+                    type: number
+                    description: Timestamp of order creation in Unix format
+                    example: 1595792396.165973
+                  dealMoney:
+                    type: string
+                    description: Amount in money currency that is finished
+                    example: "0"
+                  dealStock:
+                    type: string
+                    description: Amount in stock currency that is finished
+                    example: "0"
+                  amount:
+                    type: string
+                    description: Order amount
+                    example: "0.001"
+                  left:
+                    type: string
+                    description: Remaining amount that must be finished
+                    example: "0.001"
+                  dealFee:
+                    type: string
+                    description: Fee in money that is paid when order is finished
+                    example: "0"
+                  status:
+                    type: string
+                    description: Order status
+                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+                    example: "FILLED"
+                  stp:
+                    type: string
+                    description: Self trade prevention mode
+                    example: "no"
+                  oto:
+                    type: object
+                    description: OTO order data when stopLoss or takeProfit is specified
+                    nullable: true
+                    properties:
+                      otoId:
+                        type: integer
+                        description: OTO order identifier
+                        example: 29457221
+                      stopLoss:
+                        type: string
+                        description: Stop loss order price
+                        example: "50000"
+                      takeProfit:
+                        type: string
+                        description: Take profit order price
+                        example: "40000"
+                  positionSide:
+                    type: string
+                    description: Position side
+                    enum: [LONG, SHORT, BOTH]
+                    example: "LONG"
               example:
                 orderId: 4180284841
-                clientOrderId: order1987111
-                market: BTC_USDT
-                side: sell
-                type: market
+                clientOrderId: "order1987111"
+                market: "BTC_USDT"
+                side: "sell"
+                type: "market"
                 timestamp: 1595792396.165973
                 dealMoney: "0"
                 dealStock: "0"
                 amount: "0.001"
                 left: "0.001"
                 dealFee: "0"
-                status: FILLED
+                status: "FILLED"
                 stp: "no"
                 oto:
                   otoId: 29457221
                   stopLoss: "50000"
                   takeProfit: "40000"
-                positionSide: LONG
+                positionSide: "LONG"
         '422':
           description: Internal validation failed
           content:
@@ -673,36 +885,109 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [LONG, SHORT, BOTH]
+                  enum: [long, short]
                 request:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              side: buy
-              amount: "0.001"
-              price: "40000"
-              activation_price: "40000"
-              stopLoss: "30000"
-              takeProfit: "50000"
-              clientOrderId: order1987111
-              positionSide: LONG
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Order created
+          description: Successful response - stop-limit order created
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  orderId:
+                    type: integer
+                    description: Unique order identifier
+                    example: 4180284841
+                  clientOrderId:
+                    type: string
+                    description: Custom client order identifier. Empty string if not specified
+                    example: "order1987111"
+                  market:
+                    type: string
+                    description: Market name
+                    example: "BTC_USDT"
+                  side:
+                    type: string
+                    description: Order side
+                    enum: [buy, sell]
+                    example: "buy"
+                  type:
+                    type: string
+                    description: Order type
+                    example: "stop limit"
+                  timestamp:
+                    type: number
+                    description: Timestamp of order creation in Unix format
+                    example: 1595792396.165973
+                  dealMoney:
+                    type: string
+                    description: Amount in money currency that is finished
+                    example: "0"
+                  dealStock:
+                    type: string
+                    description: Amount in stock currency that is finished
+                    example: "0"
+                  amount:
+                    type: string
+                    description: Order amount
+                    example: "0.001"
+                  left:
+                    type: string
+                    description: Remaining amount that must be finished
+                    example: "0.001"
+                  dealFee:
+                    type: string
+                    description: Fee in money that is paid when order is finished
+                    example: "0"
+                  price:
+                    type: string
+                    description: Order price
+                    example: "40000"
+                  activation_price:
+                    type: string
+                    description: Price at which the stop-limit order activates
+                    example: "40000"
+                  status:
+                    type: string
+                    description: Order status
+                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+                    example: "FILLED"
+                  stp:
+                    type: string
+                    description: Self trade prevention mode
+                    example: "no"
+                  oto:
+                    type: object
+                    description: OTO order data when stopLoss or takeProfit is specified
+                    nullable: true
+                    properties:
+                      otoId:
+                        type: integer
+                        description: OTO order identifier
+                        example: 29457221
+                      stopLoss:
+                        type: string
+                        description: Stop loss order price
+                        example: "30000"
+                      takeProfit:
+                        type: string
+                        description: Take profit order price
+                        example: "50000"
+                  positionSide:
+                    type: string
+                    description: Position side
+                    enum: [LONG, SHORT, BOTH]
+                    example: "LONG"
               example:
                 orderId: 4180284841
-                clientOrderId: order1987111
-                market: BTC_USDT
-                side: buy
-                type: stop limit
+                clientOrderId: "order1987111"
+                market: "BTC_USDT"
+                side: "buy"
+                type: "stop limit"
                 timestamp: 1595792396.165973
                 dealMoney: "0"
                 dealStock: "0"
@@ -711,13 +996,13 @@ paths:
                 dealFee: "0"
                 price: "40000"
                 activation_price: "40000"
-                status: FILLED
+                status: "FILLED"
                 stp: "no"
                 oto:
                   otoId: 29457221
                   stopLoss: "30000"
                   takeProfit: "50000"
-                positionSide: LONG
+                positionSide: "LONG"
         '400':
           description: Inner validation failed
           content:
@@ -777,32 +1062,105 @@ paths:
                   type: string
                 positionSide:
                   type: string
-                  enum: [LONG, SHORT, BOTH]
+                  enum: [long, short]
                 request:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              side: buy
-              amount: "0.01"
-              activation_price: "40000"
-              clientOrderId: order1987111
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Order created
+          description: Successful response - trigger market order created
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  orderId:
+                    type: integer
+                    description: Unique order identifier
+                    example: 4180284841
+                  clientOrderId:
+                    type: string
+                    description: Custom client order identifier. Empty string if not specified
+                    example: "order1987111"
+                  market:
+                    type: string
+                    description: Market name
+                    example: "BTC_USDT"
+                  side:
+                    type: string
+                    description: Order side
+                    enum: [buy, sell]
+                    example: "sell"
+                  type:
+                    type: string
+                    description: Order type
+                    example: "stop market"
+                  timestamp:
+                    type: number
+                    description: Timestamp of order creation in Unix format
+                    example: 1595792396.165973
+                  dealMoney:
+                    type: string
+                    description: Amount in money currency that is finished
+                    example: "0"
+                  dealStock:
+                    type: string
+                    description: Amount in stock currency that is finished
+                    example: "0"
+                  amount:
+                    type: string
+                    description: Order amount
+                    example: "0.001"
+                  left:
+                    type: string
+                    description: Remaining amount that must be finished
+                    example: "0.001"
+                  dealFee:
+                    type: string
+                    description: Fee in money that is paid when order is finished
+                    example: "0"
+                  activation_price:
+                    type: string
+                    description: Price at which the stop market order activates
+                    example: "40000"
+                  status:
+                    type: string
+                    description: Order status
+                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+                    example: "FILLED"
+                  stp:
+                    type: string
+                    description: Self trade prevention mode
+                    example: "no"
+                  oto:
+                    type: object
+                    description: OTO order data when stopLoss or takeProfit is specified
+                    nullable: true
+                    properties:
+                      otoId:
+                        type: integer
+                        description: OTO order identifier
+                        example: 29457221
+                      stopLoss:
+                        type: string
+                        description: Stop loss order price
+                        example: "50000"
+                      takeProfit:
+                        type: string
+                        description: Take profit order price
+                        example: "30000"
+                  positionSide:
+                    type: string
+                    description: Position side
+                    enum: [LONG, SHORT, BOTH]
+                    example: "LONG"
               example:
                 orderId: 4180284841
-                clientOrderId: order1987111
-                market: BTC_USDT
-                side: sell
-                type: stop market
+                clientOrderId: "order1987111"
+                market: "BTC_USDT"
+                side: "sell"
+                type: "stop market"
                 timestamp: 1595792396.165973
                 dealMoney: "0"
                 dealStock: "0"
@@ -810,13 +1168,13 @@ paths:
                 left: "0.001"
                 dealFee: "0"
                 activation_price: "40000"
-                status: FILLED
+                status: "FILLED"
                 stp: "no"
                 oto:
                   otoId: 29457221
                   stopLoss: "50000"
                   takeProfit: "30000"
-                positionSide: LONG
+                positionSide: "LONG"
         '422':
           description: Inner validation failed
           content:
@@ -850,27 +1208,50 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Account summary
+          description: Successful response - returns collateral account summary
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  equity:
+                    type: string
+                    description: Total equity value of the collateral account
+                    example: "15000.50"
+                  margin:
+                    type: string
+                    description: Total margin used
+                    example: "5000.00"
+                  freeMargin:
+                    type: string
+                    description: Available margin for trading
+                    example: "10000.50"
+                  unrealizedFunding:
+                    type: string
+                    description: Unrealized funding payments
+                    example: "25.75"
+                  pnl:
+                    type: string
+                    description: Unrealized profit and loss
+                    example: "150.25"
+                  leverage:
+                    type: integer
+                    description: Current leverage level
+                    example: 3
+                  marginFraction:
+                    type: string
+                    description: Margin fraction ratio (margin / equity)
+                    example: "0.3333"
               example:
-                equity: "9817.676478608323"
-                margin: "3880.64387"
-                freeMargin: "10739.489348608323"
-                unrealizedFunding: "0"
-                pnl: "4802.45674"
-                leverage: 100
-                marginFraction: "0.0497228995828862"
-                maintenanceMarginFraction: "0.0065990118926067"
-                futuresEquity: "9817.676478608323"
-                futuresFreeMargin: "10739.489348608323"
+                equity: "15000.50"
+                margin: "5000.00"
+                freeMargin: "10000.50"
+                unrealizedFunding: "25.75"
+                pnl: "150.25"
+                leverage: 3
+                marginFraction: "0.3333"
         '503':
           description: Service temporarily unavailable
 
@@ -879,7 +1260,7 @@ paths:
       summary: Open Positions
       description: |
         The endpoint retrieves open positions.
-        
+
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
@@ -896,15 +1277,24 @@ paths:
               properties:
                 market:
                   type: string
+                  description: |
+                    Filter by specific market. For example: BTC_USDT
+
+                    If not specified, returns all open positions.
+                  example: BTC_USDT
                 request:
                   type: string
+                  description: Request signature
                 nonce:
                   type: string
+                  description: Unique request identifier
             example:
-              market: BTC_USDT
+              market: "BTC_USDT"
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Open positions
+          description: Successful response - returns array of open positions
           content:
             application/json:
               schema:
@@ -912,32 +1302,103 @@ paths:
                 items:
                   type: object
                   properties:
-                    positionId: { type: integer }
-                    market: { type: string }
-                    openDate: { type: number }
-                    modifyDate: { type: number }
-                    amount: { type: string }
-                    basePrice: { type: string }
-                    liquidationPrice: { type: string, nullable: true }
-                    liquidationState: { type: string, nullable: true }
-                    pnl: { type: string }
-                    pnlPercent: { type: string }
-                    margin: { type: string }
-                    freeMargin: { type: string }
-                    funding: { type: string }
-                    unrealizedFunding: { type: string }
+                    positionId:
+                      type: integer
+                      description: Unique position identifier
+                      example: 527
+                    market:
+                      type: string
+                      description: Market name
+                      example: "BTC_USDT"
+                    amount:
+                      type: string
+                      description: Position amount
+                      example: "0.1"
+                    basePrice:
+                      type: string
+                      description: Base price of position
+                      example: "45658.349"
+                    liqPrice:
+                      type: string
+                      description: Liquidation price according to current state of position
+                      example: "40000.00"
+                      nullable: true
+                    pnl:
+                      type: string
+                      description: Unrealized profit and loss in money
+                      example: "-168.42"
+                    pnlPercent:
+                      type: string
+                      description: Unrealized profit and loss in percentage
+                      example: "-0.43"
+                    margin:
+                      type: string
+                      description: Amount of funds in open position money
+                      example: "8316.74"
+                    freeMargin:
+                      type: string
+                      description: Free funds for trading
+                      example: "619385.67"
+                    funding:
+                      type: string
+                      description: Funding that will be paid on next position stage change
+                      example: "0"
+                    unrealizedPnl:
+                      type: string
+                      description: Unrealized profit and loss
+                      example: "0.0019142920201966"
+                    positionSide:
+                      type: string
+                      description: Position side
+                      enum: [LONG, SHORT, BOTH]
+                      example: "LONG"
+                    openDate:
+                      type: number
+                      description: Date of position opening in Unix timestamp format
+                      example: 1651568067.789679
+                    modifyDate:
+                      type: number
+                      description: Date of position modifying (current event) in Unix timestamp format
+                      example: 1651568067.789679
+                    liquidationPrice:
+                      type: string
+                      description: Liquidation price according to current state of position
+                      nullable: true
+                      example: null
+                    liquidationState:
+                      type: string
+                      description: State of liquidation
+                      enum: [margin_call, liquidation]
+                      nullable: true
+                      example: null
                     tpsl:
                       type: object
+                      description: Take profit and stop loss configuration
                       nullable: true
                       properties:
-                        takeProfitId: { type: integer }
-                        takeProfit: { type: string }
-                        stopLossId: { type: integer }
-                        stopLoss: { type: string }
-                    positionSide: { type: string }
+                        takeProfitId:
+                          type: integer
+                          description: Take profit order ID
+                          example: 123
+                        takeProfit:
+                          type: string
+                          description: Take profit price
+                          example: "50000"
+                        stopLossId:
+                          type: integer
+                          description: Stop loss order ID
+                          example: 124
+                        stopLoss:
+                          type: string
+                          description: Stop loss price
+                          example: "35000"
+                    unrealizedFunding:
+                      type: string
+                      description: Funding that will be paid on next position stage change
+                      example: "0.0019142920201966"
               example:
                 - positionId: 527
-                  market: BTC_USDT
+                  market: "BTC_USDT"
                   openDate: 1651568067.789679
                   modifyDate: 1651568067.789679
                   amount: "0.1"
@@ -955,7 +1416,23 @@ paths:
                     takeProfit: "50000"
                     stopLossId: 124
                     stopLoss: "35000"
-                  positionSide: LONG
+                  positionSide: "LONG"
+                - positionId: 528
+                  market: "ETH_USDT"
+                  openDate: 1651568067.789679
+                  modifyDate: 1651568067.789679
+                  amount: "0.1"
+                  basePrice: "5658.349"
+                  liquidationPrice: null
+                  liquidationState: null
+                  pnl: "-168.42"
+                  pnlPercent: "-0.43"
+                  margin: "8316.74"
+                  freeMargin: "19385.67"
+                  funding: "0"
+                  unrealizedFunding: "0.0020142920201966"
+                  tpsl: null
+                  positionSide: "LONG"
         '422':
           description: Inner validation failed
           content:
@@ -994,29 +1471,16 @@ paths:
                   type: integer
                 positionSide:
                   type: string
-                  enum: [LONG, SHORT, BOTH]
+                  enum: [long, short]
                 market:
                   type: string
                 request:
                   type: string
                 nonce:
                   type: string
-            example:
-              positionId: 123
-              positionSide: LONG
-              market: BTC_USDT
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
           description: Position closed
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {}
-                description: Empty array indicates success
-              example: []
         '400':
           description: Inner validation failed
           content:
@@ -1062,23 +1526,94 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              positionId: 1
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Positions history
+          description: Successful response - returns array of position history
           content:
             application/json:
               schema:
                 type: array
+                description: Array of position history entries
                 items:
                   type: object
+                  properties:
+                    positionId:
+                      type: integer
+                      description: Position identifier
+                      example: 111
+                    market:
+                      type: string
+                      description: Position market
+                      example: "BTC_USDT"
+                    openDate:
+                      type: number
+                      description: Date of position opening in Unix timestamp format
+                      example: 1650400589.882613
+                    modifyDate:
+                      type: number
+                      description: Date of position modification (current event) in Unix timestamp format
+                      example: 1650400589.882613
+                    amount:
+                      type: string
+                      description: Position amount
+                      example: "0.1"
+                    basePrice:
+                      type: string
+                      description: Base price of position
+                      example: "45658.349"
+                    realizedFunding:
+                      type: string
+                      description: Funding fee for whole position lifetime till current state
+                      example: "0"
+                    liquidationPrice:
+                      type: string
+                      description: Liquidation price according to current state of position
+                      nullable: true
+                      example: null
+                    liquidationState:
+                      type: string
+                      description: State of liquidation
+                      enum: [margin_call, liquidation]
+                      nullable: true
+                      example: null
+                    orderDetail:
+                      type: object
+                      description: Details of order which changes position
+                      properties:
+                        id:
+                          type: integer
+                          description: Order identifier
+                          example: 97067934
+                        tradeAmount:
+                          type: string
+                          description: Trade amount of order
+                          example: "0.1"
+                        price:
+                          type: string
+                          description: Order price
+                          example: "41507.59"
+                        tradeFee:
+                          type: string
+                          description: Order trade fee
+                          example: "415.07"
+                        fundingFee:
+                          type: string
+                          description: Funding fee captured by this position change
+                          nullable: true
+                          example: null
+                        realizedPnl:
+                          type: string
+                          description: Realized profit and loss
+                          nullable: true
+                          example: null
+                    positionSide:
+                      type: string
+                      description: Position side
+                      enum: [LONG, SHORT, BOTH]
+                      example: "LONG"
               example:
                 - positionId: 111
-                  market: BTC_USDT
+                  market: "BTC_USDT"
                   openDate: 1650400589.882613
                   modifyDate: 1650400589.882613
                   amount: "0.1"
@@ -1093,7 +1628,7 @@ paths:
                     tradeFee: "415.07"
                     fundingFee: null
                     realizedPnl: null
-                  positionSide: LONG
+                  positionSide: "LONG"
         '400':
           description: Inner validation failed
           content:
@@ -1116,7 +1651,7 @@ paths:
       summary: Funding History
       description: |
         The endpoint retrieves funding history.
-        
+
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
@@ -1133,31 +1668,93 @@ paths:
               properties:
                 market:
                   type: string
+                  description: |
+                    Filter by specific market. For example: BTC_PERP
+
+                    If not specified, returns funding history for all markets.
+                  example: BTC_PERP
+                limit:
+                  type: integer
+                  description: Number of records to return
+                  example: 100
+                  default: 100
+                offset:
+                  type: integer
+                  description: Number of records to skip
+                  example: 0
+                  default: 0
                 request:
                   type: string
+                  description: Request signature
                 nonce:
                   type: string
+                  description: Unique request identifier
             example:
-              market: BTC_PERP
+              market: "BTC_PERP"
+              limit: 100
+              offset: 0
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
         '200':
-          description: Funding history
+          description: Successful response - returns paginated funding history
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  records:
+                    type: array
+                    description: Array of funding history entries
+                    items:
+                      type: object
+                      properties:
+                        market:
+                          type: string
+                          description: Market name
+                          example: "BTC_PERP"
+                        fundingTime:
+                          type: string
+                          description: Funding time in Unix timestamp format
+                          example: "1734451200"
+                        fundingRate:
+                          type: string
+                          description: Funding rate applied
+                          example: "0.00017674"
+                        fundingAmount:
+                          type: string
+                          description: Funding amount paid or received
+                          example: "-0.171053531892"
+                        positionAmount:
+                          type: string
+                          description: Position amount at funding time
+                          example: "0.019"
+                        settlementPrice:
+                          type: string
+                          description: Settlement price used for funding calculation
+                          example: "50938.2"
+                        rateCalculatedTime:
+                          type: string
+                          description: Time when the funding rate was calculated in Unix timestamp format
+                          example: "1734364800"
+                  limit:
+                    type: integer
+                    description: Number of records per page
+                    example: 100
+                  offset:
+                    type: integer
+                    description: Number of records skipped
+                    example: 0
               example:
                 records:
-                  - market: BTC_PERP
+                  - market: "BTC_PERP"
                     fundingTime: "1734451200"
                     fundingRate: "0.00017674"
                     fundingAmount: "-0.171053531892"
                     positionAmount: "0.019"
                     settlementPrice: "50938.2"
                     rateCalculatedTime: "1734364800"
-                  - market: BTC_PERP
+                  - market: "BTC_PERP"
                     fundingTime: "1734451200"
                     fundingRate: "-0.000177877800093587"
                     fundingAmount: "-0.0054997859133136"
@@ -1207,17 +1804,18 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              leverage: 5
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Leverage changed
+          description: Successful response - leverage changed
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  leverage:
+                    type: integer
+                    description: Current collateral balance leverage
+                    example: 5
               example:
                 leverage: 5
         '422':
@@ -1253,16 +1851,18 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Hedge mode status
+          description: Successful response - returns hedge mode status
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  hedgeMode:
+                    type: boolean
+                    description: Current hedge mode status
+                    example: true
               example:
                 hedgeMode: true
         '500':
@@ -1300,13 +1900,9 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              hedgeMode: true
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: Hedge mode updated
+          description: Successful response - hedge mode updated
         '422':
           description: Inner validation failed
           content:
@@ -1350,38 +1946,106 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              offset: 0
-              limit: 100
       responses:
         '200':
-          description: Active conditional orders
+          description: Successful response - returns paginated conditional orders (OCO and OTO types)
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  limit: { type: integer }
-                  offset: { type: integer }
-                  total: { type: integer }
+                  limit:
+                    type: integer
+                    description: Number of records per page
+                    example: 100
+                  offset:
+                    type: integer
+                    description: Number of records skipped
+                    example: 0
+                  total:
+                    type: integer
+                    description: Total number of records
+                    example: 2
                   records:
                     type: array
+                    description: Array of conditional orders (can be OCO or OTO type)
                     items:
-                      type: object
+                      oneOf:
+                        - type: object
+                          description: OCO type conditional order
+                          properties:
+                            id:
+                              type: integer
+                              example: 117703764513
+                            type:
+                              type: string
+                              enum: [oco]
+                              example: "oco"
+                            stop_loss:
+                              type: object
+                              properties:
+                                orderId:
+                                  type: integer
+                                  example: 117703764514
+                                positionSide:
+                                  type: string
+                                  enum: [LONG, SHORT, BOTH]
+                                  example: "LONG"
+                            take_profit:
+                              type: object
+                              properties:
+                                orderId:
+                                  type: integer
+                                  example: 117703764515
+                                positionSide:
+                                  type: string
+                                  enum: [LONG, SHORT, BOTH]
+                                  example: "LONG"
+                        - type: object
+                          description: OTO type conditional order
+                          properties:
+                            id:
+                              type: integer
+                              example: 29457221
+                            type:
+                              type: string
+                              enum: [oto]
+                              example: "oto"
+                            stopLossPrice:
+                              type: string
+                              example: "30000"
+                            takeProfitPrice:
+                              type: string
+                              example: "50000"
+                            conditionalOrder:
+                              type: object
+                              properties:
+                                orderId:
+                                  type: integer
+                                  example: 3686033640
+                                clientOrderId:
+                                  type: string
+                                  example: "customId11"
+                                market:
+                                  type: string
+                                  example: "BTC_USDT"
+                                positionSide:
+                                  type: string
+                                  enum: [LONG, SHORT, BOTH]
+                                  example: "LONG"
               example:
                 limit: 100
                 offset: 0
                 total: 2
                 records:
                   - id: 117703764513
-                    type: oco
+                    type: "oco"
                     stop_loss:
                       orderId: 117703764514
                       clientOrderId: ""
-                      market: BTC_USDT
-                      side: buy
-                      type: stop limit
+                      market: "BTC_USDT"
+                      side: "buy"
+                      type: "stop limit"
                       timestamp: 1594605801.49815
                       dealMoney: "0"
                       dealStock: "0"
@@ -1394,17 +2058,17 @@ paths:
                       mtime: 1662478154.941582
                       price: "19928.79"
                       activation_price: "29928.79"
-                      activation_condition: gte
+                      activation_condition: "gte"
                       activated: 0
-                      status: FILLED
+                      status: "FILLED"
                       stp: "no"
-                      positionSide: LONG
+                      positionSide: "LONG"
                     take_profit:
                       orderId: 117703764515
                       clientOrderId: ""
-                      market: BTC_USDT
-                      side: buy
-                      type: limit
+                      market: "BTC_USDT"
+                      side: "buy"
+                      type: "limit"
                       timestamp: 1662478154.941582
                       dealMoney: "0"
                       dealStock: "0"
@@ -1416,19 +2080,19 @@ paths:
                       post_only: false
                       mtime: 1662478154.941582
                       price: "9928.79"
-                      status: FILLED
+                      status: "FILLED"
                       stp: "no"
-                      positionSide: LONG
+                      positionSide: "LONG"
                   - id: 29457221
-                    type: oto
+                    type: "oto"
                     stopLossPrice: "30000"
                     takeProfitPrice: "50000"
                     conditionalOrder:
                       orderId: 3686033640
                       clientOrderId: "customId11"
-                      market: BTC_USDT
-                      side: buy
-                      type: limit
+                      market: "BTC_USDT"
+                      side: "buy"
+                      type: "limit"
                       timestamp: 1594605801.49815
                       dealMoney: "0"
                       dealStock: "0"
@@ -1438,9 +2102,9 @@ paths:
                       left: "2.241379"
                       dealFee: "0"
                       price: "40000"
-                      status: FILLED
+                      status: "FILLED"
                       stp: "no"
-                      positionSide: LONG
+                      positionSide: "LONG"
         '400':
           description: Inner validation failed
           content:
@@ -1488,31 +2152,157 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              offset: 0
-              limit: 100
       responses:
         '200':
-          description: Active OCO orders
+          description: Successful response - returns array of active OCO orders
           content:
             application/json:
               schema:
                 type: array
+                description: Array of active OCO orders
                 items:
                   type: object
                   properties:
-                    id: { type: integer }
-                    stop_loss: { type: object }
-                    take_profit: { type: object }
+                    id:
+                      type: integer
+                      description: OCO order identifier
+                      example: 117703764513
+                    stop_loss:
+                      type: object
+                      description: Stop loss order details
+                      properties:
+                        orderId:
+                          type: integer
+                          example: 117703764514
+                        clientOrderId:
+                          type: string
+                          example: ""
+                        market:
+                          type: string
+                          example: "BTC_USDT"
+                        side:
+                          type: string
+                          enum: [buy, sell]
+                          example: "buy"
+                        type:
+                          type: string
+                          example: "stop limit"
+                        timestamp:
+                          type: number
+                          example: 1594605801.49815
+                        dealMoney:
+                          type: string
+                          example: "0"
+                        dealStock:
+                          type: string
+                          example: "0"
+                        amount:
+                          type: string
+                          example: "2.241379"
+                        takerFee:
+                          type: string
+                          example: "0.001"
+                        makerFee:
+                          type: string
+                          example: "0.001"
+                        left:
+                          type: string
+                          example: "2.241379"
+                        dealFee:
+                          type: string
+                          example: "0"
+                        post_only:
+                          type: boolean
+                          example: false
+                        mtime:
+                          type: number
+                          example: 1662478154.941582
+                        price:
+                          type: string
+                          example: "19928.79"
+                        activation_price:
+                          type: string
+                          example: "29928.79"
+                        activation_condition:
+                          type: string
+                          enum: [gte, lte]
+                          example: "gte"
+                        activated:
+                          type: integer
+                          example: 0
+                        status:
+                          type: string
+                          example: "FILLED"
+                        stp:
+                          type: string
+                          example: "no"
+                    take_profit:
+                      type: object
+                      description: Take profit order details
+                      properties:
+                        orderId:
+                          type: integer
+                          example: 117703764515
+                        clientOrderId:
+                          type: string
+                          example: ""
+                        market:
+                          type: string
+                          example: "BTC_USDT"
+                        side:
+                          type: string
+                          enum: [buy, sell]
+                          example: "buy"
+                        type:
+                          type: string
+                          example: "limit"
+                        timestamp:
+                          type: number
+                          example: 1662478154.941582
+                        dealMoney:
+                          type: string
+                          example: "0"
+                        dealStock:
+                          type: string
+                          example: "0"
+                        amount:
+                          type: string
+                          example: "0.635709"
+                        takerFee:
+                          type: string
+                          example: "0.001"
+                        makerFee:
+                          type: string
+                          example: "0.001"
+                        left:
+                          type: string
+                          example: "0.635709"
+                        dealFee:
+                          type: string
+                          example: "0"
+                        post_only:
+                          type: boolean
+                          example: false
+                        mtime:
+                          type: number
+                          example: 1662478154.941582
+                        price:
+                          type: string
+                          example: "9928.79"
+                        status:
+                          type: string
+                          example: "FILLED"
+                        stp:
+                          type: string
+                          example: "no"
               example:
                 - id: 117703764513
                   stop_loss:
                     orderId: 117703764514
                     clientOrderId: ""
-                    market: BTC_USDT
-                    side: buy
-                    type: stop limit
+                    market: "BTC_USDT"
+                    side: "buy"
+                    type: "stop limit"
                     timestamp: 1594605801.49815
                     dealMoney: "0"
                     dealStock: "0"
@@ -1525,16 +2315,16 @@ paths:
                     mtime: 1662478154.941582
                     price: "19928.79"
                     activation_price: "29928.79"
-                    activation_condition: gte
+                    activation_condition: "gte"
                     activated: 0
-                    status: FILLED
+                    status: "FILLED"
                     stp: "no"
                   take_profit:
                     orderId: 117703764515
                     clientOrderId: ""
-                    market: BTC_USDT
-                    side: buy
-                    type: limit
+                    market: "BTC_USDT"
+                    side: "buy"
+                    type: "limit"
                     timestamp: 1662478154.941582
                     dealMoney: "0"
                     dealStock: "0"
@@ -1546,7 +2336,7 @@ paths:
                     post_only: false
                     mtime: 1662478154.941582
                     price: "9928.79"
-                    status: FILLED
+                    status: "FILLED"
                     stp: "no"
         '400':
           description: Inner validation failed
@@ -1611,31 +2401,205 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              side: buy
-              amount: "0.001"
-              price: "40000"
-              activation_price: "41000"
-              stop_limit_price: "42000"
-              clientOrderId: order1987111
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: OCO order created
+          description: Successful response - OCO order created
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  id:
+                    type: integer
+                    description: OCO order identifier
+                    example: 117703764513
+                  stop_loss:
+                    type: object
+                    description: Stop loss order details
+                    properties:
+                      orderId:
+                        type: integer
+                        description: Order identifier
+                        example: 117703764514
+                      clientOrderId:
+                        type: string
+                        description: Custom order identifier. Empty string if not specified
+                        example: ""
+                      market:
+                        type: string
+                        description: Market name
+                        example: "BTC_USDT"
+                      side:
+                        type: string
+                        description: Order side
+                        enum: [buy, sell]
+                        example: "buy"
+                      type:
+                        type: string
+                        description: Order type
+                        example: "stop limit"
+                      timestamp:
+                        type: number
+                        description: Timestamp of order creation
+                        example: 1594605801.49815
+                      dealMoney:
+                        type: string
+                        description: Executed amount in money
+                        example: "0"
+                      dealStock:
+                        type: string
+                        description: Executed amount in stock
+                        example: "0"
+                      amount:
+                        type: string
+                        description: Order amount
+                        example: "2.241379"
+                      takerFee:
+                        type: string
+                        description: Taker fee ratio
+                        example: "0.001"
+                      makerFee:
+                        type: string
+                        description: Maker fee ratio
+                        example: "0.001"
+                      left:
+                        type: string
+                        description: Unexecuted amount in stock
+                        example: "2.241379"
+                      dealFee:
+                        type: string
+                        description: Executed fee by deal
+                        example: "0"
+                      post_only:
+                        type: boolean
+                        description: Post-only flag
+                        example: false
+                      mtime:
+                        type: number
+                        description: Timestamp of order modification
+                        example: 1662478154.941582
+                      price:
+                        type: string
+                        description: Order price
+                        example: "19928.79"
+                      activation_price:
+                        type: string
+                        description: Activation price
+                        example: "29928.79"
+                      activation_condition:
+                        type: string
+                        description: Activation condition
+                        enum: [gte, lte]
+                        example: "gte"
+                      activated:
+                        type: integer
+                        description: Activation status (0 - not activated, 1 - activated)
+                        example: 0
+                      status:
+                        type: string
+                        description: Order status
+                        enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+                        example: "FILLED"
+                      stp:
+                        type: string
+                        description: Self trade prevention mode
+                        example: "no"
+                      positionSide:
+                        type: string
+                        description: Position side
+                        enum: [LONG, SHORT, BOTH]
+                        example: "LONG"
+                  take_profit:
+                    type: object
+                    description: Take profit order details
+                    properties:
+                      orderId:
+                        type: integer
+                        description: Order identifier
+                        example: 117703764515
+                      clientOrderId:
+                        type: string
+                        description: Custom order identifier. Empty string if not specified
+                        example: ""
+                      market:
+                        type: string
+                        description: Market name
+                        example: "BTC_USDT"
+                      side:
+                        type: string
+                        description: Order side
+                        enum: [buy, sell]
+                        example: "buy"
+                      type:
+                        type: string
+                        description: Order type
+                        example: "limit"
+                      timestamp:
+                        type: number
+                        description: Timestamp of order creation
+                        example: 1662478154.941582
+                      dealMoney:
+                        type: string
+                        description: Executed amount in money
+                        example: "0"
+                      dealStock:
+                        type: string
+                        description: Executed amount in stock
+                        example: "0"
+                      amount:
+                        type: string
+                        description: Order amount
+                        example: "0.635709"
+                      takerFee:
+                        type: string
+                        description: Taker fee ratio
+                        example: "0.001"
+                      makerFee:
+                        type: string
+                        description: Maker fee ratio
+                        example: "0.001"
+                      left:
+                        type: string
+                        description: Unexecuted amount in stock
+                        example: "0.635709"
+                      dealFee:
+                        type: string
+                        description: Executed fee by deal
+                        example: "0"
+                      post_only:
+                        type: boolean
+                        description: Post-only flag
+                        example: false
+                      mtime:
+                        type: number
+                        description: Timestamp of order modification
+                        example: 1662478154.941582
+                      price:
+                        type: string
+                        description: Order price
+                        example: "9928.79"
+                      status:
+                        type: string
+                        description: Order status
+                        enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+                        example: "FILLED"
+                      stp:
+                        type: string
+                        description: Self trade prevention mode
+                        example: "no"
+                      positionSide:
+                        type: string
+                        description: Position side
+                        enum: [LONG, SHORT, BOTH]
+                        example: "LONG"
               example:
                 id: 117703764513
                 stop_loss:
                   orderId: 117703764514
                   clientOrderId: ""
-                  market: BTC_USDT
-                  side: buy
-                  type: stop limit
+                  market: "BTC_USDT"
+                  side: "buy"
+                  type: "stop limit"
                   timestamp: 1594605801.49815
                   dealMoney: "0"
                   dealStock: "0"
@@ -1648,17 +2612,17 @@ paths:
                   mtime: 1662478154.941582
                   price: "19928.79"
                   activation_price: "29928.79"
-                  activation_condition: gte
+                  activation_condition: "gte"
                   activated: 0
-                  status: FILLED
+                  status: "FILLED"
                   stp: "no"
-                  positionSide: LONG
+                  positionSide: "LONG"
                 take_profit:
                   orderId: 117703764515
                   clientOrderId: ""
-                  market: BTC_USDT
-                  side: buy
-                  type: limit
+                  market: "BTC_USDT"
+                  side: "buy"
+                  type: "limit"
                   timestamp: 1662478154.941582
                   dealMoney: "0"
                   dealStock: "0"
@@ -1670,9 +2634,9 @@ paths:
                   post_only: false
                   mtime: 1662478154.941582
                   price: "9928.79"
-                  status: FILLED
+                  status: "FILLED"
                   stp: "no"
-                  positionSide: LONG
+                  positionSide: "LONG"
         '400':
           description: Inner validation failed
           content:
@@ -1721,21 +2685,9 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              id: 117703764514
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
           description: Order cancelled
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {}
-                description: Empty array indicates success
-              example: []
         '400':
           description: Inner validation failed
           content:
@@ -1784,26 +2736,185 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              orderId: 117703764514
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
-          description: OCO order cancelled
+          description: Successful response - OCO order cancelled
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  id:
+                    type: integer
+                    description: OCO order identifier
+                    example: 117703764513
+                  stop_loss:
+                    type: object
+                    description: Cancelled stop loss order details
+                    properties:
+                      orderId:
+                        type: integer
+                        description: Order identifier
+                        example: 117703764514
+                      clientOrderId:
+                        type: string
+                        description: Custom order identifier. Empty string if not specified
+                        example: ""
+                      market:
+                        type: string
+                        description: Market name
+                        example: "BTC_USDT"
+                      side:
+                        type: string
+                        description: Order side
+                        enum: [buy, sell]
+                        example: "buy"
+                      type:
+                        type: string
+                        description: Order type
+                        example: "stop limit"
+                      timestamp:
+                        type: number
+                        description: Timestamp of order creation
+                        example: 1594605801.49815
+                      dealMoney:
+                        type: string
+                        description: Executed amount in money
+                        example: "0"
+                      dealStock:
+                        type: string
+                        description: Executed amount in stock
+                        example: "0"
+                      amount:
+                        type: string
+                        description: Order amount
+                        example: "2.241379"
+                      takerFee:
+                        type: string
+                        description: Taker fee ratio
+                        example: "0.001"
+                      makerFee:
+                        type: string
+                        description: Maker fee ratio
+                        example: "0.001"
+                      left:
+                        type: string
+                        description: Unexecuted amount in stock
+                        example: "2.241379"
+                      dealFee:
+                        type: string
+                        description: Executed fee by deal
+                        example: "0"
+                      post_only:
+                        type: boolean
+                        description: Post-only flag
+                        example: false
+                      mtime:
+                        type: number
+                        description: Timestamp of order modification
+                        example: 1662478154.941582
+                      price:
+                        type: string
+                        description: Order price
+                        example: "19928.79"
+                      activation_price:
+                        type: string
+                        description: Activation price
+                        example: "29928.79"
+                      activation_condition:
+                        type: string
+                        description: Activation condition
+                        enum: [gte, lte]
+                        example: "gte"
+                      activated:
+                        type: integer
+                        description: Activation status (0 - not activated, 1 - activated)
+                        example: 0
+                      status:
+                        type: string
+                        description: Order status
+                        example: "CANCELED"
+                      stp:
+                        type: string
+                        description: Self trade prevention mode
+                        example: "no"
+                  take_profit:
+                    type: object
+                    description: Cancelled take profit order details
+                    properties:
+                      orderId:
+                        type: integer
+                        description: Order identifier
+                        example: 117703764515
+                      clientOrderId:
+                        type: string
+                        description: Custom order identifier. Empty string if not specified
+                        example: ""
+                      market:
+                        type: string
+                        description: Market name
+                        example: "BTC_USDT"
+                      side:
+                        type: string
+                        description: Order side
+                        enum: [buy, sell]
+                        example: "buy"
+                      type:
+                        type: string
+                        description: Order type
+                        example: "limit"
+                      timestamp:
+                        type: number
+                        description: Timestamp of order creation
+                        example: 1662478154.941582
+                      dealMoney:
+                        type: string
+                        description: Executed amount in money
+                        example: "0"
+                      dealStock:
+                        type: string
+                        description: Executed amount in stock
+                        example: "0"
+                      amount:
+                        type: string
+                        description: Order amount
+                        example: "0.635709"
+                      left:
+                        type: string
+                        description: Unexecuted amount in stock
+                        example: "0.635709"
+                      dealFee:
+                        type: string
+                        description: Executed fee by deal
+                        example: "0"
+                      post_only:
+                        type: boolean
+                        description: Post-only flag
+                        example: false
+                      mtime:
+                        type: number
+                        description: Timestamp of order modification
+                        example: 1662478154.941582
+                      price:
+                        type: string
+                        description: Order price
+                        example: "9928.79"
+                      status:
+                        type: string
+                        description: Order status
+                        example: "CANCELED"
+                      stp:
+                        type: string
+                        description: Self trade prevention mode
+                        example: "no"
               example:
                 id: 117703764513
                 stop_loss:
                   orderId: 117703764514
                   clientOrderId: ""
-                  market: BTC_USDT
-                  side: buy
-                  type: stop limit
+                  market: "BTC_USDT"
+                  side: "buy"
+                  type: "stop limit"
                   timestamp: 1594605801.49815
                   dealMoney: "0"
                   dealStock: "0"
@@ -1816,16 +2927,16 @@ paths:
                   mtime: 1662478154.941582
                   price: "19928.79"
                   activation_price: "29928.79"
-                  activation_condition: gte
+                  activation_condition: "gte"
                   activated: 0
-                  status: CANCELED
+                  status: "CANCELED"
                   stp: "no"
                 take_profit:
                   orderId: 117703764515
                   clientOrderId: ""
-                  market: BTC_USDT
-                  side: buy
-                  type: limit
+                  market: "BTC_USDT"
+                  side: "buy"
+                  type: "limit"
                   timestamp: 1662478154.941582
                   dealMoney: "0"
                   dealStock: "0"
@@ -1835,7 +2946,7 @@ paths:
                   post_only: false
                   mtime: 1662478154.941582
                   price: "9928.79"
-                  status: CANCELED
+                  status: "CANCELED"
                   stp: "no"
         '400':
           description: Inner validation failed
@@ -1885,21 +2996,9 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              otoId: 117703764514
-              request: "{{request}}"
-              nonce: "{{nonce}}"
       responses:
         '200':
           description: OTO order cancelled
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {}
-                description: Empty array indicates success
-              example: []
         '400':
           description: Inner validation failed
           content:
@@ -2827,32 +3926,6 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              orders:
-                - side: buy
-                  amount: "0.02"
-                  price: "40000"
-                  market: BTC_USDT
-                  postOnly: false
-                  ioc: false
-                  clientOrderId: ""
-                  rpi: true
-                - side: sell
-                  amount: "0.0001"
-                  price: "41000"
-                  market: BTC_USDT
-                  postOnly: false
-                  ioc: false
-                  clientOrderId: ""
-                  rpi: true
-                - side: sell
-                  amount: "0.02"
-                  price: "41000"
-                  market: BTC_USDT
-                  postOnly: false
-                  ioc: false
-                  clientOrderId: ""
-                  rpi: true
       responses:
         '200':
           $ref: '#/components/responses/BulkLimitOrderResponse'
@@ -3699,22 +4772,9 @@ paths:
                   type: string
                 nonce:
                   type: string
-            example:
-              market: BTC_USDT
-              type:
-                - spot
-                - margin
-                - futures
       responses:
         '200':
           description: Orders cancelled successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {}
-                description: Empty array indicates success
-              example: []
         '400':
           description: Inner validation failed
           content:
@@ -4003,7 +5063,86 @@ paths:
                   type: string
       responses:
         '200':
-          description: Order deals
+          description: Successful response - returns paginated order deals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    description: Array of deal records
+                    items:
+                      type: object
+                      properties:
+                        time:
+                          type: number
+                          description: Timestamp of executed order
+                          example: 1593342324.613711
+                        fee:
+                          type: string
+                          description: Fee paid
+                          example: "0.00000419198"
+                        price:
+                          type: string
+                          description: Deal price
+                          example: "0.00000701"
+                        amount:
+                          type: string
+                          description: Amount in stock
+                          example: "598"
+                        id:
+                          type: integer
+                          description: Deal identifier
+                          example: 149156519
+                        dealOrderId:
+                          type: integer
+                          description: Completed order identifier
+                          example: 3134995325
+                        clientOrderId:
+                          type: string
+                          description: Custom order identifier. Empty string if not specified
+                          example: "customId11"
+                        role:
+                          type: integer
+                          description: Role in the deal (1 - maker, 2 - taker)
+                          enum: [1, 2]
+                          example: 2
+                        deal:
+                          type: string
+                          description: Amount in money
+                          example: "0.00419198"
+                        feeAsset:
+                          type: string
+                          description: Fee asset
+                          example: "USDT"
+                        rpi:
+                          type: boolean
+                          description: Retail Price Improvement flag
+                          example: true
+                  offset:
+                    type: integer
+                    description: Number of records skipped
+                    example: 0
+                  limit:
+                    type: integer
+                    description: Number of records per page
+                    example: 100
+              example:
+                records:
+                  - time: 1593342324.613711
+                    fee: "0.00000419198"
+                    price: "0.00000701"
+                    amount: "598"
+                    id: 149156519
+                    dealOrderId: 3134995325
+                    clientOrderId: "customId11"
+                    role: 2
+                    deal: "0.00419198"
+                    feeAsset: "USDT"
+                    rpi: true
+                offset: 0
+                limit: 100
         '400':
           description: Inner validation failed
           content:
@@ -4053,7 +5192,115 @@ paths:
                   type: string
       responses:
         '200':
-          description: Order history
+          description: Successful response - returns order history grouped by market. Empty response if order is not yours.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object with market names as keys, each containing an array of orders
+                additionalProperties:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      amount:
+                        type: string
+                        description: Trade amount
+                        example: "0.0009"
+                      price:
+                        type: string
+                        description: Order price
+                        example: "40000"
+                      type:
+                        type: string
+                        description: Order type
+                        example: "limit"
+                      id:
+                        type: integer
+                        description: Order identifier
+                        example: 4986126152
+                      clientOrderId:
+                        type: string
+                        description: Custom order identifier. Empty string if not specified
+                        example: "customId11"
+                      side:
+                        type: string
+                        description: Order side
+                        enum: [buy, sell]
+                        example: "sell"
+                      ctime:
+                        type: number
+                        description: Timestamp of order creation
+                        example: 1597486960.311311
+                      takerFee:
+                        type: string
+                        description: Taker fee ratio. If the number less than 0.0001 - rounded to zero
+                        example: "0.001"
+                      ftime:
+                        type: number
+                        description: Executed order timestamp
+                        example: 1597486960.311332
+                      makerFee:
+                        type: string
+                        description: Maker fee ratio. If the number less than 0.0001 - rounded to zero
+                        example: "0.001"
+                      dealFee:
+                        type: string
+                        description: Paid fee when order is finished
+                        example: "0.041258268"
+                      dealStock:
+                        type: string
+                        description: Amount in stock currency that finished
+                        example: "0.0009"
+                      dealMoney:
+                        type: string
+                        description: Amount in money currency that finished
+                        example: "41.258268"
+                      postOnly:
+                        type: boolean
+                        description: Post-only flag
+                        example: false
+                      ioc:
+                        type: boolean
+                        description: Immediate or cancel flag
+                        example: false
+                      status:
+                        type: string
+                        description: Order status
+                        example: "CANCELED"
+                      feeAsset:
+                        type: string
+                        description: Fee asset
+                        example: "USDT"
+                      stp:
+                        type: string
+                        description: Self trade prevention mode
+                        example: "no"
+                      rpi:
+                        type: boolean
+                        description: Retail Price Improvement flag
+                        example: false
+              example:
+                BTC_USDT:
+                  - amount: "0.0009"
+                    price: "40000"
+                    type: "limit"
+                    id: 4986126152
+                    clientOrderId: "customId11"
+                    side: "sell"
+                    ctime: 1597486960.311311
+                    takerFee: "0.001"
+                    ftime: 1597486960.311332
+                    makerFee: "0.001"
+                    dealFee: "0.041258268"
+                    dealStock: "0.0009"
+                    dealMoney: "41.258268"
+                    postOnly: false
+                    ioc: false
+                    status: "CANCELED"
+                    feeAsset: "USDT"
+                    stp: "no"
+                    rpi: false
         '400':
           description: Inner validation failed
           content:
@@ -4273,7 +5520,36 @@ paths:
                   type: string
       responses:
         '200':
-          description: Kill-switch timer synced
+          description: Successful response - kill-switch timer synced
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  market:
+                    type: string
+                    description: Market name
+                    example: "BTC_USDT"
+                  startTime:
+                    type: integer
+                    description: Timer start timestamp
+                    example: 1662478154
+                  cancellationTime:
+                    type: integer
+                    description: Order cancellation timestamp (startTime + timeout)
+                    example: 1662478154
+                  types:
+                    type: array
+                    description: Order types affected by kill-switch
+                    items:
+                      type: string
+                      enum: [spot, margin, futures]
+                    example: ["spot", "margin"]
+              example:
+                market: "BTC_USDT"
+                startTime: 1662478154
+                cancellationTime: 1662478154
+                types: ["spot", "margin"]
         '400':
           description: Inner validation failed
           content:
@@ -4333,7 +5609,39 @@ paths:
                   type: string
       responses:
         '200':
-          description: Kill-switch status
+          description: Successful response - returns array of kill-switch timer statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                description: Array of active kill-switch timers
+                items:
+                  type: object
+                  properties:
+                    market:
+                      type: string
+                      description: Market name
+                      example: "BTC_USDT"
+                    startTime:
+                      type: integer
+                      description: Timer start timestamp
+                      example: 1686127243
+                    cancellationTime:
+                      type: integer
+                      description: Order cancellation timestamp (startTime + timeout)
+                      example: 1686127343
+                    types:
+                      type: array
+                      description: Order types affected by kill-switch
+                      items:
+                        type: string
+                        enum: [spot, margin, futures]
+                      example: ["spot", "margin"]
+              example:
+                - market: "BTC_USDT"
+                  startTime: 1686127243
+                  cancellationTime: 1686127343
+                  types: ["spot", "margin"]
         '400':
           description: Inner validation failed
           content:
@@ -4362,39 +5670,7 @@ components:
         - X-TXC-SIGNATURE: HMAC SHA512 signature
   responses:
     BulkLimitOrderResponse:
-      description: Orders created
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/BulkLimitOrderResponse'
-          example:
-            - result:
-                orderId: 4326248250
-                clientOrderId: ""
-                market: BTC_USDT
-                side: buy
-                type: limit
-                timestamp: 1684916268.825564
-                dealMoney: "641.988"
-                dealStock: "0.02"
-                amount: "0.02"
-                left: "0"
-                dealFee: "1.283976"
-                ioc: false
-                postOnly: false
-                price: "40000"
-                status: FILLED
-                stp: "no"
-                positionSide: BOTH
-                rpi: true
-              error: null
-            - result: null
-              error:
-                code: 32
-                message: Validation failed
-                errors:
-                  amount:
-                    - Given amount is less than min amount 0.001.
+      $ref: '#/components/schemas/BulkLimitOrderResponse'
   schemas:
     LimitOrderRequest:
       type: object
@@ -4681,6 +5957,53 @@ components:
             allOf:
               - $ref: '#/components/schemas/ErrorResponse'
             nullable: true
+      example:
+        - result:
+            orderId: 4326248250
+            clientOrderId: ""
+            market: "BTC_USDT"
+            side: "buy"
+            type: "limit"
+            timestamp: 1684916268.825564
+            dealMoney: "641.988"
+            dealStock: "0.02"
+            amount: "0.02"
+            left: "0"
+            dealFee: "1.283976"
+            ioc: false
+            postOnly: false
+            price: "40000"
+            status: "FILLED"
+            stp: "no"
+            positionSide: "BOTH"
+            rpi: true
+          error: null
+        - result: null
+          error:
+            code: 32
+            message: "Validation failed"
+            errors:
+              amount: ["Given amount is less than min amount 0.001."]
+        - result:
+            orderId: 4326248250
+            clientOrderId: ""
+            market: "BTC_USDT"
+            side: "sell"
+            type: "limit"
+            timestamp: 1684916268.825564
+            dealMoney: "641.988"
+            dealStock: "0.02"
+            amount: "0.02"
+            left: "0"
+            dealFee: "1.283976"
+            ioc: false
+            postOnly: false
+            price: "41000"
+            status: "FILLED"
+            stp: "no"
+            positionSide: "BOTH"
+            rpi: true
+          error: null
     ErrorResponse:
       type: object
       properties:
@@ -4702,3 +6025,5 @@ tags:
     description: Endpoints for collateral/margin trading operations
   - name: Spot Trading
     description: Endpoints for spot trading operations
+  - name: Market Fee
+    description: Endpoints for querying trading fees
