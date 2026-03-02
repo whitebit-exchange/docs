@@ -1,0 +1,13 @@
+/*
+ * Fix: Code blocks inside <Accordion> components rendered from OpenAPI YAML descriptions
+ * lack the standard .code-block-background wrapper that Mintlify relies on to apply
+ * dark mode backgrounds (html.dark .code-block-background { background-color: var(--shiki-dark-bg) }).
+ *
+ * These bare <pre class="shiki"> elements sit directly inside the accordion content div,
+ * so the --shiki-dark-bg CSS variable (already injected by Shiki) is never activated.
+ * This rule activates it explicitly.
+ */
+html.dark [data-component-part="accordion-content"] pre.shiki {
+  background-color: var(--shiki-dark-bg) !important;
+}
+

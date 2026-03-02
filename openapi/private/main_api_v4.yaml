@@ -86,9 +86,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
       responses:
         "200":
           description: Successful response
@@ -193,9 +195,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
       responses:
         "200":
           description: Successful response
@@ -408,6 +412,7 @@ paths:
                 uniqueId:
                   type: string
                   description: Unique transaction identifier on client's side
+                  example: "qw22"
                 customer:
                   type: object
                   description: Customer information (required for USD/EUR with VISAMASTER [provider](/glossary#provider))
@@ -418,18 +423,21 @@ paths:
                         Customer billing first name.
 
                         ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                      example: "John"
                     lastName:
                       type: string
                       description: |
                         Customer billing last name.
 
                         ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                      example: "Doe"
                     email:
                       type: string
                       description: |
                         Customer billing email.
 
                         ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                      example: "john_doe@email.com"
                     birthDate:
                       type: string
                       format: date
@@ -437,6 +445,7 @@ paths:
                         Customer birth date (Format YYYY-MM-DD).
 
                         ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                      example: "1990-01-01"
                     address:
                       type: object
                       properties:
@@ -446,42 +455,52 @@ paths:
                             Customer address line1.
 
                             ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                          example: "Martinez Campos 37"
                         line2:
                           type: string
                           description: Customer address line2
+                          example: ""
                         city:
                           type: string
                           description: |
                             Customer city.
 
                             ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                          example: "Madrid"
                         zipCode:
                           type: string
                           description: |
                             Customer zip-code.
 
                             ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                          example: "28010"
                         countryCode:
                           type: string
                           description: |
                             Customer country code.
 
                             ⚠️ Required if currency USD or EUR with VISAMASTER [provider](/glossary#provider).
+                          example: "ES"
                 successLink:
                   type: string
                   description: Customer will be redirected to this URL by acquiring [provider](/glossary#provider) after success deposit. To activate this feature, please contact support
+                  example: "https://success.example.com"
                 failureLink:
                   type: string
                   description: Customer will be redirected to this URL in case of fail or rejection on acquiring provider side. To activate this feature, please contact support
+                  example: "https://failure.example.com"
                 returnLink:
                   type: string
                   description: Customer will be redirected to the URL defined if selects 'back' option after from the payment success or failure page. To activate this feature, define desired link. If not populated, option 'back' won't be displayed
+                  example: "https://return.example.com"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             examples:
               basic:
                 summary: Basic request
@@ -558,12 +577,15 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonceWindow:
                   type: boolean
                   description: Nonce window setting
+                  example: false
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               request: "{{request}}"
               nonceWindow: false
@@ -653,9 +675,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -818,10 +842,12 @@ paths:
                   type: string
                   description: |
                     Base64-encoded request body. See the [authentication guide](/private/http-auth) for signature generation details.
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: |
                     A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
+                  example: "{{nonce}}"
             example:
               transactionId: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
               address: "0x1234567890abcdef1234567890abcdef12345678"
@@ -906,6 +932,7 @@ paths:
                     [Memo](/glossary#memodestination-tag).
 
                     ⚠️ Required if currency is memoable.
+                  example: "48565488244493"
                 uniqueId:
                   type: string
                   description: |
@@ -919,6 +946,7 @@ paths:
                     [Fiat](/glossary#fiat) currency [provider](/glossary#provider). Example: VISAMASTER
 
                     ⚠️ Required for fiat currencies. Currency provider should be taken from [Asset Status endpoint](/public/http-v4/asset-status-list) response.
+                  example: "VISAMASTER"
                 network:
                   type: string
                   description: |
@@ -929,6 +957,7 @@ paths:
                 partialEnable:
                   type: boolean
                   description: Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as "true". To use this parameter, the application must support "Partially successful" withdrawal status and latest updates in deposit/withdrawal history.
+                  example: false
                 beneficiary:
                   type: object
                   description: |
@@ -942,30 +971,35 @@ paths:
                         Beneficiary first name. Max length: 40 symbols, latin letters and special characters.
 
                         ⚠️ Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, USD, EUR
+                      example: "Firstname"
                     lastName:
                       type: string
                       description: |
                         Beneficiary last name. Max length: 40 symbols, latin letters and special characters.
 
                         ⚠️ Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, USD, EUR
+                      example: "Lastname"
                     tin:
                       type: integer
                       description: |
                         Beneficiary TAX payer number. Integer, 10 digits.
 
                         ⚠️ Required if currency is UAH_IBAN.
+                      example: 1000000000
                     phone:
                       type: string
                       description: |
                         Beneficiary phone number.
 
                         ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                      example: "1234567891"
                     email:
                       type: string
                       description: |
                         Beneficiary email.
 
                         ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                      example: "john_doe@email.com"
                     birthDate:
                       type: string
                       format: date
@@ -973,6 +1007,7 @@ paths:
                         Beneficiary birth date. Format: YYYY-MM-DD.
 
                         ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                      example: "1990-01-01"
                 travelRule:
                   type: object
                   description: |
@@ -987,36 +1022,43 @@ paths:
                         Travel rule receiver type. Values: "individual" or "entity"
 
                         ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
+                      example: "individual"
                     vasp:
                       type: string
                       description: |
                         Travel rule destination platform (VASP) name.
 
                         ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
+                      example: "Binance"
                     name:
                       type: string
                       description: |
                         Travel rule. If individual - first_name ; if entity - entity_name
 
                         ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
+                      example: "John"
                     address:
                       type: string
                       description: |
                         Travel rule. If individual - last_name ; if entity - entity_address
 
                         ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
+                      example: "123 Business Street, London, UK"
                 paymentDescription:
                   type: string
                   description: |
                     Description of withdrawal destination
 
                     ⚠️ Required if currency is crypto and withdrawal from whitebit-tr.com
+                  example: "Payment description"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             examples:
               crypto:
                 summary: Crypto withdrawal
@@ -1269,6 +1311,13 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/WithdrawRequest"
+            example:
+              ticker: ETH
+              amount: "0.9"
+              address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
+              uniqueId: "24529041"
+              request: "{{request}}"
+              nonce: "{{nonce}}"
       responses:
         "201":
           description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
@@ -1387,6 +1436,7 @@ paths:
                     **Not required** if **from** and **to** are set.
                   enum:
                     [deposit, withdraw, collateral-deposit, collateral-withdraw]
+                  example: "deposit"
                 from:
                   type: string
                   description: |
@@ -1394,6 +1444,7 @@ paths:
 
                     **Not required** if **method** is set.
                   enum: [main, spot, collateral]
+                  example: "main"
                 to:
                   type: string
                   description: |
@@ -1401,10 +1452,11 @@ paths:
 
                     **Not required** if **method** is set.
                   enum: [main, spot, collateral]
+                  example: "spot"
                 ticker:
                   type: string
                   description: "Currency's [ticker](/glossary#ticker). Example: BTC"
-                  example: XLM
+                  example: "XLM"
                 amount:
                   type: string
                   description: "Amount to transfer. Max [precision](/glossary#precision) = 8, value must be greater than zero and less than or equal to the available balance."
@@ -1412,9 +1464,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             examples:
               usingMethod:
                 summary: Using method field (deprecated)
@@ -1582,36 +1636,44 @@ paths:
                   description: |
                     Method. Example: **1** to display deposits / **2** to display withdraws. Do not send this parameter in order to receive both deposits and withdraws.
                   enum: [1, 2]
+                  example: 1
                 ticker:
                   type: string
                   description: "Currency's [ticker](/glossary#ticker). Example: BTC"
+                  example: "BTC"
                 address:
                   type: string
                   description: Can be used for filtering transactions by specific address.
+                  example: "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE"
                 memo:
                   type: string
                   description: "Can be used for filtering transactions by specific [memo](/glossary#memodestination-tag)"
+                  example: "48565488244493"
                 addresses:
                   type: array
                   items:
                     type: string
                   maxItems: 20
                   description: Can be used for filtering transactions by specific array of addresses.
+                  example: ["3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE"]
                 uniqueId:
                   type: string
                   description: Can be used for filtering transactions by specific unique id
+                  example: "24529041"
                 limit:
                   type: integer
                   minimum: 1
                   maximum: 100
                   default: 50
                   description: LIMIT is a special clause used to limit records a particular query can return.
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
                   description: Use the OFFSET clause to return entries starting from a particular line.
+                  example: 0
                 status:
                   type: array
                   items:
@@ -1620,12 +1682,15 @@ paths:
                     Can be used for filtering transactions by status codes.
 
                     ⚠️ Caution: Use this parameter with the appropriate `transactionMethod` and valid status codes for that method. See the endpoint description above for valid codes. Example: `"status": [3,7]`
+                  example: [3, 7]
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               transactionMethod: 1
               ticker: "BTC"
@@ -1796,12 +1861,15 @@ paths:
                   type: string
                   description: Address type, available for specific currencies list (see address types table in endpoint description)
                   enum: [p2sh-segwit, bech32]
+                  example: "bech32"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             examples:
               basic:
                 summary: Basic request
@@ -1960,16 +2028,20 @@ paths:
                   type: string
                   maxLength: 25
                   description: "Passphrase for applying [WhiteBIT codes](/glossary#whitebit-codes). Passphrase must contain only latin letters, numbers and symbols (like !@#$%^, no whitespaces). Max: 25 symbols."
+                  example: "some passphrase"
                 description:
                   type: string
                   maxLength: 75
                   description: "Additional text description for [code](/glossary#whitebit-codes). Visible only for creator. Max: 75 symbols."
+                  example: "some description"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               ticker: "ETH"
               amount: "0.002"
@@ -2112,16 +2184,20 @@ paths:
                 code:
                   type: string
                   description: "[Code](/glossary#whitebit-codes) that will be applied."
+                  example: "WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH"
                 passphrase:
                   type: string
                   maxLength: 25
                   description: "Should be provided if the [code](/glossary#whitebit-codes) was created with passphrase. Max: 25 symbols."
+                  example: "some passphrase"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               code: "WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH"
               passphrase: "some passphrase"
@@ -2208,18 +2284,22 @@ paths:
                   maximum: 100
                   default: 30
                   description: LIMIT is a special clause used to limit records a particular query can return.
+                  example: 30
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
                   description: Use the OFFSET clause to return entries starting from a particular line.
+                  example: 0
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -2323,18 +2403,22 @@ paths:
                   maximum: 100
                   default: 30
                   description: LIMIT is a special clause used to limit records a particular query can return.
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
                   description: Use the OFFSET clause to return entries starting from a particular line.
+                  example: 0
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -2451,12 +2535,15 @@ paths:
                 ticker:
                   type: string
                   description: "[Invest plan](/glossary#crypto-lending) source currency's [ticker](/glossary#ticker). Example: BTC"
+                  example: "USDT"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               ticker: "USDT"
               request: "{{request}}"
@@ -2527,15 +2614,19 @@ paths:
                 planId:
                   type: string
                   description: "[Invest plan](/glossary#crypto-lending) identifier"
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 amount:
                   type: string
                   description: Investment amount
+                  example: "100"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               planId: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
               amount: "100"
@@ -2707,12 +2798,15 @@ paths:
                 id:
                   type: string
                   description: Investment identifier
+                  example: "0d7b66ff-1909-4938-ab7a-d16d9a64dcd5"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               id: "0d7b66ff-1909-4938-ab7a-d16d9a64dcd5"
               request: "{{request}}"
@@ -2769,31 +2863,38 @@ paths:
                 id:
                   type: string
                   description: Investment identifier
+                  example: "0d7b66ff-1909-4938-ab7a-d16d9a64dcd5"
                 ticker:
                   type: string
                   description: "[Invest plan](/glossary#crypto-lending) source currency's [ticker](/glossary#ticker)"
+                  example: "USDT"
                 status:
                   type: integer
                   description: Investment status (1 - active, 2 - closed)
                   enum: [1, 2]
+                  example: 1
                 limit:
                   type: integer
                   minimum: 1
                   maximum: 100
                   default: 100
                   description: LIMIT is a special clause used to limit records a particular query can return.
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
                   description: Use the OFFSET clause to return entries starting from a particular line.
+                  example: 0
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               id: "0d7b66ff-1909-4938-ab7a-d16d9a64dcd5"
               ticker: "USDT"
@@ -2884,27 +2985,33 @@ paths:
                 planId:
                   type: string
                   description: "[Invest plan](/glossary#crypto-lending) identifier"
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 ticker:
                   type: string
                   description: "[Invest plan](/glossary#crypto-lending) target currency's [ticker](/glossary#ticker)"
+                  example: "USDT"
                 limit:
                   type: integer
                   minimum: 1
                   maximum: 100
                   default: 100
                   description: LIMIT is a special clause used to limit records a particular query can return.
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
                   description: Use the OFFSET clause to return entries starting from a particular line.
+                  example: 0
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               planId: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
               ticker: "USDT"
@@ -2984,20 +3091,25 @@ paths:
                   maximum: 100
                   default: 100
                   description: Pagination limit.
+                  example: 50
                 offset:
                   type: integer
                   minimum: 0
                   default: 0
                   description: Pagination offset.
+                  example: 0
                 ticker:
                   type: string
                   description: "Filter by currency [ticker](/glossary#ticker). Example: USDT"
+                  example: "USDT"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               limit: 50
               offset: 0
@@ -3079,29 +3191,37 @@ paths:
                   type: integer
                   default: 100
                   description: "Pagination limit. Default: 100."
+                  example: 100
                 offset:
                   type: integer
                   default: 0
                   description: "Pagination offset. Default: 0."
+                  example: 0
                 ticker:
                   type: string
                   description: "Filter by currency [ticker](/glossary#ticker). Example: USDT."
+                  example: "USDT"
                 plan:
                   type: string
                   description: Filter by plan ID (UUID).
+                  example: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 investment:
                   type: string
                   description: Filter by investment ID.
+                  example: "inv_7e2d9c3b-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 investmentStatus:
                   type: integer
                   description: Filter by status (1=ACTIVE, 0=CLOSED).
                   enum: [0, 1]
+                  example: 1
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               limit: 100
               offset: 0
@@ -3196,36 +3316,46 @@ paths:
                   type: integer
                   default: 50
                   description: Pagination limit.
+                  example: 50
                 offset:
                   type: integer
                   default: 0
                   description: Pagination offset.
+                  example: 0
                 plan:
                   type: string
                   description: Filter by plan ID (UUID).
+                  example: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 investment:
                   type: string
                   description: Filter by investment ID.
+                  example: "inv_7e2d9c3b-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 transaction:
                   type: string
                   description: Filter by transaction ID.
+                  example: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
                 dateFrom:
                   type: integer
                   description: Filter from date (timestamp).
+                  example: 1640995200
                 dateTo:
                   type: integer
                   description: Filter to date (timestamp).
+                  example: 1641081600
                 actionTypes:
                   type: array
                   items:
                     type: integer
                   description: Array of operation type IDs. See table below.
+                  example: [1, 2, 4]
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               limit: 50
               offset: 0
@@ -3314,31 +3444,40 @@ paths:
                   type: integer
                   default: 50
                   description: Pagination limit.
+                  example: 50
                 offset:
                   type: integer
                   default: 0
                   description: Pagination offset.
+                  example: 0
                 plan:
                   type: string
                   description: Filter by plan ID (UUID).
+                  example: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 investment:
                   type: string
                   description: Filter by investment ID.
+                  example: "inv_7e2d9c3b-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 transaction:
                   type: string
                   description: Filter by transaction ID.
+                  example: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
                 dateFrom:
                   type: integer
                   description: Filter from date (timestamp).
+                  example: 1640995200
                 dateTo:
                   type: integer
                   description: Filter to date (timestamp).
+                  example: 1641081600
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               limit: 50
               offset: 0
@@ -3423,19 +3562,24 @@ paths:
                 plan:
                   type: string
                   description: Plan external ID (UUID).
+                  example: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 amount:
                   type: string
                   description: Investment amount.
+                  example: "1000.500000"
                 withReinvest:
                   type: boolean
                   default: false
                   description: Enable auto-reinvestment.
+                  example: true
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               amount: "1000.500000"
@@ -3522,15 +3666,19 @@ paths:
                 plan:
                   type: string
                   description: Plan external ID (UUID).
+                  example: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 amount:
                   type: string
                   description: Withdrawal amount.
+                  example: "500.250000"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               amount: "500.250000"
@@ -3612,12 +3760,15 @@ paths:
                 plan:
                   type: string
                   description: Plan external ID (UUID).
+                  example: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               request: "{{request}}"
@@ -3696,16 +3847,20 @@ paths:
                 plan:
                   type: string
                   description: Plan external ID (UUID).
+                  example: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                 enabled:
                   type: boolean
                   default: false
                   description: Enable or disable auto-reinvestment.
+                  example: true
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               enabled: true
@@ -3779,9 +3934,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
       responses:
         "200":
           description: Successful response
@@ -3827,12 +3984,15 @@ paths:
                 alias:
                   type: string
                   description: Name for sub-account
+                  example: "trading_bot"
                 email:
                   type: string
                   description: Sub-account email (required when shareKyc is false)
+                  example: "sub@example.com"
                 shareKyc:
                   type: boolean
                   description: If KYC shared with main account
+                  example: false
                 permissions:
                   type: object
                   required:
@@ -3842,9 +4002,11 @@ paths:
                     spotEnabled:
                       type: boolean
                       description: Enable transfers to trade balance
+                      example: true
                     collateralEnabled:
                       type: boolean
                       description: Enable transfers to collateral balance
+                      example: false
       responses:
         "201":
           description: Sub-account created successfully
@@ -3903,6 +4065,9 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
       responses:
         "200":
           description: Sub-account deleted successfully
@@ -3910,6 +4075,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -3947,9 +4113,11 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 alias:
                   type: string
                   description: Name for sub-account
+                  example: "training"
                 permissions:
                   type: object
                   required:
@@ -3959,9 +4127,17 @@ paths:
                     spotEnabled:
                       type: boolean
                       description: Enable transfers to trade balance
+                      example: true
                     collateralEnabled:
                       type: boolean
                       description: Enable transfers to collateral balance
+                      example: false
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+              alias: training
+              permissions:
+                spotEnabled: true
+                collateralEnabled: false
       responses:
         "200":
           description: Sub-account edited successfully
@@ -3969,6 +4145,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4002,16 +4179,19 @@ paths:
                 search:
                   type: string
                   description: Search term
+                  example: "trading"
                 limit:
                   type: integer
                   minimum: 1
                   maximum: 100
                   default: 30
+                  example: 30
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
+                  example: 0
       responses:
         "200":
           description: Successful response
@@ -4066,16 +4246,20 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 direction:
                   type: string
                   enum: [main_to_sub, sub_to_main]
                   description: Transfer direction
+                  example: "main_to_sub"
                 amount:
                   type: string
                   description: Transfer amount (min 0.00000001)
+                  example: "0.5"
                 ticker:
                   type: string
                   description: "Currency's [ticker](/glossary#ticker)"
+                  example: "ETH"
       responses:
         "200":
           description: Transfer successful
@@ -4122,6 +4306,9 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
       responses:
         "200":
           description: Sub-account blocked successfully
@@ -4129,6 +4316,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4164,6 +4352,9 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
       responses:
         "200":
           description: Sub-account unblocked successfully
@@ -4171,6 +4362,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4206,9 +4398,14 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 ticker:
                   type: string
                   description: Currency's ticker (if not provided, returns data by all currencies)
+                  example: "USDC"
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+              ticker: USDC
       responses:
         "200":
           description: Successful response
@@ -4227,6 +4424,11 @@ paths:
                         type: string
                       collateral:
                         type: string
+              example:
+                USDC:
+                  - main: "42"
+                    spot: "10"
+                    collateral: "14"
         "422":
           description: Account is not confirmed
           content:
@@ -4267,20 +4469,24 @@ paths:
                 id:
                   type: string
                   description: Sub-account id
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 direction:
                   type: string
                   enum: [main_to_sub, sub_to_main]
                   description: Transfer direction (optional)
+                  example: "main_to_sub"
                 limit:
                   type: integer
                   minimum: 1
                   maximum: 100
                   default: 30
+                  example: 30
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
+                  example: 0
       responses:
         "200":
           description: Successful response
@@ -4330,12 +4536,15 @@ paths:
                   type: integer
                   description: Type of API key (1 - info and trading; 2 - info, trading, deposits, withdraws)
                   enum: [1, 2]
+                  example: 1
                 subAccountId:
                   type: string
                   description: ID of the sub-account to create the API key for
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 title:
                   type: string
                   description: Custom title/name for the API key
+                  example: "Trading Bot Key"
       responses:
         "201":
           description: API key created successfully
@@ -4380,9 +4589,11 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to update
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
                 title:
                   type: string
                   description: New title for the API key
+                  example: "Trading Bot Key"
                 urls:
                   type: array
                   description: Array of URL objects for API key restrictions
@@ -4391,8 +4602,18 @@ paths:
                     properties:
                       url:
                         type: string
+                        example: "/api/v4/main-account/balance"
                       enable:
                         type: boolean
+                        example: true
+            example:
+              apiKeyId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              title: Trading Bot Key
+              urls:
+                - url: /api/v4/main-account/withdraw
+                  enable: false
+                - url: /api/v4/main-account/balance
+                  enable: true
       responses:
         "200":
           description: API key updated successfully
@@ -4400,6 +4621,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4435,6 +4657,9 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to delete
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+            example:
+              apiKeyId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
       responses:
         "200":
           description: API key deleted successfully
@@ -4442,6 +4667,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4476,16 +4702,19 @@ paths:
                 subAccountId:
                   type: string
                   description: ID of the sub-account to list API keys for
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
                 limit:
                   type: integer
                   minimum: 1
                   maximum: 100
                   default: 30
+                  example: 30
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
+                  example: 0
       responses:
         "200":
           description: Successful response
@@ -4537,6 +4766,9 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to reset
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+            example:
+              apiKeyId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
       responses:
         "200":
           description: API key reset successfully
@@ -4544,6 +4776,7 @@ paths:
             application/json:
               schema:
                 type: object
+              example: {}
         "400":
           description: Request validation failed
           content:
@@ -4579,6 +4812,7 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to list IP addresses for
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
       responses:
         "200":
           description: Successful response
@@ -4627,9 +4861,11 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to add IP address to
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
                 ip:
                   type: string
                   description: IP address to add to allowed list
+                  example: "192.168.1.100"
       responses:
         "201":
           description: IP address added successfully
@@ -4678,9 +4914,11 @@ paths:
                 apiKeyId:
                   type: string
                   description: ID of the API key to remove IP address from
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
                 ip:
                   type: string
                   description: IP address to remove from allowed list
+                  example: "192.168.1.100"
       responses:
         "200":
           description: IP address removed successfully
@@ -4726,22 +4964,27 @@ paths:
                 account:
                   type: string
                   description: Mining pool account
+                  example: "miner123"
                 from:
                   type: integer
                   description: Date timestamp starting from which rewards are received
+                  example: 1640995200
                 to:
                   type: integer
                   description: Date timestamp until which rewards are received
+                  example: 1641081600
                 limit:
                   type: integer
                   minimum: 1
                   maximum: 100
                   default: 30
+                  example: 30
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
+                  example: 0
       responses:
         "200":
           description: Successful response
@@ -4801,17 +5044,21 @@ paths:
                 account:
                   type: string
                   description: Mining pool account
+                  example: "miner123"
                 from:
                   type: integer
                   description: Unix timestamp of starting point
+                  example: 1640995200
                 to:
                   type: integer
                   description: Unix timestamp of final point
+                  example: 1641081600
                 interval:
                   type: string
                   enum: [5m, 1h, 24h]
                   default: 1h
                   description: Timestamp interval
+                  example: "1h"
       responses:
         "200":
           description: Successful response
@@ -4879,9 +5126,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
       responses:
         "200":
           description: Successful response
@@ -4977,27 +5226,35 @@ components:
         ticker:
           type: string
           description: "Currencies [ticker](/glossary#ticker). Example: BTC ⚠️ Currencies ticker must have \"can_deposit\" status equal to \"true\". Use [Asset Status endpoint](/public/http-v4/asset-status-list) to know more about currency."
+          example: "ETH"
         amount:
           type: string
           description: "Withdraw amount (including [fee](/glossary#fee)). To add the fee to the specified amount, use the /main-account/withdraw-pay request"
+          example: "0.9"
         address:
           type: string
           description: "Target address (wallet address for cryptocurrencies, identifier/[card token](/glossary#card-token) for [fiat](/glossary#fiat) currencies)"
+          example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
         memo:
           type: string
           description: "Required if currency is memoable. See [memo](/glossary#memodestination-tag) for details."
+          example: "48565488244493"
         uniqueId:
           type: string
           description: "Unique transaction identifier. ⚠️ Generate a new unique ID for each withdrawal request."
+          example: "24529041"
         provider:
           type: string
           description: "[Fiat](/glossary#fiat) currency [provider](/glossary#provider). Example: VISAMASTER ⚠️ Currency provider should be taken from [Asset Status endpoint](/public/http-v4/asset-status-list) response. Required if currency is fiat."
+          example: "VISAMASTER"
         network:
           type: string
           description: "Cryptocurrency network. Available for [multinetwork](/glossary#multinetwork) currencies. Example: OMNI ⚠️ Currency network should be taken from [Asset Status endpoint](/public/http-v4/asset-status-list) response. Default for USDT is ERC20"
+          example: "ERC20"
         partialEnable:
           type: boolean
           description: "Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as \"true\". To use this parameter, the application must support \"Partially successful\" withdrawal status and latest updates in deposit/withdrawal history."
+          example: false
         beneficiary:
           type: object
           description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
@@ -5007,9 +5264,11 @@ components:
         request:
           type: string
           description: "Request signature"
+          example: "{{request}}"
         nonce:
           type: string
           description: "Unique request identifier"
+          example: "{{nonce}}"
 
     TransactionHistory:
       type: object
@@ -5017,47 +5276,61 @@ components:
         address:
           type: string
           description: Deposit/Withdraw address
+          example: "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE"
         uniqueId:
           type: string
           nullable: true
           description: Unique Id of deposit/withdraw
+          example: null
         createdAt:
           type: integer
           description: Timestamp of deposit/withdraw
+          example: 1593437922
         currency:
           type: string
           description: Deposit/Withdraw currency full name
+          example: "Bitcoin"
         ticker:
           type: string
           description: "Deposit/Withdraw currency [ticker](/glossary#ticker)"
+          example: "BTC"
         method:
           type: integer
           description: "Called method: 1 - deposit, 2 - withdraw"
+          example: 1
         amount:
           type: string
           description: Amount of deposit/withdraw
+          example: "0.0006"
         description:
           type: string
           description: Deposit/Withdraw description
+          example: ""
         memo:
           type: string
           description: "[Memo](/glossary#memodestination-tag) for deposit/withdraw"
+          example: ""
         fee:
           type: string
           description: "[Fee](/glossary#fee) for deposit/withdraw"
+          example: "0"
         status:
           type: integer
           description: Transaction status (see endpoint description for status codes)
+          example: 15
         network:
           type: string
           nullable: true
           description: Network if currency is multinetwork
+          example: null
         transactionHash:
           type: string
           description: Deposit/Withdraw transaction hash
+          example: "3b49d7b8cf7a4d3c1234567890abcdef"
         transactionId:
           type: string
           description: Transaction ID
+          example: "tx-id-1234"
         details:
           type: object
           nullable: true
@@ -5070,9 +5343,11 @@ components:
             actual:
               type: integer
               description: Actual number of confirmations
+              example: 3
             required:
               type: integer
               description: Required number of confirmations
+              example: 6
 
     CodeInfo:
       type: object
@@ -5080,21 +5355,27 @@ components:
         amount:
           type: string
           description: "Code amount"
+          example: "100"
         code:
           type: string
           description: "WhiteBIT code"
+          example: "WBe50fbe4d5d...ee33"
         date:
           type: integer
           description: "Code creation timestamp"
+          example: 1598296132
         status:
           type: string
           description: "Code status"
+          example: "active"
         ticker:
           type: string
           description: "Code [ticker](/glossary#ticker)"
+          example: "USDT"
         external_id:
           type: string
           description: "Code external identifier"
+          example: "id1"
 
     CodeHistory:
       type: object
@@ -5102,21 +5383,27 @@ components:
         amount:
           type: string
           description: "Code amount change (- is created, + is applied)"
+          example: "-100"
         code:
           type: string
           description: "WhiteBIT code"
+          example: "WBe50fbe4d5d...ee33"
         date:
           type: integer
           description: "Code activation timestamp (for applied) or code creation timestamp (for created)"
+          example: 1598296132
         status:
           type: string
           description: "Current code status"
+          example: "applied"
         ticker:
           type: string
           description: "Code [ticker](/glossary#ticker)"
+          example: "USDT"
         external_id:
           type: string
           description: "Code external identifier"
+          example: "id1"
 
     FixedPlan:
       type: object
@@ -5124,33 +5411,43 @@ components:
         id:
           type: string
           description: Invest plan identifier
+          example: "1"
         ticker:
           type: string
           description: Source currency ticker
+          example: "BTC"
         status:
           type: integer
           description: Status (1 - active, 2 - no coins left, 3 - inactive, 4 - pause)
+          example: 1
         percent:
           type: string
           description: Interest percent
+          example: "0.01"
         duration:
           type: integer
           description: Investment duration (in minutes)
+          example: 40320
         interestTicker:
           type: string
           description: Target currency ticker
+          example: "BTC"
         interestRatio:
           type: string
           description: Target currency to source currency ratio
+          example: "1"
         minInvestment:
           type: string
           description: "Minimum investment amount"
+          example: "100"
         maxInvestment:
           type: string
           description: "Maximum investment amount"
+          example: "10000"
         maxPossibleInvestment:
           type: string
           description: "Maximum investment amount due to current invest plan state"
+          example: "3000"
 
     Investment:
       type: object
@@ -5158,27 +5455,34 @@ components:
         id:
           type: string
           description: "Investment identifier"
+          example: "1232"
         plan:
           $ref: "#/components/schemas/FixedPlan"
           description: "Investment plan (similar to Get plans response)"
         status:
           type: integer
           description: "Investment status (1 - active, 2 - closed)"
+          example: 1
         created:
           type: integer
           description: "Timestamp of investment creation"
+          example: 1588345560
         updated:
           type: integer
           description: "Timestamp of investment update"
+          example: 1588345560
         paymentTime:
           type: integer
           description: "Timestamp of the payment time"
+          example: 1588345560
         amount:
           type: string
           description: "Investment amount"
+          example: "100"
         interestPaid:
           type: string
           description: "Interest paid amount"
+          example: "0.01"
 
     InterestPayment:
       type: object
@@ -5186,18 +5490,23 @@ components:
         planId:
           type: string
           description: "Invest plan identifier"
+          example: "1"
         investmentId:
           type: string
           description: "Investment identifier"
+          example: "1232"
         amount:
           type: string
           description: "Interest amount"
+          example: "0.01"
         ticker:
           type: string
           description: "Interest currency [ticker](/glossary#ticker)"
+          example: "BTC"
         timestamp:
           type: integer
           description: "Transaction timestamp"
+          example: 1588345560
 
     FlexPlan:
       type: object
@@ -5205,18 +5514,23 @@ components:
         id:
           type: string
           description: "Flex plan identifier"
+          example: "12"
         ticker:
           type: string
           description: "Currency [ticker](/glossary#ticker)"
+          example: "USDT"
         minInvestment:
           type: string
           description: "Minimum investment amount"
+          example: "10.0"
         maxInvestment:
           type: string
           description: "Maximum investment amount"
+          example: "100000.0"
         maxRate:
           type: string
           description: "Maximum interest rate"
+          example: "0.0030"
 
     FlexInvestment:
       type: object
@@ -5224,27 +5538,35 @@ components:
         id:
           type: string
           description: "Flex investment identifier"
+          example: "2765"
         planId:
           type: string
           description: "Flex plan identifier"
+          example: "12"
         currency:
           type: string
           description: "Investment currency"
+          example: "USDT"
         invested:
           type: string
           description: "Invested amount"
+          example: "100"
         withAutoReinvest:
           type: boolean
           description: "Auto-reinvestment enabled"
+          example: true
         status:
           type: integer
           description: "Investment status (1=ACTIVE, 0=CLOSED)"
+          example: 1
         createdAt:
           type: integer
           description: "Investment creation timestamp"
+          example: 1588345560
         updatedAt:
           type: integer
           description: "Investment last update timestamp"
+          example: 1588345560
 
     FlexInvestmentHistory:
       type: object
@@ -5252,24 +5574,31 @@ components:
         createdAt:
           type: integer
           description: "Transaction creation timestamp"
+          example: 1588345560
         planId:
           type: string
           description: "Flex plan identifier"
+          example: "12"
         investmentId:
           type: string
           description: "Flex investment identifier"
+          example: "2765"
         currency:
           type: string
           description: "Transaction currency"
+          example: "USDT"
         amount:
           type: string
           description: "Transaction amount"
+          example: "100"
         transactionId:
           type: string
           description: "Transaction identifier"
+          example: "tx_123456"
         actionType:
           type: integer
           description: "Action type: 1-INVEST, 2-REINVEST, 3-WITHDRAW_FROM_INVESTMENT, 4-DAILY_EARNING, 5-CLOSE_INVESTMENT, 6-OPEN_INVESTMENT"
+          example: 1
 
     FeeInfo:
       type: object
@@ -5277,15 +5606,19 @@ components:
         ticker:
           type: string
           description: "Currency [ticker](/glossary#ticker)"
+          example: "ETH"
         name:
           type: string
           description: "Currency name"
+          example: "Ethereum"
         can_deposit:
           type: string
           description: "Deposit status (currency availability)"
+          example: "1"
         can_withdraw:
           type: string
           description: "Withdrawal status (currency availability)"
+          example: "1"
         deposit:
           type: object
           description: "Deposit fees and limits"
@@ -5293,21 +5626,27 @@ components:
             minFlex:
               type: string
               description: "Minimum fee amount when flex fee is enabled"
+              example: "0"
             maxFlex:
               type: string
               description: "Maximum fee amount when flex fee is enabled"
+              example: "0"
             percentFlex:
               type: string
               description: "Flex fee percent"
+              example: "0"
             fixed:
               type: string
               description: "Fixed fee"
+              example: "0"
             minAmount:
               type: string
               description: "Minimum deposit amount"
+              example: "0.01"
             maxAmount:
               type: string
               description: "Maximum deposit amount"
+              example: "0"
         withdraw:
           type: object
           description: "Withdrawal fees and limits"
@@ -5315,21 +5654,27 @@ components:
             minFlex:
               type: string
               description: "Minimum fee amount when flex fee is enabled"
+              example: "0"
             maxFlex:
               type: string
               description: "Maximum fee amount when flex fee is enabled"
+              example: "0"
             percentFlex:
               type: string
               description: "Flex fee percent"
+              example: "0"
             fixed:
               type: string
               description: "Fixed fee"
+              example: "0.0004"
             minAmount:
               type: string
               description: "Minimum withdrawal amount"
+              example: "0.01"
             maxAmount:
               type: string
               description: "Maximum withdrawal amount"
+              example: "0"
 
     SubAccount:
       type: object
@@ -5337,21 +5682,27 @@ components:
         id:
           type: string
           description: "Sub-account identifier"
+          example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
         alias:
           type: string
           description: "Sub-account alias/name"
+          example: "trading_bot"
         userId:
           type: string
           description: "User identifier associated with account"
+          example: "u-12345"
         email:
           type: string
           description: "Sub-account email (masked)"
+          example: "s***@example.com"
         status:
           type: string
           description: "Sub-account status"
+          example: "active"
         color:
           type: string
           description: "Sub-account color"
+          example: "#FF5733"
         kyc:
           type: object
           description: "KYC information"
@@ -5359,9 +5710,11 @@ components:
             shareKyc:
               type: boolean
               description: "Whether KYC is shared with main account"
+              example: false
             kycStatus:
               type: string
               description: "KYC status"
+              example: "verified"
         permissions:
           type: object
           description: "Sub-account permissions"
@@ -5369,9 +5722,11 @@ components:
             spotEnabled:
               type: boolean
               description: "Spot trading enabled"
+              example: true
             collateralEnabled:
               type: boolean
               description: "Collateral trading enabled"
+              example: false
 
     SubAccountTransfer:
       type: object
@@ -5379,22 +5734,28 @@ components:
         transactionId:
           type: string
           description: "Transaction identifier. Same value as id. Correlate with the transfer endpoint response using the transactionId field."
+          example: "tx-abc123"
         id:
           type: string
           description: "Transfer identifier"
           deprecated: true
+          example: "tx-abc123"
         direction:
           type: string
           description: "Transfer direction (main_to_sub or sub_to_main)"
+          example: "main_to_sub"
         currency:
           type: string
           description: "Currency transferred"
+          example: "ETH"
         amount:
           type: string
           description: "Transfer amount"
+          example: "0.5"
         createdAt:
           type: integer
           description: "Transfer creation timestamp"
+          example: 1641081600
 
     SubAccountApiKey:
       type: object
@@ -5402,30 +5763,39 @@ components:
         subAccountId:
           type: string
           description: "Sub-account identifier"
+          example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
         id:
           type: string
           description: "API key identifier"
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
         title:
           type: string
           description: "API key title/name"
+          example: "Trading Bot Key"
         isEnabled:
           type: boolean
           description: "Whether the API key is enabled"
+          example: true
         apiKey:
           type: string
           description: "API key"
+          example: "pub-key-abc123"
         apiSecret:
           type: string
           description: "API secret"
+          example: "secret-xyz789"
         type:
           type: integer
           description: "API key type (1 - info and trading, 2 - info, trading, deposit and withdraw)"
+          example: 1
         lastActivity:
           type: integer
           description: "Last activity timestamp"
+          example: 1641081600
         restrictAccess:
           type: boolean
           description: "Whether access is restricted"
+          example: false
         accessEndpoints:
           type: array
           description: "List of allowed endpoints"
@@ -5435,32 +5805,43 @@ components:
               name:
                 type: string
                 description: "Endpoint name"
+                example: "/api/v4/main-account/balance"
               title:
                 type: string
                 description: "Endpoint title"
+                example: "Get Balance"
 
     SubAccountApiKeyList:
       type: object
       properties:
         subAccountId:
           type: string
+          example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
         id:
           type: string
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
         title:
           type: string
+          example: "Trading Bot Key"
         isEnabled:
           type: boolean
+          example: true
         apiKey:
           type: string
+          example: "pub-key-abc123"
         apiSecret:
           type: string
           description: Empty for security (only shown during creation)
+          example: ""
         type:
           type: string
+          example: "1"
         lastActivity:
           type: integer
+          example: 1641081600
         restrictAccess:
           type: boolean
+          example: false
         accessEndpoints:
           type: array
           items:
@@ -5468,8 +5849,10 @@ components:
             properties:
               name:
                 type: string
+                example: "/api/v4/main-account/balance"
               title:
                 type: string
+                example: "Get Balance"
 
     MiningReward:
       type: object
@@ -5477,41 +5860,56 @@ components:
         miningAccountName:
           type: string
           description: "Mining account name"
+          example: "miner123"
         totalReward:
           type: string
           description: "Total reward amount"
+          example: "0.00125"
         reward:
           type: string
           description: "Reward amount (without fee)"
+          example: "0.001"
         fee:
           type: string
           description: "Fee amount"
+          example: "0.00025"
         fppsRate:
           type: string
           description: "FPPS rate"
+          example: "0.000125"
         hashRate:
           type: string
           description: "Hash rate"
+          example: "100TH/s"
         date:
           type: integer
           description: "Reward date timestamp"
+          example: 1641081600
 
     CreditLine:
       type: object
       properties:
         asset:
           type: string
+          example: "BTC"
         amount:
           type: string
+          example: "1.5"
         totalFunding:
           type: string
+          example: "0.5"
         currentLtv:
           type: string
+          example: "25"
         initialLtv:
           type: string
+          example: "60"
         marginCallLtv:
           type: string
+          example: "75"
         liquidationLtv:
           type: string
+          example: "85"
         createdAt:
           type: integer
+          example: 1715339355
