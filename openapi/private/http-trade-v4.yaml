@@ -69,9 +69,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               ticker: BTC
               request: "{{request}}"
@@ -147,9 +149,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               ticker: BTC
               request: "{{request}}"
@@ -253,37 +257,46 @@ paths:
                 market:
                   type: string
                   description: "Available margin [market](/glossary#market). Example: BTC_USDT"
+                  example: "BTC_USDT"
                 side:
                   type: string
                   enum: [buy, sell]
                   description: "Order type. Variables: 'buy' / 'sell'. For open long position use **buy**, for short **sell**."
+                  example: "buy"
                 amount:
                   type: string
                   description: "Amount of [stock](/glossary#stock) currency to buy or sell."
+                  example: "0.01"
                 price:
                   type: string
                   description: "Price in [money](/glossary#money) currency. Example: '9800'"
+                  example: "40000"
                 clientOrderId:
                   type: string
                   description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores."
+                  example: "order1987111"
                 stopLoss:
                   type: string
                   description: |
                     Stop loss price.
 
                     When provided, the system creates an [OTO](/glossary#one-triggers-the-other-oto) order with a stop loss condition.
+                  example: "50000"
                 takeProfit:
                   type: string
                   description: |
                     Take profit price.
 
                     When provided, the system creates an [OTO](/glossary#one-triggers-the-other-oto) order with a take profit condition.
+                  example: "30000"
                 postOnly:
                   type: boolean
                   description: "Orders are guaranteed to be the [maker](/glossary#maker) order when [executed](/glossary#finished-orders)."
+                  example: false
                 ioc:
                   type: boolean
                   description: "An immediate or cancel order (IOC) is an order that attempts to execute all or part immediately and then cancels any unfilled portion."
+                  example: false
                 rpi:
                   type: boolean
                   description: |
@@ -295,10 +308,13 @@ paths:
                   type: string
                   enum: [LONG, SHORT, BOTH]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  example: "LONG"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               side: buy
@@ -474,34 +490,42 @@ paths:
                       market:
                         type: string
                         description: "Available margin [market](/glossary#market). Example: BTC_USDT"
+                        example: "BTC_PERP"
                       side:
                         type: string
                         enum: [buy, sell]
                         description: "Order type. Variables: 'buy' / 'sell'."
+                        example: "buy"
                       amount:
                         type: string
                         description: "Amount of [stock](/glossary#stock) currency to buy or sell."
+                        example: "0.02"
                       price:
                         type: string
                         description: "Price in [money](/glossary#money) currency."
+                        example: "40000"
                       clientOrderId:
                         type: string
                         description: "Identifier must be unique and contain letters, numbers, dashes, dots, or underscores."
+                        example: ""
                       stopLoss:
                         type: string
                         description: |
                           Stop loss price.
 
                           When provided, the system creates an [OTO](/glossary#one-triggers-the-other-oto) order with a stop loss condition.
+                        example: "50000"
                       takeProfit:
                         type: string
                         description: |
                           Take profit price.
 
                           When provided, the system creates an [OTO](/glossary#one-triggers-the-other-oto) order with a take profit condition.
+                        example: "30000"
                       postOnly:
                         type: boolean
                         description: "Ensures the order adds liquidity and executes as maker."
+                        example: false
                       ioc:
                         type: boolean
                         description: |
@@ -509,6 +533,7 @@ paths:
 
                           IOC does not support `rpi=true` because RPI uses post-only behavior by design.
                           The API returns error code `37` when an order item sets both `ioc=true` and `rpi=true`.
+                        example: false
                       rpi:
                         type: boolean
                         description: |
@@ -521,6 +546,7 @@ paths:
                         type: string
                         enum: [LONG, SHORT, BOTH]
                         description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                        example: "LONG"
                 stopOnFail:
                   type: boolean
                   default: false
@@ -530,10 +556,13 @@ paths:
                     When true: Processing stops at the first order that fails validation or execution. Only orders up to (but not including) the failed order are processed.
 
                     When false (default): All orders in the bulk request are processed regardless of individual failures. Each order result is returned in the response array.
+                  example: true
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               orders:
                 - side: buy
@@ -770,24 +799,33 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 side:
                   type: string
                   enum: [buy, sell]
+                  example: "buy"
                 amount:
                   type: string
+                  example: "0.01"
                 clientOrderId:
                   type: string
+                  example: "order1987111"
                 stopLoss:
                   type: string
+                  example: "50000"
                 takeProfit:
                   type: string
+                  example: "40000"
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
+                  example: "LONG"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               side: buy
@@ -938,28 +976,39 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 side:
                   type: string
                   enum: [buy, sell]
+                  example: "buy"
                 amount:
                   type: string
+                  example: "0.001"
                 price:
                   type: string
+                  example: "40000"
                 activation_price:
                   type: string
+                  example: "40000"
                 stopLoss:
                   type: string
+                  example: "30000"
                 takeProfit:
                   type: string
+                  example: "50000"
                 clientOrderId:
                   type: string
+                  example: "order1987111"
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
+                  example: "LONG"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               side: buy
@@ -1130,26 +1179,36 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 side:
                   type: string
                   enum: [buy, sell]
+                  example: "buy"
                 amount:
                   type: string
+                  example: "0.01"
                 activation_price:
                   type: string
+                  example: "40000"
                 clientOrderId:
                   type: string
+                  example: "order1987111"
                 stopLoss:
                   type: string
+                  example: "50000"
                 takeProfit:
                   type: string
+                  example: "30000"
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
+                  example: "LONG"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               side: buy
@@ -1298,8 +1357,10 @@ paths:
               properties:
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -1387,9 +1448,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               market: "BTC_USDT"
               request: "{{request}}"
@@ -1572,15 +1635,20 @@ paths:
               properties:
                 positionId:
                   type: integer
+                  example: 123
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
+                  example: "LONG"
                 market:
                   type: string
+                  example: "BTC_USDT"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               positionId: 123
               positionSide: LONG
@@ -1630,12 +1698,16 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 positionId:
                   type: integer
+                  example: 1
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               positionId: 1
@@ -1802,9 +1874,11 @@ paths:
                 request:
                   type: string
                   description: Request signature
+                  example: "{{request}}"
                 nonce:
                   type: string
                   description: Unique request identifier
+                  example: "{{nonce}}"
             example:
               market: "BTC_PERP"
               limit: 100
@@ -1917,10 +1991,13 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100
+                  example: 5
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               leverage: 5
               request: "{{request}}"
@@ -1971,8 +2048,10 @@ paths:
               properties:
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -2028,10 +2107,13 @@ paths:
               properties:
                 hedgeMode:
                   type: boolean
+                  example: true
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               hedgeMode: true
               request: "{{request}}"
@@ -2073,16 +2155,21 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 offset:
                   type: integer
                   default: 0
+                  example: 0
                 limit:
                   type: integer
                   default: 50
+                  example: 100
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               offset: 0
@@ -2284,16 +2371,21 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 offset:
                   type: integer
                   default: 0
+                  example: 0
                 limit:
                   type: integer
                   default: 50
+                  example: 100
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               offset: 0
@@ -2531,23 +2623,32 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 side:
                   type: string
                   enum: [buy, sell]
+                  example: "buy"
                 amount:
                   type: string
+                  example: "0.001"
                 price:
                   type: string
+                  example: "40000"
                 activation_price:
                   type: string
+                  example: "41000"
                 stop_limit_price:
                   type: string
+                  example: "42000"
                 clientOrderId:
                   type: string
+                  example: "order1987111"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               side: buy
@@ -2837,12 +2938,16 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 id:
                   type: integer
+                  example: 117703764514
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               id: 117703764514
@@ -2894,12 +2999,16 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 orderId:
                   type: integer
+                  example: 117703764514
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               orderId: 117703764514
@@ -3160,12 +3269,16 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 otoId:
                   type: integer
+                  example: 117703764514
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               otoId: 117703764514
@@ -3233,9 +3346,11 @@ paths:
                 nonce:
                   type: integer
                   description: "Nonce for request"
+                  example: 1699260637
                 request:
                   type: string
                   description: "Request path"
+                  example: "{{request}}"
             examples:
               estimateReceive:
                 summary: "Estimate convert of BTC to receive 35,103.1 USDT"
@@ -3350,9 +3465,11 @@ paths:
                 nonce:
                   type: integer
                   description: "Nonce for request"
+                  example: 1699260637
                 request:
                   type: string
                   description: "Request path"
+                  example: "{{request}}"
             example:
               quoteId: "4050"
       responses:
@@ -3443,9 +3560,11 @@ paths:
                 nonce:
                   type: integer
                   description: "Nonce for request"
+                  example: 1699260637
                 request:
                   type: string
                   description: "Request path"
+                  example: "{{request}}"
             example:
               fromTicker: "BTC"
       responses:
@@ -4107,11 +4226,13 @@ paths:
                     When true: Processing stops at the first order that fails validation or execution. Only orders up to (but not including) the failed order are processed.
 
                     When false (default): All orders in the bulk request are processed regardless of individual failures. Each order result is returned in the response array.
-
+                  example: true
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               orders:
                 - side: buy
@@ -4889,10 +5010,13 @@ paths:
                 clientOrderId:
                   type: string
                   description: "Custom client order id. Example: 'customId11'. Required if orderId is not set."
+                  example: "customId11"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: Order cancelled successfully
@@ -4983,13 +5107,16 @@ paths:
                 type:
                   type: array
                   description: "Order types value. Example: 'spot', 'margin', 'futures'"
+                  example: ["spot", "margin", "futures"]
                   items:
                     type: string
                     enum: [spot, margin, futures]
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
             example:
               market: BTC_USDT
               type:
@@ -5069,22 +5196,28 @@ paths:
                 orderId:
                   type: integer
                   description: "Available orderId. Example: 3134995325"
+                  example: 3134995325
                 clientOrderId:
                   type: string
                   description: "Available clientOrderId. Example: customId11"
+                  example: "customId11"
                 offset:
                   type: integer
                   default: 0
                   description: "Starting line index (OFFSET). Default: 0, Min: 0"
+                  example: 0
                 limit:
                   type: integer
                   default: 50
                   maximum: 100
                   description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                  example: 50
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: List of active orders
@@ -5160,27 +5293,35 @@ paths:
                 market:
                   type: string
                   description: "Requested [market](/glossary#market). Example: BTC_USDT"
+                  example: "BTC_USDT"
                 clientOrderId:
                   type: string
                   description: "Filter by custom order identifier"
+                  example: "customId11"
                 startDate:
                   type: integer
                   description: "Start date in Unix-time format"
+                  example: 1593233939
                 endDate:
                   type: integer
                   description: "End date in Unix-time format"
+                  example: 1593233939
                 offset:
                   type: integer
                   default: 0
                   description: "Starting line index (OFFSET). Default: 0, Min: 0"
+                  example: 0
                 limit:
                   type: integer
                   default: 50
                   description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                  example: 50
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: Executed order history
@@ -5278,16 +5419,21 @@ paths:
               properties:
                 orderId:
                   type: integer
+                  example: 3134995325
                 offset:
                   type: integer
                   default: 0
+                  example: 0
                 limit:
                   type: integer
                   default: 50
+                  example: 50
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns paginated order deals
@@ -5408,16 +5554,21 @@ paths:
               properties:
                 market:
                   type: string
+                  example: "BTC_USDT"
                 offset:
                   type: integer
                   default: 0
+                  example: 0
                 limit:
                   type: integer
                   default: 50
+                  example: 50
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns order history grouped by market. Empty response if order is not yours.
@@ -5621,28 +5772,37 @@ paths:
                 orderId:
                   type: integer
                   description: "Active order id. Required if clientOrderId is not set."
+                  example: 4180284841
                 clientOrderId:
                   type: string
                   description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. Required if orderId is not set."
+                  example: "order1987111"
                 market:
                   type: string
                   description: "Available [market](/glossary#market). Example: BTC_USDT"
+                  example: "BTC_USDT"
                 amount:
                   type: string
                   description: "Amount of [stock](/glossary#stock) currency to buy or sell. Example: '0.001' or 0.001"
+                  example: "0.001"
                 total:
                   type: string
                   description: "Total of [money](/glossary#money) currency to buy or sell. Example: '0.001' or 0.001"
+                  example: "100"
                 price:
                   type: string
                   description: "Price in [money](/glossary#money) currency. Example: '9800' or 9800"
+                  example: "9800"
                 activationPrice:
                   type: string
                   description: "Activation price in [money](/glossary#money) currency. Example: '10000' or 10000"
+                  example: "10000"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: Order modified successfully
@@ -5735,19 +5895,24 @@ paths:
                 market:
                   type: string
                   description: "Available [market](/glossary#market). Example: BTC_USDT"
+                  example: "BTC_USDT"
                 timeout:
                   type: string
                   description: "Timer value. Example: '5'-'600' or null"
+                  example: "60"
                 types:
                   type: array
                   description: "Order types value. Example: 'spot', 'margin', 'futures' or null"
+                  example: ["spot", "margin"]
                   items:
                     type: string
                     enum: [spot, margin, futures]
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: Successful response - kill-switch timer synced
@@ -5834,10 +5999,13 @@ paths:
                 market:
                   type: string
                   description: "Available [market](/glossary#market). Example: BTC_USDT"
+                  example: "BTC_USDT"
                 request:
                   type: string
+                  example: "{{request}}"
                 nonce:
                   type: string
+                  example: "{{nonce}}"
       responses:
         '200':
           description: Successful response - returns array of kill-switch timer statuses
@@ -5925,6 +6093,7 @@ components:
           type: string
           enum: [buy, sell]
           description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+          example: "buy"
         amount:
           type: string
           description: "Amount of [stock](/glossary#stock) currency to buy or sell. Example: '0.001' or 0.001"
@@ -5936,10 +6105,12 @@ components:
         clientOrderId:
           type: string
           description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+          example: "order1987111"
         postOnly:
           type: boolean
           default: false
           description: "[Orders](/glossary#orders) are guaranteed to be the [maker](/glossary#maker) order when [executed](/glossary#finished-orders). Variables: 'true' / 'false' Example: 'false'."
+          example: false
         ioc:
           type: boolean
           default: false
@@ -5950,6 +6121,7 @@ components:
             The API returns error code `37` when a request sets both `ioc=true` and `rpi=true`.
 
             Refer to [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
+          example: false
         bboRole:
           type: integer
           enum: [1, 2]
@@ -5959,6 +6131,7 @@ components:
           enum: [no, cancel_both, cancel_new, cancel_old]
           default: no
           description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
+          example: "no"
         rpi:
           type: boolean
           description: |
@@ -5973,8 +6146,10 @@ components:
           example: true
         request:
           type: string
+          example: "{{request}}"
         nonce:
           type: string
+          example: "{{nonce}}"
 
     MarketOrderRequest:
       type: object
@@ -5988,25 +6163,31 @@ components:
         market:
           type: string
           description: "Available [market](/glossary#market). Example: BTC_USDT"
-          example: BTC_USDT
+          example: "BTC_USDT"
         side:
           type: string
           enum: [buy, sell]
           description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+          example: "buy"
         amount:
           type: string
           description: "Amount of [money](/glossary#money) currency to buy or amount in [stock](/glossary#stock) currency to sell. Example: '5 USDT' for buy (min total) and '0.001 BTC' for sell (min amount)."
+          example: "100"
         clientOrderId:
           type: string
           description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+          example: "order1987111"
         stp:
           type: string
           enum: [no, cancel_both, cancel_new, cancel_old]
           description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
+          example: "no"
         request:
           type: string
+          example: "{{request}}"
         nonce:
           type: string
+          example: "{{nonce}}"
 
     StopLimitOrderRequest:
       type: object
@@ -6022,23 +6203,28 @@ components:
         market:
           type: string
           description: "Available [market](/glossary#market). Example: BTC_USDT"
-          example: BTC_USDT
+          example: "BTC_USDT"
         side:
           type: string
           enum: [buy, sell]
           description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+          example: "buy"
         amount:
           type: string
           description: "Amount of [stock](/glossary#stock) currency to buy or sell. Example: '0.001' or 0.001"
+          example: "0.001"
         price:
           type: string
           description: "Price in [money](/glossary#money) currency. Example: '9800' or 9800"
+          example: "9800"
         activation_price:
           type: string
           description: "Activation price in [money](/glossary#money) currency. Example: '10000' or 10000"
+          example: "10000"
         clientOrderId:
           type: string
           description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+          example: "order1987111"
         bboRole:
           type: integer
           enum: [1, 2]
@@ -6050,8 +6236,10 @@ components:
           example: "no"
         request:
           type: string
+          example: "{{request}}"
         nonce:
           type: string
+          example: "{{nonce}}"
 
     StopMarketOrderRequest:
       type: object
@@ -6066,20 +6254,24 @@ components:
         market:
           type: string
           description: "Available [market](/glossary#market). Example: BTC_USDT"
-          example: BTC_USDT
+          example: "BTC_USDT"
         side:
           type: string
           enum: [buy, sell]
           description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+          example: "buy"
         amount:
           type: string
           description: "Amount of [money](/glossary#money) currency to buy or amount in [stock](/glossary#stock) currency to sell. Example: '0.01' or 0.01 for buy and '0.0001' for sell."
+          example: "0.01"
         activation_price:
           type: string
           description: "Activation price in [money](/glossary#money) currency. Example: '10000' or 10000"
+          example: "10000"
         clientOrderId:
           type: string
           description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+          example: "order1987111"
         stp:
           type: string
           enum: [no, cancel_both, cancel_new, cancel_old]
@@ -6087,8 +6279,10 @@ components:
           example: "no"
         request:
           type: string
+          example: "{{request}}"
         nonce:
           type: string
+          example: "{{nonce}}"
 
     BulkOrderItem:
       type: object
@@ -6096,14 +6290,19 @@ components:
         side:
           type: string
           enum: [buy, sell]
+          example: "buy"
         amount:
           type: string
+          example: "0.001"
         price:
           type: string
+          example: "40000"
         market:
           type: string
+          example: "BTC_USDT"
         postOnly:
           type: boolean
+          example: false
         ioc:
           type: boolean
           description: |
@@ -6111,8 +6310,10 @@ components:
 
             IOC does not support `rpi=true` because RPI uses post-only behavior by design.
             The API returns error code `37` when an order item sets both `ioc=true` and `rpi=true`.
+          example: false
         clientOrderId:
           type: string
+          example: ""
         rpi:
           type: boolean
           description: |
@@ -6128,54 +6329,71 @@ components:
         orderId:
           type: integer
           description: "Order ID"
+          example: 4180284841
         clientOrderId:
           type: string
           description: "Custom client order ID; empty string if not specified"
+          example: "order1987111"
         market:
           type: string
           description: "Deal market"
+          example: "BTC_USDT"
         side:
           type: string
           description: "Order side"
+          example: "buy"
         type:
           type: string
           description: "Order type"
+          example: "limit"
         timestamp:
           type: number
           description: "Timestamp of order creation"
+          example: 1595792396.165973
         dealMoney:
           type: string
           description: "If order finished - amount in money currency that is finished"
+          example: "0"
         dealStock:
           type: string
           description: "If order finished - amount in stock currency that is finished"
+          example: "0"
         amount:
           type: string
           description: "Amount"
+          example: "0.01"
         left:
           type: string
           description: "If order not finished - rest of the amount that must be finished"
+          example: "0.001"
         dealFee:
           type: string
           description: "Fee in money currency when order is filled"
+          example: "0"
         price:
           type: string
           description: "Price"
+          example: "40000"
         postOnly:
           type: boolean
           description: "PostOnly flag"
+          example: false
         ioc:
           type: boolean
           description: "IOC flag"
+          example: false
         status:
           type: string
           description: "Order status"
+          example: "FILLED"
         stp:
           type: string
           description: "Self trade prevention mode"
+          example: "no"
         positionSide:
           type: string
           description: "Position side (for collateral orders)"
+          example: "LONG"
         rpi:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
@@ -6201,9 +6419,11 @@ components:
         code:
           type: integer
           description: "Error code"
+          example: 30
         message:
           type: string
           description: "Error message"
+          example: "Validation failed"
         errors:
           type: object
           additionalProperties:
