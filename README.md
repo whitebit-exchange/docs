@@ -38,6 +38,28 @@ mint dev
 # Open http://localhost:3000
 ```
 
+## Running with Docker
+
+Run the docs portal in a container without installing any tools locally (requires [Docker](https://docs.docker.com/get-docker/)):
+
+```bash
+# Build and start
+docker compose up --build
+
+# Open http://localhost:3000
+```
+
+The volume mount in `docker-compose.yml` syncs local file changes into the container in real time, so edits are reflected without restarting.
+
+To run without live editing (static copy baked into the image):
+
+```bash
+docker build -t whitebit-docs .
+docker run -p 3000:3000 whitebit-docs
+```
+
+> **Note:** On first start, `npx mint dev` downloads the Mintlify client from `releases.mintlify.com`. Network access is required.
+
 ## Contributing
 
 See **[CONTRIBUTING.md](CONTRIBUTING.md)** for:
