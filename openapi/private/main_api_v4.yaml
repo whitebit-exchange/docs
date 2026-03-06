@@ -5666,6 +5666,166 @@ paths:
                 errors:
                   user: ["Mining pool account 'unknown_miner' not found"]
 
+  /api/v4/mining/accounts/create:
+    post:
+      tags:
+        - Mining Pool
+      summary: Create Mining Account
+      description: |
+        Creates a new mining account for the authenticated user. The account name must be unique within the user's accounts.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: createMiningAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - request
+                - nonce
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  description: Mining pool account name. Must be unique. Alphanumeric characters and underscores allowed.
+                  example: "my_miner_01"
+                referralCode:
+                  type: string
+                  maxLength: 50
+                  description: Optional referral code for account creation
+                  example: "REF123"
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  description: Unique request identifier
+                  example: "{{nonce}}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Created mining account name
+                      createdAt:
+                        type: integer
+                        description: Account creation timestamp (Unix time)
+              example:
+                data:
+                  name: "my_miner_01"
+                  createdAt: 1709340000
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  name: ["The name has already been taken."]
+
+  /api/v4/mining/accounts:
+    post:
+      tags:
+        - Mining Pool
+      summary: Get Mining Accounts
+      description: |
+        Returns a list of mining accounts for the authenticated user. Supports filtering by account name.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: getMiningAccounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  description: Optional filter to search for a specific mining account name (exact match)
+                  example: "my_miner_01"
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  description: Unique request identifier
+                  example: "{{nonce}}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Mining account name
+                        createdAt:
+                          type: integer
+                          description: Account creation timestamp (Unix time)
+              example:
+                data:
+                  - name: "my_miner_01"
+                    createdAt: 1709340000
+                  - name: "my_miner_02"
+                    createdAt: 1709350000
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  name: ["Some error"]
+
   /api/v4/credit-line/loans/info:
     post:
       tags:
