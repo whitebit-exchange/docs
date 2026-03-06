@@ -6,6 +6,49 @@ description: "Track all updates, improvements, and fixes to the WhiteBIT API Pla
 
 ## Previous Changes
 
+<Update label="March 6, 2026">
+## Mining Pool API
+**Comprehensive mining pool management endpoints**
+
+Introduced a complete Mining Pool API with 10 endpoints for managing mining operations, including account monitoring, payout configuration, worker management, and watcher link generation.
+
+**Public endpoints:**
+- Pool statistics and connection information
+
+**Mining account management:**
+- Reward history with pagination
+- Account-level hashrate monitoring with configurable intervals (5m, 1h, 24h)
+- Fee and stratum connection details
+
+**Payout configuration:**
+- Get and set payout destination (main balance or external BTC address)
+- Support for all standard Bitcoin address formats
+
+**Worker monitoring:**
+- List online workers with pagination
+- Individual worker hashrate history
+
+**Watcher links:**
+- Create read-only access links with granular permissions (dashboard, rewards, workers)
+- Configurable expiration periods (1h, 24h, 7d, always)
+- List active watcher links
+
+All authenticated endpoints require the MINING_POOL feature to be enabled on the API key.
+
+<CardGroup cols={3}>
+  <Card title="Pool Overview" href="/api-reference/mining-pool/pool-overview" icon="chart-simple" horizontal/>
+  <Card title="Get Rewards" href="/api-reference/mining-pool/get-rewards" icon="coins" horizontal/>
+  <Card title="Account Hashrate" href="/api-reference/mining-pool/account-hashrate" icon="chart-line" horizontal/>
+  <Card title="Get Payout Destination" href="/api-reference/mining-pool/get-payout-destination" icon="wallet" horizontal/>
+  <Card title="Set Payout Destination" href="/api-reference/mining-pool/set-payout-destination" icon="pen-to-square" horizontal/>
+  <Card title="Miner Info" href="/api-reference/mining-pool/miner-info" icon="info" horizontal/>
+  <Card title="Worker Names" href="/api-reference/mining-pool/worker-names" icon="users" horizontal/>
+  <Card title="Worker Hashrate" href="/api-reference/mining-pool/worker-hashrate" icon="gauge" horizontal/>
+  <Card title="Create Watcher Link" href="/api-reference/mining-pool/create-watcher-link" icon="link" horizontal/>
+  <Card title="List Watcher Links" href="/api-reference/mining-pool/list-watcher-links" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="February 11, 2025">
 ## API Documentation Updates
 **Sub-account transfer endpoints: add transactionId for correlation**
