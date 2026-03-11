@@ -4944,12 +4944,12 @@ paths:
         - Mining Pool
       summary: Get Rewards
       description: |
-        The endpoint returns rewards received from mining.
+        The endpoint returns rewards received from mining. Results are sorted in descending order by date (newest first).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -5022,12 +5022,19 @@ paths:
         - Mining Pool
       summary: Get Mining Account Hashrate
       description: |
-        The endpoint returns hashrate of mining pool account.
+        The endpoint returns the hashrate history of a mining pool account.
+
+        The maximum time window depends on the selected interval:
+        - `5m` — up to 3 days
+        - `1h` — up to 7 days
+        - `24h` — up to 30 days
+
+        When `from` is omitted, the endpoint returns the last 14 data points from the `to` timestamp.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -5047,17 +5054,17 @@ paths:
                   example: "miner123"
                 from:
                   type: integer
-                  description: Unix timestamp of starting point
+                  description: Start Unix timestamp. When omitted, defaults to returning the last 14 data points from the `to` timestamp.
                   example: 1640995200
                 to:
                   type: integer
-                  description: Unix timestamp of final point
+                  description: End Unix timestamp. Defaults to the current time when omitted.
                   example: 1641081600
                 interval:
                   type: string
                   enum: [5m, 1h, 24h]
                   default: 1h
-                  description: Timestamp interval
+                  description: Time interval for data points.
                   example: "1h"
       responses:
         "200":
@@ -5079,8 +5086,10 @@ paths:
                           properties:
                             timestamp:
                               type: integer
+                              description: Unix timestamp of the data point
                             hashrate:
                               type: string
+                              description: Hashrate value in H/s
         "422":
           description: Request validation failed
           content:
@@ -5102,7 +5111,7 @@ paths:
         - Mining Pool
       summary: Get Payout Destination
       description: |
-        Returns the current payout destination setting for a specific mining account belonging to the authenticated user.
+        The endpoint returns the current payout destination setting for a specific mining account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5165,7 +5174,7 @@ paths:
         - Mining Pool
       summary: Set Payout Destination
       description: |
-        Updates the payout destination for a specific mining account belonging to the authenticated user. Can be set to main balance or an external BTC address.
+        The endpoint updates the payout destination for a specific mining account. The destination can be set to the main balance or an external BTC address.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5193,7 +5202,9 @@ paths:
                 address:
                   type: string
                   maxLength: 100
-                  description: External BTC address. Required when destination is external_address. Supports all standard Bitcoin address formats.
+                  description: |
+                    External BTC address. Required when `destination` is `external_address`. Supports all standard Bitcoin address formats (P2PKH, P2SH, and bech32).
+                    Omitting this field when `destination` is `external_address` returns: `{"code":0,"errors":{"name":["The address field is required."]},"message":"Validation failed"}`.
                   example: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
       responses:
         "200":
@@ -5313,7 +5324,7 @@ paths:
         - Mining Pool
       summary: Worker Names
       description: |
-        Returns a paginated list of online worker names for a specific mining account.
+        The endpoint returns all online worker names for a specific mining account in a single response.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5333,20 +5344,6 @@ paths:
                   maxLength: 255
                   description: Mining pool account name
                   example: "my_miner_01"
-                offset:
-                  type: integer
-                  minimum: 0
-                  maximum: 10000
-                  default: 0
-                  description: Pagination offset
-                  example: 0
-                limit:
-                  type: integer
-                  minimum: 1
-                  maximum: 100
-                  default: 100
-                  description: Pagination limit
-                  example: 50
       responses:
         "200":
           description: Successful response
@@ -5362,15 +5359,10 @@ paths:
                         type: array
                         items:
                           type: string
-                  limit:
-                    type: integer
-                  offset:
-                    type: integer
+                        description: List of online worker names
               example:
                 data:
                   workers: ["worker_001", "worker_002", "worker_003"]
-                limit: 50
-                offset: 0
         "400":
           description: Validation failed
           content:
@@ -5396,7 +5388,12 @@ paths:
         - Mining Pool
       summary: Worker Hashrate History
       description: |
-        Returns hashrate performance history for a specific worker on a mining account.
+        The endpoint returns hashrate performance history for a specific worker on a mining account.
+
+        The maximum time window depends on the selected interval:
+        - `5m` — up to 3 days
+        - `1h` — up to 7 days
+        - `24h` — up to 14 days
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5456,7 +5453,7 @@ paths:
                               type: integer
                             hashrate:
                               type: string
-                              description: Hashrate in TH/s
+                              description: Hashrate value in H/s
               example:
                 data:
                   hashrates:
@@ -5489,7 +5486,9 @@ paths:
         - Mining Pool
       summary: Create Watcher Link
       description: |
-        Creates a new watcher link for one or more mining accounts, granting specific permissions with a configurable expiration.
+        The endpoint creates a new watcher link for one or more mining accounts, granting specific permissions with a configurable expiration.
+
+        A maximum of 3 watcher links are allowed per account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5519,7 +5518,9 @@ paths:
                   type: string
                   maxLength: 255
                   pattern: '^[a-zA-Z0-9_]+$'
-                  description: Link name (alphanumeric and underscores only)
+                  description: |
+                    Link name. Accepts alphanumeric characters and underscores only (`^[a-zA-Z0-9_]+$`).
+                    An invalid format returns: `{"code":0,"errors":{"name":["The name format is invalid."]},"message":"Validation failed"}`.
                   example: "monitoring_link"
                 permissions:
                   type: array
