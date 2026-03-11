@@ -762,7 +762,7 @@ paths:
       description: |
         The endpoint returns overall information about the current mining pool state.
 
-        Hash rate is expressed in H units.
+        Hash rate is expressed in H/s.
 
         <Warning>
         Rate limit 1000 requests/10 sec.
@@ -781,52 +781,54 @@ paths:
                   data:
                     type: object
                     properties:
-                        connectionLinks:
-                          type: array
-                          items:
-                            type: string
-                          example: ["stratum+tcp://1.1.1.1:80", "stratum+tcp://1.1.1.2:80"]
-                        location:
+                      connectionLinks:
+                        type: array
+                        items:
                           type: string
-                          example: global
-                        assets:
-                          type: array
-                          items:
-                            type: string
-                          example: ["BTC"]
-                        rewardSchemes:
-                          type: array
-                          items:
-                            type: string
-                          example: ["FPPS"]
-                        workers:
-                          type: integer
-                          example: 1846
-                        currentHashRate:
+                        example: ["stratum+tcp://1.1.1.1:80", "stratum+tcp://1.1.1.2:80"]
+                      location:
+                        type: string
+                        example: global
+                      assets:
+                        type: array
+                        items:
                           type: string
-                          example: "39353570.8006319183174839"
-                        last7daysHashRate:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              timestamp:
-                                type: integer
-                                example: 1732579200
-                              hashrate:
-                                type: string
-                                example: "184425100325925.9259259259259259"
-                        blocks:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              blockFoundAt:
-                                type: integer
-                                example: 1715339355
-                              blockHeight:
-                                type: integer
-                                example: 18329
+                        example: ["BTC"]
+                      rewardSchemes:
+                        type: array
+                        items:
+                          type: string
+                        example: ["FPPS"]
+                      workers:
+                        type: integer
+                        example: 1846
+                      currentHashRate:
+                        type: string
+                        description: Current pool hash rate in H/s
+                        example: "39353570.8006319183174839"
+                      last7daysHashRate:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            timestamp:
+                              type: integer
+                              example: 1732579200
+                            hashrate:
+                              type: string
+                              description: Hash rate value in H/s
+                              example: "184425100325925.9259259259259259"
+                      blocks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            blockFoundAt:
+                              type: integer
+                              example: 1715339355
+                            blockHeight:
+                              type: integer
+                              example: 18329
 
 components:
   schemas:
