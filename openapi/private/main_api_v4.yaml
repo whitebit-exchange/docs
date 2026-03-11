@@ -4944,12 +4944,12 @@ paths:
         - Mining Pool
       summary: Get Rewards
       description: |
-        The endpoint returns rewards received from mining.
+        The endpoint returns rewards received from mining. Results are sorted in descending order by date (newest first).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -5022,12 +5022,19 @@ paths:
         - Mining Pool
       summary: Get Mining Account Hashrate
       description: |
-        The endpoint returns hashrate of mining pool account.
+        The endpoint returns the hashrate history of a mining pool account.
+
+        The maximum time window depends on the selected interval:
+        - `5m` — up to 3 days
+        - `1h` — up to 7 days
+        - `24h` — up to 30 days
+
+        When `from` is omitted, the endpoint returns the last 14 data points from the `to` timestamp.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -5047,17 +5054,17 @@ paths:
                   example: "miner123"
                 from:
                   type: integer
-                  description: Unix timestamp of starting point
+                  description: Start Unix timestamp. When omitted, defaults to returning the last 14 data points from the `to` timestamp.
                   example: 1640995200
                 to:
                   type: integer
-                  description: Unix timestamp of final point
+                  description: End Unix timestamp. Defaults to the current time when omitted.
                   example: 1641081600
                 interval:
                   type: string
                   enum: [5m, 1h, 24h]
                   default: 1h
-                  description: Timestamp interval
+                  description: Time interval for data points.
                   example: "1h"
       responses:
         "200":
@@ -5079,8 +5086,10 @@ paths:
                           properties:
                             timestamp:
                               type: integer
+                              description: Unix timestamp of the data point
                             hashrate:
                               type: string
+                              description: Hashrate value in H/s
         "422":
           description: Request validation failed
           content:
@@ -5095,6 +5104,728 @@ paths:
               example:
                 code: 422
                 message: "Incorrect timestamp"
+
+  /api/v4/mining/payout-destination:
+    post:
+      tags:
+        - Mining Pool
+      summary: Get Payout Destination
+      description: |
+        The endpoint returns the current payout destination setting for a specific mining account.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: getMiningPayoutDestination
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountName
+              properties:
+                accountName:
+                  type: string
+                  description: Mining pool account name
+                  example: "my_miner_01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payoutDestination:
+                    type: string
+                    enum: [main_balance, external_address]
+                    description: Payout destination type
+                  externalAddress:
+                    type: string
+                    nullable: true
+                    description: External BTC address (null if destination is main_balance)
+              example:
+                payoutDestination: "main_balance"
+                externalAddress: null
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  user: ["Mining account not found."]
+
+  /api/v4/mining/payout-destination/edit:
+    post:
+      tags:
+        - Mining Pool
+      summary: Set Payout Destination
+      description: |
+        The endpoint updates the payout destination for a specific mining account. The destination can be set to the main balance or an external BTC address.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: setMiningPayoutDestination
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountName
+                - destination
+              properties:
+                accountName:
+                  type: string
+                  description: Mining pool account name
+                  example: "my_miner_01"
+                destination:
+                  type: string
+                  enum: [main_balance, external_address]
+                  description: Payout destination type
+                  example: "external_address"
+                address:
+                  type: string
+                  maxLength: 100
+                  description: |
+                    External BTC address. Required when `destination` is `external_address`. Supports all standard Bitcoin address formats (P2PKH, P2SH, and bech32).
+                    Omitting this field when `destination` is `external_address` returns: `{"code":0,"errors":{"name":["The address field is required."]},"message":"Validation failed"}`.
+                  example: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payoutDestination:
+                    type: string
+                    enum: [main_balance, external_address]
+                  externalAddress:
+                    type: string
+                    nullable: true
+              example:
+                payoutDestination: "external_address"
+                externalAddress: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  user: ["Mining account not found."]
+
+  /api/v4/mining/miners/info:
+    post:
+      tags:
+        - Mining Pool
+      summary: Miner Info
+      description: |
+        Returns fee information and stratum connection details with worker counts for a specific mining account.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: getMiningMinerInfo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - account
+              properties:
+                account:
+                  type: string
+                  maxLength: 255
+                  description: Mining pool account name
+                  example: "my_miner_01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fee:
+                        type: string
+                        description: Fee percentage
+                      stratum:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            workersCount:
+                              type: integer
+              example:
+                data:
+                  fee: "2.5"
+                  stratum:
+                    - url: "stratum+tcp://pool.whitebit.com:3333"
+                      workersCount: 5
+                    - url: "stratum+tcp://pool.whitebit.com:3334"
+                      workersCount: 3
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  user: ["Mining pool account 'unknown_miner' not found"]
+
+  /api/v4/mining/workers/names:
+    post:
+      tags:
+        - Mining Pool
+      summary: Worker Names
+      description: |
+        The endpoint returns all online worker names for a specific mining account in a single response.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: getMiningWorkerNames
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - account
+              properties:
+                account:
+                  type: string
+                  maxLength: 255
+                  description: Mining pool account name
+                  example: "my_miner_01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      workers:
+                        type: array
+                        items:
+                          type: string
+                        description: List of online worker names
+              example:
+                data:
+                  workers: ["worker_001", "worker_002", "worker_003"]
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  user: ["Mining pool account 'unknown_miner' not found"]
+
+  /api/v4/mining/workers/hashrate:
+    post:
+      tags:
+        - Mining Pool
+      summary: Worker Hashrate History
+      description: |
+        The endpoint returns hashrate performance history for a specific worker on a mining account.
+
+        The maximum time window depends on the selected interval:
+        - `5m` — up to 3 days
+        - `1h` — up to 7 days
+        - `24h` — up to 14 days
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: getMiningWorkerHashrate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - account
+                - worker
+              properties:
+                account:
+                  type: string
+                  maxLength: 255
+                  description: Mining pool account name
+                  example: "my_miner_01"
+                worker:
+                  type: string
+                  maxLength: 255
+                  description: Worker name
+                  example: "worker_001"
+                interval:
+                  type: string
+                  enum: [5m, 1h, 24h]
+                  default: 1h
+                  description: Time frame granularity
+                  example: "1h"
+                from:
+                  type: integer
+                  description: Start timestamp in Unix seconds. Must be <= now
+                  example: 1709290000
+                to:
+                  type: integer
+                  description: End timestamp in Unix seconds. Must be <= now
+                  example: 1709340000
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      hashrates:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            time:
+                              type: integer
+                            hashrate:
+                              type: string
+                              description: Hashrate value in H/s
+              example:
+                data:
+                  hashrates:
+                    - time: 1709290000
+                      hashrate: "42.1"
+                    - time: 1709293600
+                      hashrate: "43.5"
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  user: ["Mining pool account 'unknown_miner' not found"]
+
+  /api/v4/mining/watcher-links/create:
+    post:
+      tags:
+        - Mining Pool
+      summary: Create Watcher Link
+      description: |
+        The endpoint creates a new watcher link for one or more mining accounts, granting specific permissions with a configurable expiration.
+
+        A maximum of 3 watcher links are allowed per account.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: createMiningWatcherLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accounts
+                - name
+                - permissions
+                - liveUntil
+              properties:
+                accounts:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    maxLength: 255
+                  description: Array of mining account names
+                  example: ["my_miner_01", "my_miner_02"]
+                name:
+                  type: string
+                  maxLength: 255
+                  pattern: '^[a-zA-Z0-9_]+$'
+                  description: |
+                    Link name. Accepts alphanumeric characters and underscores only (`^[a-zA-Z0-9_]+$`).
+                    An invalid format returns: `{"code":0,"errors":{"name":["The name format is invalid."]},"message":"Validation failed"}`.
+                  example: "monitoring_link"
+                permissions:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  items:
+                    type: string
+                    enum: [dashboard, rewards, workers]
+                  description: Array of permissions
+                  example: ["dashboard", "workers"]
+                liveUntil:
+                  type: string
+                  enum: [1h, 24h, 7d, always]
+                  description: Expiration period
+                  example: "7d"
+      responses:
+        "201":
+          description: Watcher link created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      link:
+                        type: string
+                      liveUntil:
+                        type: integer
+                        nullable: true
+                      createdAt:
+                        type: integer
+              example:
+                data:
+                  id: "abc123-external-id"
+                  link: "https://whitebit.com/mining-pool/watcher-link/abc123-external-id"
+                  liveUntil: 1709944800
+                  createdAt: 1709340000
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  user: ["Limit exceeded"]
+
+  /api/v4/mining/watcher-links/list:
+    post:
+      tags:
+        - Mining Pool
+      summary: List Watcher Links
+      description: |
+        Returns all active watcher links for a specific mining account.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: listMiningWatcherLinks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - account
+              properties:
+                account:
+                  type: string
+                  maxLength: 255
+                  description: Mining pool account name
+                  example: "my_miner_01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        accounts:
+                          type: array
+                          items:
+                            type: string
+                        name:
+                          type: string
+                        link:
+                          type: string
+                        permissions:
+                          type: array
+                          items:
+                            type: string
+                        liveUntil:
+                          type: integer
+                          nullable: true
+                        createdAt:
+                          type: integer
+              example:
+                data:
+                  - id: "abc123-external-id"
+                    accounts: ["my_miner_01"]
+                    name: "monitoring_link"
+                    link: "https://whitebit.com/mining-pool/watcher-link/abc123-external-id"
+                    permissions: ["dashboard", "workers"]
+                    liveUntil: 1709944800
+                    createdAt: 1709340000
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  user: ["Mining pool account 'unknown_miner' not found"]
+
+  /api/v4/mining/accounts/create:
+    post:
+      tags:
+        - Mining Pool
+      summary: Create Mining Account
+      description: |
+        Creates a new mining account for the authenticated user. The account name must be unique within the user's accounts.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: createMiningAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - request
+                - nonce
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  description: Mining pool account name. Must be unique. Alphanumeric characters and underscores allowed.
+                  example: "my_miner_01"
+                referralCode:
+                  type: string
+                  maxLength: 50
+                  description: Optional referral code for account creation
+                  example: "REF123"
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  description: Unique request identifier
+                  example: "{{nonce}}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Created mining account name
+                      createdAt:
+                        type: integer
+                        description: Account creation timestamp (Unix time)
+              example:
+                data:
+                  name: "my_miner_01"
+                  createdAt: 1709340000
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  name: ["The name has already been taken."]
+
+  /api/v4/mining/accounts:
+    post:
+      tags:
+        - Mining Pool
+      summary: Get Mining Accounts
+      description: |
+        Returns a list of mining accounts for the authenticated user. Supports filtering by account name.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: getMiningAccounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  description: Optional filter to search for a specific mining account name (exact match)
+                  example: "my_miner_01"
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  description: Unique request identifier
+                  example: "{{nonce}}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Mining account name
+                        createdAt:
+                          type: integer
+                          description: Account creation timestamp (Unix time)
+              example:
+                data:
+                  - name: "my_miner_01"
+                    createdAt: 1709340000
+                  - name: "my_miner_02"
+                    createdAt: 1709350000
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  name: ["Some error"]
 
   /api/v4/credit-line/loans/info:
     post:

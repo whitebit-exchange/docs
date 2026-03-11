@@ -36,9 +36,9 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: string
+                    type: integer
                     description: "1 - system operational, 0 - system maintenance"
-                    example: "1"
+                    example: 1
 
   /api/v4/public/markets:
     get:
@@ -512,54 +512,8 @@ paths:
             application/json:
               schema:
                 type: object
-                additionalProperties:
-                  $ref: '#/components/schemas/FeeInfo'
-              example:
-                "USDT (ERC20)":
-                  ticker: "USDT"
-                  name: "Tether US"
-                  providers: []
-                  deposit:
-                    min_amount: "0.0005"
-                    max_amount: "0.1"
-                    fixed: "0.0005"
-                    flex:
-                      min_fee: "100"
-                      max_fee: "1000"
-                      percent: "10"
-                  withdraw:
-                    min_amount: "0.001"
-                    max_amount: "0"
-                    fixed: null
-                    flex: null
-                  is_depositable: true
-                  is_withdrawal: true
-                  is_api_withdrawal: true
-                  is_api_depositable: true
-                USD:
-                  ticker: "USD"
-                  name: "United States Dollar"
-                  providers: ["USD_ADVCASH", "USD_CAPITALIST", "USD_EPAY_COM", "USD_PERFECT_MONEY", "USD_VISAMASTER_INTERKASSA"]
-                  deposit:
-                    USD_VISAMASTER_INTERKASSA:
-                      min_amount: "10"
-                      max_amount: "1500"
-                      fixed: null
-                      flex: null
-                      is_depositable: false
-                      is_api_depositable: true
-                      name: "USD Visa/MasterCard Interkassa"
-                      ticker: "USD_VISAMASTER_INTERKASSA"
-                  withdraw:
-                    USD_VISAMASTER_INTERKASSA:
-                      min_amount: "20"
-                      max_amount: "1500"
-                      fixed: null
-                      flex: null
-                      is_withdrawal: false
-                      is_api_withdrawal: true
-                      name: "USD Visa/MasterCard Interkassa"
-                      ticker: "USD_VISAMASTER_INTERKASSA"
+                description: Map of currency tickers to fee information
+                x-fern-type-name: FeeMap
         'default':
           description: Error response
           content:
@@ -808,7 +762,7 @@ paths:
       description: |
         The endpoint returns overall information about the current mining pool state.
 
-        Hash rate is expressed in H units.
+        Hash rate is expressed in H/s.
 
         <Warning>
         Rate limit 1000 requests/10 sec.
@@ -825,56 +779,56 @@ paths:
                 type: object
                 properties:
                   data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        connectionLinks:
-                          type: array
-                          items:
-                            type: string
-                          example: ["stratum+tcp://1.1.1.1:80", "stratum+tcp://1.1.1.2:80"]
-                        location:
+                    type: object
+                    properties:
+                      connectionLinks:
+                        type: array
+                        items:
                           type: string
-                          example: global
-                        assets:
-                          type: array
-                          items:
-                            type: string
-                          example: ["BTC"]
-                        rewardSchemes:
-                          type: array
-                          items:
-                            type: string
-                          example: ["FPPS"]
-                        workers:
-                          type: integer
-                          example: 1846
-                        currentHashRate:
+                        example: ["stratum+tcp://1.1.1.1:80", "stratum+tcp://1.1.1.2:80"]
+                      location:
+                        type: string
+                        example: global
+                      assets:
+                        type: array
+                        items:
                           type: string
-                          example: "39353570.8006319183174839"
-                        last7daysHashRate:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              timestamp:
-                                type: integer
-                                example: 1732579200
-                              hashrate:
-                                type: string
-                                example: "184425100325925.9259259259259259"
-                        blocks:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              blockFoundAt:
-                                type: integer
-                                example: 1715339355
-                              blockHeight:
-                                type: integer
-                                example: 18329
+                        example: ["BTC"]
+                      rewardSchemes:
+                        type: array
+                        items:
+                          type: string
+                        example: ["FPPS"]
+                      workers:
+                        type: integer
+                        example: 1846
+                      currentHashRate:
+                        type: string
+                        description: Current pool hash rate in H/s
+                        example: "39353570.8006319183174839"
+                      last7daysHashRate:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            timestamp:
+                              type: integer
+                              example: 1732579200
+                            hashrate:
+                              type: string
+                              description: Hash rate value in H/s
+                              example: "184425100325925.9259259259259259"
+                      blocks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            blockFoundAt:
+                              type: integer
+                              example: 1715339355
+                            blockHeight:
+                              type: integer
+                              example: 18329
 
 components:
   schemas:
@@ -1064,96 +1018,69 @@ components:
       properties:
         ticker:
           type: string
-          example: USDT
         name:
           type: string
-          example: Tether US
         providers:
           type: array
           items:
             type: string
-          example: []
         deposit:
-          oneOf:
-            - $ref: '#/components/schemas/FeeDetails'
-            - type: object
-              additionalProperties:
-                $ref: '#/components/schemas/ProviderFeeDetails'
+          description: Fee details for deposits
+          type: object
         withdraw:
-          oneOf:
-            - $ref: '#/components/schemas/FeeDetails'
-            - type: object
-              additionalProperties:
-                $ref: '#/components/schemas/ProviderFeeDetails'
+          description: Fee details for withdrawals
+          type: object
         is_depositable:
           type: boolean
-          example: true
         is_withdrawal:
           type: boolean
-          example: true
         is_api_withdrawal:
           type: boolean
-          example: true
         is_api_depositable:
           type: boolean
-          example: true
 
     FeeDetails:
       type: object
       properties:
         min_amount:
           type: string
-          example: "0.0005"
         max_amount:
           type: string
-          example: "0.1"
         fixed:
           type: string
           nullable: true
-          example: "0.0005"
         flex:
           type: object
           nullable: true
           properties:
             min_fee:
               type: string
-              example: "100"
             max_fee:
               type: string
-              example: "1000"
             percent:
               type: string
-              example: "10"
 
     ProviderFeeDetails:
       type: object
       properties:
         min_amount:
           type: string
-          example: "10"
         max_amount:
           type: string
-          example: "1500"
         fixed:
           type: string
           nullable: true
-          example: null
         flex:
           type: string
           nullable: true
-          example: null
         is_depositable:
           type: boolean
-          example: false
         is_api_depositable:
           type: boolean
-          example: true
         is_withdrawal:
           type: boolean
-          example: false
         is_api_withdrawal:
           type: boolean
-          example: true
         name:
           type: string
           example: USD Visa/MasterCard Interkassa
