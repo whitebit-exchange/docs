@@ -5802,6 +5802,10 @@ paths:
                         createdAt:
                           type: integer
                           description: Account creation timestamp (Unix time)
+                  limit:  
+                    type: integer
+                  offset:
+                    type: integer
               example:
                 data:
                   - name: "my_miner_01"
@@ -6592,6 +6596,16 @@ components:
           type: string
           description: "Mining account name"
           example: "miner123"
+        payoutDestination:
+          type: string
+          enum: [main_balance, external_address]
+          description: "Payout destination"
+          example: "external_address"
+        payoutTransactionHash:
+          type: string
+          nullable: true
+          description: "Payout transaction hash. null in case payout destination is main_balance, blockchain transaction hash in case payout destination is external_address"
+          example: "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"
         totalReward:
           type: string
           description: "Total reward amount"
@@ -6600,6 +6614,10 @@ components:
           type: string
           description: "Reward amount (without fee)"
           example: "0.001"
+        rewardCurrency:
+          type: string
+          description: "Reward currency"
+          example: "BTC"
         fee:
           type: string
           description: "Fee amount"
