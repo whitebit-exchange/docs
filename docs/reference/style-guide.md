@@ -97,6 +97,6 @@ Focus on: Use cases, best practices, common scenarios
 
 ## Related Documentation
 
-- [Quick Reference](quick-reference.md) - MDX components, file patterns
-- [Common Pitfalls](common-pitfalls.md) - Avoid mistakes
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Review checklists
+- [Quick Reference](./quick-reference.md) - MDX components, file patterns
+- [Common Pitfalls](./common-pitfalls.md) - Avoid mistakes
+- [CONTRIBUTING.md](https://github.com/whitebit-exchange/docs/blob/main/CONTRIBUTING.md) - Review checklists

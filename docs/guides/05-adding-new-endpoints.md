@@ -19,7 +19,7 @@ This guide walks you through adding completely new REST or WebSocket endpoints t
 **Key elements to add**:
 - `paths` → `/api/v4/your-endpoint` → `post` or `get`
 - `summary`, `description`, `tags`, `security`
-- `requestBody` with parameters (see [Adding Parameters](01-adding-parameters.md))
+- `requestBody` with parameters (see [Adding Parameters](./01-adding-parameters.md))
 - `responses` with `$ref` to schemas
 - Add response schema in `components/schemas` if new
 
@@ -91,7 +91,7 @@ Edit `docs.json` → find appropriate `group` → add page path (without `.mdx` 
 ## Related Guides
 
 - [File Structure Decision Tree](../reference/file-structure.md)
-- [Adding Parameters](01-adding-parameters.md)
-- [Adding Descriptions](02-adding-descriptions.md)
-- [Documenting Errors](04-documenting-errors.md)
+- [Adding Parameters](./01-adding-parameters.md)
+- [Adding Descriptions](./02-adding-descriptions.md)
+- [Documenting Errors](./04-documenting-errors.md)
 - [Validation Guide](../reference/validation.md)

@@ -86,6 +86,6 @@ See [Quick Reference](../reference/quick-reference.md#common-error-codes) for th
 
 ## Related Guides
 
-- [Adding Descriptions](02-adding-descriptions.md)
+- [Adding Descriptions](./02-adding-descriptions.md)
 - [Quick Reference](../reference/quick-reference.md)
 - [Common Pitfalls](../reference/common-pitfalls.md)
