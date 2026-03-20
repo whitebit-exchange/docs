@@ -779,7 +779,7 @@ paths:
 
         The system processes refunds only for deposits with status `canceled`.
 
-        Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
+        Obtain `transaction_id` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
 
         The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT address. The refund address can differ from the original deposit sender address.
 
@@ -796,7 +796,7 @@ paths:
           "code": 0,
           "message": "Validation failed",
           "errors": {
-            "transactionId": ["The transaction id field is required."],
+            "transaction_id": ["The transaction id field is required."],
             "address": ["The address field is required."]
           }
         }
@@ -822,7 +822,7 @@ paths:
             schema:
               type: object
               required:
-                - transactionId
+                - transaction_id
                 - address
                 - request
                 - nonce
