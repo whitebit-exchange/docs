@@ -34,11 +34,14 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - status
                 properties:
                   status:
-                    type: integer
-                    description: "1 - system operational, 0 - system maintenance"
-                    example: 1
+                    type: string
+                    description: "system operational or system maintenance"
+                    enum: ["system operational", "system maintenance"]
+                    example: "system operational"
 
   /api/v4/public/markets:
     get:
@@ -66,6 +69,19 @@ paths:
                 type: array
                 items:
                   type: object
+                  required:
+                    - name
+                    - stock
+                    - money
+                    - stockPrec
+                    - moneyPrec
+                    - feePrec
+                    - makerFee
+                    - takerFee
+                    - minAmount
+                    - minTotal
+                    - tradesEnabled
+                    - type
                   properties:
                     name:
                       type: string
@@ -177,7 +193,7 @@ paths:
                       type: string
                       description: Volume in base currency
                       example: "4723.286463"
-                    isFrozen:
+                    is_frozen:
                       type: boolean
                       description: Indicates whether trading is disabled
                       example: false
@@ -192,7 +208,7 @@ paths:
                   last_price: "9164.09"
                   quote_volume: "43341942.90416876"
                   base_volume: "4723.286463"
-                  isFrozen: false
+                  is_frozen: false
                   change: "0.57"
         'default':
           description: Error response
@@ -437,6 +453,13 @@ paths:
                 type: array
                 items:
                   type: object
+                  required:
+                    - tradeID
+                    - price
+                    - quote_volume
+                    - base_volume
+                    - trade_timestamp
+                    - type
                   properties:
                     tradeID:
                       type: integer
@@ -599,11 +622,17 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                  description: Market pair name
-                example: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
+                type: object
+                properties:
+                  message:
+                    type: string
+                    nullable: true
+                    example: null
+                  result:
+                    type: array
+                    items:
+                      type: string
+                    example: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
 
   /api/v4/public/futures:
     get:
@@ -734,6 +763,12 @@ paths:
                 type: array
                 items:
                   type: object
+                  required:
+                    - fundingTime
+                    - fundingRate
+                    - market
+                    - settlementPrice
+                    - rateCalculatedTime
                   properties:
                     fundingTime:
                       type: string
@@ -762,7 +797,7 @@ paths:
       description: |
         The endpoint returns overall information about the current mining pool state.
 
-        Hash rate is expressed in H/s.
+        Hash rate is expressed in H units.
 
         <Warning>
         Rate limit 1000 requests/10 sec.
@@ -781,7 +816,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      connectionLinks:
+                      connection_links:
                         type: array
                         items:
                           type: string
@@ -794,7 +829,7 @@ paths:
                         items:
                           type: string
                         example: ["BTC"]
-                      rewardSchemes:
+                      reward_schemes:
                         type: array
                         items:
                           type: string
@@ -802,11 +837,10 @@ paths:
                       workers:
                         type: integer
                         example: 1846
-                      currentHashRate:
+                      current_hash_rate:
                         type: string
-                        description: Current pool hash rate in H/s
                         example: "39353570.8006319183174839"
-                      last7daysHashRate:
+                      last7days_hash_rate:
                         type: array
                         items:
                           type: object
@@ -816,17 +850,16 @@ paths:
                               example: 1732579200
                             hashrate:
                               type: string
-                              description: Hash rate value in H/s
                               example: "184425100325925.9259259259259259"
                       blocks:
                         type: array
                         items:
                           type: object
                           properties:
-                            blockFoundAt:
+                            block_found_at:
                               type: integer
                               example: 1715339355
-                            blockHeight:
+                            block_height:
                               type: integer
                               example: 18329
 
