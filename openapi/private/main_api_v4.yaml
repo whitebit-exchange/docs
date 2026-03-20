@@ -393,7 +393,7 @@ paths:
                 - ticker
                 - provider
                 - amount
-                - uniqueId
+                - unique_id
                 - request
                 - nonce
               properties:
@@ -409,7 +409,7 @@ paths:
                   type: string
                   description: Deposit amount
                   example: "100"
-                uniqueId:
+                unique_id:
                   type: string
                   description: Unique transaction identifier on client's side
                   example: "qw22"
@@ -508,7 +508,7 @@ paths:
                   ticker: "UAH"
                   provider: "VISAMASTER"
                   amount: "100"
-                  uniqueId: "{{generateID}}"
+                  unique_id: "{{generateID}}"
                   request: "{{request}}"
                   nonce: "{{nonce}}"
               withCustomer:
@@ -517,7 +517,7 @@ paths:
                   ticker: "UAH"
                   provider: "VISAMASTER"
                   amount: "100"
-                  uniqueId: "{{generateID}}"
+                  unique_id: "{{generateID}}"
                   customer:
                     firstName: "John"
                     lastName: "Doe"
@@ -779,7 +779,7 @@ paths:
 
         The system processes refunds only for deposits with status `canceled`.
 
-        Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
+        Obtain `transaction_id` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
 
         The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT address. The refund address can differ from the original deposit sender address.
 
@@ -796,7 +796,7 @@ paths:
           "code": 0,
           "message": "Validation failed",
           "errors": {
-            "transactionId": ["The transaction id field is required."],
+            "transaction_id": ["The transaction id field is required."],
             "address": ["The address field is required."]
           }
         }
@@ -822,12 +822,12 @@ paths:
             schema:
               type: object
               required:
-                - transactionId
+                - transaction_id
                 - address
                 - request
                 - nonce
               properties:
-                transactionId:
+                transaction_id:
                   type: string
                   format: uuid
                   description: |
@@ -849,7 +849,7 @@ paths:
                     A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
                   example: "{{nonce}}"
             example:
-              transactionId: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+              transaction_id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
               address: "0x1234567890abcdef1234567890abcdef12345678"
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -906,7 +906,7 @@ paths:
                 - ticker
                 - amount
                 - address
-                - uniqueId
+                - unique_id
                 - request
                 - nonce
               properties:
@@ -933,7 +933,7 @@ paths:
 
                     ⚠️ Required if currency is memoable.
                   example: "48565488244493"
-                uniqueId:
+                unique_id:
                   type: string
                   description: |
                     Unique transaction identifier.
@@ -1066,7 +1066,7 @@ paths:
                   ticker: "ETH"
                   amount: "0.9"
                   address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
-                  uniqueId: "24529041"
+                  unique_id: "24529041"
                   request: "{{request}}"
                   nonce: "{{nonce}}"
               multiNetwork:
@@ -1075,7 +1075,7 @@ paths:
                   ticker: "USDT"
                   amount: "0.9"
                   address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
-                  uniqueId: "24529042"
+                  unique_id: "24529042"
                   network: "ERC20"
                   request: "{{request}}"
                   nonce: "{{nonce}}"
@@ -1085,7 +1085,7 @@ paths:
                   ticker: "UAH"
                   amount: "100"
                   provider: "VISAMASTER"
-                  uniqueId: "24529043"
+                  unique_id: "24529043"
                   request: "{{request}}"
                   nonce: "{{nonce}}"
               fiatPartial:
@@ -1096,7 +1096,7 @@ paths:
                   address: "t6XIpyirkiLP+I++XHWfSeGrn5p38g=="
                   provider: "VISAMASTER_PAYCORE"
                   partialEnable: true
-                  uniqueId: "24529045"
+                  unique_id: "24529045"
                   request: "{{request}}"
                   nonce: "{{nonce}}"
               fiatIban:
@@ -1110,7 +1110,7 @@ paths:
                     lastName: "Lastname"
                     tin: 1000000000
                   provider: "UAH_IBAN"
-                  uniqueId: "24529045"
+                  unique_id: "24529045"
                   request: "{{request}}"
                   nonce: "{{nonce}}"
               fiatVisamaster:
@@ -1125,7 +1125,7 @@ paths:
                     phone: "1234567891"
                     email: "john_doe@email.com"
                   provider: "USD_VISAMASTER"
-                  uniqueId: "24529045"
+                  unique_id: "24529045"
                   request: "{{request}}"
                   nonce: "{{nonce}}"
               travelRuleIndividual:
@@ -1134,7 +1134,7 @@ paths:
                   ticker: "BTC"
                   amount: "0.5"
                   address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-                  uniqueId: "24529046"
+                  unique_id: "24529046"
                   travelRule:
                     type: "individual"
                     vasp: "Binance"
@@ -1148,7 +1148,7 @@ paths:
                   ticker: "BTC"
                   amount: "1.2"
                   address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-                  uniqueId: "24529047"
+                  unique_id: "24529047"
                   travelRule:
                     type: "entity"
                     vasp: "Kraken"
@@ -1194,14 +1194,14 @@ paths:
                       address: ["The address field is required."]
                       amount: ["The amount field is required."]
                       ticker: ["The ticker field is required."]
-                      uniqueId: ["The unique id field is required."]
+                      unique_id: ["The unique id field is required."]
                 duplicateUniqueId:
                   summary: Duplicate uniqueId
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      uniqueId: ["The unique id has already been taken."]
+                      unique_id: ["The unique id has already been taken."]
                 unconfirmedUser:
                   summary: Unconfirmed user (without KYC)
                   value:
@@ -1315,7 +1315,7 @@ paths:
               ticker: ETH
               amount: "0.9"
               address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
-              uniqueId: "24529041"
+              unique_id: "24529041"
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -1356,14 +1356,14 @@ paths:
                       address: ["The address field is required."]
                       amount: ["The amount field is required."]
                       ticker: ["The ticker field is required."]
-                      uniqueId: ["The unique id field is required."]
+                      unique_id: ["The unique id field is required."]
                 duplicateUniqueId:
                   summary: Duplicate uniqueId
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      uniqueId: ["The unique id has already been taken."]
+                      unique_id: ["The unique id has already been taken."]
                 unconfirmedUser:
                   summary: Unconfirmed user (without KYC)
                   value:
@@ -1656,7 +1656,7 @@ paths:
                   maxItems: 20
                   description: Can be used for filtering transactions by specific array of addresses.
                   example: ["3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE"]
-                uniqueId:
+                unique_id:
                   type: string
                   description: Can be used for filtering transactions by specific unique id
                   example: "24529041"
@@ -1723,7 +1723,7 @@ paths:
                 offset: 0
                 records:
                   - address: "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE"
-                    uniqueId: null
+                    unique_id: null
                     createdAt: 1593437922
                     currency: "Bitcoin"
                     ticker: "BTC"
@@ -1735,7 +1735,7 @@ paths:
                     status: 15
                     network: null
                     transactionHash: "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886"
-                    transactionId: "5e112b38-9652-11ed-a1eb-0242ac120002"
+                    transaction_id: "5e112b38-9652-11ed-a1eb-0242ac120002"
                     details:
                       partial:
                         requestAmount: "50000"
@@ -3390,7 +3390,7 @@ paths:
                     investmentId: "inv_7e2d9c3b-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                     currency: "USDT"
                     amount: "15.75"
-                    transactionId: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
+                    transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
                     actionType: 1
                 limit: 50
                 offset: 0
@@ -3511,7 +3511,7 @@ paths:
                     investmentId: "inv_7e2d9c3b-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
                     currency: "USDT"
                     amount: "15.75"
-                    transactionId: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
+                    transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
                     actionType: 4
                 limit: 50
                 offset: 0
@@ -3597,12 +3597,12 @@ paths:
                   data:
                     type: object
                     properties:
-                      transactionId:
+                      transaction_id:
                         type: string
                         description: Transaction ID for the investment
               example:
                 data:
-                  transactionId: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
+                  transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
         "400":
           description: Validation failed
           content:
@@ -3695,12 +3695,12 @@ paths:
                   data:
                     type: object
                     properties:
-                      transactionId:
+                      transaction_id:
                         type: string
                         description: Transaction ID for the withdrawal
               example:
                 data:
-                  transactionId: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
+                  transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
         "400":
           description: Validation failed
           content:
@@ -3784,12 +3784,12 @@ paths:
                   data:
                     type: object
                     properties:
-                      transactionId:
+                      transaction_id:
                         type: string
                         description: Transaction ID for the closure
               example:
                 data:
-                  transactionId: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
+                  transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
         "400":
           description: Validation failed
           content:
@@ -4268,9 +4268,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  transactionId:
+                  transaction_id:
                     type: string
-                    description: External identifier of the transaction. Correlate transfer history responses using the transactionId value.
+                    description: External identifier of the transaction. Correlate transfer history responses using the `transaction_id` value.
         "400":
           description: Request validation failed
           content:
@@ -4944,12 +4944,12 @@ paths:
         - Mining Pool
       summary: Get Rewards
       description: |
-        The endpoint returns rewards received from mining. Results are sorted in descending order by date (newest first).
+        The endpoint returns rewards received from mining.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-
+        
         <Note>
         The API does not cache the response.
         </Note>
@@ -5022,19 +5022,12 @@ paths:
         - Mining Pool
       summary: Get Mining Account Hashrate
       description: |
-        The endpoint returns the hashrate history of a mining pool account.
-
-        The maximum time window depends on the selected interval:
-        - `5m` — up to 3 days
-        - `1h` — up to 7 days
-        - `24h` — up to 30 days
-
-        When `from` is omitted, the endpoint returns the last 14 data points from the `to` timestamp.
+        The endpoint returns hashrate of mining pool account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-
+        
         <Note>
         The API does not cache the response.
         </Note>
@@ -5054,17 +5047,17 @@ paths:
                   example: "miner123"
                 from:
                   type: integer
-                  description: Start Unix timestamp. When omitted, defaults to returning the last 14 data points from the `to` timestamp.
+                  description: Unix timestamp of starting point
                   example: 1640995200
                 to:
                   type: integer
-                  description: End Unix timestamp. Defaults to the current time when omitted.
+                  description: Unix timestamp of final point
                   example: 1641081600
                 interval:
                   type: string
                   enum: [5m, 1h, 24h]
                   default: 1h
-                  description: Time interval for data points.
+                  description: Timestamp interval
                   example: "1h"
       responses:
         "200":
@@ -5086,10 +5079,8 @@ paths:
                           properties:
                             timestamp:
                               type: integer
-                              description: Unix timestamp of the data point
                             hashrate:
                               type: string
-                              description: Hashrate value in H/s
         "422":
           description: Request validation failed
           content:
@@ -5111,7 +5102,7 @@ paths:
         - Mining Pool
       summary: Get Payout Destination
       description: |
-        The endpoint returns the current payout destination setting for a specific mining account.
+        Returns the current payout destination setting for a specific mining account belonging to the authenticated user.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5174,7 +5165,7 @@ paths:
         - Mining Pool
       summary: Set Payout Destination
       description: |
-        The endpoint updates the payout destination for a specific mining account. The destination can be set to the main balance or an external BTC address.
+        Updates the payout destination for a specific mining account belonging to the authenticated user. Can be set to main balance or an external BTC address.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5202,9 +5193,7 @@ paths:
                 address:
                   type: string
                   maxLength: 100
-                  description: |
-                    External BTC address. Required when `destination` is `external_address`. Supports all standard Bitcoin address formats (P2PKH, P2SH, and bech32).
-                    Omitting this field when `destination` is `external_address` returns: `{"code":0,"errors":{"name":["The address field is required."]},"message":"Validation failed"}`.
+                  description: External BTC address. Required when destination is external_address. Supports all standard Bitcoin address formats.
                   example: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
       responses:
         "200":
@@ -5324,7 +5313,7 @@ paths:
         - Mining Pool
       summary: Worker Names
       description: |
-        The endpoint returns all online worker names for a specific mining account in a single response.
+        Returns a paginated list of online worker names for a specific mining account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5344,6 +5333,20 @@ paths:
                   maxLength: 255
                   description: Mining pool account name
                   example: "my_miner_01"
+                offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                  description: Pagination offset
+                  example: 0
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 100
+                  description: Pagination limit
+                  example: 50
       responses:
         "200":
           description: Successful response
@@ -5359,10 +5362,15 @@ paths:
                         type: array
                         items:
                           type: string
-                        description: List of online worker names
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
               example:
                 data:
                   workers: ["worker_001", "worker_002", "worker_003"]
+                limit: 50
+                offset: 0
         "400":
           description: Validation failed
           content:
@@ -5388,12 +5396,7 @@ paths:
         - Mining Pool
       summary: Worker Hashrate History
       description: |
-        The endpoint returns hashrate performance history for a specific worker on a mining account.
-
-        The maximum time window depends on the selected interval:
-        - `5m` — up to 3 days
-        - `1h` — up to 7 days
-        - `24h` — up to 14 days
+        Returns hashrate performance history for a specific worker on a mining account.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5453,7 +5456,7 @@ paths:
                               type: integer
                             hashrate:
                               type: string
-                              description: Hashrate value in H/s
+                              description: Hashrate in TH/s
               example:
                 data:
                   hashrates:
@@ -5486,9 +5489,7 @@ paths:
         - Mining Pool
       summary: Create Watcher Link
       description: |
-        The endpoint creates a new watcher link for one or more mining accounts, granting specific permissions with a configurable expiration.
-
-        A maximum of 3 watcher links are allowed per account.
+        Creates a new watcher link for one or more mining accounts, granting specific permissions with a configurable expiration.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5518,9 +5519,7 @@ paths:
                   type: string
                   maxLength: 255
                   pattern: '^[a-zA-Z0-9_]+$'
-                  description: |
-                    Link name. Accepts alphanumeric characters and underscores only (`^[a-zA-Z0-9_]+$`).
-                    An invalid format returns: `{"code":0,"errors":{"name":["The name format is invalid."]},"message":"Validation failed"}`.
+                  description: Link name (alphanumeric and underscores only)
                   example: "monitoring_link"
                 permissions:
                   type: array
@@ -5802,10 +5801,6 @@ paths:
                         createdAt:
                           type: integer
                           description: Account creation timestamp (Unix time)
-                  limit:  
-                    type: integer
-                  offset:
-                    type: integer
               example:
                 data:
                   - name: "my_miner_01"
@@ -5954,7 +5949,7 @@ components:
         - ticker
         - amount
         - address
-        - uniqueId
+        - unique_id
         - request
         - nonce
       properties:
@@ -5974,7 +5969,7 @@ components:
           type: string
           description: "Required if currency is memoable. See [memo](/glossary#memodestination-tag) for details."
           example: "48565488244493"
-        uniqueId:
+        unique_id:
           type: string
           description: "Unique transaction identifier. ⚠️ Generate a new unique ID for each withdrawal request."
           example: "24529041"
@@ -6012,7 +6007,7 @@ components:
           type: string
           description: Deposit/Withdraw address
           example: "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE"
-        uniqueId:
+        unique_id:
           type: string
           nullable: true
           description: Unique Id of deposit/withdraw
@@ -6062,7 +6057,7 @@ components:
           type: string
           description: Deposit/Withdraw transaction hash
           example: "3b49d7b8cf7a4d3c1234567890abcdef"
-        transactionId:
+        transaction_id:
           type: string
           description: Transaction ID
           example: "tx-id-1234"
@@ -6326,7 +6321,7 @@ components:
           type: string
           description: "Transaction amount"
           example: "100"
-        transactionId:
+        transaction_id:
           type: string
           description: "Transaction identifier"
           example: "tx_123456"
@@ -6347,13 +6342,13 @@ components:
           description: "Currency name"
           example: "Ethereum"
         can_deposit:
-          type: string
+          type: boolean
           description: "Deposit status (currency availability)"
-          example: "1"
+          example: true
         can_withdraw:
-          type: string
+          type: boolean
           description: "Withdrawal status (currency availability)"
-          example: "1"
+          example: true
         deposit:
           type: object
           description: "Deposit fees and limits"
@@ -6466,9 +6461,9 @@ components:
     SubAccountTransfer:
       type: object
       properties:
-        transactionId:
+        transaction_id:
           type: string
-          description: "Transaction identifier. Same value as id. Correlate with the transfer endpoint response using the transactionId field."
+          description: "Transaction identifier. Same value as id. Correlate with the transfer endpoint response using the transaction_id field."
           example: "tx-abc123"
         id:
           type: string
@@ -6596,16 +6591,6 @@ components:
           type: string
           description: "Mining account name"
           example: "miner123"
-        payoutDestination:
-          type: string
-          enum: [main_balance, external_address]
-          description: "Payout destination"
-          example: "external_address"
-        payoutTransactionHash:
-          type: string
-          nullable: true
-          description: "Payout transaction hash. null in case payout destination is main_balance, blockchain transaction hash in case payout destination is external_address"
-          example: "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"
         totalReward:
           type: string
           description: "Total reward amount"
@@ -6614,10 +6599,6 @@ components:
           type: string
           description: "Reward amount (without fee)"
           example: "0.001"
-        rewardCurrency:
-          type: string
-          description: "Reward currency"
-          example: "BTC"
         fee:
           type: string
           description: "Fee amount"
@@ -6628,8 +6609,8 @@ components:
           example: "0.000125"
         hashRate:
           type: string
-          description: "Hash rate (H/s)"
-          example: "100"
+          description: "Hash rate"
+          example: "100TH/s"
         date:
           type: integer
           description: "Reward date timestamp"
