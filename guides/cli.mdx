@@ -1,0 +1,223 @@
+---
+title: "CLI"
+sidebarTitle: "CLI"
+description: "Trade, manage accounts, and query market data from the terminal using the WhiteBIT CLI. Built for scripting, CI/CD pipelines, and automated workflows."
+icon: "terminal"
+---
+
+The WhiteBIT CLI provides 110+ commands covering the full WhiteBIT API surface — market data, spot trading, collateral trading, earn, sub-accounts, deposits, and withdrawals — directly from the terminal.
+
+## Prerequisites
+
+- A WhiteBIT account with an API key for authenticated commands — see [Authentication](/api-reference/authentication)
+
+Public market data commands (`market`, `mining-pool`) require no account or API key.
+
+| Feature | Detail |
+|---|---|
+| **110+ commands** | Full API surface: spot, collateral, earn, sub-accounts, deposits, withdrawals |
+| **Multi-profile** | Named profiles in `~/.whitebit/config.toml`, switch with `--profile` |
+| **`--dry-run` mode** | Preview the exact request payload before sending |
+| **JSON output** | `--json` flag on every command — pipe into `jq` or any automation tool |
+| **Shell completion** | Tab-completion for Bash, Zsh, and Fish |
+| **Cross-platform** | macOS (ARM + x64), Linux, and Windows |
+
+## Install the CLI
+
+<Note>
+Packaged releases (npm, Homebrew, and pre-compiled binaries) are coming soon. The source code is available at [github.com/whitebit-exchange/whitebit-cli](https://github.com/whitebit-exchange/whitebit-cli).
+</Note>
+
+## Quick start
+
+```bash
+# 1. Set credentials (required for account and trading commands)
+export WHITEBIT_API_KEY="YOUR_API_KEY"
+export WHITEBIT_API_SECRET="YOUR_SECRET"
+
+# 2. Verify setup — no authentication required
+whitebit market list
+
+# 3. Check the trading balance
+whitebit balance trade
+
+# 4. Place a limit order
+whitebit trade spot limit-order BTC_USDT buy 0.001 50000
+```
+
+## Authentication
+
+Credentials are resolved in priority order (highest first):
+
+| Method | Best for | Persistence | Security note |
+|---|---|---|---|
+| CLI flags (`--api-key`, `--api-secret`) | Quick testing | None | Visible in process list |
+| Environment variables | CI/CD, Docker, one-off scripts | Per-session | Depends on environment |
+| Config file (`~/.whitebit/config.toml`) | Daily use, multiple profiles | Permanent | Set `chmod 600` on the file |
+
+<Warning>
+Store API keys securely. Do not commit `~/.whitebit/config.toml` to version control. Avoid `--api-key` flags in production scripts — the value is visible in the process list.
+</Warning>
+
+### Config file
+
+Create `~/.whitebit/config.toml` with one or more named profiles:
+
+```toml
+[default]
+api_key = "YOUR_API_KEY"
+api_secret = "YOUR_SECRET"
+format = "table"  # or "json"
+
+[work]
+api_key = "WORK_API_KEY"
+api_secret = "WORK_SECRET"
+```
+
+Switch profiles with `--profile`:
+
+```bash
+whitebit balance trade --profile work
+```
+
+## Commands
+
+| Module | Commands | Auth | Description |
+|---|---|:---:|---|
+| `market` | 14 | No | Tickers, order book, trades, klines, funding rates, platform status |
+| `mining-pool` | 2 | No | Pool statistics and hashrate |
+| `balance` | 3 | Yes | Spot, main, and personal fee balances |
+| `deposit` | 4 | Yes | Crypto and fiat deposit addresses |
+| `withdraw` | 4 | Yes | Crypto and fiat withdrawals + history |
+| `transfer` | 1 | Yes | Transfer between main, spot, and collateral accounts |
+| `codes` | 4 | Yes | Create, apply, and list redemption codes |
+| `earn` | 13 | Yes | Fixed and flexible staking, interest history |
+| `trade spot` | 18 | Yes | Limit, market, stop, bulk orders; cancel, modify, kill-switch |
+| `trade collateral` | 22 | Yes | Margin: leverage, positions, OCO, OTO, conditional orders |
+| `trade convert` | 3 | Yes | Estimate and execute asset conversions |
+| `sub-account` | 17 | Yes | Sub-account management, API keys, IP whitelists |
+
+## Examples
+
+### Market data
+
+```bash
+# List all available markets
+whitebit market list
+
+# Get the BTC_USDT ticker
+whitebit market ticker BTC_USDT
+
+# Get order book depth
+whitebit market depth BTC_USDT
+
+# Get recent trades
+whitebit market trades BTC_USDT
+```
+
+### Account and balance
+
+```bash
+# Check spot balance
+whitebit balance spot
+
+# Check main account balance
+whitebit balance main
+
+# Transfer 100 USDT from main to spot
+whitebit transfer --from main --to spot --amount 100 --currency USDT
+```
+
+### Spot trading
+
+```bash
+# Place a limit buy order
+whitebit trade spot limit-order BTC_USDT buy 0.001 50000
+
+# Place a market sell order
+whitebit trade spot market-order BTC_USDT sell 0.001
+
+# List open orders
+whitebit trade spot orders BTC_USDT
+
+# Cancel an order
+whitebit trade spot cancel BTC_USDT ORDER_ID
+```
+
+### JSON output and scripting
+
+```bash
+# Output as JSON
+whitebit balance spot --json
+
+# Pipe into jq
+whitebit balance spot --json | jq '.[] | {currency: .currency, balance: .available}'
+
+# Dry run — preview the request without sending
+whitebit trade spot limit-order BTC_USDT buy 0.001 50000 --dry-run
+```
+
+## Shell completion
+
+<Tabs>
+  <Tab title="Bash">
+    ```bash
+    source <(whitebit completion --shell bash)
+    ```
+
+    To persist across sessions, add the line above to `~/.bashrc`.
+  </Tab>
+  <Tab title="Zsh">
+    ```bash
+    mkdir -p ~/.zfunc
+    whitebit completion --shell zsh > ~/.zfunc/_whitebit
+    ```
+
+    Add `fpath=(~/.zfunc $fpath)` and `autoload -Uz compinit && compinit` to `~/.zshrc`.
+  </Tab>
+  <Tab title="Fish">
+    ```bash
+    whitebit completion --shell fish > ~/.config/fish/completions/whitebit.fish
+    ```
+  </Tab>
+</Tabs>
+
+## Global options
+
+| Option | Description |
+|---|---|
+| `--profile <name>` | Use a named config profile (default: `default`) |
+| `--api-key <key>` | Override the API key for this command |
+| `--api-secret <secret>` | Override the API secret for this command |
+| `--api-url <url>` | Override the API base URL |
+| `--format <table\|json>` | Output format |
+| `--json` | Shorthand for `--format json` |
+| `--verbose`, `-V` | Show raw API responses |
+| `--dry-run` | Show the request payload without sending |
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Success |
+| `1` | General error |
+| `2` | Authentication or credential error |
+| `3` | Network error |
+| `4` | Usage or bad arguments |
+| `5` | Rate limit (HTTP 429) |
+
+## Security best practices
+
+- Never commit credentials to version control.
+- Use environment variables for CI/CD pipelines.
+- Set restrictive file permissions: `chmod 600 ~/.whitebit/config.toml`.
+- Use API key restrictions in the WhiteBIT dashboard — IP whitelist and read-only scope when appropriate.
+- Avoid `--api-key` and `--api-secret` flags in production scripts — values are visible in the process list.
+
+## What's next
+
+- [MCP server](/guides/mcp-server) — Use natural language to trade and query data via an AI client
+- [AI tools FAQ](/guides/ai-faq) — Common questions about the CLI, API keys, and automation
+- [AI tools overview](/guides/use-with-ai) — All WhiteBIT AI tools in one place
+- [Authentication](/api-reference/authentication) — How to generate and manage WhiteBIT API keys
+- [API Reference Overview](/api-reference/overview) — Full REST API endpoint listing
