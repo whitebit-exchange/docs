@@ -1,0 +1,104 @@
+---
+title: "AI tools FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about the WhiteBIT MCP server and CLI — API key safety, supported clients, account setup, and automation."
+icon: "circle-question"
+---
+
+Answers to common questions about the WhiteBIT MCP server and CLI.
+
+## MCP server and CLI capabilities
+
+The MCP server provides 115 tools covering market data, spot trading, collateral trading, wallet operations, lending, sub-accounts, mining pool, and currency conversion. All tools are available to any connected AI client using natural language.
+
+The CLI provides 110+ commands covering the same API surface, designed for terminal use, scripting, and CI/CD pipelines.
+
+See [MCP server](/guides/mcp-server) and [CLI](/guides/cli) for the full tool and command listings.
+
+## Supported AI clients
+
+The MCP server works with any client that supports the Model Context Protocol. Supported clients include:
+
+- **Claude Code** — global or project-scoped registration via `claude mcp add`
+- **Cursor** — configuration via `~/.cursor/mcp.json`
+- **Claude Desktop** — configuration via the application config file
+- **Codex** — configuration via `~/.codex/config.toml`
+- **OpenClaw** — configuration via the agent config file
+
+See [MCP server — Connect an AI client](/guides/mcp-server#connect-an-ai-client) for setup instructions for each client.
+
+## API key security
+
+API keys are passed as parameters in each tool call and are used only to sign outgoing WhiteBIT API requests. The MCP server does not store, log, or cache credentials. All processing happens locally — no data is sent to external services beyond WhiteBIT.
+
+For public market data tools (tickers, order book, market info), pass `"public"` for both `api_key` and `secret_key`. No account credentials are required for public endpoints.
+
+See [Authentication](/api-reference/authentication) for instructions on generating and managing API keys.
+
+## Trading MCP server vs documentation MCP
+
+The WhiteBIT documentation portal has two separate MCP integrations that serve different purposes:
+
+| MCP | Purpose | Endpoint |
+|---|---|---|
+| Trading MCP (`whitebit-mcp`) | Execute trades, query balances, manage orders | `http://localhost:8080/mcp` (self-hosted) |
+| Documentation MCP | Search the WhiteBIT API documentation | `https://docs.whitebit.com/mcp` (hosted) |
+
+The trading MCP is a self-hosted server that requires cloning the [whitebit-mcp](https://github.com/whitebit-exchange/whitebit-mcp) repository and starting a local Docker container. See [MCP server](/guides/mcp-server).
+
+The documentation MCP is a Mintlify-hosted service. See [Docs search via MCP](/guides/ai-ide-setup).
+
+## Public market data without API keys
+
+Public market data tools do not require a WhiteBIT account. Pass `"public"` for both `api_key` and `secret_key` parameters, then ask questions like:
+
+- "What is the current BTC_USDT price?"
+- "Show the order book for ETH_USDT"
+- "List all available trading pairs"
+
+The CLI market module also requires no authentication:
+
+```bash
+whitebit market list
+whitebit market ticker BTC_USDT
+```
+
+## CLI use in automation
+
+The CLI is designed for scripting and automation:
+
+- `--json` flag on every command outputs machine-readable JSON, compatible with `jq` and any data pipeline.
+- `--dry-run` flag previews the exact API request payload without sending it — useful for validating scripts.
+- Exit codes (`0` success, `2` auth error, `5` rate limit, etc.) allow precise error handling in shell scripts.
+- Multi-profile support enables switching between API keys with `--profile`.
+
+See [CLI — JSON output and scripting](/guides/cli#examples) for examples.
+
+## Safe account practices
+
+Before connecting AI tools to a live account:
+
+- Create a dedicated sub-account with a separate API key for AI tool access.
+- Fund the sub-account with only the amount allocated for AI-assisted trading.
+- Generate API keys with the minimum permissions required — read-only keys are sufficient for balance and order queries.
+- Enable IP whitelisting on the API key to restrict access to the machine running the MCP server.
+- Test with small amounts before executing larger trades.
+- Never provide API keys in the AI conversation — pass credentials as tool parameters at session start only.
+
+See [MCP server — Safe account practices](/guides/mcp-server#safe-account-practices) for the full checklist.
+
+## Report an issue
+
+Report bugs or request features by opening an issue on the relevant GitHub repository:
+
+- [whitebit-mcp issues](https://github.com/whitebit-exchange/whitebit-mcp/issues) — MCP server bugs and feature requests
+- [whitebit-cli issues](https://github.com/whitebit-exchange/whitebit-cli/issues) — CLI bugs and feature requests
+
+Include the full error output when reporting a bug. For MCP errors, include the structured error block from the AI client. For CLI errors, include the full stderr output.
+
+## Related resources
+
+- [MCP server](/guides/mcp-server) — Full setup guide for the WhiteBIT trading MCP server
+- [CLI](/guides/cli) — Full setup and command reference for the WhiteBIT CLI
+- [Docs search via MCP](/guides/ai-ide-setup) — Connect Cursor, VS Code, or Claude Desktop to the documentation search MCP
+- [Authentication](/api-reference/authentication) — How to generate and manage WhiteBIT API keys
