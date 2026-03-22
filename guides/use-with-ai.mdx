@@ -1,26 +1,92 @@
 ---
-title: "Use the API docs with AI"
-sidebarTitle: "Use with AI"
-description: "AI tool integrations available on every WhiteBIT API documentation page — copy content for AI, open pages in AI chat tools, and connect development environments via MCP."
+title: "AI tools"
+sidebarTitle: "Overview"
+description: "WhiteBIT AI tools — a trading MCP server, a CLI, and documentation integrations for Claude Code, Cursor, Claude Desktop, Codex, and OpenClaw."
 icon: "sparkles"
 ---
 
-Every WhiteBIT API documentation page includes a contextual menu with AI tool integrations. The menu provides options to copy page content in AI-optimized formats, open pages directly in AI chat tools, and connect AI development environments to the full documentation via the Model Context Protocol (MCP).
-
-## Available integrations
+WhiteBIT provides two categories of AI tools: **trading tools** for executing trades and querying account data, and **documentation tools** for searching the API reference inside a development environment.
 
 <CardGroup cols={2}>
-  <Card title="Contextual AI menu" icon="comment" href="/guides/ai-context-menu">
-    Copy page content for AI consumption, open pages in ChatGPT, Claude, Perplexity, or Grok, and access one-click IDE connections — all from the same dropdown on every documentation page.
+  <Card title="MCP server" icon="server" href="/guides/mcp-server">
+    Connect Claude Code, Cursor, Claude Desktop, Codex, or OpenClaw to 115 WhiteBIT trading tools. Place orders, check balances, manage positions, and query market data using natural language.
   </Card>
-  <Card title="IDE integration via MCP" icon="code" href="/guides/ai-ide-setup">
-    Manually configure Cursor, VS Code, or Claude Desktop to search the full WhiteBIT documentation using MCP. The AI tool gains direct, searchable access to all documentation pages.
+  <Card title="CLI" icon="terminal" href="/guides/cli">
+    Trade and manage the account directly from the terminal. 110+ commands with JSON output, multi-profile support, dry-run mode, and shell completion. Built for scripting and CI/CD pipelines.
+  </Card>
+  <Card title="Docs search via MCP" icon="magnifying-glass" href="/guides/ai-ide-setup">
+    Configure Cursor, VS Code, or Claude Desktop to search the full WhiteBIT API documentation via MCP. The AI client gains direct access to all endpoint reference pages.
+  </Card>
+  <Card title="Docs page AI menu" icon="comment" href="/guides/ai-context-menu">
+    Copy any documentation page for AI consumption, open pages in ChatGPT, Claude, Perplexity, or Grok, and access MCP connection options — from the dropdown on every documentation page.
   </Card>
 </CardGroup>
 
+## Trading tools
+
+The [MCP server](/guides/mcp-server) and [CLI](/guides/cli) connect directly to the WhiteBIT exchange API. Both tools require a WhiteBIT account and API key for authenticated operations. Public market data tools (prices, order book, market info) require no authentication.
+
+| Tool | Best for | Authentication |
+|---|---|---|
+| MCP server | Natural language trading in an AI client | API key for private tools; `"public"` for market data |
+| CLI | Terminal-based trading, scripting, automation | API key or environment variables |
+
+### What the trading tools support
+
+**Market data (no API key required)**
+- Current prices, tickers, and 24-hour statistics
+- Order book depth and recent trades
+- Funding rate history and platform status
+
+**Spot trading**
+- Place, cancel, and modify limit, market, and stop orders
+- Bulk order operations
+- Open order listing and order history
+
+**Collateral trading**
+- Open and close leveraged positions
+- Manage leverage and position mode
+- Conditional orders: OCO, stop-limit, trigger-market
+
+**Wallet and account**
+- Deposit addresses for crypto and fiat
+- Withdrawal requests
+- Transfer between main, spot, and collateral accounts
+- WhiteBIT codes (create, apply, list)
+
+**Lending and earn**
+- Fixed and flexible staking plans
+- Interest payment history
+
+**Sub-accounts**
+- Sub-account listing and balance queries
+- Transfers to and from sub-accounts
+
+**Mining pool** and **currency conversion** are also available via the MCP server.
+
+## Documentation tools
+
+The [docs search MCP](/guides/ai-ide-setup) and [docs page AI menu](/guides/ai-context-menu) help developers access API reference content inside AI tools without switching context.
+
+<Note>
+The documentation search MCP (`https://docs.whitebit.com/mcp`) and the trading MCP (`http://localhost:8080/mcp`) are separate integrations. The documentation MCP searches API reference pages. The trading MCP executes API calls against the WhiteBIT exchange.
+</Note>
+
+## Supported AI clients
+
+| AI client | Trading MCP | Documentation MCP | Contextual menu |
+|---|:---:|:---:|:---:|
+| Claude Code | ✓ | — | — |
+| Cursor | ✓ | ✓ | ✓ |
+| Claude Desktop | ✓ | ✓ | — |
+| Codex | ✓ | — | — |
+| OpenClaw | ✓ | — | — |
+| VS Code | — | ✓ | ✓ |
+| ChatGPT, Perplexity, Grok | — | — | ✓ |
+
 ## Related resources
 
-- [Contextual AI menu](/guides/ai-context-menu) — All copy and AI tool options available on every documentation page
-- [IDE and AI client setup via MCP](/guides/ai-ide-setup) — Manual configuration for Cursor, VS Code, and Claude Desktop
-- [API Reference Overview](/api-reference/overview) — REST API base URL, authentication, rate limits, and endpoint groups
-- [WebSocket Overview](/websocket/overview) — WebSocket endpoint, message format, and channel overview
+- [MCP server](/guides/mcp-server) — Setup guide and client configuration for the WhiteBIT trading MCP
+- [CLI](/guides/cli) — Installation, authentication, command reference, and examples
+- [AI tools FAQ](/guides/ai-faq) — Common questions about API key safety, supported clients, and account practices
+- [Authentication](/api-reference/authentication) — How to generate and manage WhiteBIT API keys
