@@ -71,6 +71,6 @@ postOnly:
 
 ## Related Guides
 
-- [Adding Parameters](01-adding-parameters.md)
-- [Documenting Errors](04-documenting-errors.md)
-- [Style Guide](../reference/style-guide.md)
+- [Adding Parameters](/docs/guides/01-adding-parameters)
+- [Documenting Errors](/docs/guides/04-documenting-errors)
+- [Style Guide](/docs/reference/style-guide)

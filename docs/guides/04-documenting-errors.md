@@ -74,7 +74,7 @@ description: |
 
 ## Common Error Codes
 
-See [Quick Reference](../reference/quick-reference.md#common-error-codes) for the full list of error codes.
+See [Quick Reference](/docs/reference/quick-reference#common-error-codes) for the full list of error codes.
 
 ## Best Practices
 
@@ -86,6 +86,6 @@ See [Quick Reference](../reference/quick-reference.md#common-error-codes) for th
 
 ## Related Guides
 
-- [Adding Descriptions](02-adding-descriptions.md)
-- [Quick Reference](../reference/quick-reference.md)
-- [Common Pitfalls](../reference/common-pitfalls.md)
+- [Adding Descriptions](/docs/guides/02-adding-descriptions)
+- [Quick Reference](/docs/reference/quick-reference)
+- [Common Pitfalls](/docs/reference/common-pitfalls)
