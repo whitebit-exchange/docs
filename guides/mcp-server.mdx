@@ -1,0 +1,235 @@
+---
+title: "MCP server"
+sidebarTitle: "MCP server"
+description: "Connect Claude Code, Cursor, Claude Desktop, Codex, or OpenClaw to 115 WhiteBIT trading tools using the Model Context Protocol."
+icon: "server"
+---
+
+The WhiteBIT MCP server exposes the full WhiteBIT API as AI tools over the Model Context Protocol. Connect a supported AI client and interact with markets, trading, balances, wallets, and sub-accounts using natural language.
+
+- **115 tools** across market data, spot trading, collateral trading, wallet, lending, sub-accounts, mining pool, and currency conversion
+- Runs as a local Docker container — API keys never leave the machine
+- Credentials are passed per tool call and are not stored or logged by the server
+
+<Note>
+The MCP server documented on this page enables **trading** via AI clients. For documentation search via MCP (searching the WhiteBIT API docs in Cursor or VS Code), see [Docs search via MCP](/guides/ai-ide-setup).
+</Note>
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed and running, **or** Python 3.10+ for the no-Docker option
+- A WhiteBIT account with an API key (for trading tools) — see [API key generation](/api-reference/authentication)
+- A supported AI client: Claude Code, Cursor, Claude Desktop, Codex, or OpenClaw
+
+## Quick start
+
+### Start the server
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/whitebit-exchange/whitebit-mcp
+    cd whitebit-mcp
+    ```
+  </Step>
+  <Step title="Start the server">
+    ```bash
+    docker compose up -d
+    ```
+    The MCP endpoint is available at `http://localhost:8080/mcp`.
+  </Step>
+  <Step title="Verify the server is running">
+    ```bash
+    docker compose ps
+    ```
+    The `whitebit-mcp` container status shows `Up`.
+  </Step>
+</Steps>
+
+Stop the server at any time:
+
+```bash
+docker compose down
+```
+
+### Run without Docker
+
+```bash
+pip install -r requirements.txt
+python server.py
+```
+
+The server listens on `http://0.0.0.0:8000`. Replace port `8080` with `8000` in all client configurations below.
+
+## Connect an AI client
+
+<Tabs>
+  <Tab title="Claude Code">
+    **Global registration (all projects):**
+
+    ```bash
+    claude mcp add --transport http --scope user whitebit http://localhost:8080/mcp
+    ```
+
+    Verify the connection:
+
+    ```bash
+    claude mcp list
+    # whitebit: http://localhost:8080/mcp (http)
+    ```
+
+    **Project-scoped registration:**
+
+    The repository includes a `.mcp.json` file at the project root. Running `claude` from inside the cloned `whitebit-mcp` directory registers the server automatically at project scope.
+
+    Use `/mcp` inside a Claude Code session to see live server status and available tools.
+  </Tab>
+  <Tab title="Cursor">
+    Create or edit `~/.cursor/mcp.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "whitebit": {
+          "url": "http://localhost:8080/mcp"
+        }
+      }
+    }
+    ```
+
+    Open the Command Palette (`Cmd+Shift+P` on macOS, `Ctrl+Shift+P` on Windows/Linux) and run **MCP: Reload Servers**.
+  </Tab>
+  <Tab title="Claude Desktop">
+    Edit the Claude Desktop configuration file:
+
+    - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+    - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "whitebit": {
+          "type": "http",
+          "url": "http://localhost:8080/mcp"
+        }
+      }
+    }
+    ```
+
+    Restart Claude Desktop.
+  </Tab>
+  <Tab title="Codex">
+    Add to `~/.codex/config.toml`:
+
+    ```toml
+    [mcp_servers.whitebit]
+    url = "http://localhost:8080/mcp"
+    ```
+
+    Start a Codex session — the server connects automatically.
+  </Tab>
+  <Tab title="OpenClaw">
+    Add to the OpenClaw agent configuration:
+
+    ```json
+    {
+      "mcp_servers": {
+        "whitebit": {
+          "url": "http://localhost:8080/mcp"
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## API keys
+
+Generate API keys at [whitebit.com](https://whitebit.com) → **Profile** → **API Keys**. Use the minimum permissions required for the intended use case — read-only keys are sufficient for balance and order queries.
+
+<Warning>
+Never paste API keys directly into the AI conversation. Pass credentials as tool parameters at the start of a session. The server uses keys only to sign outgoing WhiteBIT API requests — keys are not stored, logged, or cached.
+</Warning>
+
+**How credentials work:** API keys are passed as parameters in each tool call. The AI client sends the credentials on behalf of the account holder when provided at the start of the conversation.
+
+**Public market data tools** (market info, tickers, order book) query public endpoints. Pass `"public"` for both `api_key` and `secret_key` when only public data is needed.
+
+### Example: provide credentials at session start
+
+```text
+API key is YOUR_API_KEY and secret is YOUR_SECRET. Show the spot balance.
+```
+
+The AI client passes credentials as tool parameters for the duration of the session.
+
+## Example prompts
+
+### Market data — no API key required
+
+Pass `"public"` for both key fields when querying public endpoints.
+
+- "What is the current BTC_USDT price?"
+- "Show the order book for ETH_USDT"
+- "List all available markets"
+- "What are the deposit fees for USDT?"
+- "What is the funding rate history for BTC_USDT?"
+- "Is WhiteBIT in maintenance mode?"
+
+### Spot trading — API key required
+
+- "Show the spot balance"
+- "List open orders on BTC_USDT"
+- "Place a limit buy order for 0.001 BTC at 90000 on BTC_USDT"
+- "Cancel all open orders on ETH_USDT"
+- "Show order history for the last 30 days"
+
+### Wallet — API key required
+
+- "What is the deposit address for USDT on TRC20?"
+- "Show recent deposits and withdrawals"
+- "Transfer 100 USDT from the main account to spot trading"
+- "Create a WhiteBIT code for 50 USDT"
+
+### Collateral trading — API key required
+
+- "List open collateral positions"
+- "Place a collateral limit buy for 0.01 BTC on BTC_USDT"
+- "What is the current leverage?"
+- "Close the BTC_USDT position"
+
+### Sub-accounts — API key required
+
+- "List all sub-accounts"
+- "Show the balance of sub-account ID 123"
+- "Transfer 200 USDT to sub-account ID 456"
+
+## Configuration reference
+
+| Variable | Default | Description |
+|---|---|---|
+| `WHITEBIT_BASE_URL` | `https://whitebit.com` | API base URL — override for custom deployments |
+
+Set in `docker-compose.yml` or as a shell variable:
+
+```bash
+WHITEBIT_BASE_URL=https://whitebit.com docker compose up
+```
+
+## Safe account practices
+
+Before using the MCP server with a live account:
+
+- Create a dedicated sub-account with a separate API key for AI tool access.
+- Fund the sub-account with only the amount allocated for AI-assisted trading.
+- Generate API keys with the minimum required permissions — use read-only keys for monitoring.
+- Use IP whitelisting on the API key to restrict access to the machine running the server.
+- Test with a small amount before executing larger trades.
+
+## What's next
+
+- [CLI](/guides/cli) — Trade and query account data directly from the terminal without an AI client
+- [AI tools FAQ](/guides/ai-faq) — Answers to common questions about API key safety, supported clients, and account practices
+- [AI tools overview](/guides/use-with-ai) — All WhiteBIT AI tools in one place
+- [Authentication](/api-reference/authentication) — How to generate and manage WhiteBIT API keys
+- [API Reference Overview](/api-reference/overview) — Full REST API endpoint listing
