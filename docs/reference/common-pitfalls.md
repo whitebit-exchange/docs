@@ -115,6 +115,6 @@ tags:
 
 ## Related Documentation
 
-- [Validation Guide](validation.md) - How to validate your changes
-- [Adding Parameters](../guides/01-adding-parameters.md) - Parameter best practices
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Full workflow
+- [Validation Guide](/docs/reference/validation) - How to validate your changes
+- [Adding Parameters](/docs/guides/01-adding-parameters) - Parameter best practices
+- [CONTRIBUTING.md](https://github.com/whitebit-exchange/docs/blob/main/CONTRIBUTING.md) - Full workflow
