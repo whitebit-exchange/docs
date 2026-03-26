@@ -12,4 +12,4 @@ Captures lessons from the current pipeline run. Always runs after any completed
 pipeline. Writes to ai/LESSONS.md only when a pattern recurred ≥2 times or a
 structural gap was found. Always writes to initiative lessons.md if a spec exists.
 
-For the decision tree and output format, read `ai/skills/self-improvement.md`.
+For the decision tree and output format, read `ai/skills/self-improvement/SKILL.md`.

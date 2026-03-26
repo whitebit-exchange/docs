@@ -9,6 +9,6 @@ disable-model-invocation: true
 ---
 
 Lightweight, focused quality check on the most recently completed task.
-Faster than task_completion_review — covers DoD checklist and scope discipline only.
+Faster than `task-completion-review` — covers DoD checklist and scope discipline only.
 
-For the review checklist and output format, read `ai/skills/task-self-review.md`.
+For the review checklist and output format, read `ai/skills/task-self-review/SKILL.md`.
