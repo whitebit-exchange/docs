@@ -12,4 +12,4 @@ the promotion threshold: universal governance rules go to ai/RULES.md; reusable
 patterns go to ai/LESSONS.md; workflow gaps update the relevant skill file.
 
 For the promotion decision tree and output format, read
-`ai/skills/promote-learnings.md`.
+`ai/skills/promote-learnings/SKILL.md`.

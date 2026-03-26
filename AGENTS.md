@@ -25,16 +25,28 @@ Automatic skills run after every pipeline without being explicitly asked.
 
 | Skill | File | When |
 |-------|------|------|
-| Dev ticket pipeline | `ai/skills/dev-ticket-pipeline.md` | On demand — processing a dev ticket |
-| Doc review pipeline | `ai/skills/doc-review-pipeline.md` | On demand — reviewing a doc page |
-| Generate docs from spec | `ai/skills/generate-docs-from-spec.md` | On demand — new MDX from spec |
-| Write commit message | `ai/skills/write-commit-message.md` | On demand — before committing |
-| Create initiative spec | `ai/skills/create-initiative-spec.md` | On demand — multi-phase work |
-| Cleanup after pipeline | `ai/skills/cleanup-after-pipeline.md` | On demand — after any pipeline |
-| Add new skill | `ai/skills/add-new-skill.md` | On demand — creating a new skill |
-| Task self-review | `ai/skills/task-self-review.md` | **Automatic** — after any task completion |
-| Self-improvement | `ai/skills/self-improvement.md` | **Automatic** — after any pipeline run |
-| Promote learnings | `ai/skills/promote-learnings.md` | **Automatic** — final step of self-improvement |
+| Dev ticket pipeline | `ai/skills/dev-ticket-pipeline/SKILL.md` | On demand — processing a dev ticket |
+| Ticket analysis | `ai/skills/ticket-analysis/SKILL.md` | internal — invoked by dev-ticket-pipeline (Phases 1–2) |
+| Ticket impl plan | `ai/skills/ticket-impl-plan/SKILL.md` | internal — invoked by dev-ticket-pipeline (Phases 3–4) |
+| Doc review pipeline | `ai/skills/doc-review-pipeline/SKILL.md` | On demand — reviewing a doc page |
+| Doc style review | `ai/skills/doc-style-review/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 1–2) |
+| Doc review plan | `ai/skills/doc-review-plan/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 3–4) |
+| Integration check | `ai/skills/integration-check/SKILL.md` | internal — invoked by ticket-impl-plan and doc-review-plan |
+| Task execution | `ai/skills/task-execution/SKILL.md` | internal — invoked by dev-ticket-pipeline and doc-review-pipeline (Phase 5) |
+| Task completion review | `ai/skills/task-completion-review/SKILL.md` | On demand — before committing; invoked by pipelines at Phase 6 |
+| Generate docs from spec | `ai/skills/generate-docs-from-spec/SKILL.md` | On demand — new MDX from spec |
+| Write commit message | `ai/skills/write-commit-message/SKILL.md` | On demand — before committing |
+| Create initiative spec | `ai/skills/create-initiative-spec/SKILL.md` | On demand — multi-phase work |
+| Cleanup after pipeline | `ai/skills/cleanup-after-pipeline/SKILL.md` | On demand — after any pipeline |
+| Create skill (interactive) | `ai/skills/skill-creator/SKILL.md` | On demand — guided skill creation with validation |
+| Review skill | `ai/skills/skill-reviewer/SKILL.md` | On demand — audit a skill for quality and workflow fit |
+| Task self-review | `ai/skills/task-self-review/SKILL.md` | **Automatic** — after any task completion |
+| Self-improvement | `ai/skills/self-improvement/SKILL.md` | **Automatic** — after any pipeline run |
+| Promote learnings | `ai/skills/promote-learnings/SKILL.md` | **Automatic** — final step of self-improvement |
+| Plan review | `ai/skills/plan-review/SKILL.md` | **Automatic** — after implementation plan generated (Phase 3) |
+| Task learnings | `ai/skills/task-learnings/SKILL.md` | **Automatic** — called by self-improvement for extraction |
+| Learning consolidator | `ai/skills/learning-consolidator/SKILL.md` | On demand — ~weekly cleanup of ai/LESSONS.md |
+| Answer partner questions | `ai/skills/answer-partner-questions/SKILL.md` | On demand — researching API capabilities for partner/client questions |
 
 ## Key Files
 
@@ -43,8 +55,7 @@ Automatic skills run after every pipeline without being explicitly asked.
 | `ai/RULES.md` | All binding rules for AI work on this portal |
 | `ai/LESSONS.md` | Accumulated lessons (pattern-triggered entries) |
 | `ai/agent.md` | Portal structure, file conventions, content map |
-| `ai/prompts/` | Pipeline prompt files (inputs/outputs for AI tools) |
-| `ai/skills/` | Skill files — invocable task workflows with DoD checklists |
+| `ai/skills/` | All invocable skills — entry points, orchestration, references/ content |
 | `ai/style-guides/` | Writing conventions (use README.md decision tree to pick one) |
 | `docs.json` | Navigation configuration — update when adding pages |
 
