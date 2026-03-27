@@ -6607,6 +6607,16 @@ components:
           nullable: true
           description: "Payout transaction hash. null in case payout destination is main_balance, blockchain transaction hash in case payout destination is external_address"
           example: "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"
+        payoutAddress:
+          type: string
+          nullable: true
+          description: "Payout address. External wallet address in case payout destination is external_address, null in case payout destination is main_balance"
+          example: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"
+        payoutTime:
+          type: integer
+          nullable: true
+          description: "Timestamp when the external transaction is completed. null in case payout destination is main_balance"
+          example: 1641085200
         rewardCurrency:
           type: string
           description: "Reward currency"
