@@ -14,6 +14,6 @@ plan → task execution → task completion review → commit message → cleanu
 Stops at each pipeline gate for confirmation.
 
 For full step-by-step instructions, gate rules, and DoD checklist, read
-`ai/skills/doc-review-pipeline.md`.
+`ai/skills/doc-review-pipeline/SKILL.md`.
 
 $ARGUMENTS
