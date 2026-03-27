@@ -15,6 +15,6 @@ doc-review: also deletes ai/outputs/review/<page-slug>/ and clears
 ai/inputs/review_target.md.
 
 For full cleanup steps and confirmation requirements, read
-`ai/skills/cleanup-after-pipeline.md`.
+`ai/skills/cleanup-after-pipeline/SKILL.md`.
 
 $ARGUMENTS
