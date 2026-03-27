@@ -6611,6 +6611,16 @@ components:
           type: string
           description: "Reward currency"
           example: "BTC"
+        payoutAddress:
+          type: string
+          nullable: true
+          description: "Payout address. External wallet address in case payout destination is external_address, null in case payout destination is main_balance"
+          example: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"
+        payoutTime:
+          type: integer
+          nullable: true
+          description: "Timestamp when the external transaction is completed"
+          example: 1641085200
         totalReward:
           type: string
           description: "Total reward amount"
