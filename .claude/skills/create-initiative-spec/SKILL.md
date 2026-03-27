@@ -14,6 +14,6 @@ Only use when work meets the DD-6 threshold (see ai/RULES.md). For smaller
 tasks, run the relevant pipeline skill directly.
 
 For the spec structure, file templates, and DoD checklist, read
-`ai/skills/create-initiative-spec.md`.
+`ai/skills/create-initiative-spec/SKILL.md`.
 
 $ARGUMENTS
