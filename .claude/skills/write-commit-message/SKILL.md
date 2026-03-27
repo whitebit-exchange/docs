@@ -12,7 +12,7 @@ Generates a conventional commit message following the `docs:`, `fix:`, `feat:`,
 or `chore:` format with scope. Presents the message to the user for approval.
 Never performs `git commit` — that is the user's responsibility.
 
-For full instructions and format rules, read `ai/skills/write-commit-message.md`.
+For full instructions and format rules, read `ai/skills/write-commit-message/SKILL.md`.
 
 ## Current staged changes
 !`git diff --staged`

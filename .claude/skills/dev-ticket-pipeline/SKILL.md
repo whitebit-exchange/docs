@@ -13,4 +13,4 @@ ticket analysis → clarification questions → implementation plan → task exe
 task completion review → commit message. Stops at each pipeline gate for confirmation.
 
 For full step-by-step instructions, gate rules, and DoD checklist, read
-`ai/skills/dev-ticket-pipeline.md`.
+`ai/skills/dev-ticket-pipeline/SKILL.md`.
