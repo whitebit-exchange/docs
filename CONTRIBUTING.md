@@ -45,7 +45,7 @@ docs/DR-64_extend-rpi-documentation
 
 ## Commit Messages
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/). Use the `ai/prompts/commit_message.md` prompt to generate the message from your staged diff.
+Follow [Conventional Commits](https://www.conventionalcommits.org/). Run `/write-commit-message` in Claude Code to generate the message from your staged diff.
 
 **Format:**
 
@@ -57,14 +57,14 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/). Use the `ai
 
 **Types:** `docs`, `fix`, `feat`, `chore`
 
-**Scopes:** `api`, `websocket`, `guide`, `faq`, `changelog`, `style`, `config`
+**Scopes:** `api`, `websocket`, `guide`, `faq`, `changelog`, `style`, `ai`
 
 **Examples:**
 
 ```
 docs(api): add mining pool endpoints to market data
 fix(websocket): correct depth channel subscription example
-chore(config): update docs.json navigation for sub-accounts
+chore(ai): update docs.json navigation for sub-accounts
 ```
 
 ---
@@ -139,14 +139,17 @@ mint dev
 
 ## Documentation Workflow
 
-The docs portal uses an AI-assisted pipeline for processing dev tickets and reviewing pages. See `ai/prompts/README.md` for the full workflow. Key entry points:
+The docs portal uses an AI-assisted pipeline for processing dev tickets and reviewing pages.
+Use Claude Code skills as the entry points:
 
-| Task | Start here |
-|------|-----------|
-| Process a dev ticket | `ai/prompts/ticket_analysis.md` |
-| Review an existing page | `ai/prompts/doc_review.md` |
-| Generate docs from a spec | `ai/prompts/openapi_to_docs.md` |
-| Write a commit message | `ai/prompts/commit_message.md` |
+| Task | Command |
+|------|---------|
+| Process a dev ticket | `/dev-ticket-pipeline` |
+| Review an existing page | `/doc-review-pipeline <page-path>` |
+| Generate docs from a spec | `/generate-docs-from-spec <spec-path>` |
+| Write a commit message | `/write-commit-message` |
+
+See `ai/how-to/playbook.md` for full workflow details.
 
 ---
 
