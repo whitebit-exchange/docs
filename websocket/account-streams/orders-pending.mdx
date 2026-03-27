@@ -12,3 +12,15 @@ Query or subscribe to active (unexecuted) orders across specified markets. Each 
 <Note>
 	The private stream returns active orders, including orders using Retail Price Improvement (RPI) mode.
 </Note>
+
+## Handling modified (replaced) orders
+
+When you modify an order using the [Modify Order](/api-reference/spot-trading/modify-order) REST endpoint, the WebSocket stream emits an update with event ID `2` (Update order). The updated order object reflects the new price, amount, or activation price, while the `id` and `market` remain the same.
+
+If the modified order is fully filled immediately after modification, you receive a single update with event ID `3` (Finish order) instead.
+
+To track modified orders:
+1. Subscribe to `ordersPending_subscribe` for your markets
+2. Listen for updates with event ID `2` — these indicate the order was modified
+3. Compare `mtime` (modified time) with `ctime` (created time) to confirm the order was modified after creation
+4. Use `client_order_id` to correlate the modified order with your internal records
