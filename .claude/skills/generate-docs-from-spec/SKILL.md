@@ -12,6 +12,6 @@ argument-hint: "[spec-file-path]"
 Creates a new MDX page from an OpenAPI or AsyncAPI operation, following portal
 conventions for file placement, navigation registration, and style guide compliance.
 
-For full instructions and DoD checklist, read `ai/skills/generate-docs-from-spec.md`.
+For full instructions and DoD checklist, read `ai/skills/generate-docs-from-spec/SKILL.md`.
 
 $ARGUMENTS
