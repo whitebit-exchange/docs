@@ -52,6 +52,6 @@ This guide explains how to add parameters to REST API and WebSocket API endpoint
 
 ## Related Guides
 
-- [Adding Overview Descriptions](02-adding-descriptions.md)
-- [Parameter Exceptions](03-parameter-exceptions.md)
+- [Adding Overview Descriptions](./02-adding-descriptions.md)
+- [Parameter Exceptions](./03-parameter-exceptions.md)
 - [Style Guide](../reference/style-guide.md)

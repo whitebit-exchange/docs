@@ -117,4 +117,4 @@ All page references go in `docs.json` at the root:
 ## Related Documentation
 
 - [Adding New Endpoints](../guides/05-adding-new-endpoints.md)
-- [Quick Reference](quick-reference.md)
+- [Quick Reference](./quick-reference.md)
