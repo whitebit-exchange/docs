@@ -59,11 +59,11 @@ Passing one of these checks enables the webhook.
 
 ### For processing web-hook requests
 
-All web hook requests are performing using POST method and with application/json content type. Consumer server should respond with 200 HTTP status code. If consumer was unable to handle web-hook, the request will be retry every 10 minutes but not more than 5 times.
+All webhook requests use the POST method with `application/json` content type. The consumer server should respond with a 200 HTTP status code. If the consumer is unable to handle the webhook, the request will be retried every 10 minutes but not more than 5 times.
 
 #### Body data
 
-All web-hook requests are performing with
+All webhook requests include the following body data:
 
 ```json
 {
@@ -75,9 +75,9 @@ All web-hook requests are performing with
 }
 ```
 
-**method** - string. The name of method which was evaluated. Web hooks API supports such web-hook methods:
+**method** - string. The name of the method that was evaluated. The Webhook API supports the following methods:
 
-- **code.apply**. Performs when code owned by a customer was applied.
+- **code.apply**. Triggered when a code owned by a customer was applied.
 
 **id** - string. Uuid to identify every request.
 
@@ -85,12 +85,12 @@ All web-hook requests are performing with
 
 #### Request headers
 
-Also, all request contains additional data in headers:
+All requests also contain additional data in headers:
 
 1. `'Content-type': 'application/json'`
 2. `'X-TXC-APIKEY': api_key` - the WhiteBIT webhook API key
-3. `'X-TXC-PAYLOAD': payload'` - where payload is base64-encoded body data
-4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload), key=api_secret))`
+3. `'X-TXC-PAYLOAD': payload` - where payload is base64-encoded body data
+4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload, key=api_secret))`
 
 On the consumer side, process the security headers to verify the request originated from WhiteBIT.
 
@@ -113,7 +113,7 @@ Performed when [code](/glossary#whitebit-codes) was applied. Request example:
 
 ### WhiteBIT deposit to main balance
 
-Performed when deposit was accepted. Request example:
+Performed when a deposit was accepted. Request example:
 
 ```json
 {
@@ -142,7 +142,7 @@ Performed when deposit was accepted. Request example:
 }
 ```
 
-Performed when deposit was update. Request example:
+Performed when a deposit was updated. Request example:
 
 ```json
 {
@@ -199,7 +199,7 @@ Performed when the deposit was processed and is available on the balance. Reques
 }
 ```
 
-Performed when deposit was canceled. Request example:
+Performed when a deposit was canceled. Request example:
 
 ```json
 {
@@ -234,7 +234,7 @@ Deposit status codes:
 
 ### WhiteBIT withdraw from main balance
 
-Performed when withdraw was created. Request example:
+Performed when a withdrawal was created. Request example:
 
 ```json
 {
@@ -258,7 +258,7 @@ Performed when withdraw was created. Request example:
 }
 ```
 
-Performed when withdraw is pending. Request example:
+Performed when a withdrawal is pending. Request example:
 
 ```json
 {
@@ -282,7 +282,7 @@ Performed when withdraw is pending. Request example:
 }
 ```
 
-Performed when withdraw was canceled. Request example:
+Performed when a withdrawal was canceled. Request example:
 
 ```json
 {
@@ -306,7 +306,7 @@ Performed when withdraw was canceled. Request example:
 }
 ```
 
-Performed when withdraw was completed. Request example:
+Performed when a withdrawal was completed. Request example:
 
 ```json
 {
