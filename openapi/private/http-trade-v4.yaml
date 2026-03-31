@@ -5184,12 +5184,16 @@ paths:
       summary: Query executed order history
       operationId: getExecutedOrderHistory
       description: |
-        The endpoint retrieves all deals for all markets. Can be filtered by single market if needed.
-        
+        The endpoint retrieves executed order history for all trading types — spot, margin, and futures — across all markets. Can be filtered by a single market if needed.
+
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
-        
+
+        <Warning>
+        Requests with `limit` values above 100 return large payloads. Use high limits only when necessary and ensure the client application can handle large response sizes.
+        </Warning>
+
         <Note>
         The endpoint can retrieve data not older than 6 months from current month. For older data, use the Report on the History page.
         </Note>
@@ -5250,8 +5254,10 @@ paths:
                   example: 0
                 limit:
                   type: integer
+                  minimum: 1
+                  maximum: 500
                   default: 50
-                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 100"
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500"
                   example: 50
                 request:
                   type: string
@@ -5471,9 +5477,13 @@ paths:
       operationId: getOrderHistory
       description: |
         The endpoint retrieves order history.
-        
+
         <Warning>
         Rate limit: 12000 requests/10 sec.
+        </Warning>
+
+        <Warning>
+        Requests with `limit` values above 100 return large payloads. Use high limits only when necessary and ensure the client application can handle large response sizes.
         </Warning>
       tags:
         - Spot Trading
@@ -5495,7 +5505,10 @@ paths:
                   example: 0
                 limit:
                   type: integer
+                  minimum: 1
+                  maximum: 500
                   default: 50
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500"
                   example: 50
                 request:
                   type: string
