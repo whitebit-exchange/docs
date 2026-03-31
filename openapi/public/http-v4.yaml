@@ -199,7 +199,8 @@ paths:
                       example: false
                     change:
                       type: string
-                      description: Change in percent between open and last prices
+                      description: "Percentage change between the rolling 24-hour open price
+                        and the last traded price."
                       example: "0.57"
               example:
                 BTC_USDT:
@@ -471,11 +472,17 @@ paths:
                       example: "9186.13"
                     quote_volume:
                       type: string
-                      description: Transaction amount in quote pair volume.
+                      description: "Transaction amount in the quote (stock) currency. In a
+                        BTC_USDT market, the value is the BTC amount. Note: WhiteBIT uses a
+                        reversed naming convention compared to standard exchange terminology —
+                        the stock/asset currency is called 'quote' in WhiteBIT's model."
                       example: "0.0021"
                     base_volume:
                       type: string
-                      description: Transaction amount in base pair volume.
+                      description: "Transaction amount in the base (money) currency. In a
+                        BTC_USDT market, the value is the USDT amount. Note: WhiteBIT uses a
+                        reversed naming convention compared to standard exchange terminology —
+                        the settlement/pricing currency is called 'base' in WhiteBIT's model."
                       example: "9186.13"
                     trade_timestamp:
                       type: integer
@@ -776,7 +783,8 @@ paths:
                       example: "1752537600"
                     fundingRate:
                       type: string
-                      description: Funding rate value
+                      description: "Funding rate applied at the corresponding settlement interval.
+                        Each record represents a historical settlement event."
                       example: "-0.0001229"
                     market:
                       type: string
@@ -910,11 +918,15 @@ components:
           example: "2"
         maker_fee:
           type: string
-          description: Maker fee in percentage
+          description: "Maker fee expressed as a direct percentage value (e.g., \"0.1\"
+            means 0.1%). Note: GET /api/v4/public/markets expresses the same fee as a decimal
+            ratio (e.g., \"0.001\" = 0.1%) — the formats differ between endpoints."
           example: "0.1"
         taker_fee:
           type: string
-          description: Taker fee in percentage
+          description: "Taker fee expressed as a direct percentage value (e.g., \"0.1\"
+            means 0.1%). Note: GET /api/v4/public/markets expresses the same fee as a decimal
+            ratio (e.g., \"0.001\" = 0.1%) — the formats differ between endpoints."
           example: "0.1"
         min_deposit:
           type: string
@@ -948,19 +960,24 @@ components:
           properties:
             deposits:
               type: array
-              description: Networks available for depositing
+              description: "Networks available for depositing. Absent when deposits are disabled
+                for the asset (can_deposit: false). Examples of assets where the field may be
+                absent: AMB, AVA, A, KZT."
               items:
                 type: string
               example: ["BTC"]
             withdraws:
               type: array
-              description: Networks available for withdrawing
+              description: "Networks available for withdrawing. Absent when withdrawals are
+                disabled for the asset (can_withdraw: false). Examples: AVA, A (Vaulta)."
               items:
                 type: string
               example: ["BTC"]
             default:
               type: string
-              description: Default network for depositing / withdrawing if available
+              description: "Default network used when no specific network is selected by the
+                user. Absent when multiple networks exist but no explicit default priority has been
+                configured (e.g., AGRS, ANKR, APE, POL)."
               example: BTC
         limits:
           type: object
@@ -992,14 +1009,20 @@ components:
                     example: "1000"
         confirmations:
           type: object
-          description: Deposit confirmations count mapped by network
+          description: "Required blockchain confirmations for deposits, mapped by network name
+            (e.g., {\"BTC\": 2, \"ERC20\": 20}). Absent for fiat currencies, demo assets, and
+            internal exchange tokens (e.g., UAH, EUR, DBTC, DUSDT). Individual network keys may
+            also be absent if a network was historically supported but is currently disabled."
           additionalProperties:
             type: integer
           example:
             BTC: 2
         providers:
           type: object
-          description: Fiat currency providers
+          description: "Payment provider identifiers for fiat assets (e.g., VISAMASTER,
+            ADVCASH, GEOPAY). Use these identifiers as the network parameter value when
+            making fiat deposits or withdrawals via the API — equivalent to network codes
+            such as ERC20 or TRC20 for crypto assets."
           properties:
             deposits:
               type: array
@@ -1055,6 +1078,9 @@ components:
           type: string
         providers:
           type: array
+          description: "Payment provider identifiers used as the network parameter value
+            for fiat deposits and withdrawals via the API. See GET /api/v4/public/assets
+            providers field for context."
           items:
             type: string
         deposit:
@@ -1065,8 +1091,12 @@ components:
           type: object
         is_depositable:
           type: boolean
+          description: "Indicates whether deposits are enabled for the currency. May be absent
+            from the response; absence should be treated as equivalent to false."
         is_withdrawal:
           type: boolean
+          description: "Indicates whether withdrawals are enabled for the currency. May be absent
+            from the response; absence should be treated as equivalent to false."
         is_api_withdrawal:
           type: boolean
         is_api_depositable:
@@ -1077,8 +1107,13 @@ components:
       properties:
         min_amount:
           type: string
+          description: "Minimum transaction amount for the operation and network. May be absent
+            independently from other limit fields."
         max_amount:
           type: string
+          description: "Maximum transaction amount for the operation and network. May be absent
+            independently from other limit fields; absence typically indicates no upper limit
+            is enforced."
         fixed:
           type: string
           nullable: true
@@ -1170,7 +1205,8 @@ components:
           example: Perpetual
         open_interest:
           type: string
-          description: The open interest in the last 24 hours in contracts
+          description: "Current open interest in contracts (point-in-time snapshot, not a
+            24-hour delta or volume)."
           example: "6000"
         index_price:
           type: string
@@ -1186,15 +1222,21 @@ components:
           example: BTC
         funding_rate:
           type: string
-          description: "The current funding rate, which may fluctuate due to market conditions"
+          description: "Predicted funding rate for the next settlement interval. Fluctuates
+            in real time until settlement occurs. See GET /api/v4/public/funding-history/{market}
+            for historical funding rate records."
           example: "0.000044889033693137"
         next_funding_rate_timestamp:
           type: string
-          description: Timestamp of the next funding rate change
+          description: "Unix timestamp in milliseconds of the next funding settlement.
+            13-digit value (millisecond precision)."
           example: "1660665600000"
         brackets:
           type: object
-          description: Brackets
+          description: "Leverage brackets defining position size limits. Object keys are
+            leverage multipliers (e.g., \"1\", \"2\", \"5\", \"10\", \"20\", \"50\", \"100\").
+            Values are the maximum allowed open position size in USDT equivalent at the
+            corresponding leverage level."
           additionalProperties:
             type: integer
           example:
