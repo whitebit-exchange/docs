@@ -18,6 +18,22 @@ info:
     | 2               | Update order                     |
     | 3               | Finish order (cancel or execute) |
 
+    ## Order Modification Behavior
+
+    When a client calls `POST /api/v4/order/modify`, the matching engine cancels the
+    original order and creates a replacement. This channel emits **two sequential events**:
+
+    1. **event_id=3** (Finish) — the original order is cancelled. The `id` in the
+       payload matches the old `order_id` that was passed to the modify request.
+    2. **event_id=1** (New) — the replacement order is created with a **new `order_id`**.
+
+    **Implication:** `order_id` changes on every modification. Clients tracking orders by
+    `order_id` must update the stored value after each modify call. Set `client_order_id` on
+    orders for stable correlation across modifications.
+
+    Events arrive in sequence (event_id=3 before event_id=1) in practice. Handle
+    out-of-order delivery defensively.
+
 servers:
   production:
     host: api.whitebit.com
