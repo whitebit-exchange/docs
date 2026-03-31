@@ -1483,14 +1483,11 @@ paths:
                       type: string
                       description: Base price of position
                       example: "45658.349"
-                    liqPrice:
-                      type: string
-                      description: Liquidation price according to current state of position
-                      example: "40000.00"
-                      nullable: true
                     pnl:
                       type: string
-                      description: Unrealized profit and loss in money
+                      description: "Realized profit and loss accumulated from partial position
+                        closes, in money currency. Zero for newly opened positions that have not
+                        been partially closed."
                       example: "-168.42"
                     pnlPercent:
                       type: string
@@ -1506,11 +1503,15 @@ paths:
                       example: "619385.67"
                     funding:
                       type: string
-                      description: Funding that will be paid on next position stage change
+                      description: "Cumulative funding fees paid over the entire lifetime of
+                        the position, in money currency. For futures markets (e.g., BTC_PERP
+                        and other _PERP pairs), the value is always \"0\" — futures funding is
+                        applied via periodic balance updates rather than being tracked per position."
                       example: "0"
                     unrealizedPnl:
                       type: string
-                      description: Unrealized profit and loss
+                      description: "Floating (mark-to-market) unrealized profit and loss in
+                        money currency. Updates continuously as the market price changes."
                       example: "0.0019142920201966"
                     positionSide:
                       type: string
@@ -1559,7 +1560,12 @@ paths:
                           example: "35000"
                     unrealizedFunding:
                       type: string
-                      description: Funding that will be paid on next position stage change
+                      description: "Funding fees accrued since the last position state change
+                        and not yet realized. For margin positions, the value accumulates
+                        continuously and is settled into the funding field when the position
+                        state changes (e.g., on partial or full close). For futures markets
+                        (BTC_PERP and other _PERP pairs), always \"0\" — futures funding is
+                        applied via periodic balance updates, not tracked per position."
                       example: "0.0019142920201966"
               example:
                 - positionId: 527
@@ -3307,7 +3313,11 @@ paths:
       summary: Convert Estimate
       description: |
         The endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
-        
+
+        <Note>
+        This endpoint can be used to obtain a pre-execution price estimate for a market order. Call this endpoint with the desired amount before placing a market order to see the approximate execution price.
+        </Note>
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -3396,7 +3406,10 @@ paths:
                     example: "1714988.41577452"
                   rate:
                     type: string
-                    description: "Conversion rate"
+                    description: "Conversion rate expressed in the from→to direction: units of
+                      the 'to' currency received per one unit of the 'from' currency. Example: if
+                      from=BTC and to=USDT, a rate of \"34299.76\" means 1 BTC is worth approximately
+                      34 299.76 USDT at the time of the quote."
                     example: "34299.76831549"
                   expireAt:
                     type: integer
@@ -3675,15 +3688,9 @@ paths:
       parameters:
         - name: market
           in: query
-          required: true
-          description: |
-            Market to query.
-
-            If the request includes the `market` parameter, the system returns fees for the specified market only.
-
-            When fee values are identical across markets, the response contains identical values regardless of the specified market.
-
-            Example: BTC_USDT
+          required: false
+          description: "Optional. Currently ignored by the API — all market fees are returned
+            regardless of the value provided. Retained for backward compatibility. Example: BTC_USDT"
           schema:
             type: string
             example: BTC_USDT
@@ -4368,18 +4375,18 @@ paths:
       operationId: createStockMarketOrder
       description: |
         The endpoint creates buy [stock](/glossary#stock) market trading [order](/glossary#orders).
-        
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-        
+
         <Accordion title="Error Codes">
         - `30` - default validation error code
         - `31` - market validation failed
         - `32` - amount validation failed
         - `36` - client_order_id validation failed
         </Accordion>
-        
+
         <Accordion title="Errors">
         ```json
         {
@@ -4392,7 +4399,7 @@ paths:
           }
         }
         ```
-        
+
         ```json
         {
           "code": 30,
@@ -4402,7 +4409,7 @@ paths:
           }
         }
         ```
-        
+
         ```json
         {
           "code": 32,
@@ -4412,7 +4419,7 @@ paths:
           }
         }
         ```
-        
+
         ```json
         {
           "code": 31,
@@ -4422,7 +4429,7 @@ paths:
           }
         }
         ```
-        
+
         ```json
         {
           "code": 31,
@@ -4432,7 +4439,7 @@ paths:
           }
         }
         ```
-        
+
         ```json
         {
           "code": 32,
@@ -4442,7 +4449,7 @@ paths:
           }
         }
         ```
-        
+
         ```json
         {
           "code": 32,
@@ -4455,7 +4462,7 @@ paths:
           }
         }
         ```
-        
+
         ```json
         {
           "code": 36,
@@ -4475,7 +4482,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MarketOrderRequest'
+              $ref: '#/components/schemas/StockMarketOrderRequest'
       responses:
         '200':
           description: Order created successfully
@@ -5043,7 +5050,13 @@ paths:
                   example: BTC_USDT
                 type:
                   type: array
-                  description: "Order types value. Example: 'spot', 'margin', 'futures'"
+                  description: "Order types to target. Valid values: \"spot\" — standard spot
+                    orders. \"margin\" — marginal orders placed on spot markets. Note: the
+                    \"margin\" value is not the same as the collateral account balance;
+                    \"collateral\" in other endpoints refers to the funding account, whereas
+                    \"margin\" here refers specifically to the order type. \"futures\" —
+                    marginal orders placed on futures markets (e.g., BTC_PERP). If omitted,
+                    the API targets all order types."
                   example: ["spot", "margin", "futures"]
                   items:
                     type: string
@@ -5267,56 +5280,26 @@ paths:
                   example: "{{nonce}}"
       responses:
         '200':
-          description: Executed order history
+          description: "Executed order history. Response shape depends on whether the
+            market filter is provided: with market filter returns a flat array; without
+            market filter returns an object keyed by market name."
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      description: "Deal ID"
-                    client_order_id:
-                      type: string
-                      description: "Custom order ID (empty if not specified)"
-                    time:
-                      type: number
-                      description: "Timestamp of executed deal"
-                    side:
-                      type: string
-                      enum: [buy, sell]
-                    role:
-                      type: integer
-                      description: "1 - maker, 2 - taker"
-                    amount:
-                      type: string
-                      description: "Amount in stock currency"
-                    price:
-                      type: string
-                    deal:
-                      type: string
-                      description: "Amount in money currency"
-                    fee:
-                      type: string
-                      description: "Paid fee"
-                    order_id:
-                      type: integer
-                    feeAsset:
-                      type: string
-              example:
-                - id: 8846967538
-                  client_order_id: "customId11"
-                  time: 1739310711.387599
-                  side: "buy"
-                  role: 2
-                  amount: "2.717"
-                  price: "3.3419"
-                  deal: "9.0799423"
-                  fee: "0.002717"
-                  order_id: 1164603916051
-                  feeAsset: "SUI"
+                oneOf:
+                  - description: "Returned when the market request parameter is provided.
+                      Flat array of deal objects for the specified market."
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExecutedDeal'
+                  - description: "Returned when no market filter is provided. Object keyed
+                      by market name (e.g., \"BTC_USDT\"), each value is an array of deal
+                      objects for that market."
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ExecutedDeal'
         '400':
           description: Inner validation failed
           content:
@@ -5564,7 +5547,9 @@ paths:
                         example: "0.001"
                       ftime:
                         type: number
-                        description: Executed order timestamp
+                        description: "Unix timestamp when the order reached its final status
+                          (FILLED or CANCELLED). For partially-filled orders that are subsequently
+                          cancelled, the timestamp reflects the cancellation time, not the last fill time."
                         example: 1597486960.311332
                       makerFee:
                         type: string
@@ -5663,7 +5648,18 @@ paths:
         - The request supports working only with order_id or only with client_order_id.
         - Do not pass both values at the same time.
         </Note>
-        
+
+        <Note>
+        **WebSocket impact:** Each call to this endpoint cancels the original order and
+        creates a replacement with a **new `order_id`**. Clients subscribed to the
+        `ordersPending_update` WebSocket channel will receive:
+        - `event_id=3` (cancel) for the old order
+        - `event_id=1` (new) for the replacement
+
+        Update any `order_id` references after a successful modify response.
+        Use `client_order_id` for stable order tracking across modifications.
+        </Note>
+
         <Accordion title="Error Codes">
         **Status 400** (client errors): 1, 2, 6, 20, 24, 101, 158
         
@@ -5849,7 +5845,13 @@ paths:
                   example: "60"
                 types:
                   type: array
-                  description: "Order types value. Example: 'spot', 'margin', 'futures' or null"
+                  description: "Order types to target. Valid values: \"spot\" — standard spot
+                    orders. \"margin\" — marginal orders placed on spot markets. Note: the
+                    \"margin\" value is not the same as the collateral account balance;
+                    \"collateral\" in other endpoints refers to the funding account, whereas
+                    \"margin\" here refers specifically to the order type. \"futures\" —
+                    marginal orders placed on futures markets (e.g., BTC_PERP). If omitted,
+                    the API targets all order types."
                   example: ["spot", "margin"]
                   items:
                     type: string
@@ -6022,6 +6024,41 @@ components:
           schema:
             $ref: '#/components/schemas/BulkLimitOrderResponse'
   schemas:
+    ExecutedDeal:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "Deal ID"
+        client_order_id:
+          type: string
+          description: "Custom order ID (empty if not specified)"
+        time:
+          type: number
+          description: "Timestamp of executed deal"
+        side:
+          type: string
+          enum: [buy, sell]
+        role:
+          type: integer
+          description: "1 - maker, 2 - taker"
+        amount:
+          type: string
+          description: "Amount in stock (quote) currency. Always expressed in the
+            stock/asset side of the market pair regardless of order direction."
+        price:
+          type: string
+        deal:
+          type: string
+          description: "Amount in money currency"
+        fee:
+          type: string
+          description: "Paid fee"
+        order_id:
+          type: integer
+        feeAsset:
+          type: string
+
     LimitOrderRequest:
       type: object
       required:
@@ -6176,6 +6213,46 @@ components:
           type: integer
           enum: [1, 2]
           description: "When the [BBO](/glossary#bbo) option is activated for Limit orders, the system selects the best market prices for execution. Variables: 1 - Queue Method / 2 - Counterparty Method."
+        stp:
+          type: string
+          enum: [no, cancel_both, cancel_new, cancel_old]
+          description: "Self trade prevention mode. Variables: 'no' / 'cancel_both' / 'cancel_new' / 'cancel_old'. Example: 'no'."
+          example: "no"
+        request:
+          type: string
+          example: "{{request}}"
+        nonce:
+          type: string
+          example: "{{nonce}}"
+
+    StockMarketOrderRequest:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - request
+        - nonce
+      properties:
+        market:
+          type: string
+          description: "Available [market](/glossary#market). Example: BTC_USDT"
+          example: "BTC_USDT"
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Order type. Variables: 'buy' / 'sell' Example: 'buy'"
+          example: "buy"
+        amount:
+          type: string
+          description: "Amount in stock (base) currency. Applies to both buy and sell
+            sides. To place a market order specifying the money (quote) currency amount
+            instead, use POST /api/v4/order/market."
+          example: "0.001"
+        client_order_id:
+          type: string
+          description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. The identifier must be unique."
+          example: "order1987111"
         stp:
           type: string
           enum: [no, cancel_both, cancel_new, cancel_old]
@@ -6345,6 +6422,24 @@ components:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
           example: true
+        activated:
+          type: integer
+          description: "Activation status of the stop order. 0 = not yet triggered
+            (waiting for the activation_price condition to be met). 1 = triggered
+            (the stop condition has been met and the order is now active)."
+          example: 0
+        activationCondition:
+          type: string
+          enum: [lte, gte]
+          description: "Condition that triggers the stop order. \"lte\" = activate
+            when the market price falls to or below activation_price. \"gte\" =
+            activate when the market price rises to or above activation_price."
+          example: "lte"
+        activation_price:
+          type: string
+          description: "The trigger price for the stop order. Always equals the
+            activation_price value submitted in the request."
+          example: "40000"
     BulkLimitOrderResponse:
       type: array
       items:
