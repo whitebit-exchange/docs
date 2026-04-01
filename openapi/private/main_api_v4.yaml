@@ -1608,7 +1608,7 @@ paths:
         ⚠️ Due to regulatory requirements in Turkey and [EU](/glossary#european-economic-area-eea), the system places every inbound crypto deposit on hold (frozen) until confirming the transaction's origin. The sender must provide certain details if the transaction is from another Virtual Asset Service Provider (VASP) or verify the address if from a self-hosted wallet. The system credits deposited funds to the account only after successful verification.
 
         **Withdraw status codes:**
-        - `Pending` - 1, 2, 6, 10, 11, 12, 13, 14, 15, 16, 17
+        - `Pending` (1, 2, 6, 10–17): Withdrawal is in progress. No further semantic distinction is available via the API — all codes in this range indicate an active pending state.
         - `Successful` - 3, 7
         - `Canceled` - 4
         - `Unconfirmed by user` - 5
@@ -1618,7 +1618,11 @@ paths:
         <Warning>
         Rate limit: 200 requests/10 sec.
         </Warning>
-        
+
+        <Warning>
+        Requests with `limit` values above 100 return large payloads. Use high limits only when necessary and ensure the client application can handle large response sizes.
+        </Warning>
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -1665,9 +1669,9 @@ paths:
                 limit:
                   type: integer
                   minimum: 1
-                  maximum: 100
+                  maximum: 500
                   default: 50
-                  description: LIMIT is a special clause used to limit records a particular query can return.
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500"
                   example: 100
                 offset:
                   type: integer
@@ -1784,7 +1788,7 @@ paths:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      limit: ["The limit may not be greater than 100."]
+                      limit: ["The limit may not be greater than 500."]
                       offset: ["The offset may not be greater than 10000."]
                 limitOffsetTooSmall:
                   summary: Limit or offset too small
