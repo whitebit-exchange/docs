@@ -4,12 +4,165 @@ title: Orders Executed
 description: "Subscribe to real-time notifications when account orders are executed on WhiteBIT via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
-Query or subscribe to executed order history with optional filtering by order type (limit, market, or both). Each record includes execution details, fees, and status. Update interval: real-time.
+Query or subscribe to executed order history with optional filtering by order type (limit, market, or both). Each record includes execution details, fees, and status. **Update interval:** real-time.
+
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "ordersExecuted_request",
+    receive: "Paginated list of executed orders",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "ordersExecuted_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "ordersExecuted_update — newly executed order"
+  },
+  {
+    name: "Unsubscribe",
+    send: "ordersExecuted_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query executed orders (one-time)
+
+Fetch historical executed orders for a market without subscribing.
+
+**Request**
+
+```json
+{
+  "id": 11,
+  "method": "ordersExecuted_request",
+  "params": [
+    { "market": "BTC_USDT", "order_types": [1, 2] },
+    0,
+    30
+  ]
+}
+```
+
+`params`: `[filter_object, offset, limit]`. Maximum limit: 100.
+
+`order_types` in the filter: `1` = Limit, `2` = Market.
+
+**Response**
+
+```json
+{
+  "id": 11,
+  "result": {
+    "limit": 100,
+    "offset": 0,
+    "records": [
+      {
+        "id": 1212266594338,
+        "ctime": 1738230617.8867061,
+        "ftime": 1738230617.8867061,
+        "market": "BTC_USDT",
+        "source": "web",
+        "type": 2,
+        "side": 1,
+        "price": "0",
+        "amount": "1",
+        "deal_stock": "1",
+        "deal_money": "105366.06693468",
+        "deal_fee": "10.536606693468",
+        "client_order_id": "",
+        "status": "FILLED",
+        "fee_asset": "USDT",
+        "rpi": false
+      }
+    ]
+  },
+  "error": null
+}
+```
 
 <Note>
-	The private stream returns executed orders, including orders using Retail Price Improvement (RPI) mode.
+The private stream returns executed orders, including orders using Retail Price Improvement (RPI) mode.
 </Note>
+## Subscribe to executed orders
+
+<Steps>
+  <Step title="Send subscription request">
+    `params[0]` is an array of market names. `params[1]` is the order type filter.
+
+    ```json
+    {
+      "id": 12,
+      "method": "ordersExecuted_subscribe",
+      "params": [["BTC_USDT", "ETH_BTC"], 0]
+    }
+    ```
+
+    Order type filter values:
+
+    | Value | Filter |
+    |-------|--------|
+    | `0` | Limit and Market orders |
+    | `1` | Limit orders only |
+    | `2` | Market orders only |
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 12,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `ordersExecuted_update` when an order is executed.
+
+    ```json
+    {
+      "id": null,
+      "method": "ordersExecuted_update",
+      "params": [
+        {
+          "id": 1212907216814,
+          "market": "ETH_BTC",
+          "type": 1,
+          "side": 2,
+          "post_only": false,
+          "ioc": false,
+          "ctime": 1738251046.7203979,
+          "mtime": 1738251048.4428461,
+          "price": "0.030832",
+          "amount": "1",
+          "left": "0",
+          "deal_stock": "1",
+          "deal_money": "0.030832",
+          "deal_fee": "0.001",
+          "client_order_id": "",
+          "stp": "no",
+          "status": "FILLED",
+          "position_side": "LONG",
+          "rpi": true
+        }
+      ]
+    }
+    ```
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 13,
+      "method": "ordersExecuted_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+

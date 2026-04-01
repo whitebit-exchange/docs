@@ -4,8 +4,86 @@ title: Borrows
 description: "Query current margin borrows for a WhiteBIT account via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
-Subscribe to collateral borrow status updates including borrow amounts, unrealized funding, and liquidation prices. Update interval: 1.5 seconds.
+Subscribe to collateral borrow status updates including borrow amounts, unrealized funding, and liquidation prices. **Update interval:** 1.5 seconds.
+
+<WsChannelOverview operations={[
+  {
+    name: "Subscribe",
+    send: "borrowsMargin_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "borrowsMargin_update — current borrow state for all open borrows"
+  },
+  {
+    name: "Unsubscribe",
+    send: "borrowsMargin_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Subscribe to borrows
+
+<Steps>
+  <Step title="Send subscription request">
+    `params` is always an empty array — subscribes to all open borrows.
+
+    ```json
+    {
+      "id": 18,
+      "method": "borrowsMargin_subscribe",
+      "params": []
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 18,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `borrowsMargin_update` periodically with the full current state of all open borrows.
+
+    ```json
+    {
+      "id": null,
+      "method": "borrowsMargin_update",
+      "params": {
+        "total": 1,
+        "records": [
+          {
+            "asset": "BTC",
+            "ctime": 1704067200,
+            "mtime": 1704067200,
+            "amount": "-0.81",
+            "unrealized_funding": "0.00005042",
+            "liq_price": "70000"
+          }
+        ]
+      }
+    }
+    ```
+
+    - `amount` — borrowed amount (negative value)
+    - `unrealized_funding` — accrued but unpaid funding cost
+    - `liq_price` — price at which the position would be liquidated
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 19,
+      "method": "borrowsMargin_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>

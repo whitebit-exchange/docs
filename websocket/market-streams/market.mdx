@@ -4,23 +4,136 @@ title: Market Statistics
 description: "Subscribe to real-time 24-hour market statistics for trading pairs via WhiteBIT WebSocket."
 ---
 
-## Field Descriptions
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
 
-Understanding the market statistics fields:
+Query or subscribe to rolling 24-hour market statistics. **Update interval:** 1 second.
 
-- **period**: The time window in seconds for the statistics
-- **last**: Current last trade price
-- **open**: The price at the beginning of the period (at 'now - period' time)
-- **close**: The closing price for the period (typically same as `last` for current period)
-- **high**: Highest price reached during the period
-- **low**: Lowest price reached during the period
-- **volume**: Total trading volume in [stock](/glossary#stock) currency (base currency)
-- **deal**: Total trading volume in [money](/glossary#money) currency (quote currency)
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "market_request",
+    receive: "Market statistics for the requested period",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "market_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "market_update — updated 24h statistics"
+  },
+  {
+    name: "Unsubscribe",
+    send: "market_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
 
-## Subscription Limitation
+## Query market statistics (one-time)
+
+Fetch market statistics for any period without subscribing.
+
+**Request**
+
+```json
+{
+  "id": 1,
+  "method": "market_request",
+  "params": ["BTC_USDT", 86400]
+}
+```
+
+`params`: `[market, period_in_seconds]`.
+
+**Response**
+
+```json
+{
+  "id": 1,
+  "result": {
+    "period": 86400,
+    "last": "105000.00",
+    "open": "101000.00",
+    "close": "105000.00",
+    "high": "106000.00",
+    "low": "100500.00",
+    "volume": "1234.56789",
+    "deal": "129876543.21"
+  },
+  "error": null
+}
+```
+
+## Subscribe to market statistics
 
 <Warning>
 Subscriptions support only a **24-hour period** (86400 seconds). Custom period subscriptions are not supported.
 </Warning>
 
-For queries (`market_request`), specify any valid period. For subscriptions (`market_subscribe`), the period is fixed at 24 hours from the current time.
+<Steps>
+  <Step title="Send subscription request">
+    `params[0]` is the market name. `params[1]` is the period in seconds — must be `86400`.
+
+    ```json
+    {
+      "id": 1,
+      "method": "market_subscribe",
+      "params": ["BTC_USDT", 86400]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 1,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `market_update` every second.
+
+    ```json
+    {
+      "id": null,
+      "method": "market_update",
+      "params": [
+        "BTC_USDT",
+        {
+          "period": 86400,
+          "last": "105000.00",
+          "open": "101000.00",
+          "close": "105000.00",
+          "high": "106000.00",
+          "low": "100500.00",
+          "volume": "1234.56789",
+          "deal": "129876543.21"
+        }
+      ]
+    }
+    ```
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 2,
+      "method": "market_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+
+## Field descriptions
+
+| Field | Description |
+|-------|-------------|
+| `period` | Time window in seconds |
+| `last` | Current last trade price |
+| `open` | Price at the start of the period (`now - period`) |
+| `close` | Closing price (same as `last` for the current period) |
+| `high` | Highest price during the period |
+| `low` | Lowest price during the period |
+| `volume` | Total volume in [stock](/glossary#stock) (base currency) |
+| `deal` | Total volume in [money](/glossary#money) (quote currency) |

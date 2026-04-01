@@ -4,53 +4,136 @@ title: Market Trades
 description: "Subscribe to real-time trade execution updates for a trading pair via WhiteBIT WebSocket."
 ---
 
-## Subscription Behavior
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
+Subscribe to real-time trade execution updates for one or more markets. **Update interval:** real-time.
+
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "trades_request",
+    receive: "Recent trades list for the market",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "trades_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "trades_update — new trade executions"
+  },
+  {
+    name: "Unsubscribe",
+    send: "trades_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query recent trades (one-time)
+
+Fetch recent trades for a market without subscribing.
+
+**Request**
+
+```json
+{
+  "id": 8,
+  "method": "trades_request",
+  "params": ["ETH_BTC", 100, 41358445]
+}
+```
+
+`params`: `[market, limit, lastId]`. `lastId` — return trades with ID greater than this value (use `0` for the latest trades).
+
+**Response**
+
+```json
+{
+  "id": 8,
+  "result": [
+    {
+      "id": 41358530,
+      "time": 1580905394.70332,
+      "price": "0.020857",
+      "amount": "5.511",
+      "type": "sell"
+    }
+  ],
+  "error": null
+}
+```
+
+## Subscribe to trades
 
 <Warning>
 For each WebSocket connection, subscribe to either specific markets or all markets. **Every new subscription replaces the existing one.**
 </Warning>
 
-### Subscribe to Specific Markets
+<Steps>
+  <Step title="Send subscription request">
+    Pass market names in `params` to subscribe to specific markets, or pass an empty array for all markets.
 
-To receive trade updates for specific markets, provide market names in the `params` array:
+    ```json
+    {
+      "id": 9,
+      "method": "trades_subscribe",
+      "params": ["ETH_BTC", "BTC_USDT"]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 9,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `trades_update` for each trade execution.
 
-```json
-{
-    "id": 9,
-    "method": "trades_subscribe",
-    "params": [
-        "ETH_BTC",
-        "BTC_USDT"
-    ]
-}
-```
+    ```json
+    {
+      "id": null,
+      "method": "trades_update",
+      "params": [
+        "BTC_USDT",
+        [
+          {
+            "id": 987654321,
+            "time": 1738251095.345,
+            "price": "105000.00",
+            "amount": "0.01",
+            "type": "buy"
+          }
+        ]
+      ]
+    }
+    ```
 
-### Subscribe to All Markets
+    `params[0]` is the market name. `params[1]` is an array of trade objects.
 
-To receive trade updates for all available markets, send an empty `params` array:
+    The `rpi` field may appear on trade objects: `true` means the trade involved a Retail Price Improvement order.
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 10,
+      "method": "trades_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
 
-```json
-{
-    "id": 9,
-    "method": "trades_subscribe",
-    "params": []
-}
-```
+## RPI orders in trade updates
 
-## RPI Field
+Trade updates can include executions originating from RPI orders:
 
-Trade updates may include an `rpi` field:
-
-- `rpi: true` - The trade involved a Retail Price Improvement (RPI) order
-- `rpi: false` or absent - Regular trade
+- `rpi: true` — the trade involved a Retail Price Improvement (RPI) order
+- `rpi: false` or absent — regular trade
 
 <Note>
-RPI orders provide better execution prices than the current best bid/ask for retail traders.
-</Note>
-
-<Note>
-Public trade updates can include executions originating from RPI orders.
-
 Public market data feeds do not expose RPI orders as visible liquidity in `depth` or `bookTicker`. RPI orders remain visible only in private active orders and in the exchange UI order book (web and mobile).
 </Note>
-

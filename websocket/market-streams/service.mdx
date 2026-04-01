@@ -4,4 +4,69 @@ title: Service
 description: "Ping the WhiteBIT WebSocket server to check connection health and keep the connection alive."
 ---
 
-Check API availability with ping/pong requests and query the current server time. The Service channel supports one-time queries only and does not emit subscription update events.
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
+Check API availability with ping/pong and query the current server time. The Service channel supports one-time queries only — no subscription or push events.
+
+<WsChannelOverview operations={[
+  {
+    name: "Ping",
+    send: "ping",
+    receive: "\"pong\" string",
+    push: null
+  },
+  {
+    name: "Server Time",
+    send: "time",
+    receive: "Unix timestamp (integer)",
+    push: null
+  }
+]} />
+
+## Ping
+
+Send a ping every 50 seconds to keep the connection alive. The server closes the connection after 60 seconds of inactivity.
+
+**Request**
+
+```json
+{
+  "id": 0,
+  "method": "ping",
+  "params": []
+}
+```
+
+**Response**
+
+```json
+{
+  "id": 0,
+  "result": "pong",
+  "error": null
+}
+```
+
+## Server Time
+
+**Request**
+
+```json
+{
+  "id": 1,
+  "method": "time",
+  "params": []
+}
+```
+
+**Response**
+
+```json
+{
+  "id": 1,
+  "result": 1493285895,
+  "error": null
+}
+```
+
+`result` is the current server time as a Unix timestamp (integer seconds).
