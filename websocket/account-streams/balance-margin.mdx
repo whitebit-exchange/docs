@@ -4,8 +4,142 @@ title: Balance Margin
 description: "Subscribe to real-time margin balance updates for a WhiteBIT account via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
-Query or subscribe to collateral (margin) balance updates. The response includes total balance, borrowed amount, and available amounts with and without borrowing. Update interval: 1.5 seconds.
+Query or subscribe to collateral (margin) balance updates. The response includes total balance, borrowed amount, and available amounts with and without borrowing. **Update interval:** 1.5 seconds.
+
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "balanceMargin_request",
+    receive: "Current balances for requested assets",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "balanceMargin_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "balanceMargin_update — balance change for subscribed assets"
+  },
+  {
+    name: "Unsubscribe",
+    send: "balanceMargin_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query margin balance (one-time)
+
+Fetch current margin balances for specific assets without subscribing.
+
+**Request**
+
+```json
+{
+  "id": 2,
+  "method": "balanceMargin_request",
+  "params": ["BTC", "USDT"]
+}
+```
+
+Pass an empty array to query all assets.
+
+**Response**
+
+```json
+{
+  "id": 2,
+  "result": {
+    "BTC": {
+      "balance": "0.0006092",
+      "borrow": "0",
+      "available_without_borrow": "0.0006092",
+      "available_with_borrow": "0.00288701"
+    },
+    "USDT": {
+      "balance": "0.00538073",
+      "borrow": "0",
+      "available_without_borrow": "0.00538073",
+      "available_with_borrow": "28.43739825"
+    }
+  },
+  "error": null
+}
+```
+## Subscribe to margin balance
+
+<Steps>
+  <Step title="Send subscription request">
+    Pass asset tickers in `params`. Pass an empty array to subscribe to all assets.
+
+    ```json
+    {
+      "id": 3,
+      "method": "balanceMargin_subscribe",
+      "params": ["BTC", "USDT"]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 3,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `balanceMargin_update` when any subscribed asset balance changes.
+
+    <Note>
+    Update uses **abbreviated field names** — different from the query response.
+    </Note>
+
+    ```json
+    {
+      "id": null,
+      "method": "balanceMargin_update",
+      "params": [
+        {
+          "a": "BTC",
+          "B": "0.0006092",
+          "b": "0",
+          "av": "0.0006092",
+          "ab": "0.00288701"
+        },
+        {
+          "a": "USDT",
+          "B": "0.00538073",
+          "b": "0",
+          "av": "0.00538073",
+          "ab": "28.43739825"
+        }
+      ]
+    }
+    ```
+
+    | Field | Full name | Description |
+    |-------|-----------|-------------|
+    | `a` | asset | Asset ticker |
+    | `B` | balance | Total amount on collateral balance |
+    | `b` | borrow | Borrowed amount |
+    | `av` | available without borrow | Available to trade without borrowing |
+    | `ab` | available with borrow | Available to trade including borrowing capacity |
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 4,
+      "method": "balanceMargin_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+

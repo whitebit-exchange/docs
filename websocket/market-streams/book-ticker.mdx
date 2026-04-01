@@ -3,24 +3,93 @@ asyncapi: "/asyncapi/public/book_ticker.yaml /ws"
 title: Book Ticker
 description: "Subscribe to real-time best bid and ask price updates for trading pairs via WhiteBIT WebSocket."
 ---
-## Overview
 
-The Book Ticker channel provides real-time best bid and best ask updates for a market.
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
 
-The stream sends updates whenever the best bid or best ask price changes.
+Real-time best bid and best ask price updates for a market. The server sends an update instantly whenever the best bid or best ask changes.
+
+<WsChannelOverview operations={[
+  {
+    name: "Subscribe",
+    send: "bookTicker_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "bookTicker_update — best bid/ask snapshot on change"
+  },
+  {
+    name: "Unsubscribe",
+    send: "bookTicker_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Subscribe to book ticker
+
+<Steps>
+  <Step title="Send subscription request">
+    Pass a market name in `params` to subscribe to a specific market, or pass an empty array to subscribe to all markets.
+
+    ```json
+    {
+      "id": 1,
+      "method": "bookTicker_subscribe",
+      "params": ["BTC_USDT"]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 1,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `bookTicker_update` on every best bid/ask change. The update is a **positional array** — fields are identified by index.
+
+    ```json
+    {
+      "id": null,
+      "method": "bookTicker_update",
+      "params": [
+        [
+          1751958383.5933869,
+          1751958383.5935569,
+          "SHIB_PERP",
+          80670102,
+          "0.000011751",
+          "12547000",
+          "0.000011776",
+          "17424000"
+        ]
+      ]
+    }
+    ```
+
+    | Index | Field | Description |
+    |-------|-------|-------------|
+    | `[0]` | transaction_time | Unix timestamp from matching engine |
+    | `[1]` | message_time | Unix timestamp from WebSocket |
+    | `[2]` | market | Market name |
+    | `[3]` | update_id | Monotonic update counter |
+    | `[4]` | best_bid_price | Current best bid price |
+    | `[5]` | best_bid_amount | Current best bid quantity |
+    | `[6]` | best_ask_price | Current best ask price |
+    | `[7]` | best_ask_amount | Current best ask quantity |
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 2,
+      "method": "bookTicker_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
 
 <Note>
-	Public `bookTicker_update` events exclude Retail Price Improvement (RPI) orders.
-
-	The stream includes only regular order book liquidity. Private active order endpoints and private WebSocket streams return RPI orders. The exchange UI order book (web and mobile) displays RPI orders.
+Public `bookTicker_update` events exclude Retail Price Improvement (RPI) orders. The stream includes only regular order book liquidity. RPI orders are visible in private active order endpoints and in the exchange UI order book.
 </Note>
-
-## Update Behavior
-
-The server sends a `bookTicker_update` message whenever the best bid or best ask changes.
-
-Each update contains:
-- Current best bid price and amount.
-- Current best ask price and amount.
-
-
