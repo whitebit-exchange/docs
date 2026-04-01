@@ -11,3 +11,21 @@ openapi: "/openapi/public/http-v4.yaml GET /api/v4/public/assets"
 ## Error codes
 
 The endpoint uses standard error codes. See [Error format](/api-reference/overview#error-format) for the response structure.
+
+## Notes
+
+### Asset type classification
+
+The endpoint returns three structurally distinct asset types. Use the presence or absence of the `confirmations` and `providers` fields to classify each asset.
+
+| Asset type | `confirmations` field | `providers` field |
+|---|---|---|
+| Crypto asset | Present | Absent |
+| Fiat currency | Absent | Present (may be empty) |
+| Fiat payment method | Absent | Absent |
+
+**Crypto assets** (e.g., `BTC`, `ETH`, `USDT`) include a `confirmations` object with required blockchain confirmation counts per network.
+
+**Fiat currencies** (e.g., `EUR`, `USD`, `UAH`) include a `providers` object listing available payment processors. The `providers` field is present even when the list is empty.
+
+**Fiat payment methods** (e.g., `EUR_ADVCASH`, `USD_VISAMASTER`) represent individual payment channels. These entries include neither `confirmations` nor `providers`. The network identifier in the `networks` field matches the asset ticker.
