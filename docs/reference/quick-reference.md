@@ -126,7 +126,7 @@ find asyncapi -name "*.yaml" -exec asyncapi validate {} \;
 
 ## Related Documentation
 
-- [Style Guide](style-guide.md) - Detailed writing guidelines
-- [File Structure](file-structure.md) - Which file to edit
-- [Validation Guide](validation.md) - Testing your changes
-- [Common Pitfalls](common-pitfalls.md) - Avoid mistakes
+- [Style Guide](/docs/reference/style-guide) - Detailed writing guidelines
+- [File Structure](/docs/reference/file-structure) - Which file to edit
+- [Validation Guide](/docs/reference/validation) - Testing your changes
+- [Common Pitfalls](/docs/reference/common-pitfalls) - Avoid mistakes

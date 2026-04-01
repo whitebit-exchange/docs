@@ -147,6 +147,6 @@ Solution: Move properties to allOf or separate schema
 
 ## Related Documentation
 
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Full contribution workflow
-- [Common Pitfalls](common-pitfalls.md) - Avoid common mistakes
-- [Adding New Endpoints](../guides/05-adding-new-endpoints.md) - Complete guide
+- [CONTRIBUTING.md](https://github.com/whitebit-exchange/docs/blob/main/CONTRIBUTING.md) - Full contribution workflow
+- [Common Pitfalls](/docs/reference/common-pitfalls) - Avoid common mistakes
+- [Adding New Endpoints](/docs/guides/05-adding-new-endpoints) - Complete guide

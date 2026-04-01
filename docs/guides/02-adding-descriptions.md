@@ -41,11 +41,11 @@ This guide explains how to write effective descriptions for REST and WebSocket e
 - Keep summaries to 10-15 words
 - Use bullet lists for features
 - Always document rate limits
-- Use MDX components appropriately (see [Style Guide](../reference/style-guide.md))
+- Use MDX components appropriately (see [Style Guide](/docs/reference/style-guide))
 - Link to glossary terms on first use
 
 ## Related Guides
 
-- [Style Guide](../reference/style-guide.md)
-- [Documenting Errors](04-documenting-errors.md)
-- [Adding Parameters](01-adding-parameters.md)
+- [Style Guide](/docs/reference/style-guide)
+- [Documenting Errors](/docs/guides/04-documenting-errors)
+- [Adding Parameters](/docs/guides/01-adding-parameters)
