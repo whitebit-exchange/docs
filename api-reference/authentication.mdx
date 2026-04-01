@@ -102,7 +102,8 @@ WhiteBIT provides the [API Quick Start Helper](https://github.com/whitebit-excha
 
 | Error Message | Cause | Solution |
 | --- | --- | --- |
-| ”Too many requests.” | Nonce value is not greater than previous request | Use incrementing nonce values |
+| `{“code”:2,”errors”:{},”message”:”Payload not provided.”}` | `X-TXC-PAYLOAD` header missing or empty | Include the base64-encoded request body as `X-TXC-PAYLOAD` |
+| “Too many requests.” | Nonce value is not greater than previous request | Use incrementing nonce values |
 | ”This action is unauthorized. Enable your key in API settings” | Using disabled API key | Enable key in API settings or check IP restrictions |
 | ”You don’t have permission to use this endpoint.” | Endpoint access is restricted | Update endpoint access in API key settings |
 | ”Invalid payload” | Payload does not match decoded value | Ensure proper base64 encoding of request body |
@@ -113,6 +114,10 @@ WhiteBIT provides the [API Quick Start Helper](https://github.com/whitebit-excha
 | ”Request not provided.” | Missing request path in body | Include request path in all requests |
 
 For rate limits and REST error format, see [Rate limits and error codes](/api-reference/rate-limits).
+
+## Testing in the API playground
+
+<Snippet file="private-api-playground-testing.mdx" />
 
 ## Related resources
 
