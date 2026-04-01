@@ -1,0 +1,40 @@
+The API playground requires all three authentication headers for private endpoints:
+`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, and `X-TXC-SIGNATURE`.
+
+`X-TXC-PAYLOAD` and `X-TXC-SIGNATURE` must be computed before each request — the playground
+cannot generate the values automatically.
+
+**Steps to test a private endpoint:**
+
+<Steps>
+  <Step title="Build the request body">
+    Construct the JSON body with `request`, `nonce`, and any endpoint-specific parameters.
+    ```json
+    {
+      "request": "/api/v4/trade-account/balance",
+      "nonce": 1594297865123,
+      "ticker": "BTC"
+    }
+    ```
+  </Step>
+  <Step title="Compute X-TXC-PAYLOAD">
+    Base64-encode the JSON body (no whitespace normalization required).
+    The result is the `X-TXC-PAYLOAD` value.
+  </Step>
+  <Step title="Compute X-TXC-SIGNATURE">
+    Compute `hex(HMAC-SHA512(payload, api_secret))`.
+    The result is the `X-TXC-SIGNATURE` value.
+  </Step>
+  <Step title="Fill in the playground auth fields">
+    Enter the API key, payload, and signature in the playground authentication fields, then send the request.
+  </Step>
+</Steps>
+
+<Info>
+  Each signature covers a specific request body and nonce. Generate fresh `X-TXC-PAYLOAD`
+  and `X-TXC-SIGNATURE` values for each test run — reusing the values causes a nonce or payload
+  validation error.
+</Info>
+
+The [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) provides
+ready-to-run signing scripts in Python, Node.js, Go, PHP, Ruby, Kotlin, Rust, and C++.
