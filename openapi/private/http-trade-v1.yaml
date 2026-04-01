@@ -21,6 +21,8 @@ servers:
 
 security:
   - ApiKeyAuth: []
+    PayloadAuth: []
+    SignatureAuth: []
 
 paths:
   /api/v1/account/balance:
@@ -760,11 +762,17 @@ components:
       type: apiKey
       in: header
       name: X-TXC-APIKEY
-      description: |
-        API key authentication requires three headers:
-        - X-TXC-APIKEY: The API key
-        - X-TXC-PAYLOAD: Base64-encoded JSON payload
-        - X-TXC-SIGNATURE: HMAC SHA512 signature of the payload
+      description: The public WhiteBIT API key.
+    PayloadAuth:
+      type: apiKey
+      in: header
+      name: X-TXC-PAYLOAD
+      description: Base64-encoded JSON request body.
+    SignatureAuth:
+      type: apiKey
+      in: header
+      name: X-TXC-SIGNATURE
+      description: HMAC-SHA512 signature of the payload, hex-encoded. Computed as hex(HMAC-SHA512(payload, api_secret)).
 
   schemas:
     OrderResponse:
