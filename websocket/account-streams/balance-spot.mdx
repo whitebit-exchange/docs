@@ -4,12 +4,121 @@ title: Balance Spot
 description: "Subscribe to real-time spot balance updates for a WhiteBIT account via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
-Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates.
+Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates. **Update interval:** 1 second.
 
-<Note>
-**Update interval**: 1 second
-</Note>
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "balanceSpot_request",
+    receive: "Current balances for requested assets",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "balanceSpot_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "balanceSpot_update — balance change for subscribed assets"
+  },
+  {
+    name: "Unsubscribe",
+    send: "balanceSpot_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query spot balance (one-time)
+
+Fetch current spot balances for specific assets without subscribing.
+
+**Request**
+
+```json
+{
+  "id": 2,
+  "method": "balanceSpot_request",
+  "params": ["ETH", "BTC"]
+}
+```
+
+Pass an empty array to query all assets.
+
+**Response**
+
+```json
+{
+  "id": 2,
+  "result": {
+    "ETH": {
+      "available": "0",
+      "freeze": "0"
+    },
+    "BTC": {
+      "available": "0",
+      "freeze": "0"
+    }
+  },
+  "error": null
+}
+```
+## Subscribe to spot balance
+
+<Steps>
+  <Step title="Send subscription request">
+    Pass asset tickers in `params`. Pass an empty array to subscribe to all assets.
+
+    ```json
+    {
+      "id": 3,
+      "method": "balanceSpot_subscribe",
+      "params": ["USDT", "ETH"]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 3,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `balanceSpot_update` when any subscribed asset balance changes.
+
+    ```json
+    {
+      "id": null,
+      "method": "balanceSpot_update",
+      "params": [
+        {
+          "USDT": {
+            "available": "100.1885",
+            "freeze": "0"
+          }
+        }
+      ]
+    }
+    ```
+
+    - `available` — amount free to trade
+    - `freeze` — amount locked in active orders
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 4,
+      "method": "balanceSpot_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+

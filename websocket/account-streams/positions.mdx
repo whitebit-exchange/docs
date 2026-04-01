@@ -4,16 +4,102 @@ title: Positions
 description: "Subscribe to real-time collateral position updates for a WhiteBIT account via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
-Subscribe to positions updates.
+Subscribe to collateral position updates including P&L, liquidation price, margin, and position side. **Update interval:** 1 second.
 
 <Note>
-This channel does **NOT** support query operations - only subscribe/update/unsubscribe.
+This channel does **NOT** support query operations — only subscribe/update/unsubscribe.
 </Note>
 
-<Note>
-**Update interval**: 1 second
-</Note>
+<WsChannelOverview operations={[
+  {
+    name: "Subscribe",
+    send: "positionsMargin_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "positionsMargin_update — full snapshot of all open positions"
+  },
+  {
+    name: "Unsubscribe",
+    send: "positionsMargin_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Subscribe to positions
+
+<Steps>
+  <Step title="Send subscription request">
+    `params` is always an empty array — subscribes to all open positions.
+
+    ```json
+    {
+      "id": 16,
+      "method": "positionsMargin_subscribe",
+      "params": []
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 16,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `positionsMargin_update` with a full snapshot of all open positions every second.
+
+    ```json
+    {
+      "id": null,
+      "method": "positionsMargin_update",
+      "params": {
+        "total": 1,
+        "records": [
+          {
+            "id": 2,
+            "market": "BTC_USDT",
+            "ctime": 1704067200,
+            "mtime": 1704067200,
+            "amount": "-0.01",
+            "amount_in_money": "118.762",
+            "base_price": "60000",
+            "pnl": "-0.47",
+            "liq_price": "65000",
+            "liq_stage": null,
+            "unrealized_funding": "0",
+            "funding": "0",
+            "margin": "23.8",
+            "free_margin": "999932.92",
+            "realized_pnl": "0",
+            "position_side": "LONG"
+          }
+        ]
+      }
+    }
+    ```
+
+    - `amount` — position size (negative = short)
+    - `pnl` — unrealized profit and loss
+    - `liq_price` — liquidation price
+    - `liq_stage` — `null` (healthy), `"margin_call"`, or `"liquidation"`
+    - `position_side` — `"LONG"`, `"SHORT"`, or `"BOTH"`
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 17,
+      "method": "positionsMargin_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>

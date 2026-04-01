@@ -4,8 +4,87 @@ title: Borrows Events
 description: "Subscribe to real-time margin borrow events for a WhiteBIT account via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
 Subscribe to margin call and liquidation event notifications for collateral borrows. Events fire when a borrow enters margin call or liquidation state.
+
+<WsChannelOverview operations={[
+  {
+    name: "Subscribe",
+    send: "borrowsAccountMargin_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "borrowsAccountMargin_update — margin call or liquidation event"
+  },
+  {
+    name: "Unsubscribe",
+    send: "borrowsAccountMargin_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Subscribe to borrow events
+
+<Steps>
+  <Step title="Send subscription request">
+    `params` is always an empty array.
+
+    ```json
+    {
+      "id": 1,
+      "method": "borrowsAccountMargin_subscribe",
+      "params": []
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 1,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive event notifications">
+    The server pushes `borrowsAccountMargin_update` when a borrow enters a critical state.
+
+    ```json
+    {
+      "id": null,
+      "method": "borrowsAccountMargin_update",
+      "params": [
+        1,
+        {
+          "asset": "USDT",
+          "ctime": 1737731478.6904421,
+          "mtime": 1737731478.6904421,
+          "amount": "-3895.7476176",
+          "unrealized_funding": "0.00267248",
+          "liq_price": "NaN"
+        }
+      ]
+    }
+    ```
+
+    `params[0]` is the event type:
+
+    | Value | Event |
+    |-------|-------|
+    | `1` | Margin call |
+    | `2` | Liquidation |
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 1,
+      "method": "borrowsAccountMargin_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>

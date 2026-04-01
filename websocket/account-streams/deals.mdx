@@ -4,8 +4,148 @@ title: Deals
 description: "Subscribe to real-time trade deal notifications for a WhiteBIT account via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
-Query or subscribe to real-time trade execution (deal) notifications. Each deal represents a matched trade with price, amount, fee, and counterparty details. Update interval: real-time.
+Query or subscribe to real-time trade execution (deal) notifications. Each deal represents a matched trade with price, amount, fee, and counterparty details. **Update interval:** real-time.
+
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "deals_request",
+    receive: "Paginated list of deals",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "deals_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "deals_update — new trade execution"
+  },
+  {
+    name: "Unsubscribe",
+    send: "deals_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query deals (one-time)
+
+Fetch historical deal records for a market without subscribing.
+
+**Request**
+
+```json
+{
+  "id": 14,
+  "method": "deals_request",
+  "params": ["BTC_USDT", 0, 30]
+}
+```
+
+`params`: `[market, offset, limit]`. Maximum limit: 100.
+
+**Response**
+
+```json
+{
+  "id": 14,
+  "result": {
+    "limit": 100,
+    "offset": 0,
+    "records": [
+      {
+        "time": 1738230617.8867061,
+        "id": 13663227034,
+        "side": 1,
+        "role": 2,
+        "price": "105361.32",
+        "amount": "0.160998",
+        "deal": "16962.96179736",
+        "fee": "1.696296179736",
+        "order_id": 1212266594338,
+        "deal_order_id": 1212266160846,
+        "market": "BTC_USDT",
+        "client_order_id": "",
+        "fee_asset": "USDT"
+      }
+    ]
+  },
+  "error": null
+}
+```
+## Subscribe to deals
+
+<Steps>
+  <Step title="Send subscription request">
+    `params[0]` is an array of market names. Pass an empty inner array to subscribe to all markets.
+
+    ```json
+    {
+      "id": 15,
+      "method": "deals_subscribe",
+      "params": [["BTC_USDT", "ETH_BTC"]]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 15,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `deals_update` for each trade execution. The update uses a **positional array** format — fields are identified by index, not by name.
+
+    ```json
+    {
+      "id": null,
+      "method": "deals_update",
+      "params": [
+        13674578673,
+        1738251095.345432,
+        "ETH_BTC",
+        1212909726406,
+        "0.03084",
+        "0.2625",
+        "0.0002625",
+        "",
+        2,
+        2,
+        "ETH"
+      ]
+    }
+    ```
+
+    | Index | Field | Example | Description |
+    |-------|-------|---------|-------------|
+    | `[0]` | deal_id | `13674578673` | Unique deal ID |
+    | `[1]` | time | `1738251095.345432` | Unix timestamp of execution |
+    | `[2]` | market | `"ETH_BTC"` | Market name |
+    | `[3]` | order_id | `1212909726406` | Order ID |
+    | `[4]` | price | `"0.03084"` | Execution price |
+    | `[5]` | amount | `"0.2625"` | Stock amount executed |
+    | `[6]` | fee | `"0.0002625"` | Fee charged |
+    | `[7]` | client_order_id | `""` | Custom client order ID (may be empty) |
+    | `[8]` | side | `2` | `1` = sell, `2` = buy |
+    | `[9]` | role | `2` | `1` = maker, `2` = taker |
+    | `[10]` | fee_asset | `"ETH"` | Asset in which fee was charged |
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 16,
+      "method": "deals_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+
