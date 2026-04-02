@@ -4,48 +4,158 @@ title: Kline
 description: "Subscribe to real-time candlestick (OHLCV) chart updates for a trading pair via WhiteBIT WebSocket."
 ---
 
-## Overview
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
 
-Candlestick data operations.
+Query or subscribe to candlestick (OHLCV) data for a market and interval. **Update interval:** 0.5 seconds.
 
-**Update Interval**: 0.5 seconds (for subscriptions)
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "candles_request",
+    receive: "Array of candlestick records",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "candles_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "candles_update — latest candle for the subscribed interval"
+  },
+  {
+    name: "Unsubscribe",
+    send: "candles_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
 
-## Interval Constraints
+## Query candlesticks (one-time)
 
-The requested interval must meet specific mathematical conditions to ensure proper candle alignment:
+Fetch historical candlestick data for a time range.
 
-### Rules by Interval Size
+**Request**
+
+```json
+{
+  "id": 1,
+  "method": "candles_request",
+  "params": ["BTC_USDT", 1738166400, 1738252800, 3600]
+}
+```
+
+`params`: `[market, start_time, end_time, interval]`. Times are Unix timestamps.
+
+**Response**
+
+```json
+{
+  "id": 1,
+  "result": [
+    [1738166400, "104500.00", "104800.00", "105000.00", "104300.00", "8.12", "849601.23", "BTC_USDT"]
+  ],
+  "error": null
+}
+```
+
+Each record is a positional array in the same format as the subscription update.
+
+## Subscribe to candlesticks
+
+<Steps>
+  <Step title="Send subscription request">
+    `params[0]` is the market. `params[1]` is the interval in seconds.
+
+    ```json
+    {
+      "id": 1,
+      "method": "candles_subscribe",
+      "params": ["BTC_USDT", 3600]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 1,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `candles_update` every 0.5 seconds with the current candle. The update is a **positional array**.
+
+    ```json
+    {
+      "id": null,
+      "method": "candles_update",
+      "params": [
+        1738252800,
+        "104800.00",
+        "105200.00",
+        "105500.00",
+        "104700.00",
+        "12.34567",
+        "1296543.21",
+        "BTC_USDT"
+      ]
+    }
+    ```
+
+    | Index | Field | Description |
+    |-------|-------|-------------|
+    | `[0]` | time | Candle open time (Unix timestamp) |
+    | `[1]` | open | Open price |
+    | `[2]` | close | Close price (current price for live candle) |
+    | `[3]` | high | Highest price in the interval |
+    | `[4]` | low | Lowest price in the interval |
+    | `[5]` | volume | Volume in [stock](/glossary#stock) (base currency) |
+    | `[6]` | deal | Volume in [money](/glossary#money) (quote currency) |
+    | `[7]` | market | Market name |
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 2,
+      "method": "candles_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+
+## Interval constraints
+
+The interval must meet specific alignment rules to ensure candles align with natural time boundaries.
 
 <Accordion title="Less than 60 seconds">
-- 60 must be divisible by the interval without remainder
-- Valid examples: 1s, 2s, 3s, 4s, 5s, 6s, 10s, 12s, 15s, 20s, 30s
-- Invalid examples: 7s, 11s, 13s, 17s
+  60 must be divisible by the interval.
+
+  Valid: `1`, `2`, `3`, `4`, `5`, `6`, `10`, `12`, `15`, `20`, `30`
+
+  Invalid: `7`, `11`, `13`, `17`
 </Accordion>
 
-<Accordion title="60 seconds to 1 hour (60-3599s)">
-- Interval must be divisible by 60 without remainder
-- 3600 must be divisible by the interval without remainder
-- Valid examples: 1m (60s), 2m (120s), 3m (180s), 5m (300s), 15m (900s), 30m (1800s)
-- Invalid examples: 7m (420s), 11m (660s)
+<Accordion title="60 seconds to 1 hour (60–3599s)">
+  Interval must be divisible by 60, and 3600 must be divisible by the interval.
+
+  Valid: `60` (1m), `120` (2m), `180` (3m), `300` (5m), `900` (15m), `1800` (30m)
+
+  Invalid: `420` (7m), `660` (11m)
 </Accordion>
 
-<Accordion title="1 hour to 1 day (3600-86399s)">
-- Interval must be divisible by 3600 without remainder
-- 86400 must be divisible by the interval without remainder
-- Valid examples: 1h (3600s), 2h (7200s), 4h (14400s), 6h (21600s), 12h (43200s)
-- Invalid examples: 5h (18000s), 7h (25200s)
+<Accordion title="1 hour to 1 day (3600–86399s)">
+  Interval must be divisible by 3600, and 86400 must be divisible by the interval.
+
+  Valid: `3600` (1h), `7200` (2h), `14400` (4h), `21600` (6h), `43200` (12h)
+
+  Invalid: `18000` (5h), `25200` (7h)
 </Accordion>
 
-<Accordion title="1 day to 1 week (86400-604799s)">
-- Interval must be divisible by 86400 without remainder
-- Valid examples: 1d (86400s), 2d (172800s), 3d (259200s)
-</Accordion>
-
-<Accordion title="Special intervals">
-- **1 week**: 604800 seconds (86400 × 7)
-- **1 month**: 2592000 seconds (86400 × 30)
+<Accordion title="1 day and above">
+  Valid: `86400` (1d), `172800` (2d), `259200` (3d), `604800` (1w), `2592000` (1mo)
 </Accordion>
 
 <Note>
-These constraints ensure candles align with natural time boundaries (minutes, hours, days) for consistent charting.
+The constraints above ensure candles align with natural time boundaries (minutes, hours, days) for consistent charting.
 </Note>

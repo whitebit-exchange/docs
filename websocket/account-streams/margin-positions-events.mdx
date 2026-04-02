@@ -4,8 +4,99 @@ title: Margin Positions Events
 description: "Subscribe to real-time margin position change events for a WhiteBIT account via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
 Subscribe to margin call and liquidation event notifications for collateral positions. Events fire when a position enters margin call or liquidation state.
+
+<WsChannelOverview operations={[
+  {
+    name: "Subscribe",
+    send: "positionsAccountMargin_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "positionsAccountMargin_update — margin call or liquidation event"
+  },
+  {
+    name: "Unsubscribe",
+    send: "positionsAccountMargin_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Subscribe to position events
+
+<Steps>
+  <Step title="Send subscription request">
+    `params` is always an empty array.
+
+    ```json
+    {
+      "id": 1,
+      "method": "positionsAccountMargin_subscribe",
+      "params": []
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 1,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive event notifications">
+    The server pushes `positionsAccountMargin_update` when a position enters a critical state.
+
+    ```json
+    {
+      "id": null,
+      "method": "positionsAccountMargin_update",
+      "params": [
+        1,
+        {
+          "id": 184,
+          "market": "BTC_USDT",
+          "ctime": 1737731271.3069341,
+          "mtime": 1737731271.3069341,
+          "amount": "-0.094048",
+          "amount_in_money": "9939.79769088",
+          "base_price": "105688.56",
+          "pnl": "-1157.88",
+          "liq_price": "126462.54",
+          "liq_stage": "margin_call",
+          "unrealized_funding": "0.0231431327519745",
+          "funding": "0",
+          "margin": "1109.77",
+          "free_margin": "-652.9",
+          "realized_pnl": "-8.945817921792",
+          "position_side": "LONG"
+        }
+      ]
+    }
+    ```
+
+    `params[0]` is the event type:
+
+    | Value | Event |
+    |-------|-------|
+    | `1` | Margin call |
+    | `2` | Liquidation |
+
+    `liq_stage` values: `"margin_call"`, `"liquidation"`, or `null` (healthy).
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 1,
+      "method": "positionsAccountMargin_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
