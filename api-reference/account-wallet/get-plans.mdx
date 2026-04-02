@@ -7,3 +7,7 @@ openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/smart/plans
 <Note>
 These endpoints are available only for B2B partner services. Fill the form at https://whitebit.com/institutional-services/b2b to request access.
 </Note>
+
+<Note>
+The `id` field in each returned plan object is the `planId` value required by the [investment creation endpoint](/api-reference/account-wallet/invest) (`POST /api/v4/main-account/smart/investment`). Only plans returned by this endpoint can be used to create new investments — plans with inactive status or disabled API access are excluded automatically.
+</Note>
