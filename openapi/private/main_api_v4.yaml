@@ -4944,6 +4944,111 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/v4/sub-account/kyc-url:
+    post:
+      tags:
+        - Sub-Account
+      summary: Get Sub-Account KYC URL
+      description: |
+        The endpoint generates a temporary KYC verification link for a [sub-account](/glossary#sub-account).
+
+        <Note>
+        The sub-account must meet all of the following conditions before a KYC URL can be generated:
+        - The sub-account must be activated (have an associated user).
+        - The sub-account must be active (not locked or blocked).
+        - The sub-account must not have shared KYC enabled.
+        </Note>
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+      operationId: getSubAccountKycUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  description: Sub-account external ID. Must belong to the authenticated main account.
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+      responses:
+        "200":
+          description: KYC URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - url
+                  - expiresIn
+                properties:
+                  url:
+                    type: string
+                    description: Temporary KYC verification URL
+                    example: "https://kyc-provider.example.com/verify/abc123"
+                  expiresIn:
+                    type: integer
+                    description: Time in seconds until the link expires
+                    example: 3600
+              example:
+                url: "https://kyc-provider.example.com/verify/abc123"
+                expiresIn: 3600
+        "400":
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                idNotBelongsToUser:
+                  summary: Sub-account does not belong to the authenticated user
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      id: ["validation.exists"]
+                subAccountNotActivated:
+                  summary: Sub-account is not activated
+                  value:
+                    code: 400
+                    message: "Account is not confirmed"
+                subAccountNotActive:
+                  summary: Sub-account is locked or blocked
+                  value:
+                    code: 400
+                    message: "Sub-account is not active"
+                sharedKycEnabled:
+                  summary: Sub-account has shared KYC enabled
+                  value:
+                    code: 400
+                    message: "Sub-account has shared KYC"
+        "401":
+          description: Invalid API key, signature, or nonce
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 0
+                message: "Invalid API key, signature, or nonce"
+        "404":
+          description: Not found — the authenticated user does not have sub-account crypto service permission
+          content:
+            application/json:
+              schema:
+                type: object
+
   /api/v4/mining/rewards:
     post:
       tags:
