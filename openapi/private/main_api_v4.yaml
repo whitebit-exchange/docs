@@ -5087,6 +5087,9 @@ paths:
                               type: integer
                             hashrate:
                               type: string
+                            rejectRate:
+                              type: number
+                              description: Share reject rate (e.g. `0.01` means 1%)
         "422":
           description: Request validation failed
           content:
@@ -5277,6 +5280,19 @@ paths:
                       fee:
                         type: string
                         description: Fee percentage
+                      workers:
+                        type: object
+                        description: Worker counts grouped by status
+                        properties:
+                          online:
+                            type: integer
+                            description: Number of online workers
+                          offline:
+                            type: integer
+                            description: Number of offline workers
+                          low:
+                            type: integer
+                            description: Number of low-hashrate workers
                       stratum:
                         type: array
                         items:
@@ -5289,6 +5305,10 @@ paths:
               example:
                 data:
                   fee: "2.5"
+                  workers:
+                    online: 1
+                    offline: 2
+                    low: 3
                   stratum:
                     - url: "stratum+tcp://pool.whitebit.com:3333"
                       workersCount: 5
