@@ -4,4 +4,98 @@ title: Last Price
 description: "Subscribe to real-time last trade price updates for trading pairs via WhiteBIT WebSocket."
 ---
 
-Query or subscribe to real-time last traded price updates for one or more markets. Update interval: 1 second.
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
+Query or subscribe to real-time last traded price updates for one or more markets. **Update interval:** 1 second.
+
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "lastprice_request",
+    receive: "Current last price for the market",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "lastprice_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "lastprice_update — latest price per subscribed market"
+  },
+  {
+    name: "Unsubscribe",
+    send: "lastprice_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query last price (one-time)
+
+Fetch the current last price for a single market without subscribing.
+
+**Request**
+
+```json
+{
+  "id": 5,
+  "method": "lastprice_request",
+  "params": ["ETH_BTC"]
+}
+```
+
+**Response**
+
+```json
+{
+  "id": 5,
+  "result": "0.020553",
+  "error": null
+}
+```
+## Subscribe to last price
+
+<Steps>
+  <Step title="Send subscription request">
+    Pass market names in `params`.
+
+    ```json
+    {
+      "id": 6,
+      "method": "lastprice_subscribe",
+      "params": ["ETH_BTC", "BTC_USDT"]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 6,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `lastprice_update` every second for each subscribed market.
+
+    ```json
+    {
+      "id": null,
+      "method": "lastprice_update",
+      "params": ["ETH_BTC", "0.020683"]
+    }
+    ```
+
+    `params[0]` is the market name. `params[1]` is the last traded price as a string.
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 7,
+      "method": "lastprice_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+

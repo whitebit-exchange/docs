@@ -4,45 +4,173 @@ title: Order Book Depth
 description: "Subscribe to real-time order book depth updates for a trading pair via WhiteBIT WebSocket."
 ---
 
-## Overview
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
 
-The Market Depth channel provides real-time order book data with support for both one-time queries and subscription-based updates.
+Real-time order book data with support for both one-time snapshots and continuous subscription updates. **Update interval:** 100ms.
 
-### Update Behavior
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "depth_request",
+    receive: "Full order book snapshot",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "depth_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "depth_update — full snapshot (first), then incremental updates"
+  },
+  {
+    name: "Unsubscribe",
+    send: "depth_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query order book depth (one-time)
+
+Fetch a single order book snapshot without subscribing to updates.
+
+**Request**
+
+```json
+{
+  "id": 11,
+  "method": "depth_request",
+  "params": ["ETH_BTC", 100, "0"]
+}
+```
+
+`params`: `[market, limit, price_interval]`. Maximum limit: 100. Set `price_interval` to `"0"` for no grouping.
+
+**Response**
+
+```json
+{
+  "id": 11,
+  "result": {
+    "timestamp": 1689600180.5164471,
+    "asks": [["0.020846", "29.369"]],
+    "bids": [["0.02083", "9.598"]]
+  },
+  "error": null
+}
+```
+
+## Subscribe to order book depth
+
+<Steps>
+  <Step title="Send subscription request">
+    `params`: `[market, limit, price_interval, multi_depth]`.
+
+    ```json
+    {
+      "id": 1,
+      "method": "depth_subscribe",
+      "params": ["ETH_BTC", 100, "0", true]
+    }
+    ```
+
+    - `limit` — number of price levels (e.g., 100)
+    - `price_interval` — price grouping interval (`"0"` for no grouping)
+    - `multi_depth` — set `true` to receive incremental updates
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 1,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive full snapshot (first message)">
+    The first `depth_update` is always a **full snapshot** — `past_update_id` is absent.
+
+    ```json
+    {
+      "id": null,
+      "method": "depth_update",
+      "params": [
+        {
+          "asks": [["0.031002", "12.5"], ["0.031050", "8.2"]],
+          "bids": [["0.030950", "15.0"], ["0.030900", "20.1"]],
+          "update_id": 12345678
+        },
+        true,
+        "ETH_BTC"
+      ]
+    }
+    ```
+
+    Initialize your local order book from this snapshot.
+  </Step>
+  <Step title="Receive incremental updates">
+    Subsequent `depth_update` messages contain only changed price levels — `past_update_id` is present.
+
+    ```json
+    {
+      "id": null,
+      "method": "depth_update",
+      "params": [
+        {
+          "asks": [["0.031002", "0"], ["0.031100", "5.0"]],
+          "bids": [["0.030950", "18.3"]],
+          "update_id": 12345679,
+          "past_update_id": 12345678
+        },
+        false,
+        "ETH_BTC"
+      ]
+    }
+    ```
+
+    - Amount `"0"` → remove the price level
+    - Amount non-zero → update or insert the price level
+
+    <Note>
+    If 10 seconds pass without any order book changes, the server pushes a full snapshot again as a keepalive (no `past_update_id`). Treat the message as a full reset.
+    </Note>
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 2,
+      "method": "depth_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
 
 <Note>
-After successful subscription, the server sends a **full snapshot** of the order book as the first `depth_update` message. All subsequent messages are **incremental updates** containing only the changes since the last update.
+Public `depth` updates exclude Retail Price Improvement (RPI) orders. The stream includes only regular order book liquidity.
 </Note>
 
-<Note>
-Public `depth` updates exclude Retail Price Improvement (RPI) orders. The `depth_update` stream includes only regular order book liquidity.
+## Maintaining a local order book
 
-Private active order endpoints and private WebSocket streams return RPI orders. The exchange UI order book (web and mobile) displays RPI orders.
-</Note>
+To maintain an accurate local order book:
 
-### Understanding Updates
+1. Subscribe and wait for the first message (no `past_update_id`) — initialize order book from snapshot
+2. For each incremental update: if amount is `"0"` remove the price level; otherwise update or insert at the correct sorted position
+3. Keep asks sorted ascending, bids sorted descending
+4. Truncate to your desired limit after each update
 
-- **First message** (`past_update_id` is absent): Full order book snapshot with all price levels
-- **Subsequent messages** (`past_update_id` is present): Only changed price levels
-- **Removed levels**: Shown as `[price, "0"]` - when amount is "0", remove the price level from the local order book
+## Update model
 
-<Note>
-If 10 seconds elapse without any order book changes, the server pushes a full snapshot again as a keepalive mechanism.
-</Note>
+**First message** (`past_update_id` absent): Full order book snapshot. Replace any existing local state.
 
-## Maintaining a Local Order Book
+**Subsequent messages** (`past_update_id` present): Incremental deltas. Apply each price level change to the local book.
 
-To maintain an accurate local order book, follow the algorithm below:
+## Ordering guarantees
 
-1. Subscribe to depth updates
-2. Receive the first message (full snapshot) - initialize the order book
-3. For each incremental update:
-   - If amount is "0" → remove the price level
-   - If amount is not "0" → update existing level or insert new level at the correct sorted position
-4. Keep order book sorted: asks ascending, bids descending
-5. Truncate to the desired limit after each update
+- Updates arrive in `update_id` order. Each incremental message's `past_update_id` matches the previous message's `update_id`.
+- If 10 seconds pass without activity, the server sends a full snapshot (no `past_update_id`) as a keepalive. Treat this as a full reset.
+- A gap between `past_update_id` and the stored `update_id` indicates a missed message — re-subscribe to resync.
 
-## Code Examples
+## Code examples
 
 <CodeGroup>
 
@@ -92,32 +220,24 @@ ws.addEventListener("message", (event: MessageEvent) => {
 function applyUpdates(orderBookSide: IDepth[], updates: IDepth[] | undefined, side: "ask" | "bid") {
     if (updates === undefined) return;
     for (const [price, amount] of updates) {
-        // Find the index of an entry in orderBookSide matching the given price.
         const priceIndex = orderBookSide.findIndex((level) => level[0] === price);
 
-        // If the amount is '0', remove the price level from the orderBookSide.
         if (amount === "0") {
             if (priceIndex !== -1) {
-                // Remove the existing price level since the amount is '0'.
                 orderBookSide.splice(priceIndex, 1);
             }
         } else {
-            // If the amount is not '0', either update the existing price level or add a new one.
             if (priceIndex === -1) {
-                // Find the position where the new price level should be inserted.
                const insertIndex = orderBookSide.findIndex((level) =>
                     side === "ask" ? level[0] > price : level[0] < price
                 );
 
                 if (insertIndex === -1) {
-                    // Add to the end if there's no higher price level.
                     orderBookSide.push([price, amount]);
                 } else {
-                    // Insert at the correct sorted position.
                     orderBookSide.splice(insertIndex, 0, [price, amount]);
                 }
             } else {
-                // Update the amount for the existing price level.
                 orderBookSide[priceIndex][1] = amount;
             }
         }
@@ -126,7 +246,6 @@ function applyUpdates(orderBookSide: IDepth[], updates: IDepth[] | undefined, si
 
 function truncateOrderBook(orderBookSide: IDepth[]) {
     if (orderBookSide.length > LIMIT) {
-        // Only truncate if the length exceeds the LIMIT
         orderBookSide.splice(LIMIT);
     }
 }
@@ -162,11 +281,9 @@ def handle_depth_update(params):
     is_first_message = update_data.get('past_update_id') is None
 
     if is_first_message:
-        # First message or keepalive snapshot is a full snapshot - replace order book
         order_book.asks = update_data.get('asks', [])
         order_book.bids = update_data.get('bids', [])
     else:
-        # Subsequent messages are incremental updates
         apply_updates(order_book.asks, update_data.get('asks', []), "ask")
         apply_updates(order_book.bids, update_data.get('bids', []), "bid")
         truncate_order_book(order_book.asks)
@@ -177,27 +294,21 @@ def apply_updates(order_book_side, updates, side):
         price = str(price)
         amount = str(amount)
 
-        # Find existing entry
         price_index = next((i for i, level in enumerate(order_book_side) if level[0] == price), -1)
 
         if amount == '0':
             if price_index != -1:
-                # Remove the existing price level since the amount is '0'.
                 order_book_side.pop(price_index)
         else:
             if price_index == -1:
-                # Find the position where the new price level should be inserted.
                 insert_index = next((i for i, level in enumerate(order_book_side)
                                      if (side == "ask" and level[0] > price) or
                                      (side == "bid" and level[0] < price)), -1)
                 if insert_index == -1:
-                    # Add to the end if there's no higher price level.
                     order_book_side.append([price, amount])
                 else:
-                    # Insert at the correct sorted position.
                     order_book_side.insert(insert_index, [price, amount])
             else:
-                # Update the amount for the existing price level.
                 order_book_side[price_index][1] = amount
 
 def truncate_order_book(order_book_side):
@@ -259,15 +370,13 @@ public class OrderBookClient {
         if ("depth_update".equals(jsonMessage.getString("method"))) {
             JsonArray params = jsonMessage.getJsonArray("params");
             JsonObject updateData = params.getJsonObject(0);
-            boolean isFirstMessage = !updateData.containsKey("past_update_id") || 
+            boolean isFirstMessage = !updateData.containsKey("past_update_id") ||
                                      updateData.isNull("past_update_id");
 
             if (isFirstMessage) {
-                // First message or keepalive snapshot is a full snapshot - replace order book
                 asks = parseOrderBookSide(updateData.getJsonArray("asks"));
                 bids = parseOrderBookSide(updateData.getJsonArray("bids"));
             } else {
-                // Subsequent messages are incremental updates
                 applyUpdates(asks, updateData.getJsonArray("asks"), "ask");
                 applyUpdates(bids, updateData.getJsonArray("bids"), "bid");
                 truncateOrderBook(asks);
@@ -292,9 +401,7 @@ public class OrderBookClient {
         List<IDepth> orderBookSide = new ArrayList<>();
         for (JsonValue value : jsonArray) {
             JsonArray level = value.asJsonArray();
-            String price = level.getString(0);
-            String amount = level.getString(1);
-            orderBookSide.add(new IDepth(price, amount));
+            orderBookSide.add(new IDepth(level.getString(0), level.getString(1)));
         }
         return orderBookSide;
     }
@@ -314,9 +421,7 @@ public class OrderBookClient {
             }
 
             if ("0".equals(amount)) {
-                if (priceIndex != -1) {
-                    orderBookSide.remove(priceIndex);
-                }
+                if (priceIndex != -1) orderBookSide.remove(priceIndex);
             } else {
                 if (priceIndex == -1) {
                     int insertIndex = -1;
@@ -327,12 +432,8 @@ public class OrderBookClient {
                             break;
                         }
                     }
-
-                    if (insertIndex == -1) {
-                        orderBookSide.add(new IDepth(price, amount));
-                    } else {
-                        orderBookSide.add(insertIndex, new IDepth(price, amount));
-                    }
+                    if (insertIndex == -1) orderBookSide.add(new IDepth(price, amount));
+                    else orderBookSide.add(insertIndex, new IDepth(price, amount));
                 } else {
                     orderBookSide.get(priceIndex).setAmount(amount);
                 }
@@ -341,31 +442,17 @@ public class OrderBookClient {
     }
 
     private static void truncateOrderBook(List<IDepth> orderBookSide) {
-        if (orderBookSide.size() > LIMIT) {
-            orderBookSide.subList(LIMIT, orderBookSide.size()).clear();
-        }
+        if (orderBookSide.size() > LIMIT) orderBookSide.subList(LIMIT, orderBookSide.size()).clear();
     }
 
     static class IDepth {
         private final String price;
         private String amount;
 
-        public IDepth(String price, String amount) {
-            this.price = price;
-            this.amount = amount;
-        }
-
-        public String getPrice() {
-            return price;
-        }
-
-        public String getAmount() {
-            return amount;
-        }
-
-        public void setAmount(String amount) {
-            this.amount = amount;
-        }
+        public IDepth(String price, String amount) { this.price = price; this.amount = amount; }
+        public String getPrice() { return price; }
+        public String getAmount() { return amount; }
+        public void setAmount(String amount) { this.amount = amount; }
     }
 }
 ```

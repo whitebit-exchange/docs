@@ -4,12 +4,173 @@ title: Orders Pending
 description: "Subscribe to real-time updates on pending account orders on WhiteBIT via WebSocket."
 ---
 
+import { WsChannelOverview } from '/snippets/WsChannelOverview'
+
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
 </Warning>
 
-Query or subscribe to active (unexecuted) orders across specified markets. Each update includes order ID, type, side, price, amounts, and execution status. Update interval: real-time.
+Query or subscribe to active (unexecuted) orders across specified markets. Each update includes order ID, type, side, price, amounts, and execution status.
+
+<WsChannelOverview operations={[
+  {
+    name: "Query",
+    send: "ordersPending_request",
+    receive: "Paginated list of current pending orders",
+    push: null
+  },
+  {
+    name: "Subscribe",
+    send: "ordersPending_subscribe",
+    receive: "Confirmation (status: success)",
+    push: "ordersPending_update — real-time order state change"
+  },
+  {
+    name: "Unsubscribe",
+    send: "ordersPending_unsubscribe",
+    receive: "Confirmation (status: success)",
+    push: null
+  }
+]} />
+
+## Query pending orders (one-time)
+
+Fetch current pending orders for a market without subscribing to updates.
+
+**Request**
+
+```json
+{
+  "id": 8,
+  "method": "ordersPending_request",
+  "params": ["BTC_USDT", 0, 30]
+}
+```
+
+`params`: `[market, offset, limit]`. Maximum limit: 100.
+
+**Response**
+
+```json
+{
+  "id": 8,
+  "result": {
+    "limit": 30,
+    "offset": 0,
+    "total": 1,
+    "records": [
+      {
+        "id": 1212901344783,
+        "market": "BTC_USDT",
+        "type": 1,
+        "side": 2,
+        "post_only": false,
+        "ioc": false,
+        "price": "90000",
+        "amount": "1",
+        "left": "1",
+        "deal_stock": "0",
+        "deal_money": "0",
+        "deal_fee": "0",
+        "client_order_id": "",
+        "stp": "no",
+        "status": "OPEN",
+        "position_side": "LONG",
+        "rpi": true
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+## Subscribe to order updates
+
+<Steps>
+  <Step title="Send subscription request">
+    Subscribe to one or more markets. Pass market names in `params`.
+
+    ```json
+    {
+      "id": 9,
+      "method": "ordersPending_subscribe",
+      "params": ["BTC_USDT", "ETH_BTC"]
+    }
+    ```
+  </Step>
+  <Step title="Receive confirmation">
+    ```json
+    {
+      "id": 9,
+      "result": { "status": "success" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Receive real-time updates">
+    The server pushes `ordersPending_update` on every order change — no further requests needed.
+
+    ```json
+    {
+      "id": null,
+      "method": "ordersPending_update",
+      "params": [
+        1,
+        {
+          "id": 1212904480922,
+          "market": "BTC_USDT",
+          "type": 1,
+          "side": 2,
+          "post_only": false,
+          "ioc": false,
+          "price": "90000",
+          "amount": "1",
+          "left": "1",
+          "deal_stock": "0",
+          "deal_money": "0",
+          "deal_fee": "0",
+          "client_order_id": "",
+          "stp": "no",
+          "status": "OPEN",
+          "position_side": "LONG",
+          "rpi": true
+        }
+      ]
+    }
+    ```
+
+    `params[0]` is the update event ID:
+
+    | Value | Meaning |
+    |-------|---------|
+    | `1` | New order placed |
+    | `2` | Order updated |
+    | `3` | Order finished (cancelled or executed) |
+
+    <Note>
+      If a new order instantly matches an existing order from the order book, only one message is received — with event ID `3`.
+    </Note>
+  </Step>
+  <Step title="Unsubscribe">
+    ```json
+    {
+      "id": 10,
+      "method": "ordersPending_unsubscribe",
+      "params": []
+    }
+    ```
+  </Step>
+</Steps>
+
+## Order modification behavior
+
+When `POST /api/v4/order/modify` is called, the matching engine cancels the original order and creates a replacement, producing **two sequential events**:
+
+1. `event_id=3` (Finish) — original order cancelled. The `id` in the payload matches the old `order_id`.
+2. `event_id=1` (New) — replacement order created with a **new `order_id`**.
+
+Clients tracking orders by `order_id` must update the stored value after each modify call. Use `client_order_id` for stable correlation across modifications.
 
 <Note>
-	The private stream returns active orders, including orders using Retail Price Improvement (RPI) mode.
+The private stream returns active orders, including orders using Retail Price Improvement (RPI) mode.
 </Note>
