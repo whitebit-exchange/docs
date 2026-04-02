@@ -2508,8 +2508,8 @@ paths:
         - Crypto Lending - Fixed
       summary: Get plans
       description: |
-        The endpoint retrieves all active [plans](/glossary#crypto-lending).
-        
+        The endpoint returns investment plan configurations with active status and API access enabled, filtered by the authenticated user's region and plan visibility. Results include public plans and private plans assigned to the account.
+
         <Note>
         These endpoints are available only for B2B partner services. Fill the institutional services form to get permissions to use these endpoints.
         </Note>
@@ -3070,7 +3070,7 @@ paths:
         - Crypto Lending - Flex
       summary: Get Flex Plans
       description: |
-        Retrieve list of active [Flex Plans](/glossary#crypto-lending).
+        The endpoint returns flex investment plan configurations with active status, filtered by the authenticated user's region and plan visibility. Results include public plans and private plans assigned to the account.
 
         Available after September 22, 2025.
 
@@ -4512,6 +4512,135 @@ paths:
         "422":
           description: Account is not confirmed
 
+  /api/v4/sub-account/withdraw/unconfirmed-list:
+    post:
+      tags:
+        - Sub-Account
+      summary: List Unconfirmed Sub-Account Withdrawals
+      description: |
+        The endpoint returns a paginated list of withdrawal transactions in `unconfirmed_by_main_account` status,
+        created by [sub-accounts](/glossary#sub-account) of the authenticated main account and awaiting main account confirmation.
+        Results are ordered by creation time, newest first.
+
+        Only withdrawals from sub-accounts of type **general** are returned.
+
+        <Note>
+        The authenticated user must have the **sub-account crypto service** permission.
+        If the permission is missing, the endpoint returns `404 Not Found`.
+        </Note>
+
+        <Note>
+        The sub-account feature must be enabled for the region.
+        </Note>
+      operationId: listUnconfirmedSubAccountWithdrawals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 100
+                  description: Number of records to return.
+                  example: 100
+                offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                  description: Number of records to skip.
+                  example: 0
+                subAccountId:
+                  type: string
+                  description: Filter by specific sub-account external ID. If omitted, returns withdrawals from all sub-accounts.
+                  example: "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+            example:
+              limit: 100
+              offset: 0
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    description: List of unconfirmed withdrawal transactions.
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Transaction external ID (UUID).
+                          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                        subAccountId:
+                          type: string
+                          description: Sub-account external ID.
+                          example: "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+                        currency:
+                          type: string
+                          description: Currency ticker.
+                          example: "BTC"
+                        amount:
+                          type: string
+                          description: Withdrawal amount (trailing zeros trimmed).
+                          example: "12"
+                        createdAt:
+                          type: integer
+                          description: Unix timestamp of transaction creation.
+                          example: 1711882345
+                  limit:
+                    type: integer
+                    description: Applied limit value.
+                    example: 100
+                  offset:
+                    type: integer
+                    description: Applied offset value.
+                    example: 0
+              example:
+                data:
+                  - id: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                    subAccountId: "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+                    currency: "BTC"
+                    amount: "12"
+                    createdAt: 1711882345
+                  - id: "c56a4180-65aa-42ec-a945-5fd21dec0538"
+                    subAccountId: "b2c3d4e5-6789-01ab-cdef-2345678901bc"
+                    currency: "BTC"
+                    amount: "12"
+                    createdAt: 1711882300
+                limit: 100
+                offset: 0
+        "401":
+          description: Unauthorized — invalid or missing API key
+        "404":
+          description: Not Found — user does not have the sub-account crypto service permission
+        "422":
+          description: Validation error — invalid parameter values
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+              example:
+                errors:
+                  limit:
+                    - "The limit field must be at least 1."
+                  offset:
+                    - "The offset field must be at least 0."
+
   /api/v4/sub-account/api-key/create:
     post:
       tags:
@@ -4943,6 +5072,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /api/v4/sub-account/kyc-url:
+    post:
+      tags:
+        - Sub-Account
+      summary: Get Sub-Account KYC URL
+      description: |
+        The endpoint generates a temporary KYC verification link for a [sub-account](/glossary#sub-account).
+
+        <Note>
+        The sub-account must meet all of the following conditions before a KYC URL can be generated:
+        - The sub-account must be activated (have an associated user).
+        - The sub-account must be active (not locked or blocked).
+        - The sub-account must not have shared KYC enabled.
+        </Note>
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+      operationId: getSubAccountKycUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  description: Sub-account external ID. Must belong to the authenticated main account.
+                  example: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+            example:
+              id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
+      responses:
+        "200":
+          description: KYC URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - url
+                  - expiresIn
+                properties:
+                  url:
+                    type: string
+                    description: Temporary KYC verification URL
+                    example: "https://kyc-provider.example.com/verify/abc123"
+                  expiresIn:
+                    type: integer
+                    description: Time in seconds until the link expires
+                    example: 3600
+              example:
+                url: "https://kyc-provider.example.com/verify/abc123"
+                expiresIn: 3600
+        "400":
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                idNotBelongsToUser:
+                  summary: Sub-account does not belong to the authenticated user
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      id: ["validation.exists"]
+                subAccountNotActivated:
+                  summary: Sub-account is not activated
+                  value:
+                    code: 400
+                    message: "Account is not confirmed"
+                subAccountNotActive:
+                  summary: Sub-account is locked or blocked
+                  value:
+                    code: 400
+                    message: "Sub-account is not active"
+                sharedKycEnabled:
+                  summary: Sub-account has shared KYC enabled
+                  value:
+                    code: 400
+                    message: "Sub-account has shared KYC"
+        "401":
+          description: Invalid API key, signature, or nonce
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 0
+                message: "Invalid API key, signature, or nonce"
+        "404":
+          description: Not found — the authenticated user does not have sub-account crypto service permission
+          content:
+            application/json:
+              schema:
+                type: object
 
   /api/v4/mining/rewards:
     post:

@@ -1,0 +1,13 @@
+---
+title: "Get Sub-Account KYC URL"
+description: "Generate a temporary KYC verification link for a sub-account via the V4 API."
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/kyc-url
+---
+
+<Note>
+A KYC URL can only be generated when all of the following conditions are met:
+
+- The sub-account is activated (has an associated user).
+- The sub-account is active (not locked or blocked).
+- The sub-account does not have shared KYC enabled. When shared KYC is enabled, the sub-account inherits identity verification from the main account, and a separate KYC link is not applicable.
+</Note>
