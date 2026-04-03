@@ -1,10 +1,20 @@
 ---
-asyncapi: "/asyncapi/private/margin_positions_events.yaml /ws"
 title: Margin Positions Events
+tag: "WSS"
 description: "Subscribe to real-time margin position change events for a WhiteBIT account via WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  marginPositionsEventsUpdate,
+  exMarginPositionsEventsSubscribe,
+  exMarginPositionsEventsSubscribeResponse,
+  exMarginPositionsEventsUpdate,
+  exMarginPositionsEventsUnsubscribe,
+} from '/snippets/ws-data/margin_positions_events.jsx'
 
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
@@ -29,74 +39,36 @@ Subscribe to margin call and liquidation event notifications for collateral posi
 
 ## Subscribe to position events
 
-<Steps>
-  <Step title="Send subscription request">
-    `params` is always an empty array.
+<WsSubscribeSteps
+  subscribe={exMarginPositionsEventsSubscribe}
+  subscribeNote="params is always an empty array."
+  confirmation={exMarginPositionsEventsSubscribeResponse}
+  update={exMarginPositionsEventsUpdate}
+  updateNote="params[0] is the event type. params[1] is the position object."
+  updateExtra={
+    <div>
+      <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
+        <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
+          <div style={{padding: '8px 12px', flex: '0 0 80px'}}>Value</div>
+          <div style={{padding: '8px 12px', flex: 1}}>Event</div>
+        </div>
+        <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+          <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>1</code></div>
+          <div style={{padding: '8px 12px', flex: 1}}>Margin call</div>
+        </div>
+        <div style={{display: 'flex'}}>
+          <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>2</code></div>
+          <div style={{padding: '8px 12px', flex: 1}}>Liquidation</div>
+        </div>
+      </div>
+      <div style={{borderLeft: '3px solid #60a5fa', paddingLeft: '0.75rem', marginTop: '0.75rem', fontSize: '0.8125rem', color: '#374151', lineHeight: '1.5'}}>
+        <code>liq_stage</code> values: <code>margin_call</code>, <code>liquidation</code>, or <code>null</code> (healthy).
+      </div>
+    </div>
+  }
+  unsubscribe={exMarginPositionsEventsUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 1,
-      "method": "positionsAccountMargin_subscribe",
-      "params": []
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 1,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive event notifications">
-    The server pushes `positionsAccountMargin_update` when a position enters a critical state.
+## Position event object
 
-    ```json
-    {
-      "id": null,
-      "method": "positionsAccountMargin_update",
-      "params": [
-        1,
-        {
-          "id": 184,
-          "market": "BTC_USDT",
-          "ctime": 1737731271.3069341,
-          "mtime": 1737731271.3069341,
-          "amount": "-0.094048",
-          "amount_in_money": "9939.79769088",
-          "base_price": "105688.56",
-          "pnl": "-1157.88",
-          "liq_price": "126462.54",
-          "liq_stage": "margin_call",
-          "unrealized_funding": "0.0231431327519745",
-          "funding": "0",
-          "margin": "1109.77",
-          "free_margin": "-652.9",
-          "realized_pnl": "-8.945817921792",
-          "position_side": "LONG"
-        }
-      ]
-    }
-    ```
-
-    `params[0]` is the event type:
-
-    | Value | Event |
-    |-------|-------|
-    | `1` | Margin call |
-    | `2` | Liquidation |
-
-    `liq_stage` values: `"margin_call"`, `"liquidation"`, or `null` (healthy).
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 1,
-      "method": "positionsAccountMargin_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
+<WsSchemaTable fields={marginPositionsEventsUpdate} />

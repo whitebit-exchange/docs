@@ -1,10 +1,20 @@
 ---
-asyncapi: "/asyncapi/private/borrows.yaml /ws"
 title: Borrows
+tag: "WSS"
 description: "Query current margin borrows for a WhiteBIT account via WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  borrowsUpdate,
+  exBorrowsSubscribe,
+  exBorrowsSubscribeResponse,
+  exBorrowsUpdate,
+  exBorrowsUnsubscribe,
+} from '/snippets/ws-data/borrows.jsx'
 
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
@@ -29,61 +39,15 @@ Subscribe to collateral borrow status updates including borrow amounts, unrealiz
 
 ## Subscribe to borrows
 
-<Steps>
-  <Step title="Send subscription request">
-    `params` is always an empty array — subscribes to all open borrows.
+<WsSubscribeSteps
+  subscribe={exBorrowsSubscribe}
+  subscribeNote="params is always an empty array — subscribes to all open borrows."
+  confirmation={exBorrowsSubscribeResponse}
+  update={exBorrowsUpdate}
+  updateNote="The server pushes borrowsMargin_update periodically with the full current state of all open borrows. amount — borrowed amount (negative value). unrealized_funding — accrued but unpaid funding cost. liq_price — price at which the position would be liquidated."
+  unsubscribe={exBorrowsUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 18,
-      "method": "borrowsMargin_subscribe",
-      "params": []
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 18,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `borrowsMargin_update` periodically with the full current state of all open borrows.
+## Borrow object
 
-    ```json
-    {
-      "id": null,
-      "method": "borrowsMargin_update",
-      "params": {
-        "total": 1,
-        "records": [
-          {
-            "asset": "BTC",
-            "ctime": 1704067200,
-            "mtime": 1704067200,
-            "amount": "-0.81",
-            "unrealized_funding": "0.00005042",
-            "liq_price": "70000"
-          }
-        ]
-      }
-    }
-    ```
-
-    - `amount` — borrowed amount (negative value)
-    - `unrealized_funding` — accrued but unpaid funding cost
-    - `liq_price` — price at which the position would be liquidated
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 19,
-      "method": "borrowsMargin_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
+<WsSchemaTable fields={borrowsUpdate} />

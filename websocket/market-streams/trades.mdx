@@ -1,10 +1,20 @@
 ---
-asyncapi: "/asyncapi/public/trades.yaml /ws"
 title: Market Trades
+tag: "WSS"
 description: "Subscribe to real-time trade execution updates for a trading pair via WhiteBIT WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  trade,
+  exTradesRequest,
+  exTradesResponse,
+  exSubscribeSpecificMarkets,
+  exTradesUpdate,
+} from '/snippets/ws-data/trades.jsx'
 
 Subscribe to real-time trade execution updates for one or more markets. **Update interval:** real-time.
 
@@ -33,35 +43,15 @@ Subscribe to real-time trade execution updates for one or more markets. **Update
 
 Fetch recent trades for a market without subscribing.
 
+`params`: `[market, limit, lastId]`. `lastId` — return trades with ID greater than this value (use `0` for the latest trades).
+
 **Request**
 
-```json
-{
-  "id": 8,
-  "method": "trades_request",
-  "params": ["ETH_BTC", 100, 41358445]
-}
-```
-
-`params`: `[market, limit, lastId]`. `lastId` — return trades with ID greater than this value (use `0` for the latest trades).
+<WsMessageExample data={exTradesRequest} />
 
 **Response**
 
-```json
-{
-  "id": 8,
-  "result": [
-    {
-      "id": 41358530,
-      "time": 1580905394.70332,
-      "price": "0.020857",
-      "amount": "5.511",
-      "type": "sell"
-    }
-  ],
-  "error": null
-}
-```
+<WsMessageExample data={exTradesResponse} />
 
 ## Subscribe to trades
 
@@ -69,63 +59,14 @@ Fetch recent trades for a market without subscribing.
 For each WebSocket connection, subscribe to either specific markets or all markets. **Every new subscription replaces the existing one.**
 </Warning>
 
-<Steps>
-  <Step title="Send subscription request">
-    Pass market names in `params` to subscribe to specific markets, or pass an empty array for all markets.
-
-    ```json
-    {
-      "id": 9,
-      "method": "trades_subscribe",
-      "params": ["ETH_BTC", "BTC_USDT"]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 9,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `trades_update` for each trade execution.
-
-    ```json
-    {
-      "id": null,
-      "method": "trades_update",
-      "params": [
-        "BTC_USDT",
-        [
-          {
-            "id": 987654321,
-            "time": 1738251095.345,
-            "price": "105000.00",
-            "amount": "0.01",
-            "type": "buy"
-          }
-        ]
-      ]
-    }
-    ```
-
-    `params[0]` is the market name. `params[1]` is an array of trade objects.
-
-    The `rpi` field may appear on trade objects: `true` means the trade involved a Retail Price Improvement order.
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 10,
-      "method": "trades_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
+<WsSubscribeSteps
+  subscribe={exSubscribeSpecificMarkets}
+  subscribeNote="Pass market names in params to subscribe to specific markets, or pass an empty array for all markets."
+  confirmation={{id: 9, result: {status: "success"}, error: null}}
+  update={exTradesUpdate}
+  updateNote="params[0] is the market name. params[1] is an array of trade objects."
+  unsubscribe={{id: 10, method: "trades_unsubscribe", params: []}}
+/>
 
 ## RPI orders in trade updates
 
@@ -137,3 +78,7 @@ Trade updates can include executions originating from RPI orders:
 <Note>
 Public market data feeds do not expose RPI orders as visible liquidity in `depth` or `bookTicker`. RPI orders remain visible only in private active orders and in the exchange UI order book (web and mobile).
 </Note>
+
+## Trade object
+
+<WsSchemaTable fields={trade} />

@@ -1,10 +1,15 @@
 ---
-asyncapi: "/asyncapi/private/authorize.yaml /ws"
 title: Authorize
+tag: "WSS"
 description: "Authorize a WebSocket connection to subscribe to private account data streams on WhiteBIT."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import {
+  exAuthorizeRequest,
+  exAuthorizeResponse,
+} from '/snippets/ws-data/authorize.jsx'
 
 Authorize the WebSocket connection for private channel access. Send a WebSocket token obtained from the REST API. Authorization is required once per connection — all private channels can be used after a single successful authorization.
 
@@ -19,39 +24,27 @@ Authorize the WebSocket connection for private channel access. Send a WebSocket 
 
 ## Authorization flow
 
-<Steps>
-  <Step title="Get a WebSocket token">
-    Call the REST endpoint to obtain a short-lived token:
+**Step 1 — Get a WebSocket token**
 
-    ```text
-    POST /api/v4/profile/websocket_token
-    ```
+Call the REST endpoint to obtain a short-lived token:
 
-    See [WebSocket Authentication](/websocket/authentication) for the full flow including request signing.
-  </Step>
-  <Step title="Send authorization request">
-    `params[0]` is the token. `params[1]` is the fixed string `"public"`.
+```text
+POST /api/v4/profile/websocket_token
+```
 
-    ```json
-    {
-      "id": 0,
-      "method": "authorize",
-      "params": ["<WEB_SOCKET_TOKEN>", "public"]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 0,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
+See [WebSocket Authentication](/websocket/authentication) for the full flow including request signing.
 
-    The connection is now authorized. Subscribe to any private channel on the same connection.
-  </Step>
-</Steps>
+**Step 2 — Send authorization request**
+
+`params[0]` is the token. `params[1]` is the fixed string `"public"`.
+
+<WsMessageExample data={exAuthorizeRequest} />
+
+**Step 3 — Receive confirmation**
+
+<WsMessageExample data={exAuthorizeResponse} />
+
+The connection is now authorized. Subscribe to any private channel on the same connection.
 
 <Note>
 Authorization is per connection, not per subscription. Authorize once, then subscribe to as many private channels as needed on the same WebSocket connection.
