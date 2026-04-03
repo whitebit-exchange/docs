@@ -1,10 +1,20 @@
 ---
-asyncapi: "/asyncapi/public/book_ticker.yaml /ws"
 title: Book Ticker
+tag: "WSS"
 description: "Subscribe to real-time best bid and ask price updates for trading pairs via WhiteBIT WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  bookTickerUpdate,
+  exSubscribeSpecificMarket,
+  exBookTickerSubscribeResponse,
+  exBookTickerUpdate,
+  exBookTickerUnsubscribe,
+} from '/snippets/ws-data/book_ticker.jsx'
 
 Real-time best bid and best ask price updates for a market. The server sends an update instantly whenever the best bid or best ask changes.
 
@@ -25,71 +35,68 @@ Real-time best bid and best ask price updates for a market. The server sends an 
 
 ## Subscribe to book ticker
 
-<Steps>
-  <Step title="Send subscription request">
-    Pass a market name in `params` to subscribe to a specific market, or pass an empty array to subscribe to all markets.
-
-    ```json
-    {
-      "id": 1,
-      "method": "bookTicker_subscribe",
-      "params": ["BTC_USDT"]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 1,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `bookTicker_update` on every best bid/ask change. The update is a **positional array** — fields are identified by index.
-
-    ```json
-    {
-      "id": null,
-      "method": "bookTicker_update",
-      "params": [
-        [
-          1751958383.5933869,
-          1751958383.5935569,
-          "SHIB_PERP",
-          80670102,
-          "0.000011751",
-          "12547000",
-          "0.000011776",
-          "17424000"
-        ]
-      ]
-    }
-    ```
-
-    | Index | Field | Description |
-    |-------|-------|-------------|
-    | `[0]` | transaction_time | Unix timestamp from matching engine |
-    | `[1]` | message_time | Unix timestamp from WebSocket |
-    | `[2]` | market | Market name |
-    | `[3]` | update_id | Monotonic update counter |
-    | `[4]` | best_bid_price | Current best bid price |
-    | `[5]` | best_bid_amount | Current best bid quantity |
-    | `[6]` | best_ask_price | Current best ask price |
-    | `[7]` | best_ask_amount | Current best ask quantity |
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 2,
-      "method": "bookTicker_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
+<WsSubscribeSteps
+  subscribe={exSubscribeSpecificMarket}
+  subscribeNote="Pass a market name in params to subscribe to a specific market, or pass an empty array to subscribe to all markets."
+  confirmation={exBookTickerSubscribeResponse}
+  update={exBookTickerUpdate}
+  updateNote="The server pushes bookTicker_update on every best bid/ask change. The update is a positional array — fields are identified by index."
+  updateExtra={
+    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
+      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}>Index</div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>Field</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Description</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[0]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>transaction_time</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Unix timestamp from matching engine</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[1]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>message_time</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Unix timestamp from WebSocket</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[2]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>market</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Market name</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[3]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>update_id</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Monotonic update counter</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[4]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_bid_price</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Current best bid price</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[5]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_bid_amount</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Current best bid quantity</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[6]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_ask_price</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Current best ask price</div>
+      </div>
+      <div style={{display: 'flex'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[7]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_ask_amount</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Current best ask quantity</div>
+      </div>
+    </div>
+  }
+  unsubscribe={exBookTickerUnsubscribe}
+/>
 
 <Note>
 Public `bookTicker_update` events exclude Retail Price Improvement (RPI) orders. The stream includes only regular order book liquidity. RPI orders are visible in private active order endpoints and in the exchange UI order book.
 </Note>
+
+## Book ticker update object
+
+<WsSchemaTable fields={bookTickerUpdate} />
