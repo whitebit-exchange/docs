@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { candle, exOrdersPendingRequest } from '/snippets/ws-data/kline'
+//   import { candlesRequest, exCandlesRequest } from '/snippets/ws-data/kline.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 

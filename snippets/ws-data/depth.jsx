@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { depthLevel, exOrdersPendingRequest } from '/snippets/ws-data/depth'
+//   import { orderBook, exDepthRequest } from '/snippets/ws-data/depth.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 

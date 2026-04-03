@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { balanceSpotRequest, exOrdersPendingRequest } from '/snippets/ws-data/balance_spot'
+//   import { balanceSpotRequest, exBalanceSpotRequest } from '/snippets/ws-data/balance_spot.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 

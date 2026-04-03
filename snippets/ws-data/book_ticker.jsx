@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { bookTickerSubscribe, exOrdersPendingRequest } from '/snippets/ws-data/book_ticker'
+//   import { bookTickerSubscribe, exSubscribeSpecificMarket } from '/snippets/ws-data/book_ticker.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
