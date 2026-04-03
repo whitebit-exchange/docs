@@ -181,7 +181,9 @@ for (const dir of SPEC_DIRS) {
       continue;
     }
 
-    const firstSchemaName = Object.keys(schemas)[0];
+    const firstExportedSchemaName = schemaExports[0]?.match(/^export const (\w+)/)?.[1];
+    const firstExampleName = exampleExports[0]?.match(/^export const (\w+)/)?.[1];
+    const importParts = [firstExportedSchemaName, firstExampleName].filter(Boolean);
     const header = [
       `// AUTO-GENERATED — do not edit manually.`,
       `// Source: ${dir}/${file}`,
@@ -189,7 +191,7 @@ for (const dir of SPEC_DIRS) {
       `//`,
       `// Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />`,
       `// Example exports (ex prefix) → feed <WsMessageExample data={...} />`,
-      ...(firstSchemaName ? [`//   import { ${toCamel(firstSchemaName)}, exOrdersPendingRequest } from '/snippets/ws-data/${specName}.jsx'`] : []),
+      ...(importParts.length > 0 ? [`//   import { ${importParts.join(', ')} } from '/snippets/ws-data/${specName}.jsx'`] : []),
     ].join('\n');
 
     const sections = [];

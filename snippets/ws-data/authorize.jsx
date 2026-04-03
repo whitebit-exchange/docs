@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { authorizeRequest, exOrdersPendingRequest } from '/snippets/ws-data/authorize'
+//   import { authorizeRequest, exAuthorizeRequest } from '/snippets/ws-data/authorize.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 

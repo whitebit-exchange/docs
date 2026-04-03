@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { trade, exOrdersPendingRequest } from '/snippets/ws-data/trades'
+//   import { trade, exTradesRequest } from '/snippets/ws-data/trades.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 

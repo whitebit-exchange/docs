@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { marginPositionsEventsSubscribe, exOrdersPendingRequest } from '/snippets/ws-data/margin_positions_events'
+//   import { marginPositionsEventsSubscribe, exMarginPositionsEventsSubscribe } from '/snippets/ws-data/margin_positions_events.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 

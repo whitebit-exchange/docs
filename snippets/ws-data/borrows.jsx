@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { borrowsSubscribe, exOrdersPendingRequest } from '/snippets/ws-data/borrows'
+//   import { borrowsSubscribe, exBorrowsSubscribe } from '/snippets/ws-data/borrows.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 

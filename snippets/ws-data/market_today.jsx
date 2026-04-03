@@ -4,7 +4,7 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { marketTodayStatistics, exOrdersPendingRequest } from '/snippets/ws-data/market_today'
+//   import { marketTodayStatistics, exMarketTodayRequest } from '/snippets/ws-data/market_today.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
