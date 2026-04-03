@@ -1,10 +1,17 @@
 ---
-asyncapi: "/asyncapi/public/service.yaml /ws"
 title: Service
+tag: "WSS"
 description: "Ping the WhiteBIT WebSocket server to check connection health and keep the connection alive."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import {
+  exPingRequest,
+  exPingResponse,
+  exTimeRequest,
+  exTimeResponse,
+} from '/snippets/ws-data/service.jsx'
 
 Check API availability with ping/pong and query the current server time. The Service channel supports one-time queries only — no subscription or push events.
 
@@ -29,44 +36,20 @@ Send a ping every 50 seconds to keep the connection alive. The server closes the
 
 **Request**
 
-```json
-{
-  "id": 0,
-  "method": "ping",
-  "params": []
-}
-```
+<WsMessageExample data={exPingRequest} />
 
 **Response**
 
-```json
-{
-  "id": 0,
-  "result": "pong",
-  "error": null
-}
-```
+<WsMessageExample data={exPingResponse} />
 
 ## Server Time
 
 **Request**
 
-```json
-{
-  "id": 1,
-  "method": "time",
-  "params": []
-}
-```
+<WsMessageExample data={exTimeRequest} />
 
 **Response**
 
-```json
-{
-  "id": 1,
-  "result": 1493285895,
-  "error": null
-}
-```
+<WsMessageExample data={exTimeResponse} />
 
 `result` is the current server time as a Unix timestamp (integer seconds).

@@ -1,10 +1,20 @@
 ---
-asyncapi: "/asyncapi/private/borrows_events.yaml /ws"
 title: Borrows Events
+tag: "WSS"
 description: "Subscribe to real-time margin borrow events for a WhiteBIT account via WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  borrowsEventsUpdate,
+  exBorrowsEventsSubscribe,
+  exBorrowsEventsSubscribeResponse,
+  exBorrowsEventsUpdate,
+  exBorrowsEventsUnsubscribe,
+} from '/snippets/ws-data/borrows_events.jsx'
 
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
@@ -29,62 +39,31 @@ Subscribe to margin call and liquidation event notifications for collateral borr
 
 ## Subscribe to borrow events
 
-<Steps>
-  <Step title="Send subscription request">
-    `params` is always an empty array.
+<WsSubscribeSteps
+  subscribe={exBorrowsEventsSubscribe}
+  subscribeNote="params is always an empty array."
+  confirmation={exBorrowsEventsSubscribeResponse}
+  update={exBorrowsEventsUpdate}
+  updateNote="params[0] is the event type. params[1] is the borrow object."
+  updateExtra={
+    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
+      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
+        <div style={{padding: '8px 12px', flex: '0 0 80px'}}>Value</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Event</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>1</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Margin call</div>
+      </div>
+      <div style={{display: 'flex'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>2</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Liquidation</div>
+      </div>
+    </div>
+  }
+  unsubscribe={exBorrowsEventsUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 1,
-      "method": "borrowsAccountMargin_subscribe",
-      "params": []
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 1,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive event notifications">
-    The server pushes `borrowsAccountMargin_update` when a borrow enters a critical state.
+## Borrow event object
 
-    ```json
-    {
-      "id": null,
-      "method": "borrowsAccountMargin_update",
-      "params": [
-        1,
-        {
-          "asset": "USDT",
-          "ctime": 1737731478.6904421,
-          "mtime": 1737731478.6904421,
-          "amount": "-3895.7476176",
-          "unrealized_funding": "0.00267248",
-          "liq_price": "NaN"
-        }
-      ]
-    }
-    ```
-
-    `params[0]` is the event type:
-
-    | Value | Event |
-    |-------|-------|
-    | `1` | Margin call |
-    | `2` | Liquidation |
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 1,
-      "method": "borrowsAccountMargin_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
+<WsSchemaTable fields={borrowsEventsUpdate} />

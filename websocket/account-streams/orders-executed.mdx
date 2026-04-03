@@ -1,10 +1,22 @@
 ---
-asyncapi: "/asyncapi/private/orders_executed.yaml /ws"
 title: Orders Executed
+tag: "WSS"
 description: "Subscribe to real-time notifications when account orders are executed on WhiteBIT via WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  executedOrderObject,
+  exOrdersExecutedRequest,
+  exOrdersExecutedResponse,
+  exOrdersExecutedSubscribe,
+  exOrdersExecutedSubscribeResponse,
+  exOrdersExecutedUpdate,
+  exOrdersExecutedUnsubscribe,
+} from '/snippets/ws-data/orders_executed.jsx'
 
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
@@ -37,132 +49,30 @@ Query or subscribe to executed order history with optional filtering by order ty
 
 Fetch historical executed orders for a market without subscribing.
 
+`params`: `[filter_object, offset, limit]`. Maximum limit: 100. `order_types` in the filter: `1` = Limit, `2` = Market.
+
 **Request**
 
-```json
-{
-  "id": 11,
-  "method": "ordersExecuted_request",
-  "params": [
-    { "market": "BTC_USDT", "order_types": [1, 2] },
-    0,
-    30
-  ]
-}
-```
-
-`params`: `[filter_object, offset, limit]`. Maximum limit: 100.
-
-`order_types` in the filter: `1` = Limit, `2` = Market.
+<WsMessageExample data={exOrdersExecutedRequest} />
 
 **Response**
 
-```json
-{
-  "id": 11,
-  "result": {
-    "limit": 100,
-    "offset": 0,
-    "records": [
-      {
-        "id": 1212266594338,
-        "ctime": 1738230617.8867061,
-        "ftime": 1738230617.8867061,
-        "market": "BTC_USDT",
-        "source": "web",
-        "type": 2,
-        "side": 1,
-        "price": "0",
-        "amount": "1",
-        "deal_stock": "1",
-        "deal_money": "105366.06693468",
-        "deal_fee": "10.536606693468",
-        "client_order_id": "",
-        "status": "FILLED",
-        "fee_asset": "USDT",
-        "rpi": false
-      }
-    ]
-  },
-  "error": null
-}
-```
+<WsMessageExample data={exOrdersExecutedResponse} />
 
 <Note>
 The private stream returns executed orders, including orders using Retail Price Improvement (RPI) mode.
 </Note>
+
 ## Subscribe to executed orders
 
-<Steps>
-  <Step title="Send subscription request">
-    `params[0]` is an array of market names. `params[1]` is the order type filter.
+<WsSubscribeSteps
+  subscribe={exOrdersExecutedSubscribe}
+  subscribeNote="params[0] is an array of market names. params[1] is the order type filter: 0 = Limit and Market orders, 1 = Limit orders only, 2 = Market orders only."
+  confirmation={exOrdersExecutedSubscribeResponse}
+  update={exOrdersExecutedUpdate}
+  unsubscribe={exOrdersExecutedUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 12,
-      "method": "ordersExecuted_subscribe",
-      "params": [["BTC_USDT", "ETH_BTC"], 0]
-    }
-    ```
+## Executed order object
 
-    Order type filter values:
-
-    | Value | Filter |
-    |-------|--------|
-    | `0` | Limit and Market orders |
-    | `1` | Limit orders only |
-    | `2` | Market orders only |
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 12,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `ordersExecuted_update` when an order is executed.
-
-    ```json
-    {
-      "id": null,
-      "method": "ordersExecuted_update",
-      "params": [
-        {
-          "id": 1212907216814,
-          "market": "ETH_BTC",
-          "type": 1,
-          "side": 2,
-          "post_only": false,
-          "ioc": false,
-          "ctime": 1738251046.7203979,
-          "mtime": 1738251048.4428461,
-          "price": "0.030832",
-          "amount": "1",
-          "left": "0",
-          "deal_stock": "1",
-          "deal_money": "0.030832",
-          "deal_fee": "0.001",
-          "client_order_id": "",
-          "stp": "no",
-          "status": "FILLED",
-          "position_side": "LONG",
-          "rpi": true
-        }
-      ]
-    }
-    ```
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 13,
-      "method": "ordersExecuted_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
-
+<WsSchemaTable fields={executedOrderObject} />

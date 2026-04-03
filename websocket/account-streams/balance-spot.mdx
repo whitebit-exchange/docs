@@ -1,10 +1,22 @@
 ---
-asyncapi: "/asyncapi/private/balance_spot.yaml /ws"
 title: Balance Spot
+tag: "WSS"
 description: "Subscribe to real-time spot balance updates for a WhiteBIT account via WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  balanceSpotUpdate,
+  exBalanceSpotRequest,
+  exBalanceSpotResponse,
+  exBalanceSpotSubscribe,
+  exBalanceSpotSubscribeResponse,
+  exBalanceSpotUpdate,
+  exBalanceSpotUnsubscribe,
+} from '/snippets/ws-data/balance_spot.jsx'
 
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
@@ -35,90 +47,27 @@ Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates
 
 ## Query spot balance (one-time)
 
-Fetch current spot balances for specific assets without subscribing.
+Fetch current spot balances for specific assets without subscribing. Pass an empty array to query all assets.
 
 **Request**
 
-```json
-{
-  "id": 2,
-  "method": "balanceSpot_request",
-  "params": ["ETH", "BTC"]
-}
-```
-
-Pass an empty array to query all assets.
+<WsMessageExample data={exBalanceSpotRequest} />
 
 **Response**
 
-```json
-{
-  "id": 2,
-  "result": {
-    "ETH": {
-      "available": "0",
-      "freeze": "0"
-    },
-    "BTC": {
-      "available": "0",
-      "freeze": "0"
-    }
-  },
-  "error": null
-}
-```
+<WsMessageExample data={exBalanceSpotResponse} />
+
 ## Subscribe to spot balance
 
-<Steps>
-  <Step title="Send subscription request">
-    Pass asset tickers in `params`. Pass an empty array to subscribe to all assets.
+<WsSubscribeSteps
+  subscribe={exBalanceSpotSubscribe}
+  subscribeNote="Pass asset tickers in params. Pass an empty array to subscribe to all assets."
+  confirmation={exBalanceSpotSubscribeResponse}
+  update={exBalanceSpotUpdate}
+  updateNote="The server pushes balanceSpot_update when any subscribed asset balance changes. available — amount free to trade. freeze — amount locked in active orders."
+  unsubscribe={exBalanceSpotUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 3,
-      "method": "balanceSpot_subscribe",
-      "params": ["USDT", "ETH"]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 3,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `balanceSpot_update` when any subscribed asset balance changes.
+## Balance object
 
-    ```json
-    {
-      "id": null,
-      "method": "balanceSpot_update",
-      "params": [
-        {
-          "USDT": {
-            "available": "100.1885",
-            "freeze": "0"
-          }
-        }
-      ]
-    }
-    ```
-
-    - `available` — amount free to trade
-    - `freeze` — amount locked in active orders
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 4,
-      "method": "balanceSpot_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
-
+<WsSchemaTable fields={balanceSpotUpdate} />

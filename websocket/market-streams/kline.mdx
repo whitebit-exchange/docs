@@ -1,10 +1,22 @@
 ---
-asyncapi: "/asyncapi/public/kline.yaml /ws"
 title: Kline
+tag: "WSS"
 description: "Subscribe to real-time candlestick (OHLCV) chart updates for a trading pair via WhiteBIT WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  candlesUpdate,
+  exCandlesRequest,
+  exCandlesResponse,
+  exCandlesSubscribe,
+  exCandlesSubscribeResponse,
+  exCandlesUpdate,
+  exCandlesUnsubscribe,
+} from '/snippets/ws-data/kline.jsx'
 
 Query or subscribe to candlestick (OHLCV) data for a market and interval. **Update interval:** 0.5 seconds.
 
@@ -33,96 +45,17 @@ Query or subscribe to candlestick (OHLCV) data for a market and interval. **Upda
 
 Fetch historical candlestick data for a time range.
 
+`params`: `[market, start_time, end_time, interval]`. Times are Unix timestamps.
+
 **Request**
 
-```json
-{
-  "id": 1,
-  "method": "candles_request",
-  "params": ["BTC_USDT", 1738166400, 1738252800, 3600]
-}
-```
-
-`params`: `[market, start_time, end_time, interval]`. Times are Unix timestamps.
+<WsMessageExample data={exCandlesRequest} />
 
 **Response**
 
-```json
-{
-  "id": 1,
-  "result": [
-    [1738166400, "104500.00", "104800.00", "105000.00", "104300.00", "8.12", "849601.23", "BTC_USDT"]
-  ],
-  "error": null
-}
-```
+<WsMessageExample data={exCandlesResponse} />
 
 Each record is a positional array in the same format as the subscription update.
-
-## Subscribe to candlesticks
-
-<Steps>
-  <Step title="Send subscription request">
-    `params[0]` is the market. `params[1]` is the interval in seconds.
-
-    ```json
-    {
-      "id": 1,
-      "method": "candles_subscribe",
-      "params": ["BTC_USDT", 3600]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 1,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `candles_update` every 0.5 seconds with the current candle. The update is a **positional array**.
-
-    ```json
-    {
-      "id": null,
-      "method": "candles_update",
-      "params": [
-        1738252800,
-        "104800.00",
-        "105200.00",
-        "105500.00",
-        "104700.00",
-        "12.34567",
-        "1296543.21",
-        "BTC_USDT"
-      ]
-    }
-    ```
-
-    | Index | Field | Description |
-    |-------|-------|-------------|
-    | `[0]` | time | Candle open time (Unix timestamp) |
-    | `[1]` | open | Open price |
-    | `[2]` | close | Close price (current price for live candle) |
-    | `[3]` | high | Highest price in the interval |
-    | `[4]` | low | Lowest price in the interval |
-    | `[5]` | volume | Volume in [stock](/glossary#stock) (base currency) |
-    | `[6]` | deal | Volume in [money](/glossary#money) (quote currency) |
-    | `[7]` | market | Market name |
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 2,
-      "method": "candles_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
 
 ## Interval constraints
 
@@ -159,3 +92,67 @@ The interval must meet specific alignment rules to ensure candles align with nat
 <Note>
 The constraints above ensure candles align with natural time boundaries (minutes, hours, days) for consistent charting.
 </Note>
+
+## Subscribe to candlesticks
+
+<WsSubscribeSteps
+  subscribe={exCandlesSubscribe}
+  subscribeNote="params[0] is the market. params[1] is the interval in seconds. See Interval constraints above."
+  confirmation={exCandlesSubscribeResponse}
+  update={exCandlesUpdate}
+  updateNote="The server pushes candles_update every 0.5 seconds with the current candle. The update payload is a positional array — fields are identified by index."
+  updateExtra={
+    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
+      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}>Index</div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>Field</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Description</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[0]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>time</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Candle open time (Unix timestamp)</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[1]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>open</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Open price</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[2]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>close</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Close price (current price for live candle)</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[3]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>high</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Highest price in the interval</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[4]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>low</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Lowest price in the interval</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[5]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>volume</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Volume in stock (base currency)</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[6]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>deal</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Volume in money (quote currency)</div>
+      </div>
+      <div style={{display: 'flex'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>[7]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>market</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Market name</div>
+      </div>
+    </div>
+  }
+  unsubscribe={exCandlesUnsubscribe}
+/>
+
+## Candle object
+
+<WsSchemaTable fields={candlesUpdate} />

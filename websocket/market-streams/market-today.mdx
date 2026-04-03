@@ -1,10 +1,20 @@
 ---
-asyncapi: "/asyncapi/public/market_today.yaml /ws"
 title: Market statistics for current day UTC
+tag: "WSS"
 description: "Subscribe to real-time current-day market statistics for trading pairs via WhiteBIT WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  marketTodayStatistics,
+  exMarketTodayRequest,
+  exMarketTodayResponse,
+  exMarketTodaySubscribe,
+  exMarketTodayUpdate,
+} from '/snippets/ws-data/market_today.jsx'
 
 Market statistics for the current UTC day, resetting daily at 00:00 UTC. **Update interval:** 1 second.
 
@@ -37,99 +47,27 @@ The query method accepts **only one market per request**. To get data for multip
 
 **Request**
 
-```json
-{
-  "id": 1,
-  "method": "marketToday_query",
-  "params": ["BTC_USDT"]
-}
-```
+<WsMessageExample data={exMarketTodayRequest} />
 
 **Response**
 
-```json
-{
-  "id": 1,
-  "result": {
-    "last": "105000.00",
-    "open": "101000.00",
-    "high": "106000.00",
-    "low": "100500.00",
-    "volume": "1234.56789",
-    "deal": "129876543.21"
-  },
-  "error": null
-}
-```
+<WsMessageExample data={exMarketTodayResponse} />
 
 ## Subscribe to market today
 
-<Steps>
-  <Step title="Send subscription request">
-    Pass one or more market names in `params`.
-
-    ```json
-    {
-      "id": 1,
-      "method": "marketToday_subscribe",
-      "params": ["BTC_USDT", "ETH_USDT"]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 1,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `marketToday_update` every second.
-
-    ```json
-    {
-      "id": null,
-      "method": "marketToday_update",
-      "params": [
-        "BTC_USDT",
-        {
-          "last": "105000.00",
-          "open": "101000.00",
-          "high": "106000.00",
-          "low": "100500.00",
-          "volume": "1234.56789",
-          "deal": "129876543.21"
-        }
-      ]
-    }
-    ```
-
-    `params[0]` is the market name. `params[1]` is the statistics object.
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 2,
-      "method": "marketToday_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
-
-## Field descriptions
-
-| Field | Description |
-|-------|-------------|
-| `last` | Current last trade price |
-| `open` | Opening price at today's UTC midnight |
-| `high` | Highest price today |
-| `low` | Lowest price today |
-| `volume` | Total trading volume in [stock](/glossary#stock) currency |
-| `deal` | Total trading volume in [money](/glossary#money) currency |
+<WsSubscribeSteps
+  subscribe={exMarketTodaySubscribe}
+  subscribeNote="Pass one or more market names in params."
+  confirmation={{id: 1, result: {status: "success"}, error: null}}
+  update={exMarketTodayUpdate}
+  updateNote="params[0] is the market name. params[1] is the statistics object."
+  unsubscribe={{id: 2, method: "marketToday_unsubscribe", params: []}}
+/>
 
 <Note>
 All statistics reset to zero at UTC midnight (00:00 UTC) each day.
 </Note>
+
+## Market today statistics object
+
+<WsSchemaTable fields={marketTodayStatistics} />

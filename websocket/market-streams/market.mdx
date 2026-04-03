@@ -1,10 +1,20 @@
 ---
-asyncapi: "/asyncapi/public/market.yaml /ws"
 title: Market Statistics
+tag: "WSS"
 description: "Subscribe to real-time 24-hour market statistics for trading pairs via WhiteBIT WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  marketStatistics,
+  exMarketRequest,
+  exMarketResponse,
+  exMarketSubscribe,
+  exMarketUpdate,
+} from '/snippets/ws-data/market.jsx'
 
 Query or subscribe to rolling 24-hour market statistics. **Update interval:** 1 second.
 
@@ -33,36 +43,15 @@ Query or subscribe to rolling 24-hour market statistics. **Update interval:** 1 
 
 Fetch market statistics for any period without subscribing.
 
+`params`: `[market, period_in_seconds]`.
+
 **Request**
 
-```json
-{
-  "id": 1,
-  "method": "market_request",
-  "params": ["BTC_USDT", 86400]
-}
-```
-
-`params`: `[market, period_in_seconds]`.
+<WsMessageExample data={exMarketRequest} />
 
 **Response**
 
-```json
-{
-  "id": 1,
-  "result": {
-    "period": 86400,
-    "last": "105000.00",
-    "open": "101000.00",
-    "close": "105000.00",
-    "high": "106000.00",
-    "low": "100500.00",
-    "volume": "1234.56789",
-    "deal": "129876543.21"
-  },
-  "error": null
-}
-```
+<WsMessageExample data={exMarketResponse} />
 
 ## Subscribe to market statistics
 
@@ -70,70 +59,14 @@ Fetch market statistics for any period without subscribing.
 Subscriptions support only a **24-hour period** (86400 seconds). Custom period subscriptions are not supported.
 </Warning>
 
-<Steps>
-  <Step title="Send subscription request">
-    `params[0]` is the market name. `params[1]` is the period in seconds — must be `86400`.
+<WsSubscribeSteps
+  subscribe={exMarketSubscribe}
+  subscribeNote="params[0] is the market name. params[1] is the period in seconds — must be 86400."
+  confirmation={{id: 1, result: {status: "success"}, error: null}}
+  update={exMarketUpdate}
+  unsubscribe={{id: 2, method: "market_unsubscribe", params: []}}
+/>
 
-    ```json
-    {
-      "id": 1,
-      "method": "market_subscribe",
-      "params": ["BTC_USDT", 86400]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 1,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `market_update` every second.
+## Market statistics object
 
-    ```json
-    {
-      "id": null,
-      "method": "market_update",
-      "params": [
-        "BTC_USDT",
-        {
-          "period": 86400,
-          "last": "105000.00",
-          "open": "101000.00",
-          "close": "105000.00",
-          "high": "106000.00",
-          "low": "100500.00",
-          "volume": "1234.56789",
-          "deal": "129876543.21"
-        }
-      ]
-    }
-    ```
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 2,
-      "method": "market_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
-
-## Field descriptions
-
-| Field | Description |
-|-------|-------------|
-| `period` | Time window in seconds |
-| `last` | Current last trade price |
-| `open` | Price at the start of the period (`now - period`) |
-| `close` | Closing price (same as `last` for the current period) |
-| `high` | Highest price during the period |
-| `low` | Lowest price during the period |
-| `volume` | Total volume in [stock](/glossary#stock) (base currency) |
-| `deal` | Total volume in [money](/glossary#money) (quote currency) |
+<WsSchemaTable fields={marketStatistics} />

@@ -1,10 +1,22 @@
 ---
-asyncapi: "/asyncapi/private/deals.yaml /ws"
 title: Deals
+tag: "WSS"
 description: "Subscribe to real-time trade deal notifications for a WhiteBIT account via WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  dealsUpdate,
+  exDealsRequest,
+  exDealsResponse,
+  exDealsSubscribe,
+  exDealsSubscribeResponse,
+  exDealsUpdate,
+  exDealsUnsubscribe,
+} from '/snippets/ws-data/deals.jsx'
 
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
@@ -37,115 +49,103 @@ Query or subscribe to real-time trade execution (deal) notifications. Each deal 
 
 Fetch historical deal records for a market without subscribing.
 
+`params`: `[market, offset, limit]`. Maximum limit: 100.
+
 **Request**
 
-```json
-{
-  "id": 14,
-  "method": "deals_request",
-  "params": ["BTC_USDT", 0, 30]
-}
-```
-
-`params`: `[market, offset, limit]`. Maximum limit: 100.
+<WsMessageExample data={exDealsRequest} />
 
 **Response**
 
-```json
-{
-  "id": 14,
-  "result": {
-    "limit": 100,
-    "offset": 0,
-    "records": [
-      {
-        "time": 1738230617.8867061,
-        "id": 13663227034,
-        "side": 1,
-        "role": 2,
-        "price": "105361.32",
-        "amount": "0.160998",
-        "deal": "16962.96179736",
-        "fee": "1.696296179736",
-        "order_id": 1212266594338,
-        "deal_order_id": 1212266160846,
-        "market": "BTC_USDT",
-        "client_order_id": "",
-        "fee_asset": "USDT"
-      }
-    ]
-  },
-  "error": null
-}
-```
+<WsMessageExample data={exDealsResponse} />
+
 ## Subscribe to deals
 
-<Steps>
-  <Step title="Send subscription request">
-    `params[0]` is an array of market names. Pass an empty inner array to subscribe to all markets.
+<WsSubscribeSteps
+  subscribe={exDealsSubscribe}
+  subscribeNote="params[0] is an array of market names. Pass an empty inner array to subscribe to all markets."
+  confirmation={exDealsSubscribeResponse}
+  update={exDealsUpdate}
+  updateNote="The server pushes deals_update for each trade execution. The update uses a positional array format — fields are identified by index."
+  updateExtra={
+    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem', overflowX: 'auto'}}>
+      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600, minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}>Index</div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>Field</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}>Example</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Description</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[0]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>deal_id</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>13674578673</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Unique deal ID</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[1]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>time</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>1738251095.345432</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Unix timestamp of execution</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[2]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>market</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>"ETH_BTC"</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Market name</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[3]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>order_id</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>1212909726406</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Order ID</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[4]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>price</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>"0.03084"</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Execution price</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[5]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>amount</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>"0.2625"</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Stock amount executed</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[6]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>fee</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>"0.0002625"</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Fee charged</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[7]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>client_order_id</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>""</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Custom client order ID (may be empty)</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[8]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>side</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>2</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}><code>1</code> = sell, <code>2</code> = buy</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[9]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>role</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>2</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}><code>1</code> = maker, <code>2</code> = taker</div>
+      </div>
+      <div style={{display: 'flex', minWidth: '560px'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 55px'}}><code>[10]</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 150px'}}>fee_asset</div>
+        <div style={{padding: '8px 12px', flex: '0 0 190px'}}><code>"ETH"</code></div>
+        <div style={{padding: '8px 12px', flex: 1}}>Asset in which fee was charged</div>
+      </div>
+    </div>
+  }
+  unsubscribe={exDealsUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 15,
-      "method": "deals_subscribe",
-      "params": [["BTC_USDT", "ETH_BTC"]]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 15,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `deals_update` for each trade execution. The update uses a **positional array** format — fields are identified by index, not by name.
+## Deal object
 
-    ```json
-    {
-      "id": null,
-      "method": "deals_update",
-      "params": [
-        13674578673,
-        1738251095.345432,
-        "ETH_BTC",
-        1212909726406,
-        "0.03084",
-        "0.2625",
-        "0.0002625",
-        "",
-        2,
-        2,
-        "ETH"
-      ]
-    }
-    ```
-
-    | Index | Field | Example | Description |
-    |-------|-------|---------|-------------|
-    | `[0]` | deal_id | `13674578673` | Unique deal ID |
-    | `[1]` | time | `1738251095.345432` | Unix timestamp of execution |
-    | `[2]` | market | `"ETH_BTC"` | Market name |
-    | `[3]` | order_id | `1212909726406` | Order ID |
-    | `[4]` | price | `"0.03084"` | Execution price |
-    | `[5]` | amount | `"0.2625"` | Stock amount executed |
-    | `[6]` | fee | `"0.0002625"` | Fee charged |
-    | `[7]` | client_order_id | `""` | Custom client order ID (may be empty) |
-    | `[8]` | side | `2` | `1` = sell, `2` = buy |
-    | `[9]` | role | `2` | `1` = maker, `2` = taker |
-    | `[10]` | fee_asset | `"ETH"` | Asset in which fee was charged |
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 16,
-      "method": "deals_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
-
+<WsSchemaTable fields={dealsUpdate} />
