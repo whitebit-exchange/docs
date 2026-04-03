@@ -1,10 +1,21 @@
 ---
-asyncapi: "/asyncapi/public/depth.yaml /ws"
 title: Order Book Depth
+tag: "WSS"
 description: "Subscribe to real-time order book depth updates for a trading pair via WhiteBIT WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  depthUpdateData,
+  exDepthRequest,
+  exDepthResponse,
+  exDepthSubscribe,
+  exDepthFullReload,
+  exDepthPartialUpdate,
+} from '/snippets/ws-data/depth.jsx'
 
 Real-time order book data with support for both one-time snapshots and continuous subscription updates. **Update interval:** 100ms.
 
@@ -33,117 +44,38 @@ Real-time order book data with support for both one-time snapshots and continuou
 
 Fetch a single order book snapshot without subscribing to updates.
 
+`params`: `[market, limit, price_interval]`. Maximum limit: 100. Set `price_interval` to `"0"` for no grouping.
+
 **Request**
 
-```json
-{
-  "id": 11,
-  "method": "depth_request",
-  "params": ["ETH_BTC", 100, "0"]
-}
-```
-
-`params`: `[market, limit, price_interval]`. Maximum limit: 100. Set `price_interval` to `"0"` for no grouping.
+<WsMessageExample data={exDepthRequest} />
 
 **Response**
 
-```json
-{
-  "id": 11,
-  "result": {
-    "timestamp": 1689600180.5164471,
-    "asks": [["0.020846", "29.369"]],
-    "bids": [["0.02083", "9.598"]]
-  },
-  "error": null
-}
-```
+<WsMessageExample data={exDepthResponse} />
 
 ## Subscribe to order book depth
 
-<Steps>
-  <Step title="Send subscription request">
-    `params`: `[market, limit, price_interval, multi_depth]`.
-
-    ```json
-    {
-      "id": 1,
-      "method": "depth_subscribe",
-      "params": ["ETH_BTC", 100, "0", true]
-    }
-    ```
-
-    - `limit` — number of price levels (e.g., 100)
-    - `price_interval` — price grouping interval (`"0"` for no grouping)
-    - `multi_depth` — set `true` to receive incremental updates
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 1,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive full snapshot (first message)">
-    The first `depth_update` is always a **full snapshot** — `past_update_id` is absent.
-
-    ```json
-    {
-      "id": null,
-      "method": "depth_update",
-      "params": [
-        {
-          "asks": [["0.031002", "12.5"], ["0.031050", "8.2"]],
-          "bids": [["0.030950", "15.0"], ["0.030900", "20.1"]],
-          "update_id": 12345678
-        },
-        true,
-        "ETH_BTC"
-      ]
-    }
-    ```
-
-    Initialize your local order book from this snapshot.
-  </Step>
-  <Step title="Receive incremental updates">
-    Subsequent `depth_update` messages contain only changed price levels — `past_update_id` is present.
-
-    ```json
-    {
-      "id": null,
-      "method": "depth_update",
-      "params": [
-        {
-          "asks": [["0.031002", "0"], ["0.031100", "5.0"]],
-          "bids": [["0.030950", "18.3"]],
-          "update_id": 12345679,
-          "past_update_id": 12345678
-        },
-        false,
-        "ETH_BTC"
-      ]
-    }
-    ```
-
-    - Amount `"0"` → remove the price level
-    - Amount non-zero → update or insert the price level
-
-    <Note>
-    If 10 seconds pass without any order book changes, the server pushes a full snapshot again as a keepalive (no `past_update_id`). Treat the message as a full reset.
-    </Note>
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 2,
-      "method": "depth_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
+<WsSubscribeSteps
+  subscribe={exDepthSubscribe}
+  subscribeNote="params: [market, limit, price_interval, multi_depth]. limit — number of price levels. price_interval — price grouping interval ('0' for no grouping). multi_depth — set true to receive incremental updates."
+  confirmation={{id: 12, result: {status: "success"}, error: null}}
+  update={exDepthFullReload}
+  updateNote="The first depth_update is always a full snapshot — params[0] is true, past_update_id is absent. Initialize your local order book from this snapshot."
+  updateExtra={
+    <div>
+      <p style={{fontSize: '0.875rem', marginBottom: '0.75rem'}}>Subsequent <code>depth_update</code> messages contain only changed price levels — <code>params[0]</code> is <code>false</code> and <code>past_update_id</code> is present.</p>
+      <WsMessageExample data={exDepthPartialUpdate} />
+      <div style={{fontSize: '0.875rem', marginTop: '0.75rem', marginBottom: '0.5rem'}}>
+        <span>Amount <code>"0"</code> → remove the price level. Amount non-zero → update or insert the price level.</span>
+      </div>
+      <div style={{borderLeft: '3px solid #60a5fa', paddingLeft: '0.75rem', marginTop: '0.75rem', fontSize: '0.8125rem', color: '#374151', lineHeight: '1.5'}}>
+        If 10 seconds pass without any order book changes, the server pushes a full snapshot again as a keepalive (<code>past_update_id</code> absent). Treat the message as a full reset.
+      </div>
+    </div>
+  }
+  unsubscribe={{id: 13, method: "depth_unsubscribe", params: []}}
+/>
 
 <Note>
 Public `depth` updates exclude Retail Price Improvement (RPI) orders. The stream includes only regular order book liquidity.
@@ -153,7 +85,7 @@ Public `depth` updates exclude Retail Price Improvement (RPI) orders. The stream
 
 To maintain an accurate local order book:
 
-1. Subscribe and wait for the first message (no `past_update_id`) — initialize order book from snapshot
+1. Subscribe and wait for the first message (`params[0]` is `true`) — initialize order book from snapshot
 2. For each incremental update: if amount is `"0"` remove the price level; otherwise update or insert at the correct sorted position
 3. Keep asks sorted ascending, bids sorted descending
 4. Truncate to your desired limit after each update
@@ -167,8 +99,12 @@ To maintain an accurate local order book:
 ## Ordering guarantees
 
 - Updates arrive in `update_id` order. Each incremental message's `past_update_id` matches the previous message's `update_id`.
-- If 10 seconds pass without activity, the server sends a full snapshot (no `past_update_id`) as a keepalive. Treat this as a full reset.
+- If 10 seconds pass without activity, the server sends a full snapshot (`params[0]` is `true`, no `past_update_id`) as a keepalive. Treat this as a full reset.
 - A gap between `past_update_id` and the stored `update_id` indicates a missed message — re-subscribe to resync.
+
+## Order book data object
+
+<WsSchemaTable fields={depthUpdateData} />
 
 ## Code examples
 

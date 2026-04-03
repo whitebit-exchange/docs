@@ -1,10 +1,22 @@
 ---
-asyncapi: "/asyncapi/public/lastprice.yaml /ws"
 title: Last Price
+tag: "WSS"
 description: "Subscribe to real-time last trade price updates for trading pairs via WhiteBIT WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  lastpriceUpdate,
+  exLastpriceRequest,
+  exLastpriceResponse,
+  exLastpriceSubscribe,
+  exLastpriceSubscribeResponse,
+  exLastpriceUpdate,
+  exLastpriceUnsubscribe,
+} from '/snippets/ws-data/lastprice.jsx'
 
 Query or subscribe to real-time last traded price updates for one or more markets. **Update interval:** 1 second.
 
@@ -35,67 +47,23 @@ Fetch the current last price for a single market without subscribing.
 
 **Request**
 
-```json
-{
-  "id": 5,
-  "method": "lastprice_request",
-  "params": ["ETH_BTC"]
-}
-```
+<WsMessageExample data={exLastpriceRequest} />
 
 **Response**
 
-```json
-{
-  "id": 5,
-  "result": "0.020553",
-  "error": null
-}
-```
+<WsMessageExample data={exLastpriceResponse} />
+
 ## Subscribe to last price
 
-<Steps>
-  <Step title="Send subscription request">
-    Pass market names in `params`.
+<WsSubscribeSteps
+  subscribe={exLastpriceSubscribe}
+  subscribeNote="Pass market names in params."
+  confirmation={exLastpriceSubscribeResponse}
+  update={exLastpriceUpdate}
+  updateNote="params[0] is the market name. params[1] is the last traded price as a string."
+  unsubscribe={exLastpriceUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 6,
-      "method": "lastprice_subscribe",
-      "params": ["ETH_BTC", "BTC_USDT"]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 6,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `lastprice_update` every second for each subscribed market.
+## Last price update object
 
-    ```json
-    {
-      "id": null,
-      "method": "lastprice_update",
-      "params": ["ETH_BTC", "0.020683"]
-    }
-    ```
-
-    `params[0]` is the market name. `params[1]` is the last traded price as a string.
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 7,
-      "method": "lastprice_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
-
+<WsSchemaTable fields={lastpriceUpdate} />
