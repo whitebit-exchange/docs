@@ -1,10 +1,22 @@
 ---
-asyncapi: "/asyncapi/private/balance_margin.yaml /ws"
 title: Balance Margin
+tag: "WSS"
 description: "Subscribe to real-time margin balance updates for a WhiteBIT account via WebSocket."
 ---
 
-import { WsChannelOverview } from '/snippets/WsChannelOverview'
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import {
+  balanceMarginUpdate,
+  exBalanceMarginRequest,
+  exBalanceMarginResponse,
+  exBalanceMarginSubscribe,
+  exBalanceMarginSubscribeResponse,
+  exBalanceMarginUpdate,
+  exBalanceMarginUnsubscribe,
+} from '/snippets/ws-data/balance_margin.jsx'
 
 <Warning>
 This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
@@ -35,111 +47,61 @@ Query or subscribe to collateral (margin) balance updates. The response includes
 
 ## Query margin balance (one-time)
 
-Fetch current margin balances for specific assets without subscribing.
+Fetch current margin balances for specific assets without subscribing. Pass an empty array to query all assets.
 
 **Request**
 
-```json
-{
-  "id": 2,
-  "method": "balanceMargin_request",
-  "params": ["BTC", "USDT"]
-}
-```
-
-Pass an empty array to query all assets.
+<WsMessageExample data={exBalanceMarginRequest} />
 
 **Response**
 
-```json
-{
-  "id": 2,
-  "result": {
-    "BTC": {
-      "balance": "0.0006092",
-      "borrow": "0",
-      "available_without_borrow": "0.0006092",
-      "available_with_borrow": "0.00288701"
-    },
-    "USDT": {
-      "balance": "0.00538073",
-      "borrow": "0",
-      "available_without_borrow": "0.00538073",
-      "available_with_borrow": "28.43739825"
-    }
-  },
-  "error": null
-}
-```
+<WsMessageExample data={exBalanceMarginResponse} />
+
 ## Subscribe to margin balance
 
-<Steps>
-  <Step title="Send subscription request">
-    Pass asset tickers in `params`. Pass an empty array to subscribe to all assets.
+<WsSubscribeSteps
+  subscribe={exBalanceMarginSubscribe}
+  subscribeNote="Pass asset tickers in params. Pass an empty array to subscribe to all assets."
+  confirmation={exBalanceMarginSubscribeResponse}
+  update={exBalanceMarginUpdate}
+  updateNote="Update uses abbreviated field names — different from the query response."
+  updateExtra={
+    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
+      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}>Field</div>
+        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>Full name</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Description</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>a</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>asset</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Asset ticker</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>B</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>balance</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Total amount on collateral balance</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>b</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>borrow</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Borrowed amount</div>
+      </div>
+      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>av</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>available without borrow</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Available to trade without borrowing</div>
+      </div>
+      <div style={{display: 'flex'}}>
+        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>ab</code></div>
+        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>available with borrow</div>
+        <div style={{padding: '8px 12px', flex: 1}}>Available to trade including borrowing capacity</div>
+      </div>
+    </div>
+  }
+  unsubscribe={exBalanceMarginUnsubscribe}
+/>
 
-    ```json
-    {
-      "id": 3,
-      "method": "balanceMargin_subscribe",
-      "params": ["BTC", "USDT"]
-    }
-    ```
-  </Step>
-  <Step title="Receive confirmation">
-    ```json
-    {
-      "id": 3,
-      "result": { "status": "success" },
-      "error": null
-    }
-    ```
-  </Step>
-  <Step title="Receive real-time updates">
-    The server pushes `balanceMargin_update` when any subscribed asset balance changes.
+## Balance object
 
-    <Note>
-    Update uses **abbreviated field names** — different from the query response.
-    </Note>
-
-    ```json
-    {
-      "id": null,
-      "method": "balanceMargin_update",
-      "params": [
-        {
-          "a": "BTC",
-          "B": "0.0006092",
-          "b": "0",
-          "av": "0.0006092",
-          "ab": "0.00288701"
-        },
-        {
-          "a": "USDT",
-          "B": "0.00538073",
-          "b": "0",
-          "av": "0.00538073",
-          "ab": "28.43739825"
-        }
-      ]
-    }
-    ```
-
-    | Field | Full name | Description |
-    |-------|-----------|-------------|
-    | `a` | asset | Asset ticker |
-    | `B` | balance | Total amount on collateral balance |
-    | `b` | borrow | Borrowed amount |
-    | `av` | available without borrow | Available to trade without borrowing |
-    | `ab` | available with borrow | Available to trade including borrowing capacity |
-  </Step>
-  <Step title="Unsubscribe">
-    ```json
-    {
-      "id": 4,
-      "method": "balanceMargin_unsubscribe",
-      "params": []
-    }
-    ```
-  </Step>
-</Steps>
-
+<WsSchemaTable fields={balanceMarginUpdate} />
