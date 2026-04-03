@@ -47,6 +47,10 @@ Automatic skills run after every pipeline without being explicitly asked.
 | Task learnings | `ai/skills/task-learnings/SKILL.md` | **Automatic** — called by self-improvement for extraction |
 | Learning consolidator | `ai/skills/learning-consolidator/SKILL.md` | On demand — ~weekly cleanup of ai/LESSONS.md |
 | Answer partner questions | `ai/skills/answer-partner-questions/SKILL.md` | On demand — researching API capabilities for partner/client questions |
+| Session retrospective | `ai/skills/session-retrospective/SKILL.md` | On demand — cross-session pattern analysis; use after a period of work |
+| AI changelog | `ai/skills/ai-changelog/SKILL.md` | internal — called after AI infrastructure changes by skill-creator, task-learnings, learning-consolidator |
+| AI improvement tracker | `ai/skills/ai-improvement-tracker/SKILL.md` | internal — called after ai-changelog to record testable improvement hypotheses |
+| Docker local rebuild | `ai/skills/docker-local-rebuild/SKILL.md` | On demand — rebuild and start the portal in Docker for local testing |
 
 ## Key Files
 
