@@ -61,7 +61,7 @@ Subscriptions support only a **24-hour period** (86400 seconds). Custom period s
 
 <WsSubscribeSteps
   subscribe={exMarketSubscribe}
-  subscribeNote="params[0] is the market name. params[1] is the period in seconds — must be 86400."
+  subscribeNote="Pass one or more market names in params. Subscriptions always use a 24-hour (86400s) rolling window."
   confirmation={{id: 1, result: {status: "success"}, error: null}}
   update={exMarketUpdate}
   unsubscribe={{id: 2, method: "market_unsubscribe", params: []}}

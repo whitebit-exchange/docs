@@ -132,9 +132,17 @@ components:
               asks:
                 - - "0.020846"
                   - "29.369"
+                - - "0.020850"
+                  - "15.123"
+                - - "0.020855"
+                  - "8.456"
               bids:
                 - - "0.02083"
                   - "9.598"
+                - - "0.020825"
+                  - "12.345"
+                - - "0.020820"
+                  - "20.678"
             error: null
 
     depthSubscribe:
@@ -189,9 +197,17 @@ components:
                 asks:
                   - - "0.020846"
                     - "29.369"
+                  - - "0.020850"
+                    - "15.123"
+                  - - "0.020855"
+                    - "8.456"
                 bids:
                   - - "0.02083"
                     - "9.598"
+                  - - "0.020825"
+                    - "12.345"
+                  - - "0.020820"
+                    - "20.678"
                 update_id: 214403
                 event_time: 1749026542.817343
               - ETH_BTC
@@ -314,7 +330,7 @@ components:
             Query parameters:
             - [0] Market name
             - [1] Limit (max 100)
-            - [2] Price interval units (e.g., "0", "0.01", "0.1")
+            - [2] Price interval units. Available values: "0" (no interval), "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"
           minItems: 3
           maxItems: 3
           items:
@@ -323,7 +339,7 @@ components:
             - type: integer
               description: Limit (max 100)
             - type: string
-              description: Price interval units ("0" for no interval)
+              description: 'Price interval units. Available values: "0" (no interval), "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"'
 
     DepthResponse:
       type: object
@@ -369,7 +385,7 @@ components:
               enum: [1, 5, 10, 20, 30, 50, 100]
               description: Limit
             - type: string
-              description: Price interval units
+              description: 'Price interval units. Available values: "0" (no interval), "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"'
             - type: boolean
               description: "Multiple subscription flag: true = add subscription, false = unsubscribe from all"
 

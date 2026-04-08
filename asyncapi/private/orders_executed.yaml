@@ -273,9 +273,9 @@ components:
           type: array
           description: |
             Query parameters tuple:
-            - [0] Filter object with market and order_types
-            - [1] Offset
-            - [2] Limit (max 100)
+            - [0] Filter object with market (STRING) and order_types (ARRAY of INTEGER)
+            - [1] Offset (INTEGER)
+            - [2] Limit (INTEGER, max 100)
           minItems: 3
           maxItems: 3
           items:
@@ -289,7 +289,7 @@ components:
                   type: array
                   items:
                     type: integer
-                  description: "Order types filter. See order types table in overview"
+                  description: "Order types filter. See [order types](/websocket/account-streams/overview#order-types) table."
             - type: integer
               description: "Offset for pagination"
             - type: integer
@@ -421,7 +421,7 @@ components:
           description: "Source (e.g., web, api)"
         type:
           type: integer
-          description: "Order type. See order types table in overview"
+          description: "Order type. See [order types](/websocket/account-streams/overview#order-types) table."
         side:
           type: integer
           enum: [1, 2]

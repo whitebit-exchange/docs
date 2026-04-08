@@ -302,7 +302,11 @@ components:
               description: "Offset"
             - type: integer
               description: "Limit (maximum 100)"
-          description: "Array with market, offset, and limit"
+          description: |
+            Query parameters:
+            - [0] Market name (STRING)
+            - [1] Offset (INTEGER)
+            - [2] Limit (INTEGER, max 100)
 
     OrdersPendingResponse:
       type: object
@@ -415,7 +419,7 @@ components:
           description: "[Market](/glossary#market)"
         type:
           type: integer
-          description: "Order type. See order types table in overview"
+          description: "Order type. See [order types](/websocket/account-streams/overview#order-types) table."
         side:
           type: integer
           enum: [1, 2]
