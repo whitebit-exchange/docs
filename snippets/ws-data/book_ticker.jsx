@@ -32,6 +32,26 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const bookTickerUpdateDataTupleFields = [
+  { index: 0, field: "transaction_time", type: "number", description: "Unix timestamp from matching engine" },
+  { index: 1, field: "message_time", type: "number", description: "Unix timestamp from WebSocket" },
+  { index: 2, field: "market", type: "string", description: "Market name" },
+  { index: 3, field: "update_id", type: "integer", description: "Monotonic update counter" },
+  { index: 4, field: "best_bid_price", type: "string", description: "Current best bid price" },
+  { index: 5, field: "best_bid_amount", type: "string", description: "Current best bid quantity" },
+  { index: 6, field: "best_ask_price", type: "string", description: "Current best ask price" },
+  { index: 7, field: "best_ask_amount", type: "string", description: "Current best ask quantity" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Subscribe", send: "bookTicker_subscribe", receive: "Confirmation (status: success)", push: "bookTicker_update — best bid/ask snapshot on change" },
+  { name: "Unsubscribe", send: "bookTicker_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exSubscribeSpecificMarket = {

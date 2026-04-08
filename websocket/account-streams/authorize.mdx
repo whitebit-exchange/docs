@@ -7,20 +7,14 @@ description: "Authorize a WebSocket connection to subscribe to private account d
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import {
+  channelOperations,
   exAuthorizeRequest,
   exAuthorizeResponse,
 } from '/snippets/ws-data/authorize.jsx'
 
 Authorize the WebSocket connection for private channel access. Send a WebSocket token obtained from the REST API. Authorization is required once per connection — all private channels can be used after a single successful authorization.
 
-<WsChannelOverview operations={[
-  {
-    name: "Authorize",
-    send: "authorize",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Authorization flow
 

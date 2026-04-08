@@ -9,6 +9,7 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import {
+  channelOperations,
   borrowRecord,
   exBorrowsSubscribe,
   exBorrowsSubscribeResponse,
@@ -22,20 +23,7 @@ This is a private channel. [Authorize](/websocket/authentication) the WebSocket 
 
 Subscribe to collateral borrow status updates including borrow amounts, unrealized funding, and liquidation prices. **Update interval:** 1.5 seconds.
 
-<WsChannelOverview operations={[
-  {
-    name: "Subscribe",
-    send: "borrowsMargin_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "borrowsMargin_update — current borrow state for all open borrows"
-  },
-  {
-    name: "Unsubscribe",
-    send: "borrowsMargin_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Subscribe to borrows
 

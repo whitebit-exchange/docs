@@ -7,6 +7,7 @@ description: "Ping the WhiteBIT WebSocket server to check connection health and 
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import {
+  channelOperations,
   exPingRequest,
   exPingResponse,
   exTimeRequest,
@@ -15,20 +16,7 @@ import {
 
 Check API availability with ping/pong and query the current server time. The Service channel supports one-time queries only — no subscription or push events.
 
-<WsChannelOverview operations={[
-  {
-    name: "Ping",
-    send: "ping",
-    receive: "\"pong\" string",
-    push: null
-  },
-  {
-    name: "Server Time",
-    send: "time",
-    receive: "Unix timestamp (integer)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Ping
 

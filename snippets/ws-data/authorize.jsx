@@ -20,6 +20,12 @@ export const authorizeResponse = [
   { name: "error", type: "null", required: true, description: "Error object (null on success)" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Authorize", send: "authorize", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exAuthorizeRequest = {

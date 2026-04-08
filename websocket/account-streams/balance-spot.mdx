@@ -9,6 +9,7 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import {
+  channelOperations,
   balanceSpotUpdate,
   exBalanceSpotRequest,
   exBalanceSpotResponse,
@@ -24,26 +25,7 @@ This is a private channel. [Authorize](/websocket/authentication) the WebSocket 
 
 Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates. **Update interval:** 1 second.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "balanceSpot_request",
-    receive: "Current balances for requested assets",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "balanceSpot_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "balanceSpot_update — balance change for subscribed assets"
-  },
-  {
-    name: "Unsubscribe",
-    send: "balanceSpot_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Query spot balance (one-time)
 

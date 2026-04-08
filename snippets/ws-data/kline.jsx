@@ -44,6 +44,27 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const candleTupleFields = [
+  { index: 0, field: "time", type: "integer", description: "Candle open time (Unix timestamp)" },
+  { index: 1, field: "open", type: "string", description: "Open price" },
+  { index: 2, field: "close", type: "string", description: "Close price (current price for live candle)" },
+  { index: 3, field: "high", type: "string", description: "Highest price in the interval" },
+  { index: 4, field: "low", type: "string", description: "Lowest price in the interval" },
+  { index: 5, field: "volume", type: "string", description: "Volume in stock (base currency)" },
+  { index: 6, field: "deal", type: "string", description: "Volume in money (quote currency)" },
+  { index: 7, field: "market", type: "string", description: "Market name" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "candles_request", receive: "Array of candlestick records", push: null },
+  { name: "Subscribe", send: "candles_subscribe", receive: "Confirmation (status: success)", push: "candles_update — latest candle for the subscribed interval" },
+  { name: "Unsubscribe", send: "candles_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exCandlesRequest = {

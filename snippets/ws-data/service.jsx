@@ -17,6 +17,13 @@ export const baseResponse = [
   { name: "error", type: "null", required: true, description: "" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Server Time", send: "time", receive: "Unix timestamp (integer)", push: null },
+  { name: "Ping", send: "ping", receive: "\"pong\" string", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exPingRequest = {
