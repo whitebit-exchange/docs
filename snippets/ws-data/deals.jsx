@@ -11,7 +11,7 @@
 export const dealsRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `deals_request`." },
-  { name: "params", type: "array", required: true, description: "Query parameters tuple:\n- [0] Market name\n- [1] Offset\n- [2] Limit (max 100)" },
+  { name: "params", type: "array", required: true, description: "Query parameters tuple:\n- [0] Market name (STRING)\n- [1] Offset (INTEGER)\n- [2] Limit (INTEGER, max 100)" },
 ];
 
 export const dealsResponse = [

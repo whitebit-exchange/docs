@@ -6,6 +6,25 @@ sidebarTitle: Overview
 
 Browse the available private WebSocket channels below. For connection details and message format, see the [WebSocket Overview](/websocket/overview). For rate limits, see [WebSocket Rate Limits](/websocket/rate-limits).
 
+## Order types
+
+Several Account Stream channels return a `type` field identifying the order type. Use this table to interpret the value.
+
+| ID | Description |
+|----|-------------|
+| 1 | Limit |
+| 2 | Market |
+| 202 | Market [stock](/glossary#stock) |
+| 3 | Stop limit |
+| 4 | Stop market |
+| 7 | Margin limit |
+| 8 | Margin market |
+| 9 | Margin stop limit |
+| 10 | Margin trigger-stop market |
+| 14 | Margin normalization |
+
+## Channels
+
 <CardGroup cols={2}>
   <Card title="Authorize" icon="key" href="/websocket/account-streams/authorize">
     Authenticate the WebSocket connection to access private channels

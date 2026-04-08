@@ -26,7 +26,7 @@ export const depthUpdateData = [
 export const depthRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `depth_request`." },
-  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name\n- [1] Limit (max 100)\n- [2] Price interval units (e.g., \"0\", \"0.01\", \"0.1\")" },
+  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name\n- [1] Limit (max 100)\n- [2] Price interval units. Available values: \"0\" (no interval), \"0.00000001\", \"0.0000001\", \"0.000001\", \"0.00001\", \"0.0001\", \"0.001\", \"0.01\", \"0.1\"" },
 ];
 
 export const depthResponse = [
@@ -79,12 +79,28 @@ export const exDepthResponse = {
       [
         "0.020846",
         "29.369"
+      ],
+      [
+        "0.020850",
+        "15.123"
+      ],
+      [
+        "0.020855",
+        "8.456"
       ]
     ],
     "bids": [
       [
         "0.02083",
         "9.598"
+      ],
+      [
+        "0.020825",
+        "12.345"
+      ],
+      [
+        "0.020820",
+        "20.678"
       ]
     ]
   },
@@ -113,12 +129,28 @@ export const exDepthFullReload = {
         [
           "0.020846",
           "29.369"
+        ],
+        [
+          "0.020850",
+          "15.123"
+        ],
+        [
+          "0.020855",
+          "8.456"
         ]
       ],
       "bids": [
         [
           "0.02083",
           "9.598"
+        ],
+        [
+          "0.020825",
+          "12.345"
+        ],
+        [
+          "0.020820",
+          "20.678"
         ]
       ],
       "update_id": 214403,
