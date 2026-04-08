@@ -24,6 +24,10 @@ This is a private channel. [Authorize](/websocket/authentication) the WebSocket 
 
 Query or subscribe to collateral (margin) balance updates. The response includes total balance, borrowed amount, and available amounts with and without borrowing. **Update interval:** 1.5 seconds.
 
+<Note>
+Balance available for margin trade equals `balance × leverage` and depends on orderbook liquidity and open positions. When a position opens, the balance does not change, but the amount available for trading decreases.
+</Note>
+
 <WsChannelOverview operations={[
   {
     name: "Query",
@@ -47,7 +51,9 @@ Query or subscribe to collateral (margin) balance updates. The response includes
 
 ## Query margin balance (one-time)
 
-Fetch current margin balances for specific assets without subscribing. Pass an empty array to query all assets.
+Fetch current margin balances for specific assets without subscribing.
+
+`params`: `[asset, asset, ...]`. Pass asset tickers to query specific balances. Pass an empty array to query all assets.
 
 **Request**
 
