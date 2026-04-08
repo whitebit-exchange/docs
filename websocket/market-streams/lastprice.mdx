@@ -9,6 +9,7 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import {
+  channelOperations,
   lastpriceUpdate,
   exLastpriceRequest,
   exLastpriceResponse,
@@ -20,26 +21,7 @@ import {
 
 Query or subscribe to real-time last traded price updates for one or more markets. **Update interval:** 1 second.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "lastprice_request",
-    receive: "Current last price for the market",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "lastprice_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "lastprice_update — latest price per subscribed market"
-  },
-  {
-    name: "Unsubscribe",
-    send: "lastprice_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Query last price (one-time)
 

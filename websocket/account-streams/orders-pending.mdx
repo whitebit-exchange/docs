@@ -8,7 +8,10 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
 import {
+  channelOperations,
+  ordersPendingUpdateParamsTupleFields,
   orderObject,
   exOrdersPendingRequest,
   exOrdersPendingResponse,
@@ -24,26 +27,7 @@ This is a private channel. [Authorize](/websocket/authentication) the WebSocket 
 
 Query or subscribe to active (unexecuted) orders across specified markets. The server pushes `ordersPending_update` events in real time on every order state change. Subscribe to multiple markets simultaneously by passing market names in the `params` array.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "ordersPending_request",
-    receive: "Paginated list of current pending orders",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "ordersPending_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "ordersPending_update — real-time order state change"
-  },
-  {
-    name: "Unsubscribe",
-    send: "ordersPending_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Query pending orders (one-time)
 
@@ -70,24 +54,7 @@ Fetch current pending orders for a market without subscribing to updates.
   updateExtra={
     <div>
       <p><code>params[0]</code> is the update event ID. <code>params[1]</code> is the Order object — see <a href="#order-object">Order object</a> below.</p>
-      <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
-        <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
-          <div style={{padding: '8px 12px', flex: '0 0 80px'}}>Value</div>
-          <div style={{padding: '8px 12px', flex: 1}}>Meaning</div>
-        </div>
-        <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-          <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>1</code></div>
-          <div style={{padding: '8px 12px', flex: 1}}>New order placed</div>
-        </div>
-        <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-          <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>2</code></div>
-          <div style={{padding: '8px 12px', flex: 1}}>Order updated</div>
-        </div>
-        <div style={{display: 'flex'}}>
-          <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>3</code></div>
-          <div style={{padding: '8px 12px', flex: 1}}>Order finished (cancelled or executed)</div>
-        </div>
-      </div>
+      <WsTupleTable fields={ordersPendingUpdateParamsTupleFields} />
       <div style={{borderLeft: '3px solid #60a5fa', paddingLeft: '0.75rem', marginTop: '0.75rem', fontSize: '0.8125rem', color: '#374151', lineHeight: '1.5'}}>
         If a new order instantly matches an existing order from the order book, only one message is received — with event ID <code>3</code>.
       </div>

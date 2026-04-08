@@ -41,6 +41,20 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const borrowsEventsUpdateParamsTupleFields = [
+  { index: 0, field: "event_type", type: "integer", description: "Event type: 1=Margin call, 2=Liquidation", enum: [1,2], enumLabels: {"1":"Margin call","2":"Liquidation"} },
+  { index: 1, field: "borrow", type: "object", description: "Borrow object (same structure as Borrows endpoint)" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Subscribe", send: "borrowsAccountMargin_subscribe", receive: "Confirmation (status: success)", push: "borrowsAccountMargin_update — margin call or liquidation event" },
+  { name: "Unsubscribe", send: "borrowsAccountMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exBorrowsEventsSubscribe = {

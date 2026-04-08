@@ -44,6 +44,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "balanceSpot_request", receive: "Current balances for requested assets", push: null },
+  { name: "Subscribe", send: "balanceSpot_subscribe", receive: "Confirmation (status: success)", push: "balanceSpot_update — balance change for subscribed assets" },
+  { name: "Unsubscribe", send: "balanceSpot_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exBalanceSpotRequest = {

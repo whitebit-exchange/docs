@@ -8,7 +8,10 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
 import {
+  channelOperations,
+  marginPositionsEventsUpdateParamsTupleFields,
   positionRecord,
   exMarginPositionsEventsSubscribe,
   exMarginPositionsEventsSubscribeResponse,
@@ -22,20 +25,7 @@ This is a private channel. [Authorize](/websocket/authentication) the WebSocket 
 
 Subscribe to margin call and liquidation event notifications for collateral positions. Events fire when a position enters margin call or liquidation state.
 
-<WsChannelOverview operations={[
-  {
-    name: "Subscribe",
-    send: "positionsAccountMargin_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "positionsAccountMargin_update — margin call or liquidation event"
-  },
-  {
-    name: "Unsubscribe",
-    send: "positionsAccountMargin_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Subscribe to position events
 
@@ -47,20 +37,7 @@ Subscribe to margin call and liquidation event notifications for collateral posi
   updateNote="params[0] is the event type. params[1] is the position object."
   updateExtra={
     <div>
-      <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
-        <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
-          <div style={{padding: '8px 12px', flex: '0 0 80px'}}>Value</div>
-          <div style={{padding: '8px 12px', flex: 1}}>Event</div>
-        </div>
-        <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-          <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>1</code></div>
-          <div style={{padding: '8px 12px', flex: 1}}>Margin call</div>
-        </div>
-        <div style={{display: 'flex'}}>
-          <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>2</code></div>
-          <div style={{padding: '8px 12px', flex: 1}}>Liquidation</div>
-        </div>
-      </div>
+      <WsTupleTable fields={marginPositionsEventsUpdateParamsTupleFields} />
       <div style={{borderLeft: '3px solid #60a5fa', paddingLeft: '0.75rem', marginTop: '0.75rem', fontSize: '0.8125rem', color: '#374151', lineHeight: '1.5'}}>
         <code>liq_stage</code> values: <code>margin_call</code>, <code>liquidation</code>, or <code>null</code> (healthy).
       </div>

@@ -41,6 +41,13 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Subscribe", send: "borrowsMargin_subscribe", receive: "Confirmation (status: success)", push: "borrowsMargin_update — current borrow state for all open borrows" },
+  { name: "Unsubscribe", send: "borrowsMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exBorrowsSubscribe = {

@@ -8,8 +8,11 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
 import {
   bookTickerUpdate,
+  bookTickerUpdateDataTupleFields,
+  channelOperations,
   exSubscribeSpecificMarket,
   exBookTickerSubscribeResponse,
   exBookTickerUpdate,
@@ -18,20 +21,7 @@ import {
 
 Real-time best bid and best ask price updates for a market. The server sends an update instantly whenever the best bid or best ask changes.
 
-<WsChannelOverview operations={[
-  {
-    name: "Subscribe",
-    send: "bookTicker_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "bookTicker_update — best bid/ask snapshot on change"
-  },
-  {
-    name: "Unsubscribe",
-    send: "bookTicker_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Subscribe to book ticker
 
@@ -41,55 +31,7 @@ Real-time best bid and best ask price updates for a market. The server sends an 
   confirmation={exBookTickerSubscribeResponse}
   update={exBookTickerUpdate}
   updateNote="The server pushes bookTicker_update on every best bid/ask change. The update is a positional array — fields are identified by index."
-  updateExtra={
-    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
-      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px'}}>Index</div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>Field</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Description</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[0]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>transaction_time</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Unix timestamp from matching engine</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[1]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>message_time</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Unix timestamp from WebSocket</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[2]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>market</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Market name</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[3]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>update_id</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Monotonic update counter</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[4]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_bid_price</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Current best bid price</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[5]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_bid_amount</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Current best bid quantity</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[6]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_ask_price</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Current best ask price</div>
-      </div>
-      <div style={{display: 'flex'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[7]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 180px'}}>best_ask_amount</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Current best ask quantity</div>
-      </div>
-    </div>
-  }
+  updateExtra={<WsTupleTable fields={bookTickerUpdateDataTupleFields} />}
   unsubscribe={exBookTickerUnsubscribe}
 />
 

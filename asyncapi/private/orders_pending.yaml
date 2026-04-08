@@ -211,9 +211,7 @@ components:
     ordersPendingUpdate:
       name: OrdersPendingUpdate
       title: Orders Pending Update
-      summary: |
-        Real-time pending orders update.
-        Update event ID: 1=New order, 2=Update order, 3=Finish order (cancel or execute)
+      summary: Real-time order state change
       payload:
         $ref: '#/components/schemas/OrdersPendingUpdate'
       examples:
@@ -404,7 +402,13 @@ components:
             - type: integer
               enum: [1, 2, 3]
               description: "Update event ID: 1=New order, 2=Update order, 3=Finish order (cancel or execute)"
+              x-field-name: event_id
+              x-enum-labels:
+                "1": "New order placed"
+                "2": "Order updated"
+                "3": "Order finished (cancelled or executed)"
             - $ref: '#/components/schemas/OrderObject'
+              x-field-name: order
           description: "Array with update event ID and order object"
 
     OrderObject:

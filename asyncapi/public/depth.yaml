@@ -115,7 +115,7 @@ components:
     depthResponse:
       name: DepthResponse
       title: Depth Response
-      summary: Order book depth with bids and asks
+      summary: Full order book snapshot
       payload:
         $ref: '#/components/schemas/DepthResponse'
       examples:
@@ -178,7 +178,7 @@ components:
     depthUpdate:
       name: DepthUpdate
       title: Depth Update
-      summary: Real-time order book depth update (full reload or partial)
+      summary: Full snapshot (first), then incremental updates
       payload:
         $ref: '#/components/schemas/DepthUpdate'
       examples:
