@@ -20,7 +20,7 @@ export const trade = [
 export const tradesRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `trades_request`." },
-  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name\n- [1] Limit (number of trades to return)\n- [2] Largest trade ID to request from" },
+  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name (STRING)\n- [1] Limit — number of trades to return (INTEGER, max 100)\n- [2] Largest trade ID to request from (INTEGER, use 0 for latest)" },
 ];
 
 export const tradesResponse = [
@@ -73,7 +73,8 @@ export const exTradesResponse = {
       "time": 1580905394.70332,
       "price": "0.020857",
       "amount": "5.511",
-      "type": "sell"
+      "type": "sell",
+      "rpi": false
     }
   ],
   "error": null
@@ -105,7 +106,8 @@ export const exTradesUpdate = {
         "time": 1580905394.70332,
         "price": "0.020857",
         "amount": "5.511",
-        "type": "sell"
+        "type": "sell",
+        "rpi": true
       }
     ]
   ]

@@ -125,6 +125,7 @@ components:
             - price: Trade price (0.020857)
             - amount: Trade amount (5.511)
             - type: Trade type (buy/sell)
+            - rpi: Retail Price Improvement flag
           payload:
             id: 8
             result:
@@ -133,6 +134,7 @@ components:
                 price: "0.020857"
                 amount: "5.511"
                 type: sell
+                rpi: false
             error: null
 
     tradesSubscribe:
@@ -192,6 +194,7 @@ components:
                   price: "0.020857"
                   amount: "5.511"
                   type: sell
+                  rpi: true
 
     tradesUnsubscribe:
       name: TradesUnsubscribe
@@ -248,18 +251,19 @@ components:
           type: array
           description: |
             Query parameters:
-            - [0] Market name
-            - [1] Limit (number of trades to return)
-            - [2] Largest trade ID to request from
+            - [0] Market name (STRING)
+            - [1] Limit — number of trades to return (INTEGER, max 100)
+            - [2] Largest trade ID to request from (INTEGER, use 0 for latest)
           minItems: 3
           maxItems: 3
           items:
             - type: string
               description: "[Market](/glossary#market) name"
             - type: integer
-              description: Limit (number of trades to return)
+              description: "Limit — number of trades to return (max 100)"
+              maximum: 100
             - type: integer
-              description: Largest trade ID to request from
+              description: "Largest trade ID to request from (use 0 for latest)"
 
     TradesResponse:
       type: object

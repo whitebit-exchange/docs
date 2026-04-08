@@ -26,6 +26,15 @@ export const borrowsUpdate = [
   { name: "params", type: "object", required: true, description: "" },
 ];
 
+export const borrowRecord = [
+  { name: "asset", type: "string", description: "Borrowed asset" },
+  { name: "ctime", type: "number", description: "Borrow created date in Unix time" },
+  { name: "mtime", type: "number", description: "Last update time in Unix time" },
+  { name: "amount", type: "string", description: "Borrow amount (negative value)" },
+  { name: "unrealized_funding", type: "string", description: "Funding to be paid on the next borrow stage change" },
+  { name: "liq_price", type: "string", description: "Borrow liquidation price" },
+];
+
 export const unsubscribeRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `borrowsMargin_unsubscribe`." },
