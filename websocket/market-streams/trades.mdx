@@ -9,6 +9,7 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import {
+  channelOperations,
   trade,
   exTradesRequest,
   exTradesResponse,
@@ -19,26 +20,7 @@ import {
 
 Subscribe to real-time trade execution updates for one or more markets. **Update interval:** real-time.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "trades_request",
-    receive: "Recent trades list for the market",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "trades_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "trades_update — new trade executions"
-  },
-  {
-    name: "Unsubscribe",
-    send: "trades_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Query recent trades (one-time)
 

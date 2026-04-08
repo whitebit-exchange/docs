@@ -9,6 +9,7 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import {
+  channelOperations,
   marketTodayStatistics,
   exMarketTodayRequest,
   exMarketTodayResponse,
@@ -18,26 +19,7 @@ import {
 
 Market statistics for the current UTC day, resetting daily at 00:00 UTC. **Update interval:** 1 second.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "marketToday_query",
-    receive: "Today's statistics for one market",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "marketToday_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "marketToday_update — updated daily statistics"
-  },
-  {
-    name: "Unsubscribe",
-    send: "marketToday_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Query market today (one-time)
 

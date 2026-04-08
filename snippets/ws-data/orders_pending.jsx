@@ -66,6 +66,21 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const ordersPendingUpdateParamsTupleFields = [
+  { index: 0, field: "event_id", type: "integer", description: "Update event ID: 1=New order, 2=Update order, 3=Finish order (cancel or execute)", enum: [1,2,3], enumLabels: {"1":"New order placed","2":"Order updated","3":"Order finished (cancelled or executed)"} },
+  { index: 1, field: "order", type: "object", description: "Order object with all order details" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "ordersPending_request", receive: "List of pending orders", push: null },
+  { name: "Subscribe", send: "ordersPending_subscribe", receive: "Confirmation (status: success)", push: "ordersPending_update — real-time order state change" },
+  { name: "Unsubscribe", send: "ordersPending_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exOrdersPendingRequest = {

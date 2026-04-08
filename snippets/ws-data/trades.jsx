@@ -53,6 +53,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "trades_request", receive: "Recent trades list for the market", push: null },
+  { name: "Subscribe", send: "trades_subscribe", receive: "Confirmation (status: success)", push: "trades_update — new trade executions" },
+  { name: "Unsubscribe", send: "trades_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exTradesRequest = {

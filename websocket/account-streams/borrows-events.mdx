@@ -8,7 +8,10 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
 import {
+  channelOperations,
+  borrowsEventsUpdateParamsTupleFields,
   borrowRecord,
   exBorrowsEventsSubscribe,
   exBorrowsEventsSubscribeResponse,
@@ -22,20 +25,7 @@ This is a private channel. [Authorize](/websocket/authentication) the WebSocket 
 
 Subscribe to margin call and liquidation event notifications for collateral borrows. Events fire when a borrow enters margin call or liquidation state.
 
-<WsChannelOverview operations={[
-  {
-    name: "Subscribe",
-    send: "borrowsAccountMargin_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "borrowsAccountMargin_update — margin call or liquidation event"
-  },
-  {
-    name: "Unsubscribe",
-    send: "borrowsAccountMargin_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Subscribe to borrow events
 
@@ -45,22 +35,7 @@ Subscribe to margin call and liquidation event notifications for collateral borr
   confirmation={exBorrowsEventsSubscribeResponse}
   update={exBorrowsEventsUpdate}
   updateNote="params[0] is the event type. params[1] is the borrow object."
-  updateExtra={
-    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
-      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
-        <div style={{padding: '8px 12px', flex: '0 0 80px'}}>Value</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Event</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>1</code></div>
-        <div style={{padding: '8px 12px', flex: 1}}>Margin call</div>
-      </div>
-      <div style={{display: 'flex'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 80px'}}><code>2</code></div>
-        <div style={{padding: '8px 12px', flex: 1}}>Liquidation</div>
-      </div>
-    </div>
-  }
+  updateExtra={<WsTupleTable fields={borrowsEventsUpdateParamsTupleFields} />}
   unsubscribe={exBorrowsEventsUnsubscribe}
 />
 

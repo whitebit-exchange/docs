@@ -51,6 +51,13 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Subscribe", send: "positionsMargin_subscribe", receive: "Confirmation (status: success)", push: "positionsMargin_update — real-time positions update" },
+  { name: "Unsubscribe", send: "positionsMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exPositionsSubscribe = {

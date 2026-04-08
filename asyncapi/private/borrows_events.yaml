@@ -112,7 +112,7 @@ components:
     borrowsEventsUpdate:
       name: BorrowsEventsUpdate
       title: Borrows Events Update
-      summary: "Real-time borrows events. Event type: 1=Margin call, 2=Liquidation"
+      summary: Margin call or liquidation event
       payload:
         $ref: '#/components/schemas/BorrowsEventsUpdate'
       examples:
@@ -232,7 +232,12 @@ components:
             - type: integer
               enum: [1, 2]
               description: "Event type: 1=Margin call, 2=Liquidation"
+              x-field-name: event_type
+              x-enum-labels:
+                "1": "Margin call"
+                "2": "Liquidation"
             - $ref: '#/components/schemas/BorrowRecord'
+              x-field-name: borrow
 
     BorrowRecord:
       type: object

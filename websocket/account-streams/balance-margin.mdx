@@ -9,6 +9,7 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import {
+  channelOperations,
   balanceMarginUpdate,
   exBalanceMarginRequest,
   exBalanceMarginResponse,
@@ -28,26 +29,7 @@ Query or subscribe to collateral (margin) balance updates. The response includes
 Balance available for margin trade equals `balance × leverage` and depends on orderbook liquidity and open positions. When a position opens, the balance does not change, but the amount available for trading decreases.
 </Note>
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "balanceMargin_request",
-    receive: "Current balances for requested assets",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "balanceMargin_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "balanceMargin_update — balance change for subscribed assets"
-  },
-  {
-    name: "Unsubscribe",
-    send: "balanceMargin_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Query margin balance (one-time)
 

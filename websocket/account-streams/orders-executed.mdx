@@ -9,6 +9,7 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import {
+  channelOperations,
   executedOrderObject,
   exOrdersExecutedRequest,
   exOrdersExecutedResponse,
@@ -24,26 +25,7 @@ This is a private channel. [Authorize](/websocket/authentication) the WebSocket 
 
 Query or subscribe to executed order history with optional filtering by order type (limit, market, or both). Each record includes execution details, fees, and status. **Update interval:** real-time.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "ordersExecuted_request",
-    receive: "Paginated list of executed orders",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "ordersExecuted_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "ordersExecuted_update — newly executed order"
-  },
-  {
-    name: "Unsubscribe",
-    send: "ordersExecuted_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
 
 ## Query executed orders (one-time)
 
