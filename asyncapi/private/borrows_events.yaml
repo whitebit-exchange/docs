@@ -232,27 +232,30 @@ components:
             - type: integer
               enum: [1, 2]
               description: "Event type: 1=Margin call, 2=Liquidation"
-            - type: object
-              description: "Borrow object (same structure as Borrows endpoint)"
-              properties:
-                asset:
-                  type: string
-                  description: "Borrowed asset"
-                ctime:
-                  type: number
-                  description: "Borrow created date in Unix time"
-                mtime:
-                  type: number
-                  description: "Last update time in Unix time"
-                amount:
-                  type: string
-                  description: "Borrow amount"
-                unrealized_funding:
-                  type: string
-                  description: "Funding to be paid on next borrow stage change"
-                liq_price:
-                  type: string
-                  description: "Borrow liquidation price"
+            - $ref: '#/components/schemas/BorrowRecord'
+
+    BorrowRecord:
+      type: object
+      description: "Borrow object (same structure as Borrows endpoint)"
+      properties:
+        asset:
+          type: string
+          description: "Borrowed asset"
+        ctime:
+          type: number
+          description: "Borrow created date in Unix time"
+        mtime:
+          type: number
+          description: "Last update time in Unix time"
+        amount:
+          type: string
+          description: "Borrow amount (negative value)"
+        unrealized_funding:
+          type: string
+          description: "Funding to be paid on next borrow stage change"
+        liq_price:
+          type: string
+          description: "Borrow liquidation price"
 
     UnsubscribeRequest:
       type: object

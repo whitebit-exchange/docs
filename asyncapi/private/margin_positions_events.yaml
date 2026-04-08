@@ -242,60 +242,63 @@ components:
             - type: integer
               enum: [1, 2]
               description: "Event type: 1=Margin call, 2=Liquidation"
-            - type: object
-              description: "Position object (same structure as Positions endpoint)"
-              properties:
-                id:
-                  type: integer
-                  description: "Position ID"
-                market:
-                  type: string
-                  description: "[Market](/glossary#market) name"
-                ctime:
-                  type: number
-                  description: "Date of position opening in Unix time"
-                mtime:
-                  type: number
-                  description: "Date of position modifying in Unix time"
-                amount:
-                  type: string
-                  description: "Position amount"
-                amount_in_money:
-                  type: string
-                  description: "Position amount in [money](/glossary#money)"
-                base_price:
-                  type: string
-                  description: "Base price of position"
-                pnl:
-                  type: string
-                  description: "Unrealized PnL in money"
-                liq_price:
-                  type: string
-                  description: "Liquidation price"
-                liq_stage:
-                  type: string
-                  nullable: true
-                  enum: [null, "margin_call"]
-                  description: "Liquidation state"
-                unrealized_funding:
-                  type: string
-                  description: "Funding to be paid on next position stage change"
-                funding:
-                  type: string
-                  description: "Funding already disbursed"
-                margin:
-                  type: string
-                  description: "Own funds amount in open position in money"
-                free_margin:
-                  type: string
-                  description: "Free funds for trading"
-                realized_pnl:
-                  type: string
-                  description: "Realized PnL in money"
-                position_side:
-                  type: string
-                  enum: ["LONG", "SHORT", "BOTH"]
-                  description: "Position side"
+            - $ref: '#/components/schemas/PositionRecord'
+
+    PositionRecord:
+      type: object
+      description: "Position object (same structure as Positions endpoint)"
+      properties:
+        id:
+          type: integer
+          description: "Position ID"
+        market:
+          type: string
+          description: "[Market](/glossary#market) name"
+        ctime:
+          type: number
+          description: "Date of position opening in Unix time"
+        mtime:
+          type: number
+          description: "Date of position modifying in Unix time"
+        amount:
+          type: string
+          description: "Position amount (negative = short)"
+        amount_in_money:
+          type: string
+          description: "Position amount in [money](/glossary#money)"
+        base_price:
+          type: string
+          description: "Base price of position"
+        pnl:
+          type: string
+          description: "Unrealized PnL in **money**"
+        liq_price:
+          type: string
+          description: "Liquidation price"
+        liq_stage:
+          type: string
+          nullable: true
+          enum: [null, "margin_call", "liquidation"]
+          description: "Liquidation state. Possible values: null, margin_call, liquidation"
+        unrealized_funding:
+          type: string
+          description: "Funding to be paid on next position stage change"
+        funding:
+          type: string
+          description: "Funding already disbursed"
+        margin:
+          type: string
+          description: "Own funds amount in open position in **money**"
+        free_margin:
+          type: string
+          description: "Free funds for trading"
+        realized_pnl:
+          type: string
+          description: "Realized PnL in **money**"
+        position_side:
+          type: string
+          enum: ["LONG", "SHORT", "BOTH"]
+          description: "Position side - LONG or SHORT or BOTH"
 
     UnsubscribeRequest:
       type: object
