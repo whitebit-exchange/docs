@@ -53,6 +53,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "marketToday_query", receive: "Market statistics for current day UTC", push: null },
+  { name: "Subscribe", send: "marketToday_subscribe", receive: "Confirmation (status: success)", push: "marketToday_update — periodic market today statistics update (every 1 second)" },
+  { name: "Unsubscribe", send: "marketToday_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exMarketTodayRequest = {

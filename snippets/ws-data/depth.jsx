@@ -59,6 +59,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "depth_request", receive: "Full order book snapshot", push: null },
+  { name: "Subscribe", send: "depth_subscribe", receive: "Confirmation (status: success)", push: "depth_update — full snapshot (first), then incremental updates" },
+  { name: "Unsubscribe", send: "depth_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exDepthRequest = {

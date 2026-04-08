@@ -44,6 +44,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "lastprice_request", receive: "Current last price for the market", push: null },
+  { name: "Subscribe", send: "lastprice_subscribe", receive: "Confirmation (status: success)", push: "lastprice_update — periodic last price update (every 1 second)" },
+  { name: "Unsubscribe", send: "lastprice_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exLastpriceRequest = {

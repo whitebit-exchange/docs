@@ -69,6 +69,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "ordersExecuted_request", receive: "List of executed orders", push: null },
+  { name: "Subscribe", send: "ordersExecuted_subscribe", receive: "Confirmation (status: success)", push: "ordersExecuted_update — real-time executed orders update" },
+  { name: "Unsubscribe", send: "ordersExecuted_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exOrdersExecutedRequest = {

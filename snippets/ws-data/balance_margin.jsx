@@ -44,6 +44,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
 
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "balanceMargin_request", receive: "Current margin wallet balances", push: null },
+  { name: "Subscribe", send: "balanceMargin_subscribe", receive: "Confirmation (status: success)", push: "balanceMargin_update — balance change for subscribed assets" },
+  { name: "Unsubscribe", send: "balanceMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
 // ── Message examples ────────────────────────────────────────────────────────
 
 export const exBalanceMarginRequest = {
