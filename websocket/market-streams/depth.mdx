@@ -44,7 +44,7 @@ Real-time order book data with support for both one-time snapshots and continuou
 
 Fetch a single order book snapshot without subscribing to updates.
 
-`params`: `[market, limit, price_interval]`. Maximum limit: 100. Set `price_interval` to `"0"` for no grouping.
+`params`: `[market, limit, price_interval]`. Maximum limit: `100`. Available `price_interval` values: `"0"` (no grouping), `"0.00000001"`, `"0.0000001"`, `"0.000001"`, `"0.00001"`, `"0.0001"`, `"0.001"`, `"0.01"`, `"0.1"`.
 
 **Request**
 
@@ -58,7 +58,7 @@ Fetch a single order book snapshot without subscribing to updates.
 
 <WsSubscribeSteps
   subscribe={exDepthSubscribe}
-  subscribeNote="params: [market, limit, price_interval, multi_depth]. limit — number of price levels. price_interval — price grouping interval ('0' for no grouping). multi_depth — set true to receive incremental updates."
+  subscribeNote="params: [market, limit, price_interval, multi_depth]. limit — number of price levels (available values: 1, 5, 10, 20, 30, 50, 100). price_interval — price grouping interval ('0' for no grouping). multi_depth — set true to receive incremental updates."
   confirmation={{id: 12, result: {status: "success"}, error: null}}
   update={exDepthFullReload}
   updateNote="The first depth_update is always a full snapshot — params[0] is true, past_update_id is absent. Initialize your local order book from this snapshot."

@@ -13,6 +13,7 @@ import {
   exTradesRequest,
   exTradesResponse,
   exSubscribeSpecificMarkets,
+  exSubscribeAllMarkets,
   exTradesUpdate,
 } from '/snippets/ws-data/trades.jsx'
 
@@ -43,7 +44,7 @@ Subscribe to real-time trade execution updates for one or more markets. **Update
 
 Fetch recent trades for a market without subscribing.
 
-`params`: `[market, limit, lastId]`. `lastId` — return trades with ID greater than this value (use `0` for the latest trades).
+`params`: `[market, limit, lastId]`. `limit` — number of trades to return (INTEGER, max `100`). `lastId` — return trades with ID greater than this value (INTEGER, use `0` for the latest trades).
 
 **Request**
 
@@ -67,6 +68,10 @@ For each WebSocket connection, subscribe to either specific markets or all marke
   updateNote="params[0] is the market name. params[1] is an array of trade objects."
   unsubscribe={{id: 10, method: "trades_unsubscribe", params: []}}
 />
+
+**Subscribe to all markets:**
+
+<WsMessageExample data={exSubscribeAllMarkets} />
 
 ## RPI orders in trade updates
 

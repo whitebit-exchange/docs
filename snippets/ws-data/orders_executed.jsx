@@ -11,7 +11,7 @@
 export const ordersExecutedRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `ordersExecuted_request`." },
-  { name: "params", type: "array", required: true, description: "Query parameters tuple:\n- [0] Filter object with market and order_types\n- [1] Offset\n- [2] Limit (max 100)" },
+  { name: "params", type: "array", required: true, description: "Query parameters tuple:\n- [0] Filter object with market (STRING) and order_types (ARRAY of INTEGER)\n- [1] Offset (INTEGER)\n- [2] Limit (INTEGER, max 100)" },
 ];
 
 export const ordersExecutedResponse = [
@@ -45,7 +45,7 @@ export const executedOrderObject = [
   { name: "mtime", type: "number", description: "Modified at in Unix time" },
   { name: "market", type: "string", description: "Market" },
   { name: "source", type: "string", description: "Source (e.g., web, api)" },
-  { name: "type", type: "integer", description: "Order type. See order types table in overview" },
+  { name: "type", type: "integer", description: "Order type. See order types table." },
   { name: "side", type: "integer", enum: [1,2], description: "Side: 1=sell, 2=buy/bid" },
   { name: "post_only", type: "boolean", description: "Post only flag" },
   { name: "ioc", type: "boolean", description: "IOC flag" },

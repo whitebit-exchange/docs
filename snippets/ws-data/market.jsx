@@ -22,7 +22,7 @@ export const marketStatistics = [
 export const marketRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `market_request`." },
-  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name\n- [1] Period in seconds" },
+  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name (STRING)\n- [1] Period in seconds (INTEGER)" },
 ];
 
 export const marketResponse = [

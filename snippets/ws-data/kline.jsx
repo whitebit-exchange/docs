@@ -11,7 +11,7 @@
 export const candlesRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `candles_request`." },
-  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name (e.g., ETH_BTC)\n- [1] Start time (Unix timestamp)\n- [2] End time (Unix timestamp)\n- [3] Interval in seconds" },
+  { name: "params", type: "array", required: true, description: "Query parameters:\n- [0] Market name (STRING, e.g., ETH_BTC)\n- [1] Start time (INTEGER, Unix timestamp)\n- [2] End time (INTEGER, Unix timestamp)\n- [3] Interval in seconds (INTEGER, see interval constraints)" },
 ];
 
 export const candlesResponse = [
@@ -23,7 +23,7 @@ export const candlesResponse = [
 export const candlesSubscribe = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `candles_subscribe`." },
-  { name: "params", type: "array", required: true, description: "Subscription parameters:\n- [0] Market name (e.g., BTC_USD)\n- [1] Interval in seconds" },
+  { name: "params", type: "array", required: true, description: "Subscription parameters:\n- [0] Market name (STRING, e.g., BTC_USD)\n- [1] Interval in seconds (INTEGER, see interval constraints)" },
 ];
 
 export const subscriptionResponse = [

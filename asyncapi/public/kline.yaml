@@ -263,10 +263,10 @@ components:
           type: array
           description: |
             Query parameters:
-            - [0] Market name (e.g., ETH_BTC)
-            - [1] Start time (Unix timestamp)
-            - [2] End time (Unix timestamp)
-            - [3] Interval in seconds
+            - [0] Market name (STRING, e.g., ETH_BTC)
+            - [1] Start time (INTEGER, Unix timestamp)
+            - [2] End time (INTEGER, Unix timestamp)
+            - [3] Interval in seconds (INTEGER, see interval constraints)
           minItems: 4
           maxItems: 4
           items:
@@ -314,8 +314,8 @@ components:
           type: array
           description: |
             Subscription parameters:
-            - [0] Market name (e.g., BTC_USD)
-            - [1] Interval in seconds
+            - [0] Market name (STRING, e.g., BTC_USD)
+            - [1] Interval in seconds (INTEGER, see interval constraints)
           minItems: 2
           maxItems: 2
           items:
