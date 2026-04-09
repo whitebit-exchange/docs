@@ -6,15 +6,24 @@ description: "Authorize a WebSocket connection to subscribe to private account d
 
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
+  authorizeRequestParamsTupleFields,
   exAuthorizeRequest,
   exAuthorizeResponse,
 } from '/snippets/ws-data/authorize.jsx'
 
-Authorize the WebSocket connection for private channel access. Send a WebSocket token obtained from the REST API. Authorization is required once per connection — all private channels can be used after a single successful authorization.
+Authorize the WebSocket connection for private channel access. Send a WebSocket token obtained from the REST API. This channel handles WebSocket connection authorization. Authorize once per connection — all private channels become accessible after a single successful authorization.
 
 <WsChannelOverview operations={channelOperations} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Authorization flow
 
@@ -30,7 +39,7 @@ See [WebSocket Authentication](/websocket/authentication) for the full flow incl
 
 **Step 2 — Send authorization request**
 
-`params[0]` is the token. `params[1]` is the fixed string `"public"`.
+<WsTupleTable fields={authorizeRequestParamsTupleFields} />
 
 <WsMessageExample data={exAuthorizeRequest} />
 
@@ -38,8 +47,16 @@ See [WebSocket Authentication](/websocket/authentication) for the full flow incl
 
 <WsMessageExample data={exAuthorizeResponse} />
 
-The connection is now authorized. Subscribe to any private channel on the same connection.
+The connection is authorized. Subscribe to any private channel on the same connection.
 
 <Note>
 Authorization is per connection, not per subscription. Authorize once, then subscribe to as many private channels as needed on the same WebSocket connection.
 </Note>
+
+## Update frequency
+
+Client-initiated. Send an `authorize` request after each new WebSocket connection.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />

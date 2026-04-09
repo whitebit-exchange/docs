@@ -126,6 +126,7 @@ function tupleToFields(schema, allSchemas) {
     // Preserve x-* annotations from the original item before resolving $ref
     const originalFieldName = item?.['x-field-name'];
     const originalExample = item?.['x-example'];
+    const originalRequired = item?.['x-required'];
     const originalEnumLabels = item?.['x-enum-labels'];
 
     // Resolve $ref on individual item
@@ -151,6 +152,11 @@ function tupleToFields(schema, allSchemas) {
       field.enum = it.enum;
     }
 
+    const required = originalRequired !== undefined ? originalRequired : it['x-required'];
+    if (required !== undefined) {
+      field.required = Boolean(required);
+    }
+
     const enumLabels = originalEnumLabels || it['x-enum-labels'];
     if (enumLabels && typeof enumLabels === 'object') {
       field.enumLabels = enumLabels;
@@ -167,6 +173,7 @@ function tupleFieldsToJs(fields) {
   const lines = fields.map((f) => {
     const parts = [`index: ${f.index}`, `field: ${JSON.stringify(f.field)}`, `type: ${JSON.stringify(f.type)}`];
     parts.push(`description: ${JSON.stringify(f.description)}`);
+    if (f.required !== undefined) parts.push(`required: ${f.required}`);
     if (f.example !== undefined) parts.push(`example: ${JSON.stringify(f.example)}`);
     if (f.enum) parts.push(`enum: ${JSON.stringify(f.enum)}`);
     if (f.enumLabels) parts.push(`enumLabels: ${JSON.stringify(f.enumLabels)}`);
@@ -458,7 +465,25 @@ for (const dir of SPEC_DIRS) {
     // Message example exports — feed <WsMessageExample>
     const exampleExports = messageExamplesToExports(messages);
 
-    const allExports = [...schemaExports, ...tupleExports, ...(channelOpsExport ? [channelOpsExport] : []), ...exampleExports];
+    // Channel metadata export — feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+    const authRequired = spec?.info?.['x-auth-required'];
+    const rateLimits = spec?.info?.['x-rate-limits'];
+    const errorCodes = spec?.info?.['x-error-codes'];
+    let metaExport = null;
+    if (authRequired !== undefined || rateLimits || errorCodes !== undefined) {
+      const meta = {};
+      if (authRequired !== undefined) meta.authRequired = Boolean(authRequired);
+      if (rateLimits) {
+        meta.rateLimits = {
+          connectionsPerMinute: rateLimits['connections-per-minute'] || 1000,
+          requestsPerMinute: rateLimits['requests-per-minute'] || 200,
+        };
+      }
+      meta.errorCodes = errorCodes || 'standard';
+      metaExport = `export const channelMeta = ${JSON.stringify(meta, null, 2)};`;
+    }
+
+    const allExports = [...schemaExports, ...tupleExports, ...(channelOpsExport ? [channelOpsExport] : []), ...(metaExport ? [metaExport] : []), ...exampleExports];
 
     if (allExports.length === 0) {
       console.log(`  –  ${dir}/${file}: no schemas or examples found, skipping`);
@@ -467,7 +492,7 @@ for (const dir of SPEC_DIRS) {
 
     const firstExportedSchemaName = schemaExports[0]?.match(/^export const (\w+)/)?.[1];
     const firstExampleName = exampleExports[0]?.match(/^export const (\w+)/)?.[1];
-    const importParts = [firstExportedSchemaName, firstExampleName].filter(Boolean);
+    const importParts = [firstExportedSchemaName, ...(metaExport ? ['channelMeta'] : []), firstExampleName].filter(Boolean);
     const header = [
       `// AUTO-GENERATED — do not edit manually.`,
       `// Source: ${dir}/${file}`,
@@ -475,6 +500,7 @@ for (const dir of SPEC_DIRS) {
       `//`,
       `// Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />`,
       `// Example exports (ex prefix) → feed <WsMessageExample data={...} />`,
+      `// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>`,
       ...(importParts.length > 0 ? [`//   import { ${importParts.join(', ')} } from '/snippets/ws-data/${specName}.jsx'`] : []),
     ].join('\n');
 
@@ -488,6 +514,9 @@ for (const dir of SPEC_DIRS) {
     if (channelOpsExport) {
       sections.push(`// ── Channel operations ──────────────────────────────────────────────────────\n\n${channelOpsExport}`);
     }
+    if (metaExport) {
+      sections.push(`// ── Channel metadata ────────────────────────────────────────────────────────\n\n${metaExport}`);
+    }
     if (exampleExports.length > 0) {
       sections.push(`// ── Message examples ────────────────────────────────────────────────────────\n\n${exampleExports.join('\n\n')}`);
     }
@@ -496,6 +525,7 @@ for (const dir of SPEC_DIRS) {
     const parts = [`${schemaExports.length} schema${schemaExports.length !== 1 ? 's' : ''}`];
     if (tupleExports.length > 0) parts.push(`${tupleExports.length} tuple${tupleExports.length !== 1 ? 's' : ''}`);
     if (channelOpsExport) parts.push('ops');
+    if (metaExport) parts.push('meta');
     parts.push(`${exampleExports.length} example${exampleExports.length !== 1 ? 's' : ''}`);
     console.log(`  ✓  ${outPath.replace(ROOT + '/', '')} (${parts.join(', ')})`);
     totalFiles++;

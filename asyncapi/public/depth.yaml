@@ -3,6 +3,10 @@ info:
   title: WhiteBit Order Book Depth
   version: 1.0.0
   description: Real-time order book depth data. Provides full and partial updates of bid/ask levels with support for multiple subscription parameters.
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -336,10 +340,19 @@ components:
           items:
             - type: string
               description: Market name
+              x-field-name: market
+              x-required: true
+              x-example: "ETH_BTC"
             - type: integer
               description: Limit (max 100)
+              x-field-name: limit
+              x-required: true
+              x-example: 100
             - type: string
               description: 'Price interval units. Available values: "0" (no interval), "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"'
+              x-field-name: price_interval
+              x-required: true
+              x-example: "0"
 
     DepthResponse:
       type: object
@@ -381,13 +394,25 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name"
+              x-field-name: market
+              x-required: true
+              x-example: "ETH_BTC"
             - type: integer
               enum: [1, 5, 10, 20, 30, 50, 100]
               description: Limit
+              x-field-name: limit
+              x-required: true
+              x-example: 100
             - type: string
               description: 'Price interval units. Available values: "0" (no interval), "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"'
+              x-field-name: price_interval
+              x-required: true
+              x-example: "0"
             - type: boolean
               description: "Multiple subscription flag: true = add subscription, false = unsubscribe from all"
+              x-field-name: multi_depth
+              x-required: true
+              x-example: true
 
     SubscriptionResponse:
       type: object

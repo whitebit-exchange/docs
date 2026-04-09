@@ -9,31 +9,49 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   bookTickerUpdate,
   bookTickerUpdateDataTupleFields,
   channelOperations,
+  channelMeta,
   exSubscribeSpecificMarket,
   exBookTickerSubscribeResponse,
   exBookTickerUpdate,
   exBookTickerUnsubscribe,
 } from '/snippets/ws-data/book_ticker.jsx'
 
-Real-time best bid and best ask price updates for a market. The server sends an update instantly whenever the best bid or best ask changes.
+Real-time best bid and best ask price updates for a market. The server sends an update instantly whenever the best bid or best ask changes. Each update contains the current best bid price, best bid amount, best ask price, and best ask amount for the subscribed market. Use this stream to maintain an accurate top-of-book view without polling the REST API.
 
 <WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Subscribe to book ticker
 
 <WsSubscribeSteps
   subscribe={exSubscribeSpecificMarket}
-  subscribeNote="Pass a market name in params to subscribe to a specific market, or pass an empty array to subscribe to all markets."
+  subscribeNote="Pass a market name in params to subscribe to a specific market (`params[0]`: market name, STRING, e.g. `\"BTC_USDT\"`), or pass an empty array to subscribe to all markets."
   confirmation={exBookTickerSubscribeResponse}
   update={exBookTickerUpdate}
   updateNote="The server pushes bookTicker_update on every best bid/ask change. The update is a positional array — fields are identified by index."
   updateExtra={<WsTupleTable fields={bookTickerUpdateDataTupleFields} />}
   unsubscribe={exBookTickerUnsubscribe}
 />
+
+## Update frequency
+
+Updates are pushed **instantly** on every best bid or offer change.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 <Note>
 Public `bookTicker_update` events exclude Retail Price Improvement (RPI) orders. The stream includes only regular order book liquidity. RPI orders are visible in private active order endpoints and in the exchange UI order book.

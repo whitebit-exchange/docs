@@ -5,13 +5,17 @@ info:
   description: |
     Subscribe to borrows events (margin call and liquidation events).
     The channel does not support query operations — only subscribe, update, and unsubscribe.
-    
+
     ## Event Types
-    
+
     | Event Type | Description     |
     | ---------- | --------------- |
     | 1          | Margin call     |
     | 2          | Liquidation     |
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:

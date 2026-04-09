@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { balanceSpotRequest, exBalanceSpotRequest } from '/snippets/ws-data/balance_spot.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { balanceSpotRequest, channelMeta, exBalanceSpotRequest } from '/snippets/ws-data/balance_spot.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -51,6 +52,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "balanceSpot_subscribe", receive: "Confirmation (status: success)", push: "balanceSpot_update — balance change for subscribed assets" },
   { name: "Unsubscribe", send: "balanceSpot_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

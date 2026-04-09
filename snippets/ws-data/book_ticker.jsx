@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { bookTickerSubscribe, exSubscribeSpecificMarket } from '/snippets/ws-data/book_ticker.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { bookTickerSubscribe, channelMeta, exSubscribeSpecificMarket } from '/snippets/ws-data/book_ticker.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -51,6 +52,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "bookTicker_subscribe", receive: "Confirmation (status: success)", push: "bookTicker_update — best bid/ask snapshot on change" },
   { name: "Unsubscribe", send: "bookTicker_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

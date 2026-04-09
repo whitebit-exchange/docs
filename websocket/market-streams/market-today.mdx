@@ -8,22 +8,36 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   marketTodayStatistics,
+  marketTodayRequestParamsTupleFields,
   exMarketTodayRequest,
   exMarketTodayResponse,
   exMarketTodaySubscribe,
   exMarketTodayUpdate,
 } from '/snippets/ws-data/market_today.jsx'
 
-Market statistics for the current UTC day, resetting daily at 00:00 UTC. **Update interval:** 1 second.
+Query or subscribe to current UTC day market statistics for one or more trading pairs. The channel delivers open, high, low, last price, and volume data accumulated since 00:00 UTC. All statistics reset at UTC midnight. Updates arrive every second for active subscriptions, making this channel suitable for live daily market summaries and intraday performance displays.
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 <WsChannelOverview operations={channelOperations} />
 
 ## Query market today (one-time)
 
-`params`: `[market]`. Only one market per request.
+Fetch current-day statistics for a single market without subscribing.
+
+<WsTupleTable fields={marketTodayRequestParamsTupleFields} />
 
 <Note>
 To get data for multiple markets, either make separate requests or use the subscription method.
@@ -41,16 +55,24 @@ To get data for multiple markets, either make separate requests or use the subsc
 
 <WsSubscribeSteps
   subscribe={exMarketTodaySubscribe}
-  subscribeNote="Pass one or more market names in params."
+  subscribeNote="Pass one or more market names in params. Each element is a market name string (e.g., ETH_BTC)."
   confirmation={{id: 1, result: {status: "success"}, error: null}}
   update={exMarketTodayUpdate}
   updateNote="params[0] is the market name. params[1] is the statistics object."
   unsubscribe={{id: 2, method: "marketToday_unsubscribe", params: []}}
 />
 
+## Update frequency
+
+The server pushes a full statistics snapshot every **1 second** (UTC day reset).
+
 <Note>
 All statistics reset to zero at UTC midnight (00:00 UTC) each day.
 </Note>
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Market today statistics object
 

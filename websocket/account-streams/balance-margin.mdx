@@ -8,8 +8,12 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   balanceMarginUpdate,
   exBalanceMarginRequest,
   exBalanceMarginResponse,
@@ -19,17 +23,19 @@ import {
   exBalanceMarginUnsubscribe,
 } from '/snippets/ws-data/balance_margin.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
-Query or subscribe to collateral (margin) balance updates. The response includes total balance, borrowed amount, and available amounts with and without borrowing. **Update interval:** 1.5 seconds.
+Query or subscribe to collateral (margin) balance updates. The response includes total balance, borrowed amount, and available amounts with and without borrowing. Updates are pushed every 1.5 seconds when the margin balance changes. Use the query operation for a one-time snapshot; use subscribe for continuous updates.
 
 <Note>
 Balance available for margin trade equals `balance × leverage` and depends on orderbook liquidity and open positions. When a position opens, the balance does not change, but the amount available for trading decreases.
 </Note>
 
 <WsChannelOverview operations={channelOperations} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Query margin balance (one-time)
 
@@ -52,43 +58,17 @@ Fetch current margin balances for specific assets without subscribing.
   subscribeNote="Pass asset tickers in params. Pass an empty array to subscribe to all assets."
   confirmation={exBalanceMarginSubscribeResponse}
   update={exBalanceMarginUpdate}
-  updateNote="Update uses abbreviated field names — different from the query response."
-  updateExtra={
-    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
-      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
-        <div style={{padding: '8px 12px', flex: '0 0 60px'}}>Field</div>
-        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>Full name</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Description</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>a</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>asset</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Asset ticker</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>B</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>balance</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Total amount on collateral balance</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>b</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>borrow</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Borrowed amount</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>av</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>available without borrow</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Available to trade without borrowing</div>
-      </div>
-      <div style={{display: 'flex'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 60px'}}><code>ab</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 220px'}}>available with borrow</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Available to trade including borrowing capacity</div>
-      </div>
-    </div>
-  }
+  updateNote="Update uses abbreviated field names — see the Balance object table below for the full mapping."
   unsubscribe={exBalanceMarginUnsubscribe}
 />
+
+## Update frequency
+
+The server pushes updates every **1.5 seconds** when the margin balance changes.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Balance object
 

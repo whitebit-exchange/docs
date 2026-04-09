@@ -2,6 +2,10 @@ asyncapi: 3.0.0
 info:
   title: WhiteBit Margin Balance
   version: 1.0.0
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
   description: |
     Get and subscribe to margin wallet balance updates.
     
