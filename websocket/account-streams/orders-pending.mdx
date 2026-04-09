@@ -9,8 +9,13 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
+  ordersPendingRequestParamsTupleFields,
   ordersPendingUpdateParamsTupleFields,
   orderObject,
   exOrdersPendingRequest,
@@ -21,19 +26,21 @@ import {
   exOrdersPendingUnsubscribe,
 } from '/snippets/ws-data/orders_pending.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to active (unexecuted) orders across specified markets. The server pushes `ordersPending_update` events in real time on every order state change. Subscribe to multiple markets simultaneously by passing market names in the `params` array.
 
 <WsChannelOverview operations={channelOperations} />
 
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
 ## Query pending orders (one-time)
 
 Fetch current pending orders for a market without subscribing to updates.
 
-`params`: `[market, offset, limit]`. Maximum limit: 100.
+<WsTupleTable fields={ordersPendingRequestParamsTupleFields} />
 
 **Request**
 
@@ -62,6 +69,14 @@ Fetch current pending orders for a market without subscribing to updates.
   }
   unsubscribe={exOrdersPendingUnsubscribe}
 />
+
+## Update frequency
+
+Updates are pushed in **real time** on every order state change (new, modified, partially filled).
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Order modification behavior
 

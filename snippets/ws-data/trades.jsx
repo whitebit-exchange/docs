@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { trade, exTradesRequest } from '/snippets/ws-data/trades.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { trade, channelMeta, exTradesRequest } from '/snippets/ws-data/trades.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -53,6 +54,14 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const tradesRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name", required: true, example: "ETH_BTC" },
+  { index: 1, field: "limit", type: "integer", description: "Limit — number of trades to return (max 100)", required: true, example: "100" },
+  { index: 2, field: "trade_id", type: "integer", description: "Largest trade ID to request from (use 0 for latest)", required: true, example: "41358445" },
+];
+
 // ── Channel operations ──────────────────────────────────────────────────────
 
 export const channelOperations = [
@@ -60,6 +69,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "trades_subscribe", receive: "Confirmation (status: success)", push: "trades_update — new trade executions" },
   { name: "Unsubscribe", send: "trades_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

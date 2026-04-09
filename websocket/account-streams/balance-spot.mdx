@@ -8,8 +8,12 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   balanceSpotUpdate,
   exBalanceSpotRequest,
   exBalanceSpotResponse,
@@ -19,13 +23,15 @@ import {
   exBalanceSpotUnsubscribe,
 } from '/snippets/ws-data/balance_spot.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
-Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates. **Update interval:** 1 second.
+Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates. The server sends incremental updates — only assets whose balance changed are included in each message. To retrieve the current state at any time without maintaining a subscription, use the one-time query operation. The server pushes updates every 1 second when a balance changes.
 
 <WsChannelOverview operations={channelOperations} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Query spot balance (one-time)
 
@@ -51,6 +57,14 @@ Fetch current spot balances for specific assets without subscribing.
   updateNote="The server pushes balanceSpot_update when any subscribed asset balance changes. available — amount free to trade. freeze — amount locked in active orders."
   unsubscribe={exBalanceSpotUnsubscribe}
 />
+
+## Update frequency
+
+The server pushes updates every **1 second** when the balance changes.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Balance object
 

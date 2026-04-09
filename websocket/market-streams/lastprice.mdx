@@ -8,9 +8,15 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   lastpriceUpdate,
+  lastpriceRequestParamsTupleFields,
   exLastpriceRequest,
   exLastpriceResponse,
   exLastpriceSubscribe,
@@ -19,7 +25,13 @@ import {
   exLastpriceUnsubscribe,
 } from '/snippets/ws-data/lastprice.jsx'
 
-Query or subscribe to real-time last traded price updates for one or more markets. **Update interval:** 1 second.
+Query or subscribe to real-time last traded price updates for one or more markets. The channel delivers the most recent executed trade price for each subscribed market. Updates arrive every second when the price changes, making this channel suitable for live price tickers and market data dashboards.
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 <WsChannelOverview operations={channelOperations} />
 
@@ -27,7 +39,7 @@ Query or subscribe to real-time last traded price updates for one or more market
 
 Fetch the current last price for a single market without subscribing.
 
-`params`: `[market]`. Pass a single market name.
+<WsTupleTable fields={lastpriceRequestParamsTupleFields} />
 
 **Request**
 
@@ -41,12 +53,20 @@ Fetch the current last price for a single market without subscribing.
 
 <WsSubscribeSteps
   subscribe={exLastpriceSubscribe}
-  subscribeNote="Pass market names in params."
+  subscribeNote="params — array of market name strings (e.g., ETH_BTC, BTC_USDT). Pass one or more market names. Type: string[]. No default; at least one market name is required."
   confirmation={exLastpriceSubscribeResponse}
   update={exLastpriceUpdate}
-  updateNote="params[0] is the market name. params[1] is the last traded price as a string."
+  updateNote="params[0] (string) — market name. params[1] (string) — last traded price as a decimal string."
   unsubscribe={exLastpriceUnsubscribe}
 />
+
+## Update frequency
+
+The server pushes updates every **1 second** when the price changes.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Last price update object
 

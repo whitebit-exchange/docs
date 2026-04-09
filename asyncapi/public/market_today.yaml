@@ -3,6 +3,10 @@ info:
   title: WhiteBit Market Today Statistics
   version: 1.0.0
   description: Market statistics for the current day in UTC timezone. Includes open, high, low prices and volume data since midnight UTC.
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -239,6 +243,9 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name. Only one market per request."
+              x-field-name: market
+              x-required: true
+              x-example: "ETH_BTC"
 
     MarketTodayResponse:
       type: object
