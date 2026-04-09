@@ -3,6 +3,10 @@ info:
   title: WhiteBit Market Trades
   version: 1.0.0
   description: Real-time market trade data. Supports both historical trade queries and real-time trade subscriptions for specific markets or all markets.
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -259,11 +263,20 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name"
+              x-field-name: market
+              x-required: true
+              x-example: "ETH_BTC"
             - type: integer
               description: "Limit — number of trades to return (max 100)"
               maximum: 100
+              x-field-name: limit
+              x-required: true
+              x-example: 100
             - type: integer
               description: "Largest trade ID to request from (use 0 for latest)"
+              x-field-name: trade_id
+              x-required: true
+              x-example: 41358445
 
     TradesResponse:
       type: object

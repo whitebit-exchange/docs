@@ -3,6 +3,10 @@ info:
   title: WhiteBit Market Statistics
   version: 1.0.0
   description: Market statistics for a specified time period including open, close, high, low prices and volume data.
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -256,8 +260,14 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name"
+              x-field-name: market
+              x-required: true
+              x-example: "ETH_BTC"
             - type: integer
               description: Period in seconds
+              x-field-name: period
+              x-required: true
+              x-example: 86400
 
     MarketResponse:
       type: object

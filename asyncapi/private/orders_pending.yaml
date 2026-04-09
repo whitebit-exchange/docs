@@ -3,15 +3,15 @@ info:
   title: WhiteBit Orders Pending
   version: 1.0.0
   description: |
-    Query and subscribe to [active orders](/glossary#active-orders) (orders not yet executed). 
+    Query and subscribe to [active orders](/glossary#active-orders) (orders not yet executed).
     The WebSocket methods use `ordersPending_*` naming for API compatibility.
-    
+
     **Important**: [Market](/glossary#market) should exist. The maximum limit is 100.
-    
+
     **Note**: If a new [order](/glossary#orders) instantly matches an order from the [orderbook](/glossary#order-book), only one message is received with update event ID equal to 3.
-    
+
     ## Update Event IDs
-    
+
     | Update event ID | Description                      |
     | --------------- | -------------------------------- |
     | 1               | New order                        |
@@ -33,6 +33,10 @@ info:
 
     Events arrive in sequence (event_id=3 before event_id=1) in practice. Handle
     out-of-order delivery defensively.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -296,10 +300,19 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market). Example: BTC_USDT"
+              x-field-name: market
+              x-required: true
+              x-example: "BTC_USDT"
             - type: integer
               description: "Offset"
+              x-field-name: offset
+              x-required: true
+              x-example: 0
             - type: integer
               description: "Limit (maximum 100)"
+              x-field-name: limit
+              x-required: true
+              x-example: 30
           description: |
             Query parameters:
             - [0] Market name (STRING)

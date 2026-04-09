@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { marketStatistics, exMarketRequest } from '/snippets/ws-data/market.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { marketStatistics, channelMeta, exMarketRequest } from '/snippets/ws-data/market.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -55,6 +56,13 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const marketRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name", required: true, example: "ETH_BTC" },
+  { index: 1, field: "period", type: "integer", description: "Period in seconds", required: true, example: "86400" },
+];
+
 // ── Channel operations ──────────────────────────────────────────────────────
 
 export const channelOperations = [
@@ -62,6 +70,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "market_subscribe", receive: "Confirmation (status: success)", push: "market_update — updated 24h statistics" },
   { name: "Unsubscribe", send: "market_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

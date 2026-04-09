@@ -3,6 +3,10 @@ info:
   title: WhiteBit Last Price
   version: 1.0.0
   description: Real-time last price information for trading pairs. Supports both one-time queries and subscription-based updates.
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -200,6 +204,9 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name (e.g., ETH_BTC)"
+              x-field-name: market
+              x-required: true
+              x-example: "ETH_BTC"
 
     LastpriceResponse:
       type: object

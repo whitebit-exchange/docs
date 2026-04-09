@@ -9,8 +9,13 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
+  dealsRequestParamsTupleFields,
   dealsUpdateParamsTupleFields,
   dealsUpdate,
   exDealsRequest,
@@ -21,19 +26,21 @@ import {
   exDealsUnsubscribe,
 } from '/snippets/ws-data/deals.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to real-time trade execution (deal) notifications. Each deal represents a matched trade with price, amount, fee, and counterparty details. **Update interval:** real-time.
 
 <WsChannelOverview operations={channelOperations} />
 
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
 ## Query deals (one-time)
 
 Fetch historical deal records for a market without subscribing.
 
-`params`: `[market, offset, limit]`. Maximum limit: 100.
+<WsTupleTable fields={dealsRequestParamsTupleFields} />
 
 **Request**
 
@@ -54,6 +61,14 @@ Fetch historical deal records for a market without subscribing.
   updateExtra={<WsTupleTable fields={dealsUpdateParamsTupleFields} />}
   unsubscribe={exDealsUnsubscribe}
 />
+
+## Update frequency
+
+Updates are pushed in **real time** on each trade execution for the account.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Deal object
 

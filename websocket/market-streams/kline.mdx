@@ -9,10 +9,16 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   candlesUpdate,
   candleTupleFields,
   channelOperations,
+  channelMeta,
+  candlesRequestParamsTupleFields,
+  candlesSubscribeParamsTupleFields,
   exCandlesRequest,
   exCandlesResponse,
   exCandlesSubscribe,
@@ -21,15 +27,21 @@ import {
   exCandlesUnsubscribe,
 } from '/snippets/ws-data/kline.jsx'
 
-Query or subscribe to candlestick (OHLCV) data for a market and interval. **Update interval:** 0.5 seconds.
+Query or subscribe to candlestick (OHLCV) data for a market and interval. Each candle contains open, high, low, close, and volume values for the specified interval. The server pushes updates every 0.5 seconds while a candle is active, reflecting the latest trade activity. Use this channel to power real-time charting or detect price movements as they occur.
 
 <WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Query candlesticks (one-time)
 
 Fetch historical candlestick data for a time range.
 
-`params`: `[market, start_time, end_time, interval]`. Times are Unix timestamps.
+<WsTupleTable fields={candlesRequestParamsTupleFields} />
 
 **Request**
 
@@ -79,15 +91,25 @@ The constraints above ensure candles align with natural time boundaries (minutes
 
 ## Subscribe to candlesticks
 
+<WsTupleTable fields={candlesSubscribeParamsTupleFields} />
+
 <WsSubscribeSteps
   subscribe={exCandlesSubscribe}
-  subscribeNote="params[0] is the market. params[1] is the interval in seconds. See Interval constraints above."
+  subscribeNote="See Interval constraints above for valid interval values."
   confirmation={exCandlesSubscribeResponse}
   update={exCandlesUpdate}
   updateNote="The server pushes candles_update every 0.5 seconds with the current candle. The update payload is a positional array — fields are identified by index."
   updateExtra={<WsTupleTable fields={candleTupleFields} />}
   unsubscribe={exCandlesUnsubscribe}
 />
+
+## Update frequency
+
+The server pushes updates every **0.5 seconds** while the candle is active.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Candle object
 
