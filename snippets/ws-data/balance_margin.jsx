@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { balanceMarginRequest, exBalanceMarginRequest } from '/snippets/ws-data/balance_margin.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { balanceMarginRequest, channelMeta, exBalanceMarginRequest } from '/snippets/ws-data/balance_margin.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -43,6 +44,25 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `balanceMargin_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "balanceMargin_request", receive: "Current margin wallet balances", push: null },
+  { name: "Subscribe", send: "balanceMargin_subscribe", receive: "Confirmation (status: success)", push: "balanceMargin_update — balance change for subscribed assets" },
+  { name: "Unsubscribe", send: "balanceMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

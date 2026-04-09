@@ -23,7 +23,8 @@ paths:
   /api/v4/public/platform/status:
     get:
       summary: Maintenance status
-      description: The endpoint retrieves maintenance status
+      description: |
+        The endpoint retrieves the current maintenance status of the WhiteBIT platform. Use the response to detect scheduled downtime and pause trading automation during maintenance windows. The `status` field returns `"system operational"` when all platform services are available, or `"system maintenance"` when the platform is undergoing planned maintenance.
       tags:
         - Public API V4
       parameters: []
@@ -39,7 +40,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    description: "system operational or system maintenance"
+                    description: "Platform operational state. `\"system operational\"` indicates all services are available. `\"system maintenance\"` indicates the platform is undergoing planned maintenance."
                     enum: ["system operational", "system maintenance"]
                     example: "system operational"
 
@@ -47,7 +48,7 @@ paths:
     get:
       summary: Market Info
       description: |
-        The endpoint retrieves all information about available spot and futures markets.
+        The endpoint retrieves configuration and trading rules for all available spot and futures markets. Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee ratios, and order-size constraints for the market.
 
         <Note>
         The API caches the response for 1 second
@@ -97,35 +98,35 @@ paths:
                       example: USD
                     stockPrec:
                       type: string
-                      description: Stock currency precision
+                      description: "Maximum number of decimal places for the base (stock) currency quantity. Represented as a stringified integer."
                       example: "3"
                     moneyPrec:
                       type: string
-                      description: Precision of money currency
+                      description: "Maximum number of decimal places for the quote (money) currency amount. Represented as a stringified integer."
                       example: "2"
                     feePrec:
                       type: string
-                      description: Fee precision
+                      description: "Maximum number of decimal places used when calculating fees. Represented as a stringified integer."
                       example: "4"
                     makerFee:
                       type: string
-                      description: Default maker fee ratio
+                      description: "Default maker fee as a decimal ratio (e.g., `\"0.001\"` = 0.1%). Multiply by 100 to convert to a percentage."
                       example: "0.001"
                     takerFee:
                       type: string
-                      description: Default taker fee ratio
+                      description: "Default taker fee as a decimal ratio (e.g., `\"0.001\"` = 0.1%). Multiply by 100 to convert to a percentage."
                       example: "0.001"
                     minAmount:
                       type: string
-                      description: Minimal amount of stock to trade
+                      description: "Minimum order quantity in the base (stock) currency."
                       example: "0.001"
                     minTotal:
                       type: string
-                      description: Minimal amount of money to trade
+                      description: "Minimum order total in the quote (money) currency."
                       example: "0.001"
                     maxTotal:
                       type: string
-                      description: Maximum total (amount * price) of money to trade
+                      description: "Maximum order total (quantity × price) in the quote (money) currency. `\"0\"` indicates no upper limit."
                       example: "10000000000"
                     tradesEnabled:
                       type: boolean
@@ -183,24 +184,24 @@ paths:
                       example: 825
                     last_price:
                       type: string
-                      description: Last price
+                      description: "Most recent trade price in the quote currency."
                       example: "9164.09"
                     quote_volume:
                       type: string
-                      description: Volume in quote currency
+                      description: "Rolling 24-hour trading volume in the quote currency."
                       example: "43341942.90416876"
                     base_volume:
                       type: string
-                      description: Volume in base currency
+                      description: "Rolling 24-hour trading volume in the base currency."
                       example: "4723.286463"
                     is_frozen:
                       type: boolean
-                      description: Indicates whether trading is disabled
+                      description: "Indicates whether trading is disabled for the market pair."
                       example: false
                     change:
                       type: string
-                      description: "Percentage change between the rolling 24-hour open price
-                        and the last traded price."
+                      description: "Price change over the rolling 24-hour window expressed
+                        as a percentage (e.g., `\"0.57\"` = 0.57% increase, `\"-1.23\"` = 1.23% decrease)."
                       example: "0.57"
               example:
                 BTC_USDT:
@@ -222,7 +223,7 @@ paths:
     get:
       summary: Asset Status List
       description: |
-        The endpoint retrieves the assets status.
+        The endpoint retrieves the deposit and withdrawal status for every supported asset. Use the response to check whether deposits and withdrawals are enabled, read per-network fee and limit details, and determine required blockchain confirmation counts. The response includes crypto assets, fiat currencies, and fiat payment methods.
 
         <Note>
         The API caches the response for 1 second
@@ -352,11 +353,12 @@ paths:
         - name: level
           in: query
           required: false
-          description: "Optional parameter that controls the aggregation level. Level 0 – default, no aggregation. Levels 1–5 provide increasing aggregation of the order book."
+          description: "Aggregation level for price grouping. Level 0 applies no aggregation. Levels 1–5 provide increasing aggregation of the order book."
           schema:
             type: integer
             minimum: 0
             maximum: 5
+            default: 0
             example: 2
       responses:
         '200':
@@ -440,7 +442,7 @@ paths:
         - name: type
           in: query
           required: false
-          description: Can be buy or sell
+          description: "Filter by trade side. Omit to return both buy and sell trades."
           schema:
             type: string
             enum: [buy, sell]
@@ -486,7 +488,7 @@ paths:
                       example: "9186.13"
                     trade_timestamp:
                       type: integer
-                      description: "Unix timestamp in milliseconds, identifies when the transaction occurred."
+                      description: "Unix timestamp in seconds (UTC). Identifies when the transaction occurred."
                       example: 1594391747
                     type:
                       type: string
@@ -523,7 +525,7 @@ paths:
     get:
       summary: Fee
       description: |
-        The endpoint retrieves the list of [fees](/glossary#fee) and min/max amounts for deposits and withdrawals
+        The endpoint retrieves the [fee](/glossary#fee) schedule and deposit/withdrawal limits for every supported asset. Use the response to display fee estimates before a user initiates a deposit or withdrawal. The response is keyed by currency ticker; each entry contains deposit and withdrawal fee amounts and min/max transfer limits.
 
         <Note>
         The API caches the response for 1 second
@@ -555,7 +557,7 @@ paths:
     get:
       summary: Server Time
       description: |
-        The endpoint retrieves the current server time.
+        The endpoint retrieves the current server time as a Unix timestamp. Use the response to synchronize local clocks before generating HMAC signatures for authenticated requests.
 
         <Note>
         The API caches the response for 1 second
@@ -584,7 +586,7 @@ paths:
     get:
       summary: Server Status
       description: |
-        The endpoint retrieves the current API life-state.
+        The endpoint checks API availability by returning a simple health-check response. Use the endpoint to verify network connectivity and confirm the API server is reachable. A successful response contains the string `"pong"`.
 
         <Note>
         The API caches the response for 1 second
@@ -605,13 +607,14 @@ paths:
                 type: array
                 items:
                   type: string
+                  description: "Health-check token. The value `\"pong\"` confirms the API server is operational."
                 example: ["pong"]
 
   /api/v4/public/collateral/markets:
     get:
       summary: Collateral Markets List
       description: |
-        The endpoint returns the list of [markets](/glossary#market) that are available for [collateral](/glossary#collateral) trading
+        The endpoint returns the list of [market](/glossary#market) pair names available for [collateral](/glossary#collateral) trading. Use the response to determine which markets support margin positions. Each item in the result array is a market pair name in `BASE_QUOTE` format (e.g., `BTC_USDT`).
 
         <Note>
         The API caches the response for 1 second
@@ -639,13 +642,14 @@ paths:
                     type: array
                     items:
                       type: string
+                      description: "Market pair name in `BASE_QUOTE` format."
                     example: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
 
   /api/v4/public/futures:
     get:
       summary: Available Futures Markets List
       description: |
-        The endpoint returns the list of available futures markets.
+        The endpoint returns detailed information for all available futures markets. Use the response to read current pricing, open interest, funding rates, and leverage bracket configuration. Each entry includes the predicted next funding rate, settlement timestamps, and maximum allowed position sizes per leverage level.
 
         <Note>
         The API caches the response for 1 second
@@ -713,11 +717,15 @@ paths:
     get:
       summary: Funding History
       description: |
-        The endpoint returns the funding rate history for a specified futures market.
+        The endpoint returns the funding rate history for a specified futures market. Use the response to analyze historical funding rate trends and settlement prices. Results are sorted by funding time in descending order and support offset-based pagination via `limit` and `offset` parameters.
 
         <Warning>
         Rate limit 2000 requests/10 sec.
         </Warning>
+
+        <Note>
+        This endpoint supports pagination. Use `limit` (default: 100, max: 1000) and `offset` (default: 0) to page through results.
+        </Note>
       tags:
         - Public API V4
       parameters:
@@ -779,24 +787,27 @@ paths:
                   properties:
                     fundingTime:
                       type: string
-                      description: Timestamp when the funding executed
+                      description: "Unix timestamp in seconds when the funding settlement executed."
                       example: "1752537600"
                     fundingRate:
                       type: string
-                      description: "Funding rate applied at the corresponding settlement interval.
-                        Each record represents a historical settlement event."
+                      description: "Funding rate applied at the settlement. A positive value means
+                        long-position holders pay short-position holders; a negative value means
+                        short-position holders pay long-position holders. Expressed as a decimal
+                        ratio (e.g., `\"-0.0001229\"`)."
                       example: "-0.0001229"
                     market:
                       type: string
-                      description: Market name
+                      description: "Futures market pair name (e.g., `BTC_PERP`)."
                       example: BTC_PERP
                     settlementPrice:
                       type: string
-                      description: Price at which the funding settled
+                      description: "Mark price in the quote currency at the time of funding settlement."
                       example: "119816.5"
                     rateCalculatedTime:
                       type: string
-                      description: Timestamp of the funding rate calculation
+                      description: "Unix timestamp in seconds when the funding rate was calculated.
+                        The rate is computed before the actual settlement."
                       example: "1752508800"
 
   /api/v4/public/mining-pool:
@@ -1201,7 +1212,8 @@ components:
           example: "23765.3"
         product_type:
           type: string
-          description: "What product is this? Futures, Perpetual, Options?"
+          description: "Derivative product type for the market."
+          enum: [Perpetual, Futures, Options]
           example: Perpetual
         open_interest:
           type: string
@@ -1250,7 +1262,7 @@ components:
             "100": 50
         max_leverage:
           type: integer
-          description: Max Leverage
+          description: "Maximum leverage multiplier allowed for the market."
           example: 100
         funding_interval_minutes:
           type: integer

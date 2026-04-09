@@ -3,7 +3,14 @@ title: "Depth"
 description: "Retrieve the order book depth for a given trading pair with aggregated price levels via the V4 API."
 openapi: "/openapi/public/http-v4.yaml GET /api/v4/public/orderbook/depth/{market}"
 ---
+import { RelatedResources } from '/components/RelatedResources.jsx';
+
 
 <Note>
 	Public depth endpoints exclude Retail Price Improvement (RPI) orders. RPI orders appear only in private active orders (private API/WebSocket) and in the exchange UI order book (web and mobile).
 </Note>
+
+<RelatedResources>
+- [Orderbook](/api-reference/market-data/orderbook) — full order book with configurable depth and price-level aggregation.
+- [Recent trades](/api-reference/market-data/recent-trades) — latest executed trades for a market.
+</RelatedResources>

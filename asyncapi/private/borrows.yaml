@@ -4,6 +4,10 @@ info:
   version: 1.0.0
   description: |
     Subscribe to borrows updates. The channel does not support query operations — only subscribe, update, and unsubscribe.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -104,7 +108,7 @@ components:
     borrowsUpdate:
       name: BorrowsUpdate
       title: Borrows Update
-      summary: Real-time borrows update
+      summary: Current borrow state for all open borrows
       payload:
         $ref: '#/components/schemas/BorrowsUpdate'
       examples:

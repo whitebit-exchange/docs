@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { marginPositionsEventsSubscribe, exMarginPositionsEventsSubscribe } from '/snippets/ws-data/margin_positions_events.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { marginPositionsEventsSubscribe, channelMeta, exMarginPositionsEventsSubscribe } from '/snippets/ws-data/margin_positions_events.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -50,6 +51,31 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `positionsAccountMargin_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
+
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const marginPositionsEventsUpdateParamsTupleFields = [
+  { index: 0, field: "event_type", type: "integer", description: "Event type: 1=Margin call, 2=Liquidation", enum: [1,2], enumLabels: {"1":"Margin call","2":"Liquidation"} },
+  { index: 1, field: "position", type: "object", description: "Position object (same structure as Positions endpoint)" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Subscribe", send: "positionsAccountMargin_subscribe", receive: "Confirmation (status: success)", push: "positionsAccountMargin_update — margin call or liquidation event" },
+  { name: "Unsubscribe", send: "positionsAccountMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

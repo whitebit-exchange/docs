@@ -4,6 +4,10 @@ info:
   version: 1.0.0
   description: |
     Subscribe to positions updates. The channel does not support query operations — only subscribe, update, and unsubscribe.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:

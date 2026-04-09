@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { borrowsSubscribe, exBorrowsSubscribe } from '/snippets/ws-data/borrows.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { borrowsSubscribe, channelMeta, exBorrowsSubscribe } from '/snippets/ws-data/borrows.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -40,6 +41,24 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `borrowsMargin_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Subscribe", send: "borrowsMargin_subscribe", receive: "Confirmation (status: success)", push: "borrowsMargin_update — current borrow state for all open borrows" },
+  { name: "Unsubscribe", send: "borrowsMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

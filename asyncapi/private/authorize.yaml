@@ -4,11 +4,15 @@ info:
   version: 1.0.0
   description: |
     Authorize WebSocket connection using authentication token.
-    
+
     When establishing a WebSocket connection, authorize it via the `authorize` method.
     After successful authorization, send requests for balances, [orders](/glossary#orders), and similar data.
-    
+
     It only needs to be done successfully once.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -49,7 +53,7 @@ components:
   messages:
     authorizeRequest:
       name: AuthorizeRequest
-      title: Authorize Request
+      title: Authorize
       summary: Authorize WebSocket connection with token
       payload:
         $ref: '#/components/schemas/AuthorizeRequest'
@@ -69,7 +73,7 @@ components:
     authorizeResponse:
       name: AuthorizeResponse
       title: Authorize Response
-      summary: Authorization confirmation
+      summary: "Confirmation (status: success)"
       payload:
         $ref: '#/components/schemas/AuthorizeResponse'
       examples:
@@ -103,9 +107,15 @@ components:
           items:
             - type: string
               description: WebSocket Token (get via `/api/v4/profile/websocket_token` endpoint)
+              x-field-name: token
+              x-required: true
+              x-example: "<WEB_SOCKET_TOKEN>"
             - type: string
               enum: ["public"]
               description: Constant string, always should be "public"
+              x-field-name: scope
+              x-required: true
+              x-example: "public"
           description: Array with WebSocket token and constant "public" string
 
     AuthorizeResponse:

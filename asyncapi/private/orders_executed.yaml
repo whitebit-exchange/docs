@@ -4,16 +4,20 @@ info:
   version: 1.0.0
   description: |
     Get and subscribe to executed orders updates.
-    
+
     **Important**: [Market](/glossary#market) should exist. The maximum limit is 100.
-    
+
     ## Filter Options
-    
+
     | Filter | Executed orders  |
     | ------ | ---------------- |
     | 0      | Limit and Market |
     | 1      | Limit            |
     | 2      | Market           |
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -290,10 +294,18 @@ components:
                   items:
                     type: integer
                   description: "Order types filter. See [order types](/websocket/account-streams/overview#order-types) table."
+              x-field-name: filter
+              x-required: true
             - type: integer
               description: "Offset for pagination"
+              x-field-name: offset
+              x-required: true
+              x-example: 0
             - type: integer
               description: "Limit (maximum 100)"
+              x-field-name: limit
+              x-required: true
+              x-example: 30
 
     OrdersExecutedResponse:
       type: object
@@ -350,9 +362,14 @@ components:
               items:
                 type: string
                 description: "[Market](/glossary#market) name. Example: BTC_USDT"
+              x-field-name: markets
+              x-required: true
             - type: integer
               enum: [0, 1, 2]
               description: "Filter: 0=Limit and Market, 1=Limit only, 2=Market only"
+              x-field-name: filter
+              x-required: true
+              x-example: 0
 
     SubscriptionResponse:
       type: object

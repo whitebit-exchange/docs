@@ -5,13 +5,17 @@ info:
   description: |
     Subscribe to borrows events (margin call and liquidation events).
     The channel does not support query operations — only subscribe, update, and unsubscribe.
-    
+
     ## Event Types
-    
+
     | Event Type | Description     |
     | ---------- | --------------- |
     | 1          | Margin call     |
     | 2          | Liquidation     |
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -112,7 +116,7 @@ components:
     borrowsEventsUpdate:
       name: BorrowsEventsUpdate
       title: Borrows Events Update
-      summary: "Real-time borrows events. Event type: 1=Margin call, 2=Liquidation"
+      summary: Margin call or liquidation event
       payload:
         $ref: '#/components/schemas/BorrowsEventsUpdate'
       examples:
@@ -232,7 +236,12 @@ components:
             - type: integer
               enum: [1, 2]
               description: "Event type: 1=Margin call, 2=Liquidation"
+              x-field-name: event_type
+              x-enum-labels:
+                "1": "Margin call"
+                "2": "Liquidation"
             - $ref: '#/components/schemas/BorrowRecord'
+              x-field-name: borrow
 
     BorrowRecord:
       type: object

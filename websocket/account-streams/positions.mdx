@@ -8,7 +8,12 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
+  channelOperations,
+  channelMeta,
   positionRecord,
   exPositionsSubscribe,
   exPositionsSubscribeResponse,
@@ -16,9 +21,7 @@ import {
   exPositionsUnsubscribe,
 } from '/snippets/ws-data/positions.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
 Subscribe to collateral position updates including P&L, liquidation price, margin, and position side. **Update interval:** 1 second.
 
@@ -26,20 +29,11 @@ Subscribe to collateral position updates including P&L, liquidation price, margi
 This channel does **NOT** support query operations — only subscribe/update/unsubscribe.
 </Note>
 
-<WsChannelOverview operations={[
-  {
-    name: "Subscribe",
-    send: "positionsMargin_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "positionsMargin_update — full snapshot of all open positions"
-  },
-  {
-    name: "Unsubscribe",
-    send: "positionsMargin_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Subscribe to positions
 
@@ -48,10 +42,18 @@ This channel does **NOT** support query operations — only subscribe/update/uns
   subscribeNote="params is always an empty array — subscribes to all open positions."
   confirmation={exPositionsSubscribeResponse}
   update={exPositionsUpdate}
-  updateNote="The server pushes positionsMargin_update with a full snapshot of all open positions every second. amount — position size (negative = short). pnl — unrealized profit and loss. liq_price — liquidation price. liq_stage — null (healthy), margin_call, or liquidation. position_side — LONG, SHORT, or BOTH."
+  updateNote="The server pushes positionsMargin_update with a full snapshot of all open positions every second. amount — position size (negative = short). pnl — unrealized profit and loss. liq_price — liquidation price. liq_stage — null (healthy) or margin_call. position_side — LONG, SHORT, or BOTH."
   unsubscribe={exPositionsUnsubscribe}
 />
+
+## Update frequency
+
+The server pushes updates every **1 second** when position data changes.
 
 ## Position object
 
 <WsSchemaTable fields={positionRecord} />
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />

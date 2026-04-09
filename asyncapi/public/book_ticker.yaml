@@ -3,6 +3,10 @@ info:
   title: WhiteBit Book Ticker
   version: 1.0.0
   description: Real-time best bid/ask (BBO) price and quantity updates. Provides instant snapshots followed by incremental updates.
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -107,7 +111,7 @@ components:
     bookTickerUpdate:
       name: BookTickerUpdate
       title: Book Ticker Update
-      summary: Instant best bid/ask price and quantity snapshot
+      summary: Best bid/ask snapshot on change
       payload:
         $ref: '#/components/schemas/BookTickerUpdate'
       examples:
@@ -209,21 +213,29 @@ components:
       maxItems: 8
       items:
         - type: number
-          description: "Transaction time - timestamp of the update from matchengine"
+          description: Unix timestamp from matching engine
+          x-field-name: transaction_time
         - type: number
-          description: "Message time - timestamp of the message from websocket"
+          description: Unix timestamp from WebSocket
+          x-field-name: message_time
         - type: string
-          description: "[Market](/glossary#market) name"
+          description: Market name
+          x-field-name: market
         - type: integer
-          description: Update ID
+          description: Monotonic update counter
+          x-field-name: update_id
         - type: string
-          description: "Best [bid](/glossary#bid) price"
+          description: Current best bid price
+          x-field-name: best_bid_price
         - type: string
-          description: Best bid amount
+          description: Current best bid quantity
+          x-field-name: best_bid_amount
         - type: string
-          description: "Best [ask](/glossary#ask) price"
+          description: Current best ask price
+          x-field-name: best_ask_price
         - type: string
-          description: Best ask amount
+          description: Current best ask quantity
+          x-field-name: best_ask_amount
 
     BookTickerUpdate:
       type: object

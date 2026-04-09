@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { marketTodayStatistics, exMarketTodayRequest } from '/snippets/ws-data/market_today.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { marketTodayStatistics, channelMeta, exMarketTodayRequest } from '/snippets/ws-data/market_today.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -52,6 +53,31 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `marketToday_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "" },
 ];
+
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const marketTodayRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name. Only one market per request.", required: true, example: "ETH_BTC" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "marketToday_query", receive: "Market statistics for current day UTC", push: null },
+  { name: "Subscribe", send: "marketToday_subscribe", receive: "Confirmation (status: success)", push: "marketToday_update — periodic market today statistics update (every 1 second)" },
+  { name: "Unsubscribe", send: "marketToday_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 
