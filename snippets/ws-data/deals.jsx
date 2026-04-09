@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { dealsRequest, exDealsRequest } from '/snippets/ws-data/deals.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { dealsRequest, channelMeta, exDealsRequest } from '/snippets/ws-data/deals.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -46,6 +47,12 @@ export const unsubscribeRequest = [
 
 // ── Tuple field arrays ──────────────────────────────────────────────────────
 
+export const dealsRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name. Example: BTC_USDT", required: true, example: "BTC_USDT" },
+  { index: 1, field: "offset", type: "integer", description: "Offset for pagination", required: true, example: "0" },
+  { index: 2, field: "limit", type: "integer", description: "Limit (maximum 100)", required: true, example: "30" },
+];
+
 export const dealsUpdateParamsTupleFields = [
   { index: 0, field: "deal_id", type: "integer", description: "Unique deal ID", example: "13674578673" },
   { index: 1, field: "time", type: "number", description: "Unix timestamp of execution", example: "1738251095.345432" },
@@ -67,6 +74,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "deals_subscribe", receive: "Confirmation (status: success)", push: "deals_update — new trade execution" },
   { name: "Unsubscribe", send: "deals_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

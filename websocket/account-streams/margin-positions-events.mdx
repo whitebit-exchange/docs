@@ -9,8 +9,12 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   marginPositionsEventsUpdateParamsTupleFields,
   positionRecord,
   exMarginPositionsEventsSubscribe,
@@ -19,11 +23,13 @@ import {
   exMarginPositionsEventsUnsubscribe,
 } from '/snippets/ws-data/margin_positions_events.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
-Subscribe to margin call and liquidation event notifications for collateral positions. Events fire when a position enters margin call or liquidation state.
+Subscribe to margin call and liquidation event notifications for collateral positions. Events fire when a position enters margin call or liquidation state. The channel uses an event-driven update model — no snapshot is sent on subscribe; updates are delivered only when a position state change occurs.
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 <WsChannelOverview operations={channelOperations} />
 
@@ -46,6 +52,14 @@ Subscribe to margin call and liquidation event notifications for collateral posi
   unsubscribe={exMarginPositionsEventsUnsubscribe}
 />
 
+## Update frequency
+
+Updates are pushed in **real time** on margin position state changes (open, close, liquidation).
+
 ## Position event object
 
 <WsSchemaTable fields={positionRecord} />
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />

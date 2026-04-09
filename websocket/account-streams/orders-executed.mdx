@@ -8,9 +8,16 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   executedOrderObject,
+  ordersExecutedRequestParamsTupleFields,
+  ordersExecutedSubscribeParamsTupleFields,
   exOrdersExecutedRequest,
   exOrdersExecutedResponse,
   exOrdersExecutedSubscribe,
@@ -19,11 +26,13 @@ import {
   exOrdersExecutedUnsubscribe,
 } from '/snippets/ws-data/orders_executed.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to executed order history with optional filtering by order type (limit, market, or both). Each record includes execution details, fees, and status. **Update interval:** real-time.
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 <WsChannelOverview operations={channelOperations} />
 
@@ -31,7 +40,7 @@ Query or subscribe to executed order history with optional filtering by order ty
 
 Fetch historical executed orders for a market without subscribing.
 
-`params`: `[filter_object, offset, limit]`. Maximum limit: 100. `order_types` in the filter: `1` = Limit, `2` = Market.
+<WsTupleTable fields={ordersExecutedRequestParamsTupleFields} />
 
 **Request**
 
@@ -47,13 +56,22 @@ The private stream returns executed orders, including orders using Retail Price 
 
 ## Subscribe to executed orders
 
+<WsTupleTable fields={ordersExecutedSubscribeParamsTupleFields} />
+
 <WsSubscribeSteps
   subscribe={exOrdersExecutedSubscribe}
-  subscribeNote="params[0] is an array of market names. params[1] is the order type filter: 0 = Limit and Market orders, 1 = Limit orders only, 2 = Market orders only."
   confirmation={exOrdersExecutedSubscribeResponse}
   update={exOrdersExecutedUpdate}
   unsubscribe={exOrdersExecutedUnsubscribe}
 />
+
+## Update frequency
+
+Updates are pushed in **real time** when an order is fully executed or canceled.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Executed order object
 

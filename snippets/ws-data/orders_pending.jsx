@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { ordersPendingRequest, exOrdersPendingRequest } from '/snippets/ws-data/orders_pending.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { ordersPendingRequest, channelMeta, exOrdersPendingRequest } from '/snippets/ws-data/orders_pending.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -68,6 +69,12 @@ export const unsubscribeRequest = [
 
 // ── Tuple field arrays ──────────────────────────────────────────────────────
 
+export const ordersPendingRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market. Example: BTC_USDT", required: true, example: "BTC_USDT" },
+  { index: 1, field: "offset", type: "integer", description: "Offset", required: true, example: "0" },
+  { index: 2, field: "limit", type: "integer", description: "Limit (maximum 100)", required: true, example: "30" },
+];
+
 export const ordersPendingUpdateParamsTupleFields = [
   { index: 0, field: "event_id", type: "integer", description: "Update event ID: 1=New order, 2=Update order, 3=Finish order (cancel or execute)", enum: [1,2,3], enumLabels: {"1":"New order placed","2":"Order updated","3":"Order finished (cancelled or executed)"} },
   { index: 1, field: "order", type: "object", description: "Order object with all order details" },
@@ -80,6 +87,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "ordersPending_subscribe", receive: "Confirmation (status: success)", push: "ordersPending_update — real-time order state change" },
   { name: "Unsubscribe", send: "ordersPending_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

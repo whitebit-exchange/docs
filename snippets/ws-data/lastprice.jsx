@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { lastpriceRequest, exLastpriceRequest } from '/snippets/ws-data/lastprice.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { lastpriceRequest, channelMeta, exLastpriceRequest } from '/snippets/ws-data/lastprice.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -44,6 +45,12 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const lastpriceRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name (e.g., ETH_BTC)", required: true, example: "ETH_BTC" },
+];
+
 // ── Channel operations ──────────────────────────────────────────────────────
 
 export const channelOperations = [
@@ -51,6 +58,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "lastprice_subscribe", receive: "Confirmation (status: success)", push: "lastprice_update — periodic last price update (every 1 second)" },
   { name: "Unsubscribe", send: "lastprice_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

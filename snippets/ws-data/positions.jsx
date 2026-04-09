@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { positionsSubscribe, exPositionsSubscribe } from '/snippets/ws-data/positions.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { positionsSubscribe, channelMeta, exPositionsSubscribe } from '/snippets/ws-data/positions.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -57,6 +58,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "positionsMargin_subscribe", receive: "Confirmation (status: success)", push: "positionsMargin_update — real-time positions update" },
   { name: "Unsubscribe", send: "positionsMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

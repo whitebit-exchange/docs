@@ -39,6 +39,8 @@ export const WsTupleTable = ({ title, fields }) => {
     exampleText:  '#d1d5db',
     exampleBg:    'rgb(55 65 81 / 0.4)',
     enumText:     '#fbbf24',
+    reqYes:       '#f3f4f6',
+    reqNo:        '#4b5563',
   } : {
     border:       '#e5e7eb',
     borderSubtle: '#f3f4f6',
@@ -53,6 +55,8 @@ export const WsTupleTable = ({ title, fields }) => {
     exampleText:  '#374151',
     exampleBg:    '#f3f4f6',
     enumText:     '#92400e',
+    reqYes:       '#111827',
+    reqNo:        '#d1d5db',
   };
 
   const MONO = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
@@ -77,10 +81,12 @@ export const WsTupleTable = ({ title, fields }) => {
   };
 
   const hasExample = fields.some((f) => f.example !== undefined);
+  const hasRequired = fields.some((f) => f.required === true);
 
   const gridTemplateColumns = [
     'minmax(60px, auto)',   // Index
     'minmax(100px, auto)',  // Field
+    ...(hasRequired ? ['minmax(70px, auto)'] : []),
     ...(hasExample ? ['minmax(140px, auto)'] : []),
     '1fr',                  // Description
   ].join(' ');
@@ -112,6 +118,7 @@ export const WsTupleTable = ({ title, fields }) => {
 
         <div style={{ ...HEADER, borderBottom: `1px solid ${T.border}` }}>Index</div>
         <div style={{ ...HEADER, borderBottom: `1px solid ${T.border}` }}>Field</div>
+        {hasRequired && <div style={{ ...HEADER, borderBottom: `1px solid ${T.border}` }}>Required</div>}
         {hasExample && <div style={{ ...HEADER, borderBottom: `1px solid ${T.border}` }}>Example</div>}
         <div style={{ ...HEADER, borderBottom: `1px solid ${T.border}` }}>Description</div>
 
@@ -129,6 +136,12 @@ export const WsTupleTable = ({ title, fields }) => {
                 {f.field}
               </span>
             </div>,
+
+            ...(hasRequired ? [
+              <div key={`${i}-r`} style={{ ...CELL, borderTop, fontWeight: f.required ? 500 : 400, color: f.required ? T.reqYes : T.reqNo }}>
+                {f.required ? 'Yes' : '—'}
+              </div>,
+            ] : []),
 
             ...(hasExample ? [
               <div key={`${i}-e`} style={{ ...CELL, whiteSpace: 'nowrap', borderTop }}>

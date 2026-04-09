@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { borrowsEventsSubscribe, exBorrowsEventsSubscribe } from '/snippets/ws-data/borrows_events.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { borrowsEventsSubscribe, channelMeta, exBorrowsEventsSubscribe } from '/snippets/ws-data/borrows_events.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -54,6 +55,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "borrowsAccountMargin_subscribe", receive: "Confirmation (status: success)", push: "borrowsAccountMargin_update — margin call or liquidation event" },
   { name: "Unsubscribe", send: "borrowsAccountMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

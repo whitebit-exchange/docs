@@ -8,9 +8,15 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   trade,
+  tradesRequestParamsTupleFields,
   exTradesRequest,
   exTradesResponse,
   exSubscribeSpecificMarkets,
@@ -18,7 +24,13 @@ import {
   exTradesUpdate,
 } from '/snippets/ws-data/trades.jsx'
 
-Subscribe to real-time trade execution updates for one or more markets. **Update interval:** real-time.
+Subscribe to real-time trade execution updates for one or more markets. Each message delivers a batch of trade objects containing price, quantity, trade direction, and execution timestamp. The channel supports both targeted subscriptions for specific markets and a wildcard subscription for all available markets.
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 <WsChannelOverview operations={channelOperations} />
 
@@ -26,7 +38,7 @@ Subscribe to real-time trade execution updates for one or more markets. **Update
 
 Fetch recent trades for a market without subscribing.
 
-`params`: `[market, limit, lastId]`. `limit` — number of trades to return (INTEGER, max `100`). `lastId` — return trades with ID greater than this value (INTEGER, use `0` for the latest trades).
+<WsTupleTable fields={tradesRequestParamsTupleFields} />
 
 **Request**
 
@@ -44,7 +56,7 @@ For each WebSocket connection, subscribe to either specific markets or all marke
 
 <WsSubscribeSteps
   subscribe={exSubscribeSpecificMarkets}
-  subscribeNote="Pass market names in params to subscribe to specific markets, or pass an empty array for all markets."
+  subscribeNote="Pass market name strings in params to subscribe to specific markets. params[0], params[1], ... — market name (STRING, e.g. BTC_USDT). Pass an empty array to subscribe to all markets."
   confirmation={{id: 9, result: {status: "success"}, error: null}}
   update={exTradesUpdate}
   updateNote="params[0] is the market name. params[1] is an array of trade objects."
@@ -54,6 +66,18 @@ For each WebSocket connection, subscribe to either specific markets or all marke
 **Subscribe to all markets:**
 
 <WsMessageExample data={exSubscribeAllMarkets} />
+
+## Update frequency
+
+Updates are pushed in **real time** on each trade execution.
+
+## Unsubscribe
+
+Send `trades_unsubscribe` with an empty `params` array to stop receiving trade updates on the connection.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## RPI orders in trade updates
 

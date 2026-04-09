@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { orderBook, exDepthRequest } from '/snippets/ws-data/depth.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { orderBook, channelMeta, exDepthRequest } from '/snippets/ws-data/depth.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -59,6 +60,21 @@ export const unsubscribeRequest = [
   { name: "params", type: "array", required: true, description: "" },
 ];
 
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const depthRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name", required: true, example: "ETH_BTC" },
+  { index: 1, field: "limit", type: "integer", description: "Limit (max 100)", required: true, example: "100" },
+  { index: 2, field: "price_interval", type: "string", description: "Price interval units. Available values: \"0\" (no interval), \"0.00000001\", \"0.0000001\", \"0.000001\", \"0.00001\", \"0.0001\", \"0.001\", \"0.01\", \"0.1\"", required: true, example: "0" },
+];
+
+export const depthSubscribeParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name", required: true, example: "ETH_BTC" },
+  { index: 1, field: "limit", type: "integer", description: "Limit", required: true, example: "100", enum: [1,5,10,20,30,50,100] },
+  { index: 2, field: "price_interval", type: "string", description: "Price interval units. Available values: \"0\" (no interval), \"0.00000001\", \"0.0000001\", \"0.000001\", \"0.00001\", \"0.0001\", \"0.001\", \"0.01\", \"0.1\"", required: true, example: "0" },
+  { index: 3, field: "multi_depth", type: "boolean", description: "Multiple subscription flag: true = add subscription, false = unsubscribe from all", required: true, example: "true" },
+];
+
 // ── Channel operations ──────────────────────────────────────────────────────
 
 export const channelOperations = [
@@ -66,6 +82,17 @@ export const channelOperations = [
   { name: "Subscribe", send: "depth_subscribe", receive: "Confirmation (status: success)", push: "depth_update — full snapshot (first), then incremental updates" },
   { name: "Unsubscribe", send: "depth_unsubscribe", receive: "Confirmation (status: success)", push: null },
 ];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

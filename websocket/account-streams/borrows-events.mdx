@@ -9,8 +9,12 @@ import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
 import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   channelOperations,
+  channelMeta,
   borrowsEventsUpdateParamsTupleFields,
   borrowRecord,
   exBorrowsEventsSubscribe,
@@ -19,13 +23,15 @@ import {
   exBorrowsEventsUnsubscribe,
 } from '/snippets/ws-data/borrows_events.jsx'
 
-<Warning>
-This is a private channel. [Authorize](/websocket/authentication) the WebSocket connection before subscribing.
-</Warning>
+<WsAuthBadge required={channelMeta.authRequired} />
 
-Subscribe to margin call and liquidation event notifications for collateral borrows. Events fire when a borrow enters margin call or liquidation state.
+Subscribe to margin call and liquidation event notifications for collateral borrows. Events fire when a borrow enters margin call or liquidation state. This is an event-driven channel — updates are pushed once per state change, with no periodic polling or snapshot on subscribe.
 
 <WsChannelOverview operations={channelOperations} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Subscribe to borrow events
 
@@ -38,6 +44,14 @@ Subscribe to margin call and liquidation event notifications for collateral borr
   updateExtra={<WsTupleTable fields={borrowsEventsUpdateParamsTupleFields} />}
   unsubscribe={exBorrowsEventsUnsubscribe}
 />
+
+## Update frequency
+
+Updates are pushed in **real time** on borrow state changes (new borrow, repayment, liquidation).
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Borrow event object
 
