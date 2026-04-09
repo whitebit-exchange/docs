@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { baseRequest, exPingRequest } from '/snippets/ws-data/service.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { baseRequest, channelMeta, exPingRequest } from '/snippets/ws-data/service.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -16,6 +17,24 @@ export const baseResponse = [
   { name: "id", type: "integer", required: true, description: "Request identifier matching the request" },
   { name: "error", type: "null", required: true, description: "" },
 ];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Server time", send: "time", receive: "Unix timestamp (integer)", push: null },
+  { name: "Ping", send: "ping", receive: "\"pong\" string", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

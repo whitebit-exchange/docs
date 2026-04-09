@@ -4,6 +4,10 @@ info:
   version: 1.0.0
   description: |
     Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -110,7 +114,7 @@ components:
     balanceSpotResponse:
       name: BalanceSpotResponse
       title: Balance Spot Response
-      summary: Current spot wallet balances
+      summary: Current balances for requested assets
       payload:
         $ref: '#/components/schemas/BalanceSpotResponse'
       examples:
@@ -163,7 +167,7 @@ components:
     balanceSpotUpdate:
       name: BalanceSpotUpdate
       title: Balance Spot Update
-      summary: Real-time spot balance update
+      summary: Balance change for subscribed assets
       payload:
         $ref: '#/components/schemas/BalanceSpotUpdate'
       examples:

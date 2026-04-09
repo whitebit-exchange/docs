@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { dealsRequest, exDealsRequest } from '/snippets/ws-data/deals.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { dealsRequest, channelMeta, exDealsRequest } from '/snippets/ws-data/deals.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -43,6 +44,47 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `deals_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
+
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const dealsRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name. Example: BTC_USDT", required: true, example: "BTC_USDT" },
+  { index: 1, field: "offset", type: "integer", description: "Offset for pagination", required: true, example: "0" },
+  { index: 2, field: "limit", type: "integer", description: "Limit (maximum 100)", required: true, example: "30" },
+];
+
+export const dealsUpdateParamsTupleFields = [
+  { index: 0, field: "deal_id", type: "integer", description: "Unique deal ID", example: "13674578673" },
+  { index: 1, field: "time", type: "number", description: "Unix timestamp of execution", example: "1738251095.345432" },
+  { index: 2, field: "market", type: "string", description: "Market name", example: "\"ETH_BTC\"" },
+  { index: 3, field: "order_id", type: "integer", description: "Order ID", example: "1212909726406" },
+  { index: 4, field: "price", type: "string", description: "Execution price", example: "\"0.03084\"" },
+  { index: 5, field: "amount", type: "string", description: "Stock amount executed", example: "\"0.2625\"" },
+  { index: 6, field: "fee", type: "string", description: "Fee charged", example: "\"0.0002625\"" },
+  { index: 7, field: "client_order_id", type: "string", description: "Custom client order ID (may be empty)", example: "\"\"" },
+  { index: 8, field: "side", type: "integer", description: "1 = sell, 2 = buy", example: "2", enum: [1,2] },
+  { index: 9, field: "role", type: "integer", description: "1 = maker, 2 = taker", example: "2", enum: [1,2] },
+  { index: 10, field: "fee_asset", type: "string", description: "Asset in which fee was charged", example: "\"ETH\"" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "deals_request", receive: "Paginated list of deals", push: null },
+  { name: "Subscribe", send: "deals_subscribe", receive: "Confirmation (status: success)", push: "deals_update — new trade execution" },
+  { name: "Unsubscribe", send: "deals_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

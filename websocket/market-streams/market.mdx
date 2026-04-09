@@ -8,42 +8,36 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
+  channelOperations,
+  channelMeta,
   marketStatistics,
+  marketRequestParamsTupleFields,
   exMarketRequest,
   exMarketResponse,
   exMarketSubscribe,
   exMarketUpdate,
 } from '/snippets/ws-data/market.jsx'
 
-Query or subscribe to rolling 24-hour market statistics. **Update interval:** 1 second.
+Query or subscribe to rolling 24-hour market statistics for one or more trading pairs. Each update delivers a full statistics snapshot — open, close, high, low prices, and volume — covering the past 24 hours. The server pushes a new snapshot every second. Use this channel to power market overview displays, screeners, or price monitoring tools.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "market_request",
-    receive: "Market statistics for the requested period",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "market_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "market_update — updated 24h statistics"
-  },
-  {
-    name: "Unsubscribe",
-    send: "market_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Query market statistics (one-time)
 
 Fetch market statistics for any period without subscribing.
 
-`params`: `[market, period_in_seconds]`.
+<WsTupleTable fields={marketRequestParamsTupleFields} />
 
 **Request**
 
@@ -61,11 +55,19 @@ Subscriptions support only a **24-hour period** (86400 seconds). Custom period s
 
 <WsSubscribeSteps
   subscribe={exMarketSubscribe}
-  subscribeNote="Pass one or more market names in params. Subscriptions always use a 24-hour (86400s) rolling window."
+  subscribeNote="params: one or more market name strings (STRING each). Example: [&quot;ETH_BTC&quot;, &quot;BTC_USDT&quot;]. Subscriptions always use a 24-hour (86400s) rolling window."
   confirmation={{id: 1, result: {status: "success"}, error: null}}
   update={exMarketUpdate}
   unsubscribe={{id: 2, method: "market_unsubscribe", params: []}}
 />
+
+## Update frequency
+
+The server pushes a full statistics snapshot every **1 second**.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Market statistics object
 

@@ -8,8 +8,17 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
   candlesUpdate,
+  candleTupleFields,
+  channelOperations,
+  channelMeta,
+  candlesRequestParamsTupleFields,
+  candlesSubscribeParamsTupleFields,
   exCandlesRequest,
   exCandlesResponse,
   exCandlesSubscribe,
@@ -18,34 +27,21 @@ import {
   exCandlesUnsubscribe,
 } from '/snippets/ws-data/kline.jsx'
 
-Query or subscribe to candlestick (OHLCV) data for a market and interval. **Update interval:** 0.5 seconds.
+Query or subscribe to candlestick (OHLCV) data for a market and interval. Each candle contains open, high, low, close, and volume values for the specified interval. The server pushes updates every 0.5 seconds while a candle is active, reflecting the latest trade activity. Use this channel to power real-time charting or detect price movements as they occur.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "candles_request",
-    receive: "Array of candlestick records",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "candles_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "candles_update — latest candle for the subscribed interval"
-  },
-  {
-    name: "Unsubscribe",
-    send: "candles_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Query candlesticks (one-time)
 
 Fetch historical candlestick data for a time range.
 
-`params`: `[market, start_time, end_time, interval]`. Times are Unix timestamps.
+<WsTupleTable fields={candlesRequestParamsTupleFields} />
 
 **Request**
 
@@ -95,63 +91,25 @@ The constraints above ensure candles align with natural time boundaries (minutes
 
 ## Subscribe to candlesticks
 
+<WsTupleTable fields={candlesSubscribeParamsTupleFields} />
+
 <WsSubscribeSteps
   subscribe={exCandlesSubscribe}
-  subscribeNote="params[0] is the market. params[1] is the interval in seconds. See Interval constraints above."
+  subscribeNote="See Interval constraints above for valid interval values."
   confirmation={exCandlesSubscribeResponse}
   update={exCandlesUpdate}
   updateNote="The server pushes candles_update every 0.5 seconds with the current candle. The update payload is a positional array — fields are identified by index."
-  updateExtra={
-    <div style={{width: '100%', fontSize: '0.875rem', marginBottom: '1rem'}}>
-      <div style={{display: 'flex', borderBottom: '1px solid #e5e7eb', fontWeight: 600}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px'}}>Index</div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>Field</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Description</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[0]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>time</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Candle open time (Unix timestamp)</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[1]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>open</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Open price</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[2]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>close</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Close price (current price for live candle)</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[3]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>high</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Highest price in the interval</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[4]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>low</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Lowest price in the interval</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[5]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>volume</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Volume in stock (base currency)</div>
-      </div>
-      <div style={{display: 'flex', borderBottom: '1px solid #f3f4f6'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[6]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>deal</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Volume in money (quote currency)</div>
-      </div>
-      <div style={{display: 'flex'}}>
-        <div style={{padding: '8px 12px', flex: '0 0 70px', whiteSpace: 'nowrap'}}><code>[7]</code></div>
-        <div style={{padding: '8px 12px', flex: '0 0 120px'}}>market</div>
-        <div style={{padding: '8px 12px', flex: 1}}>Market name</div>
-      </div>
-    </div>
-  }
+  updateExtra={<WsTupleTable fields={candleTupleFields} />}
   unsubscribe={exCandlesUnsubscribe}
 />
+
+## Update frequency
+
+The server pushes updates every **0.5 seconds** while the candle is active.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Candle object
 

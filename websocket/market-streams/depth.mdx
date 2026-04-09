@@ -8,8 +8,16 @@ import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
+  channelOperations,
+  channelMeta,
   depthUpdateData,
+  depthRequestParamsTupleFields,
+  depthSubscribeParamsTupleFields,
   exDepthRequest,
   exDepthResponse,
   exDepthSubscribe,
@@ -17,34 +25,21 @@ import {
   exDepthPartialUpdate,
 } from '/snippets/ws-data/depth.jsx'
 
-Real-time order book data with support for both one-time snapshots and continuous subscription updates. **Update interval:** 100ms.
+Real-time order book data with support for both one-time snapshots and continuous subscription updates. Each update contains changed price levels (asks and bids) as `[price, amount]` tuples. The server pushes incremental deltas every 100ms; when no changes occur for 10 seconds, a full snapshot is sent as a keepalive. Use this channel to maintain a live local order book for trading logic or display.
 
-<WsChannelOverview operations={[
-  {
-    name: "Query",
-    send: "depth_request",
-    receive: "Full order book snapshot",
-    push: null
-  },
-  {
-    name: "Subscribe",
-    send: "depth_subscribe",
-    receive: "Confirmation (status: success)",
-    push: "depth_update — full snapshot (first), then incremental updates"
-  },
-  {
-    name: "Unsubscribe",
-    send: "depth_unsubscribe",
-    receive: "Confirmation (status: success)",
-    push: null
-  }
-]} />
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
 
 ## Query order book depth (one-time)
 
 Fetch a single order book snapshot without subscribing to updates.
 
-`params`: `[market, limit, price_interval]`. Maximum limit: `100`. Available `price_interval` values: `"0"` (no grouping), `"0.00000001"`, `"0.0000001"`, `"0.000001"`, `"0.00001"`, `"0.0001"`, `"0.001"`, `"0.01"`, `"0.1"`.
+<WsTupleTable fields={depthRequestParamsTupleFields} />
 
 **Request**
 
@@ -56,12 +51,13 @@ Fetch a single order book snapshot without subscribing to updates.
 
 ## Subscribe to order book depth
 
+<WsTupleTable fields={depthSubscribeParamsTupleFields} />
+
 <WsSubscribeSteps
   subscribe={exDepthSubscribe}
-  subscribeNote="params: [market, limit, price_interval, multi_depth]. limit — number of price levels (available values: 1, 5, 10, 20, 30, 50, 100). price_interval — price grouping interval ('0' for no grouping). multi_depth — set true to receive incremental updates."
   confirmation={{id: 12, result: {status: "success"}, error: null}}
   update={exDepthFullReload}
-  updateNote="The first depth_update is always a full snapshot — params[0] is true, past_update_id is absent. Initialize your local order book from this snapshot."
+  updateNote="The first depth_update is always a full snapshot — params[0] is true, past_update_id is absent. Initialize the local order book from this snapshot."
   updateExtra={
     <div>
       <p style={{fontSize: '0.875rem', marginBottom: '0.75rem'}}>Subsequent <code>depth_update</code> messages contain only changed price levels — <code>params[0]</code> is <code>false</code> and <code>past_update_id</code> is present.</p>
@@ -81,6 +77,14 @@ Fetch a single order book snapshot without subscribing to updates.
 Public `depth` updates exclude Retail Price Improvement (RPI) orders. The stream includes only regular order book liquidity.
 </Note>
 
+## Update frequency
+
+The server pushes updates every **100ms** when the order book changes. If 10 seconds pass without changes, a full snapshot is sent as a keepalive.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
 ## Maintaining a local order book
 
 To maintain an accurate local order book:
@@ -88,7 +92,7 @@ To maintain an accurate local order book:
 1. Subscribe and wait for the first message (`params[0]` is `true`) — initialize order book from snapshot
 2. For each incremental update: if amount is `"0"` remove the price level; otherwise update or insert at the correct sorted position
 3. Keep asks sorted ascending, bids sorted descending
-4. Truncate to your desired limit after each update
+4. Truncate to the configured limit after each update
 
 ## Update model
 

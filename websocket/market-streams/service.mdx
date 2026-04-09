@@ -6,29 +6,35 @@ description: "Ping the WhiteBIT WebSocket server to check connection health and 
 
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
 import {
+  channelOperations,
+  channelMeta,
   exPingRequest,
   exPingResponse,
   exTimeRequest,
   exTimeResponse,
 } from '/snippets/ws-data/service.jsx'
 
-Check API availability with ping/pong and query the current server time. The Service channel supports one-time queries only — no subscription or push events.
+Check API availability with ping/pong and query the current server time. The Service channel supports one-time queries only — no subscription or push events. Use ping to verify connection health and retrieve the server timestamp for clock synchronization.
 
-<WsChannelOverview operations={[
-  {
-    name: "Ping",
-    send: "ping",
-    receive: "\"pong\" string",
-    push: null
-  },
-  {
-    name: "Server Time",
-    send: "time",
-    receive: "Unix timestamp (integer)",
-    push: null
-  }
-]} />
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<WsChannelOverview operations={channelOperations} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Update frequency
+
+Client-initiated via `server.time` request. The server enforces a **60-second** ping timeout — send a ping within 60 seconds to keep the connection alive.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 ## Ping
 
@@ -42,7 +48,7 @@ Send a ping every 50 seconds to keep the connection alive. The server closes the
 
 <WsMessageExample data={exPingResponse} />
 
-## Server Time
+## Server time
 
 **Request**
 

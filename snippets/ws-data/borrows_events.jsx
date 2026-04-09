@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { borrowsEventsSubscribe, exBorrowsEventsSubscribe } from '/snippets/ws-data/borrows_events.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { borrowsEventsSubscribe, channelMeta, exBorrowsEventsSubscribe } from '/snippets/ws-data/borrows_events.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -40,6 +41,31 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `borrowsAccountMargin_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
+
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const borrowsEventsUpdateParamsTupleFields = [
+  { index: 0, field: "event_type", type: "integer", description: "Event type: 1=Margin call, 2=Liquidation", enum: [1,2], enumLabels: {"1":"Margin call","2":"Liquidation"} },
+  { index: 1, field: "borrow", type: "object", description: "Borrow object (same structure as Borrows endpoint)" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Subscribe", send: "borrowsAccountMargin_subscribe", receive: "Confirmation (status: success)", push: "borrowsAccountMargin_update — margin call or liquidation event" },
+  { name: "Unsubscribe", send: "borrowsAccountMargin_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

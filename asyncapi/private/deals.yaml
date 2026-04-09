@@ -4,10 +4,14 @@ info:
   version: 1.0.0
   description: |
     Get and subscribe to deals/trades updates.
-    
+
     **Important**: [Market](/glossary#market) should exist. The maximum limit is 100.
-    
+
     **Note**: Update events use ARRAY format, not object format.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -116,7 +120,7 @@ components:
     dealsResponse:
       name: DealsResponse
       title: Deals Response
-      summary: List of user deals
+      summary: Paginated list of deals
       payload:
         $ref: '#/components/schemas/DealsResponse'
       examples:
@@ -179,7 +183,7 @@ components:
     dealsUpdate:
       name: DealsUpdate
       title: Deals Update
-      summary: Real-time deals update (uses array format)
+      summary: New trade execution
       payload:
         $ref: '#/components/schemas/DealsUpdate'
       examples:
@@ -269,10 +273,19 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name. Example: BTC_USDT"
+              x-field-name: market
+              x-required: true
+              x-example: "BTC_USDT"
             - type: integer
               description: "Offset for pagination"
+              x-field-name: offset
+              x-required: true
+              x-example: 0
             - type: integer
               description: "Limit (maximum 100)"
+              x-field-name: limit
+              x-required: true
+              x-example: 30
 
     DealsResponse:
       type: object
@@ -424,29 +437,51 @@ components:
           maxItems: 11
           items:
             - type: integer
-              description: "Deal ID"
+              description: Unique deal ID
+              x-field-name: deal_id
+              x-example: "13674578673"
             - type: number
-              description: "Deal time in Unix time"
+              description: Unix timestamp of execution
+              x-field-name: time
+              x-example: "1738251095.345432"
             - type: string
-              description: "[Market](/glossary#market) name. Example: ETH_BTC"
+              description: Market name
+              x-field-name: market
+              x-example: '"ETH_BTC"'
             - type: integer
-              description: "Order ID"
+              description: Order ID
+              x-field-name: order_id
+              x-example: "1212909726406"
             - type: string
-              description: "Deal price"
+              description: Execution price
+              x-field-name: price
+              x-example: '"0.03084"'
             - type: string
-              description: "[Stock](/glossary#stock) amount"
+              description: Stock amount executed
+              x-field-name: amount
+              x-example: '"0.2625"'
             - type: string
-              description: "Deal fee expressed in asset from fee_asset"
+              description: Fee charged
+              x-field-name: fee
+              x-example: '"0.0002625"'
             - type: string
-              description: "Client Order ID (may be empty string)"
+              description: Custom client order ID (may be empty)
+              x-field-name: client_order_id
+              x-example: '""'
             - type: integer
               enum: [1, 2]
-              description: "Side: 1=sell, 2=buy/bid"
+              description: "1 = sell, 2 = buy"
+              x-field-name: side
+              x-example: "2"
             - type: integer
               enum: [1, 2]
-              description: "Role: 1=[maker](/glossary#maker), 2=taker"
+              description: "1 = maker, 2 = taker"
+              x-field-name: role
+              x-example: "2"
             - type: string
-              description: "Fee asset type"
+              description: Asset in which fee was charged
+              x-field-name: fee_asset
+              x-example: '"ETH"'
 
     UnsubscribeRequest:
       type: object

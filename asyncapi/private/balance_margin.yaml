@@ -2,6 +2,10 @@ asyncapi: 3.0.0
 info:
   title: WhiteBit Margin Balance
   version: 1.0.0
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
   description: |
     Get and subscribe to margin wallet balance updates.
     
@@ -170,7 +174,7 @@ components:
     balanceMarginUpdate:
       name: BalanceMarginUpdate
       title: Balance Margin Update
-      summary: Real-time margin balance update (uses abbreviated field names)
+      summary: Balance change for subscribed assets
       payload:
         $ref: '#/components/schemas/BalanceMarginUpdate'
       examples:

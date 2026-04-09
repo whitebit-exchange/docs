@@ -3,6 +3,10 @@ info:
   title: WhiteBit Kline Data
   version: 1.0.0
   description: Historical and real-time kline (candlestick) data for trading pairs. Supports both one-time queries and subscription-based updates.
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
 
 servers:
   production:
@@ -105,7 +109,7 @@ components:
     candlesResponse:
       name: CandlesResponse
       title: Candlestick Response
-      summary: Array of historical candlestick data
+      summary: Array of candlestick records
       payload:
         $ref: '#/components/schemas/CandlesResponse'
       examples:
@@ -229,21 +233,29 @@ components:
       maxItems: 8
       items:
         - type: integer
-          description: Time (Unix timestamp)
+          description: Candle open time (Unix timestamp)
+          x-field-name: time
         - type: string
           description: Open price
+          x-field-name: open
         - type: string
-          description: Close price
+          description: Close price (current price for live candle)
+          x-field-name: close
         - type: string
-          description: High price
+          description: Highest price in the interval
+          x-field-name: high
         - type: string
-          description: Low price
+          description: Lowest price in the interval
+          x-field-name: low
         - type: string
-          description: "Volume in [stock](/glossary#stock) currency"
+          description: "Volume in [stock](/glossary#stock) (base currency)"
+          x-field-name: volume
         - type: string
-          description: "Volume in [deal](/glossary#deal-trade) currency (money)"
+          description: "Volume in money (quote currency)"
+          x-field-name: deal
         - type: string
-          description: "[Market](/glossary#market) pair"
+          description: "[Market](/glossary#market) name"
+          x-field-name: market
 
     CandlesRequest:
       type: object
@@ -272,12 +284,24 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name (e.g., ETH_BTC)"
+              x-field-name: market
+              x-required: true
+              x-example: "ETH_BTC"
             - type: integer
               description: Start time (Unix timestamp)
+              x-field-name: start_time
+              x-required: true
+              x-example: 1659569940
             - type: integer
               description: End time (Unix timestamp)
+              x-field-name: end_time
+              x-required: true
+              x-example: 1660894800
             - type: integer
               description: Interval in seconds
+              x-field-name: interval
+              x-required: true
+              x-example: 3600
 
     CandlesResponse:
       type: object
@@ -321,8 +345,14 @@ components:
           items:
             - type: string
               description: "[Market](/glossary#market) name (e.g., BTC_USD)"
+              x-field-name: market
+              x-required: true
+              x-example: "BTC_USD"
             - type: integer
               description: Interval in seconds
+              x-field-name: interval
+              x-required: true
+              x-example: 900
 
     SubscriptionResponse:
       type: object

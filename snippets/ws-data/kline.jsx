@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { candlesRequest, exCandlesRequest } from '/snippets/ws-data/kline.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { candlesRequest, channelMeta, exCandlesRequest } from '/snippets/ws-data/kline.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -43,6 +44,50 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `candles_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "" },
 ];
+
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const candleTupleFields = [
+  { index: 0, field: "time", type: "integer", description: "Candle open time (Unix timestamp)" },
+  { index: 1, field: "open", type: "string", description: "Open price" },
+  { index: 2, field: "close", type: "string", description: "Close price (current price for live candle)" },
+  { index: 3, field: "high", type: "string", description: "Highest price in the interval" },
+  { index: 4, field: "low", type: "string", description: "Lowest price in the interval" },
+  { index: 5, field: "volume", type: "string", description: "Volume in stock (base currency)" },
+  { index: 6, field: "deal", type: "string", description: "Volume in money (quote currency)" },
+  { index: 7, field: "market", type: "string", description: "Market name" },
+];
+
+export const candlesRequestParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name (e.g., ETH_BTC)", required: true, example: "ETH_BTC" },
+  { index: 1, field: "start_time", type: "integer", description: "Start time (Unix timestamp)", required: true, example: "1659569940" },
+  { index: 2, field: "end_time", type: "integer", description: "End time (Unix timestamp)", required: true, example: "1660894800" },
+  { index: 3, field: "interval", type: "integer", description: "Interval in seconds", required: true, example: "3600" },
+];
+
+export const candlesSubscribeParamsTupleFields = [
+  { index: 0, field: "market", type: "string", description: "Market name (e.g., BTC_USD)", required: true, example: "BTC_USD" },
+  { index: 1, field: "interval", type: "integer", description: "Interval in seconds", required: true, example: "900" },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "candles_request", receive: "Array of candlestick records", push: null },
+  { name: "Subscribe", send: "candles_subscribe", receive: "Confirmation (status: success)", push: "candles_update — periodic candlestick update (every 0.5 seconds)" },
+  { name: "Unsubscribe", send: "candles_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": false,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 

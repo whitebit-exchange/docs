@@ -4,7 +4,8 @@
 //
 // Schema exports (camelCase)  → feed <WsSchemaTable fields={...} />
 // Example exports (ex prefix) → feed <WsMessageExample data={...} />
-//   import { ordersExecutedRequest, exOrdersExecutedRequest } from '/snippets/ws-data/orders_executed.jsx'
+// channelMeta                 → feed <WsAuthBadge>, <WsRateLimits>, and <WsErrorCodes>
+//   import { ordersExecutedRequest, channelMeta, exOrdersExecutedRequest } from '/snippets/ws-data/orders_executed.jsx'
 
 // ── Schema field arrays ─────────────────────────────────────────────────────
 
@@ -68,6 +69,38 @@ export const unsubscribeRequest = [
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `ordersExecuted_unsubscribe`." },
   { name: "params", type: "array", required: true, description: "Empty array for unsubscribe" },
 ];
+
+// ── Tuple field arrays ──────────────────────────────────────────────────────
+
+export const ordersExecutedRequestParamsTupleFields = [
+  { index: 0, field: "filter", type: "object", description: "Filter object", required: true },
+  { index: 1, field: "offset", type: "integer", description: "Offset for pagination", required: true, example: "0" },
+  { index: 2, field: "limit", type: "integer", description: "Limit (maximum 100)", required: true, example: "30" },
+];
+
+export const ordersExecutedSubscribeParamsTupleFields = [
+  { index: 0, field: "markets", type: "array", description: "Array of markets to subscribe to", required: true },
+  { index: 1, field: "filter", type: "integer", description: "Filter: 0=Limit and Market, 1=Limit only, 2=Market only", required: true, example: "0", enum: [0,1,2] },
+];
+
+// ── Channel operations ──────────────────────────────────────────────────────
+
+export const channelOperations = [
+  { name: "Query", send: "ordersExecuted_request", receive: "List of executed orders", push: null },
+  { name: "Subscribe", send: "ordersExecuted_subscribe", receive: "Confirmation (status: success)", push: "ordersExecuted_update — real-time executed orders update" },
+  { name: "Unsubscribe", send: "ordersExecuted_unsubscribe", receive: "Confirmation (status: success)", push: null },
+];
+
+// ── Channel metadata ────────────────────────────────────────────────────────
+
+export const channelMeta = {
+  "authRequired": true,
+  "rateLimits": {
+    "connectionsPerMinute": 1000,
+    "requestsPerMinute": 200
+  },
+  "errorCodes": "standard"
+};
 
 // ── Message examples ────────────────────────────────────────────────────────
 
