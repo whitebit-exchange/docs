@@ -224,10 +224,17 @@ paths:
       description: |
         The endpoint creates a [limit order](/glossary#limit-order) using [collateral balance](/glossary#balance-collateral). The order executes at the specified price or better. Use `buy` to open or increase a long position and `sell` to open or increase a short position. To close a position, place an opposite-side order matching the position amount.
 
+        **Order validation rules** (per-market, from `GET /api/v4/public/markets`):
+        - `amount` must have at most `stockPrec` decimal places
+        - `price` must have at most `moneyPrec` decimal places
+        - `amount` must be ≥ `minAmount`
+        - `amount × price` must be ≥ `minTotal`
+        - `amount × price` must be ≤ `maxTotal` (when `maxTotal` is not `"0"`)
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         For open long position use **buy**, for short **sell**. To close current position, place opposite order with current position amount.
         </Note>
@@ -409,10 +416,7 @@ paths:
                     description: Immediate or cancel flag
                     example: false
                   status:
-                    type: string
-                    description: Order status
-                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
-                    example: "FILLED"
+                    $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
                     description: Self trade prevention mode
@@ -689,9 +693,7 @@ paths:
                           example: false
                         status:
                           type: string
-                          description: Order status
-                          enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
-                          example: "FILLED"
+                          $ref: '#/components/schemas/ActiveOrderStatus'
                         stp:
                           type: string
                           description: Self trade prevention mode
@@ -921,10 +923,7 @@ paths:
                     description: Fee in money that is paid when order is finished
                     example: "0"
                   status:
-                    type: string
-                    description: Order status
-                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
-                    example: "FILLED"
+                    $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
                     description: Self trade prevention mode
@@ -1134,10 +1133,7 @@ paths:
                     description: Price at which the stop-limit order activates
                     example: "40000"
                   status:
-                    type: string
-                    description: Order status
-                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
-                    example: "FILLED"
+                    $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
                     description: Self trade prevention mode
@@ -1342,10 +1338,7 @@ paths:
                     description: Price at which the stop market order activates
                     example: "40000"
                   status:
-                    type: string
-                    description: Order status
-                    enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
-                    example: "FILLED"
+                    $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
                     description: Self trade prevention mode
@@ -2062,10 +2055,20 @@ paths:
       summary: Change Collateral Account Leverage
       operationId: changeCollateralAccountLeverage
       description: |
-        The endpoint changes the leverage level for the [collateral](/glossary#balance-collateral) trading account. Leverage determines the ratio of borrowed funds to collateral and directly affects margin requirements and liquidation thresholds. The accepted range is `1` to `100`.
+        The endpoint changes the leverage level for the [collateral](/glossary#balance-collateral) trading account. Leverage determines the ratio of borrowed funds to collateral and directly affects margin requirements and liquidation thresholds. Accepted values: `1`, `2`, `3`, `5`, `10`, `20`, `50`, `100`.
+
+        Each leverage level has a corresponding bracket defining the maximum position size for the tier. When a position exceeds the bracket limit, the system applies higher tiers with progressively lower leverage. Query market-specific brackets via `GET /api/v4/public/futures`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        A market's `max_leverage` field (from `GET /api/v4/public/futures`) may be lower than `100`. Setting leverage above a market's maximum results in an error.
+        </Note>
+
+        <Warning>
+        Changing leverage affects **all open positions** across margin and futures trading. Decreasing leverage increases margin requirements — if available funds are insufficient to support the new level, the request returns an error.
         </Warning>
       tags:
         - Collateral Trading
@@ -2088,7 +2091,7 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100
-                  description: "Target leverage level. Accepted values range from `1` (no leverage) to `100` (maximum leverage)."
+                  description: "Target leverage level. Accepted values: `1`, `2`, `3`, `5`, `10`, `20`, `50`, `100`. The effective maximum depends on the market's `max_leverage`."
                   example: 5
                 request:
                   type: string
@@ -2189,6 +2192,10 @@ paths:
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Warning>
+        Switching between one-way mode and hedge mode requires **no open positions**. Close all futures positions before toggling the mode. If the switch does not take effect immediately after closing positions, wait approximately 15 seconds and retry.
         </Warning>
       tags:
         - Collateral Trading
@@ -2887,9 +2894,7 @@ paths:
                         example: 0
                       status:
                         type: string
-                        description: Order status
-                        enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
-                        example: "FILLED"
+                        $ref: '#/components/schemas/ActiveOrderStatus'
                       stp:
                         type: string
                         description: Self trade prevention mode
@@ -2970,9 +2975,7 @@ paths:
                         example: "9928.79"
                       status:
                         type: string
-                        description: Order status
-                        enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
-                        example: "FILLED"
+                        $ref: '#/components/schemas/ActiveOrderStatus'
                       stp:
                         type: string
                         description: Self trade prevention mode
@@ -3248,8 +3251,7 @@ paths:
                         example: 0
                       status:
                         type: string
-                        description: Order status
-                        example: "CANCELED"
+                        $ref: '#/components/schemas/OrderStatus'
                       stp:
                         type: string
                         description: Self trade prevention mode
@@ -3317,8 +3319,7 @@ paths:
                         example: "9928.79"
                       status:
                         type: string
-                        description: Order status
-                        example: "CANCELED"
+                        $ref: '#/components/schemas/OrderStatus'
                       stp:
                         type: string
                         description: Self trade prevention mode
@@ -3982,7 +3983,14 @@ paths:
       summary: Create Limit Order
       operationId: createLimitOrder
       description: |
-        The endpoint creates a [limit trading order](/glossary#limit-order). The order remains on the order book until filled, cancelled, or expired. Minimum and maximum values for `amount` and `price` are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, `maxTotal`, `stockPrec` (amount precision), and `moneyPrec` (price precision).
+        The endpoint creates a [limit trading order](/glossary#limit-order). The order remains on the order book until filled, cancelled, or expired. Minimum and maximum values for `amount` and `price` are market-dependent — query `GET /api/v4/public/markets` for per-market constraints.
+
+        **Order validation rules** (per-market, from `GET /api/v4/public/markets`):
+        - `amount` must have at most `stockPrec` decimal places
+        - `price` must have at most `moneyPrec` decimal places
+        - `amount` must be ≥ `minAmount`
+        - `amount × price` must be ≥ `minTotal`
+        - `amount × price` must be ≤ `maxTotal` (when `maxTotal` is not `"0"`)
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -5383,7 +5391,11 @@ paths:
         <Note>
         This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results.
         </Note>
-        
+
+        <Note>
+        For B2B accounts, canceled order recording is disabled by default. To include canceled orders in the history, contact support to enable canceled order storage.
+        </Note>
+
         <Accordion title="Errors">
         ```json
         {
@@ -5658,6 +5670,10 @@ paths:
         <Note>
         This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results.
         </Note>
+
+        <Note>
+        For B2B accounts, canceled order recording is disabled by default. To include canceled orders in the history, contact support to enable canceled order storage.
+        </Note>
       tags:
         - Spot Trading
       security:
@@ -5771,9 +5787,7 @@ paths:
                         description: "Immediate-or-cancel flag. When `true`, the order executed available quantity immediately and cancelled the rest."
                         example: false
                       status:
-                        type: string
-                        description: "Current order lifecycle status. Possible values: `FILLED`, `CANCELED`, `PARTIAL_CANCELED`."
-                        example: "CANCELED"
+                        $ref: '#/components/schemas/OrderStatus'
                       feeAsset:
                         type: string
                         description: "Currency ticker of the asset used to pay the trading fee."
@@ -6229,6 +6243,15 @@ components:
           schema:
             $ref: '#/components/schemas/BulkLimitOrderResponse'
   schemas:
+    ActiveOrderStatus:
+      type: string
+      description: "Order status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `PARTIALLY_FILLED` — partially executed, remainder still active. `CANCELLED` — canceled before full execution."
+      enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+      example: "FILLED"
+    OrderStatus:
+      type: string
+      description: "Order lifecycle status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `CANCELED` — canceled before execution. `PARTIAL_FILLED` — partially executed, remainder still active. `PARTIAL_CANCELED` — partially filled, remainder canceled. `CANCELED_TAKER_BAND` — partially filled up to the taker band limit, remainder canceled to protect against excessive order book slippage."
+      example: "FILLED"
     ExecutedDeal:
       type: object
       properties:
@@ -6627,9 +6650,7 @@ components:
           description: "Immediate-or-cancel flag. When `true`, the order executes available quantity immediately and cancels the unfilled remainder. Default: `false`."
           example: false
         status:
-          type: string
-          description: "Current order lifecycle status. Possible values: `NEW`, `FILLED`, `CANCELED`, `PARTIAL_FILLED`, `PARTIAL_CANCELED`."
-          example: "FILLED"
+          $ref: '#/components/schemas/OrderStatus'
         stp:
           type: string
           description: "Self-trade prevention mode. Possible values: `no`, `cancel_both`, `cancel_new`, `cancel_old`. Default: `no`."
