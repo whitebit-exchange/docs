@@ -72,22 +72,6 @@ All endpoints require the MINING_POOL feature to be enabled on the API key.
 </CardGroup>
 </Update>
 
-<Update label="February 11, 2025">
-## API Documentation Updates
-**Sub-account transfer endpoints: add transactionId for correlation**
-
-The response of `/api/v4/sub-account/transfer` and `/api/v4/sub-account/transfer/history` includes the `transactionId` field.
-
-Use `transactionId` to correlate transfer operations with transfer history records.
-
-The `id` field in transfer history is deprecated. Replace `id` with `transactionId`.
-
-<CardGroup cols={2}>
-  <Card title="Sub-Account Transfer" href="/api-reference/sub-accounts/sub-account-transfer" icon="arrow-right-arrow-left" horizontal/>
-  <Card title="Get Sub-Account Transfer History" href="/api-reference/sub-accounts/get-sub-account-transfer-history" icon="clock-rotate-left" horizontal/>
-</CardGroup>
-</Update>
-
 <Update label="September 21, 2025">
 ## Documentation Updates
 **Clarified Book Ticker stream update interval**
@@ -245,5 +229,21 @@ Added beneficiary.birthDate field (Format: YYYY-MM-DD) to withdrawal requests an
 <CardGroup cols={2}>
   <Card title="v4 - Withdraw" href="/api-reference/account-wallet/create-withdraw-request" icon="arrow-down" horizontal/>
   <Card title="v4 - Fiat Deposit" href="/api-reference/account-wallet/get-fiat-deposit-address" icon="arrow-up" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="February 11, 2025">
+## API Documentation Updates
+**Sub-account transfer endpoints: add transactionId for correlation**
+
+The response of `/api/v4/sub-account/transfer` and `/api/v4/sub-account/transfer/history` includes the `transactionId` field.
+
+Use `transactionId` to correlate transfer operations with transfer history records.
+
+The `id` field in transfer history is deprecated. Replace `id` with `transactionId`.
+
+<CardGroup cols={2}>
+  <Card title="Sub-Account Transfer" href="/api-reference/sub-accounts/sub-account-transfer" icon="arrow-right-arrow-left" horizontal/>
+  <Card title="Get Sub-Account Transfer History" href="/api-reference/sub-accounts/get-sub-account-transfer-history" icon="clock-rotate-left" horizontal/>
 </CardGroup>
 </Update>
