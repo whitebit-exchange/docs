@@ -200,8 +200,8 @@ paths:
                       example: false
                     change:
                       type: string
-                      description: "Price change over the rolling 24-hour window expressed
-                        as a percentage (e.g., `\"0.57\"` = 0.57% increase, `\"-1.23\"` = 1.23% decrease)."
+                      description: "Percentage change between the rolling 24-hour open price
+                        and the last traded price."
                       example: "0.57"
               example:
                 BTC_USDT:
@@ -477,14 +477,14 @@ paths:
                       description: "Transaction amount in the quote (stock) currency. In a
                         BTC_USDT market, the value is the BTC amount. Note: WhiteBIT uses a
                         reversed naming convention compared to standard exchange terminology —
-                        the stock/asset currency is called 'quote' in WhiteBIT's model."
+                        the stock/asset currency is called 'quote' here."
                       example: "0.0021"
                     base_volume:
                       type: string
                       description: "Transaction amount in the base (money) currency. In a
                         BTC_USDT market, the value is the USDT amount. Note: WhiteBIT uses a
                         reversed naming convention compared to standard exchange terminology —
-                        the settlement/pricing currency is called 'base' in WhiteBIT's model."
+                        the settlement/pricing currency is called 'base' here."
                       example: "9186.13"
                     trade_timestamp:
                       type: integer
@@ -544,8 +544,98 @@ paths:
             application/json:
               schema:
                 type: object
-                description: Map of currency tickers to fee information
+                description: |
+                  Map of currency tickers to fee information. Each key is an asset ticker (e.g., `BTC`, `EUR`).
+
+                  **Crypto assets** — `providers` is an empty array; `withdraw` and `deposit` are flat objects with fee fields.
+
+                  **Fiat assets** — `providers` lists available payment methods; `withdraw` and `deposit` are objects keyed by provider ID, where each value contains provider-specific fee details.
                 x-fern-type-name: FeeMap
+                additionalProperties:
+                  $ref: '#/components/schemas/FeeInfo'
+              examples:
+                crypto:
+                  summary: Crypto asset
+                  value:
+                    BTC:
+                      is_depositable: true
+                      is_withdrawal: true
+                      is_api_withdrawal: true
+                      is_api_depositable: true
+                      ticker: "BTC"
+                      name: "Bitcoin"
+                      providers: []
+                      withdraw:
+                        max_amount: "0"
+                        min_amount: "0.0003"
+                        fixed: "0.0002"
+                        flex: null
+                      deposit:
+                        max_amount: "0"
+                        min_amount: "0.0001"
+                        fixed: null
+                        flex: null
+                fiat:
+                  summary: Fiat asset with providers
+                  value:
+                    EUR:
+                      is_api_withdrawal: true
+                      is_api_depositable: true
+                      ticker: "EUR"
+                      name: "Euro"
+                      providers:
+                        - "EUR_SEPA_BCB"
+                        - "EUR_ADVCASH"
+                      withdraw:
+                        EUR_SEPA_BCB:
+                          is_withdrawal: true
+                          is_api_withdrawal: true
+                          ticker: "EUR_SEPA_BCB"
+                          name: "EUR SEPA BCB"
+                          max_amount: "14500"
+                          min_amount: "10"
+                          fixed: null
+                          flex:
+                            percent: "0.05"
+                            min_fee: "3"
+                            max_fee: "7.25"
+                        EUR_ADVCASH:
+                          is_withdrawal: true
+                          is_api_withdrawal: true
+                          ticker: "EUR_ADVCASH"
+                          name: "EUR Volet.com"
+                          max_amount: "10000"
+                          min_amount: "10"
+                          fixed: null
+                          flex:
+                            percent: "1.5"
+                            min_fee: "0.15"
+                            max_fee: "150"
+                      deposit:
+                        EUR_SEPA_BCB:
+                          is_depositable: true
+                          is_api_depositable: true
+                          ticker: "EUR_SEPA_BCB"
+                          name: "EUR SEPA BCB"
+                          max_amount: "14500"
+                          min_amount: "10"
+                          fixed: null
+                          flex:
+                            percent: "0.05"
+                            min_fee: "3"
+                            max_fee: "7.25"
+                        EUR_ADVCASH:
+                          is_depositable: true
+                          is_api_depositable: true
+                          ticker: "EUR_ADVCASH"
+                          name: "EUR Volet.com"
+                          max_amount: "10000"
+                          min_amount: "10"
+                          fixed: null
+                          flex:
+                            percent: "1.5"
+                            min_fee: "0.15"
+                            max_fee: "150"
         'default':
           description: Error response
           content:
@@ -791,10 +881,8 @@ paths:
                       example: "1752537600"
                     fundingRate:
                       type: string
-                      description: "Funding rate applied at the settlement. A positive value means
-                        long-position holders pay short-position holders; a negative value means
-                        short-position holders pay long-position holders. Expressed as a decimal
-                        ratio (e.g., `\"-0.0001229\"`)."
+                      description: "Funding rate applied at the settlement interval. Each record
+                        represents a historical settlement event."
                       example: "-0.0001229"
                     market:
                       type: string
@@ -1082,11 +1170,17 @@ components:
 
     FeeInfo:
       type: object
+      description: |
+        Fee and limit details for a single asset. For crypto assets, `withdraw` and `deposit` are flat fee objects. For fiat assets with providers, they are objects keyed by provider ID.
       properties:
         ticker:
           type: string
+          description: Asset ticker symbol
+          example: "BTC"
         name:
           type: string
+          description: Human-readable asset name
+          example: "Bitcoin"
         providers:
           type: array
           description: "Payment provider identifiers used as the network parameter value
@@ -1094,78 +1188,140 @@ components:
             providers field for context."
           items:
             type: string
+          example: []
         deposit:
-          description: Fee details for deposits
-          type: object
+          description: |
+            Deposit fee details. For crypto assets, this is a flat object with `max_amount`, `min_amount`, `fixed`, and `flex` fields. For fiat assets with providers, this is an object keyed by provider ID, where each value contains provider-specific fee details.
+          oneOf:
+            - $ref: '#/components/schemas/FeeDetails'
+            - type: object
+              description: Map of provider IDs to provider-specific deposit fee details
+              additionalProperties:
+                $ref: '#/components/schemas/ProviderFeeDetails'
         withdraw:
-          description: Fee details for withdrawals
-          type: object
+          description: |
+            Withdrawal fee details. For crypto assets, this is a flat object with `max_amount`, `min_amount`, `fixed`, and `flex` fields. For fiat assets with providers, this is an object keyed by provider ID, where each value contains provider-specific fee details.
+          oneOf:
+            - $ref: '#/components/schemas/FeeDetails'
+            - type: object
+              description: Map of provider IDs to provider-specific withdrawal fee details
+              additionalProperties:
+                $ref: '#/components/schemas/ProviderFeeDetails'
         is_depositable:
           type: boolean
           description: "Indicates whether deposits are enabled for the currency. May be absent
             from the response; absence should be treated as equivalent to false."
+          example: true
         is_withdrawal:
           type: boolean
           description: "Indicates whether withdrawals are enabled for the currency. May be absent
             from the response; absence should be treated as equivalent to false."
+          example: true
         is_api_withdrawal:
           type: boolean
+          description: Whether API withdrawals are enabled
+          example: true
         is_api_depositable:
           type: boolean
+          description: Whether API deposits are enabled
+          example: true
 
     FeeDetails:
       type: object
+      description: Fee amounts and transfer limits for a crypto asset
       properties:
-        min_amount:
-          type: string
-          description: "Minimum transaction amount for the operation and network. May be absent
-            independently from other limit fields."
         max_amount:
           type: string
           description: "Maximum transaction amount for the operation and network. May be absent
             independently from other limit fields; absence typically indicates no upper limit
-            is enforced."
+            applies."
+          example: "0"
+        min_amount:
+          type: string
+          description: "Minimum transaction amount for the operation and network. May be absent
+            independently from other limit fields."
+          example: "0.0004"
         fixed:
           type: string
           nullable: true
+          description: "Fixed fee amount per transaction. `null` if no fixed fee applies."
+          example: "0.0002"
         flex:
           type: object
           nullable: true
+          description: "Percentage-based (flexible) fee. `null` if no flexible fee applies."
           properties:
-            min_fee:
-              type: string
-            max_fee:
-              type: string
             percent:
               type: string
+              description: "Fee percentage (e.g., `\"1.5\"` means 1.5%)"
+              example: "1.5"
+            min_fee:
+              type: string
+              description: Minimum fee amount regardless of percentage calculation
+              example: "0.15"
+            max_fee:
+              type: string
+              description: Maximum fee amount regardless of percentage calculation
+              example: "150"
 
     ProviderFeeDetails:
       type: object
+      description: Fee details for a specific fiat payment provider
       properties:
-        min_amount:
+        ticker:
           type: string
+          description: Provider identifier
+          example: "EUR_SEPA_BCB"
+        name:
+          type: string
+          description: Human-readable provider name
+          example: "EUR SEPA BCB"
+        is_depositable:
+          type: boolean
+          description: Whether deposits are enabled via this provider
+          example: true
+        is_api_depositable:
+          type: boolean
+          description: Whether API deposits are enabled via this provider
+          example: true
+        is_withdrawal:
+          type: boolean
+          description: Whether withdrawals are enabled via this provider
+          example: true
+        is_api_withdrawal:
+          type: boolean
+          description: Whether API withdrawals are enabled via this provider
+          example: true
         max_amount:
           type: string
+          description: "Maximum transfer amount. `\"0\"` means unlimited."
+          example: "14500"
+        min_amount:
+          type: string
+          description: Minimum transfer amount
+          example: "10"
         fixed:
           type: string
           nullable: true
+          description: "Fixed fee amount per transaction. `null` if no fixed fee applies."
+          example: null
         flex:
-          type: string
+          type: object
           nullable: true
-        is_depositable:
-          type: boolean
-        is_api_depositable:
-          type: boolean
-        is_withdrawal:
-          type: boolean
-        is_api_withdrawal:
-          type: boolean
-        name:
-          type: string
-          example: USD Visa/MasterCard Interkassa
-        ticker:
-          type: string
-          example: USD_VISAMASTER_INTERKASSA
+          description: "Percentage-based (flexible) fee. `null` if no flexible fee applies."
+          properties:
+            percent:
+              type: string
+              description: "Fee percentage (e.g., `\"1.5\"` means 1.5%)"
+              example: "0.05"
+            min_fee:
+              type: string
+              description: Minimum fee amount regardless of percentage calculation
+              example: "3"
+            max_fee:
+              type: string
+              description: Maximum fee amount regardless of percentage calculation
+              example: "7.25"
 
     FuturesMarket:
       type: object

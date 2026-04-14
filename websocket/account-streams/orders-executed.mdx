@@ -25,10 +25,13 @@ import {
   exOrdersExecutedUpdate,
   exOrdersExecutedUnsubscribe,
 } from '/snippets/ws-data/orders_executed.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to executed order history with optional filtering by order type (limit, market, or both). Each record includes execution details, fees, and status. **Update interval:** real-time.
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -76,3 +79,8 @@ Updates are pushed in **real time** when an order is fully executed or canceled.
 ## Executed order object
 
 <WsSchemaTable fields={executedOrderObject} />
+
+<RelatedResources>
+- [Orders Pending](/websocket/account-streams/orders-pending) — stream of open (unexecuted) orders.
+- [Deals](/websocket/account-streams/deals) — individual trade fills for each executed order.
+</RelatedResources>

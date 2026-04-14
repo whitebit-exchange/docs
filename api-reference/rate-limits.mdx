@@ -8,12 +8,15 @@ Reference for REST API rate limits, error formats, and error codes.
 
 ## REST API rate limits
 
+All rate limits are **per IP address**.
+
 | Scope | Limit |
 |-------|-------|
-| Public REST endpoints | 2000 requests / 10 sec |
-| Private REST endpoints | Varies per endpoint (see individual endpoint pages) |
+| `/api/v4/public/*` | 20,000 requests / 10 sec |
+| `/api/v4/trade-account/*` | 12,000 requests / 10 sec |
+| `/api/v4/main-account/*` | 1,000 requests / 10 sec |
 
-Private endpoints such as [Main Balance](/api-reference/account-wallet/main-balance) have a rate limit of 1000 requests / 10 sec. Check each endpoint page for the endpoint-specific limit.
+Some endpoints have tighter limits that override the defaults above. These are documented on the respective endpoint pages.
 
 When the rate limit is exceeded, the API returns HTTP status `429` (Too Many Requests). Use exponential backoff before retrying (see Best practices below).
 

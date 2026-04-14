@@ -22,12 +22,15 @@ import {
   exBalanceSpotUpdate,
   exBalanceSpotUnsubscribe,
 } from '/snippets/ws-data/balance_spot.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Get and subscribe to [spot balance](/glossary#balance-spotbalance-trade) updates. The server sends incremental updates — only assets whose balance changed are included in each message. To retrieve the current state at any time without maintaining a subscription, use the one-time query operation. The server pushes updates every 1 second when a balance changes.
 
 <WsChannelOverview operations={channelOperations} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -69,3 +72,7 @@ The server pushes updates every **1 second** when the balance changes.
 ## Balance object
 
 <WsSchemaTable fields={balanceSpotUpdate} />
+
+<RelatedResources>
+- [Trading balance](/api-reference/spot-trading/trading-balance) — spot balance snapshot via REST.
+</RelatedResources>

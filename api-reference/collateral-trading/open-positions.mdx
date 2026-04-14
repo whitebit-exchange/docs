@@ -3,7 +3,12 @@ title: "Open positions"
 description: "List all currently open collateral trading positions on a WhiteBIT account via the V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/positions/open"
 ---
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
 import { RelatedResources } from '/components/RelatedResources.jsx';
+
+## Rate limit
+
+<RestRateLimit requests={100} period="10 seconds" scope="/api/v4/collateral-account/positions/open" />
 
 
 <RelatedResources>

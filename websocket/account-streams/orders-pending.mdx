@@ -25,12 +25,15 @@ import {
   exOrdersPendingUpdate,
   exOrdersPendingUnsubscribe,
 } from '/snippets/ws-data/orders_pending.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to active (unexecuted) orders across specified markets. The server pushes `ordersPending_update` events in real time on every order state change. Subscribe to multiple markets simultaneously by passing market names in the `params` array.
 
 <WsChannelOverview operations={channelOperations} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -96,3 +99,7 @@ Clients tracking orders by `order_id` must update the stored value after each mo
 Fields present in both the query response (`records[]`) and the pushed `ordersPending_update` payload.
 
 <WsSchemaTable fields={orderObject} />
+
+<RelatedResources>
+- [Orders Executed](/websocket/account-streams/orders-executed) — stream of filled and cancelled orders.
+</RelatedResources>
