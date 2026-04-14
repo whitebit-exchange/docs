@@ -55,7 +55,7 @@ export const unsubscribeRequest = [
 // ── Tuple field arrays ──────────────────────────────────────────────────────
 
 export const marginPositionsEventsUpdateParamsTupleFields = [
-  { index: 0, field: "event_type", type: "integer", description: "Event type: 1=Margin call, 2=Liquidation", enum: [1,2], enumLabels: {"1":"Margin call","2":"Liquidation"} },
+  { index: 0, field: "event_type", type: "integer", description: "Event type", enum: [1,2], enumLabels: {"1":"Margin call","2":"Liquidation"} },
   { index: 1, field: "position", type: "object", description: "Position object (same structure as Positions endpoint)" },
 ];
 
