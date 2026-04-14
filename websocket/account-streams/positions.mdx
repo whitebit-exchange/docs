@@ -20,6 +20,7 @@ import {
   exPositionsUpdate,
   exPositionsUnsubscribe,
 } from '/snippets/ws-data/positions.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -30,6 +31,8 @@ This channel does **NOT** support query operations — only subscribe/update/uns
 </Note>
 
 <WsChannelOverview operations={channelOperations} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -57,3 +60,7 @@ The server pushes updates every **1 second** when position data changes.
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+<RelatedResources>
+- [Margin Positions Events](/websocket/account-streams/margin-positions-events) — real-time margin call and liquidation events for collateral positions.
+</RelatedResources>

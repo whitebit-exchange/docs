@@ -22,10 +22,13 @@ import {
   exMarginPositionsEventsUpdate,
   exMarginPositionsEventsUnsubscribe,
 } from '/snippets/ws-data/margin_positions_events.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Subscribe to margin call and liquidation event notifications for collateral positions. Events fire when a position enters margin call or liquidation state. The channel uses an event-driven update model — no snapshot is sent on subscribe; updates are delivered only when a position state change occurs.
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -63,3 +66,7 @@ Updates are pushed in **real time** on margin position state changes (open, clos
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+<RelatedResources>
+- [Positions](/websocket/account-streams/positions) — current position state with P&L and liquidation price, updated every second.
+</RelatedResources>

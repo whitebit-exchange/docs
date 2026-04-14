@@ -22,12 +22,15 @@ import {
   exBorrowsEventsUpdate,
   exBorrowsEventsUnsubscribe,
 } from '/snippets/ws-data/borrows_events.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Subscribe to margin call and liquidation event notifications for collateral borrows. Events fire when a borrow enters margin call or liquidation state. This is an event-driven channel — updates are pushed once per state change, with no periodic polling or snapshot on subscribe.
 
 <WsChannelOverview operations={channelOperations} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -56,3 +59,7 @@ Updates are pushed in **real time** on borrow state changes (new borrow, repayme
 ## Borrow event object
 
 <WsSchemaTable fields={borrowRecord} />
+
+<RelatedResources>
+- [Borrows](/websocket/account-streams/borrows) — current borrow state with periodic full snapshots.
+</RelatedResources>

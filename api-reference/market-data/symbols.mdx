@@ -4,7 +4,11 @@ description: "Get a list of all available trading pair symbols using the public 
 openapi: "/openapi/public/http-v1.yaml GET /api/v1/public/symbols"
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
 
+## Rate limit
+
+<RestRateLimit requests={1000} period="10 seconds" scope="/api/v1/*" />
 
 <RelatedResources>
 - [Market info](/api-reference/market-data/market-info) — detailed market configuration including trading rules, fees, and precision (V4).

@@ -200,8 +200,8 @@ paths:
                       example: false
                     change:
                       type: string
-                      description: "Price change over the rolling 24-hour window expressed
-                        as a percentage (e.g., `\"0.57\"` = 0.57% increase, `\"-1.23\"` = 1.23% decrease)."
+                      description: "Percentage change between the rolling 24-hour open price
+                        and the last traded price."
                       example: "0.57"
               example:
                 BTC_USDT:
@@ -477,14 +477,14 @@ paths:
                       description: "Transaction amount in the quote (stock) currency. In a
                         BTC_USDT market, the value is the BTC amount. Note: WhiteBIT uses a
                         reversed naming convention compared to standard exchange terminology —
-                        the stock/asset currency is called 'quote' in WhiteBIT's model."
+                        the stock/asset currency is called 'quote' here."
                       example: "0.0021"
                     base_volume:
                       type: string
                       description: "Transaction amount in the base (money) currency. In a
                         BTC_USDT market, the value is the USDT amount. Note: WhiteBIT uses a
                         reversed naming convention compared to standard exchange terminology —
-                        the settlement/pricing currency is called 'base' in WhiteBIT's model."
+                        the settlement/pricing currency is called 'base' here."
                       example: "9186.13"
                     trade_timestamp:
                       type: integer
@@ -881,10 +881,8 @@ paths:
                       example: "1752537600"
                     fundingRate:
                       type: string
-                      description: "Funding rate applied at the settlement. A positive value means
-                        long-position holders pay short-position holders; a negative value means
-                        short-position holders pay long-position holders. Expressed as a decimal
-                        ratio (e.g., `\"-0.0001229\"`)."
+                      description: "Funding rate applied at the settlement interval. Each record
+                        represents a historical settlement event."
                       example: "-0.0001229"
                     market:
                       type: string
@@ -1185,8 +1183,9 @@ components:
           example: "Bitcoin"
         providers:
           type: array
-          description: |
-            Payment-method provider IDs. Empty for crypto assets; populated for fiat assets. Use as the `network` parameter for fiat deposits and withdrawals via the API.
+          description: "Payment provider identifiers used as the network parameter value
+            for fiat deposits and withdrawals via the API. See GET /api/v4/public/assets
+            providers field for context."
           items:
             type: string
           example: []
@@ -1210,13 +1209,13 @@ components:
                 $ref: '#/components/schemas/ProviderFeeDetails'
         is_depositable:
           type: boolean
-          description: |
-            Whether deposits are enabled for this asset. Present on crypto assets; on fiat assets this field appears inside each provider entry instead. Absence should be treated as `false`.
+          description: "Indicates whether deposits are enabled for the currency. May be absent
+            from the response; absence should be treated as equivalent to false."
           example: true
         is_withdrawal:
           type: boolean
-          description: |
-            Whether withdrawals are enabled for this asset. Present on crypto assets; on fiat assets this field appears inside each provider entry instead. Absence should be treated as `false`.
+          description: "Indicates whether withdrawals are enabled for the currency. May be absent
+            from the response; absence should be treated as equivalent to false."
           example: true
         is_api_withdrawal:
           type: boolean
@@ -1233,11 +1232,14 @@ components:
       properties:
         max_amount:
           type: string
-          description: "Maximum transfer amount. `\"0\"` means unlimited."
+          description: "Maximum transaction amount for the operation and network. May be absent
+            independently from other limit fields; absence typically indicates no upper limit
+            applies."
           example: "0"
         min_amount:
           type: string
-          description: Minimum transfer amount
+          description: "Minimum transaction amount for the operation and network. May be absent
+            independently from other limit fields."
           example: "0.0004"
         fixed:
           type: string
