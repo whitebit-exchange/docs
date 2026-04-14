@@ -10,9 +10,8 @@
 export const WsRateLimits = ({ connectionsPerMinute, requestsPerMinute }) => {
   return (
     <p>
-      Standard connection-level rate limits apply: {connectionsPerMinute}{' '}
-      connections per minute, {requestsPerMinute} requests per minute per
-      connection.
+      Standard connection-level rate limits apply. See{' '}
+      <a href="/websocket/rate-limits">WebSocket Rate Limits</a> for details.
     </p>
   );
 };
