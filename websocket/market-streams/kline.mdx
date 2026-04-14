@@ -26,12 +26,15 @@ import {
   exCandlesUpdate,
   exCandlesUnsubscribe,
 } from '/snippets/ws-data/kline.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 Query or subscribe to candlestick (OHLCV) data for a market and interval. Each candle contains open, high, low, close, and volume values for the specified interval. The server pushes updates every 0.5 seconds while a candle is active, reflecting the latest trade activity. Use this channel to power real-time charting or detect price movements as they occur.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -114,3 +117,7 @@ The server pushes updates every **0.5 seconds** while the candle is active.
 ## Candle object
 
 <WsSchemaTable fields={candlesUpdate} />
+
+<RelatedResources>
+- [Kline](/api-reference/market-data/kline) — candlestick data via REST for historical queries.
+</RelatedResources>

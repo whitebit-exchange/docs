@@ -4,7 +4,11 @@ description: "Get candlestick (OHLCV) chart data for a trading pair at a specifi
 openapi: "/openapi/public/http-v1.yaml GET /api/v1/public/kline"
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
 
+## Rate limit
+
+<RestRateLimit requests={1000} period="10 seconds" scope="/api/v1/*" />
 
 <RelatedResources>
 - [Recent trades](/api-reference/market-data/recent-trades) — individual trade executions for a market.
