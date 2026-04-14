@@ -3,4 +3,10 @@ title: "Get deposit/withdraw history"
 description: "Retrieve deposit and withdrawal transaction history for a WhiteBIT account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/history
 ---
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
+
+## Rate limit
+
+<RestRateLimit requests={200} period="10 seconds" scope="/api/v4/main-account/history" />
+
 

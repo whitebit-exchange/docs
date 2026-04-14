@@ -20,12 +20,15 @@ import {
   exBorrowsUpdate,
   exBorrowsUnsubscribe,
 } from '/snippets/ws-data/borrows.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Subscribe to collateral borrow status updates for all open margin positions, including borrow amounts, unrealized funding, and liquidation prices. The server pushes full snapshots of all open borrows every 1.5 seconds when borrow data changes.
 
 <WsChannelOverview operations={channelOperations} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -53,3 +56,7 @@ The server pushes updates every **1.5 seconds** when borrow data changes.
 ## Borrow object
 
 <WsSchemaTable fields={borrowRecord} />
+
+<RelatedResources>
+- [Borrows Events](/websocket/account-streams/borrows-events) — real-time margin call and liquidation events for collateral borrows.
+</RelatedResources>

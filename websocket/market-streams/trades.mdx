@@ -23,10 +23,13 @@ import {
   exSubscribeAllMarkets,
   exTradesUpdate,
 } from '/snippets/ws-data/trades.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 Subscribe to real-time trade execution updates for one or more markets. Each message delivers a batch of trade objects containing price, quantity, trade direction, and execution timestamp. The channel supports both targeted subscriptions for specific markets and a wildcard subscription for all available markets.
 
 <WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -93,3 +96,7 @@ Public market data feeds do not expose RPI orders as visible liquidity in `depth
 ## Trade object
 
 <WsSchemaTable fields={trade} />
+
+<RelatedResources>
+- [Recent trades](/api-reference/market-data/recent-trades) — latest executed trades via REST for polling use cases.
+</RelatedResources>
