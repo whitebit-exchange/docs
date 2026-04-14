@@ -12,11 +12,12 @@ All rate limits are **per IP address**.
 
 | Scope | Limit |
 |-------|-------|
+| Default (all endpoints) | 10,000 requests / 10 sec |
 | `/api/v4/public/*` | 20,000 requests / 10 sec |
 | `/api/v4/trade-account/*` | 12,000 requests / 10 sec |
 | `/api/v4/main-account/*` | 1,000 requests / 10 sec |
 
-Some endpoints have tighter limits that override the defaults above. These are documented on the respective endpoint pages.
+Scope-specific limits override the default where listed. Some endpoints have tighter limits that override the defaults above. These are documented on the respective endpoint pages.
 
 When the rate limit is exceeded, the API returns HTTP status `429` (Too Many Requests). Use exponential backoff before retrying (see Best practices below).
 
