@@ -24,12 +24,15 @@ import {
   exDepthFullReload,
   exDepthPartialUpdate,
 } from '/snippets/ws-data/depth.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 Real-time order book data with support for both one-time snapshots and continuous subscription updates. Each update contains changed price levels (asks and bids) as `[price, amount]` tuples. The server pushes incremental deltas every 100ms; when no changes occur for 10 seconds, a full snapshot is sent as a keepalive. Use this channel to maintain a live local order book for trading logic or display.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -109,6 +112,11 @@ To maintain an accurate local order book:
 ## Order book data object
 
 <WsSchemaTable fields={depthUpdateData} />
+
+<RelatedResources>
+- [Orderbook](/api-reference/market-data/orderbook) — full order book snapshot via REST for polling use cases.
+- [Depth](/api-reference/market-data/depth) — lightweight depth snapshot within ±2% of last price via REST.
+</RelatedResources>
 
 ## Code examples
 
