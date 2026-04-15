@@ -157,6 +157,7 @@ components:
                   status: "FILLED"
                   fee_asset: "USDT"
                   rpi: false
+                  reduce_only: false
             error: null
 
     ordersExecutedSubscribe:
@@ -228,6 +229,7 @@ components:
                 status: "FILLED"
                 position_side: "LONG"
                 rpi: true
+                reduce_only: false
 
     ordersExecutedUnsubscribe:
       name: OrdersExecutedUnsubscribe
@@ -485,6 +487,10 @@ components:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
           example: true
+        reduce_only:
+          type: boolean
+          description: "Reduce-only flag. When `true`, the order could only reduce or close an existing position. See [reduce-only](/glossary#reduce-only)."
+          example: false
         fee_asset:
           type: string
           description: "Fee asset type"
