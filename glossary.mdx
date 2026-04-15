@@ -343,6 +343,27 @@ RPI orders use post-only behavior by design. An RPI order does not support the I
 
 RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use the `Query Market Fee` or `Query All Market Fees` endpoints to retrieve effective fees.
 </Accordion>
+
+<Accordion title="Reduce-only">
+
+Reduce-only is an order parameter that guarantees an order only decreases or closes an existing position — never increases the position or opens a new one in the opposite direction.
+
+**Behavior**
+
+If the order amount exceeds the current position size, the system automatically reduces the order to match. This applies on placement and execution.
+
+**Rejection**
+
+The API returns error code `116` if no open position exists or the order direction matches the position direction. This is a synchronous rejection — the order is never created.
+
+**Auto-cancellation**
+
+If a position closes while a reduce-only [limit order](#limit-order) is still pending, the backend auto-cancels the order with status `AUTO_CANCELED_REDUCE_ONLY`.
+
+**Availability**
+
+Coming soon — available on collateral (margin and futures) markets only. See [Order Types — Reduce-only orders](/concepts/order-types#reduce-only-orders) for details and endpoint links.
+</Accordion>
 </AccordionGroup>
 
 ## S
