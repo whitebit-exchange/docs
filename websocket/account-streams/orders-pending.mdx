@@ -27,6 +27,10 @@ import {
 } from '/snippets/ws-data/orders_pending.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
 
+<Note>
+The `reduce_only` response field documented on this page is **coming soon**. The documentation is published in advance for integration planning. The field is not yet returned by the API. See [Reduce-only orders](/concepts/order-types#reduce-only-orders) for details.
+</Note>
+
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to active (unexecuted) orders across specified markets. The server pushes `ordersPending_update` events in real time on every order state change. Subscribe to multiple markets simultaneously by passing market names in the `params` array.

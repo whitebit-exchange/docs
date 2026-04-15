@@ -251,6 +251,7 @@ paths:
           - `33` - price validation failed
           - `36` - client_order_id validation failed
           - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
         - Collateral Trading
@@ -330,6 +331,11 @@ paths:
                   enum: [LONG, SHORT, BOTH]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                   example: "LONG"
+                reduceOnly:
+                  type: boolean
+                  default: false
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  example: false
                 request:
                   type: string
                   example: "{{request}}"
@@ -348,6 +354,7 @@ paths:
               takeProfit: "30000"
               positionSide: LONG
               rpi: true
+              reduceOnly: false
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -447,6 +454,10 @@ paths:
                     type: boolean
                     description: Retail Price Improvement flag
                     example: true
+                  reduceOnly:
+                    type: boolean
+                    description: Reduce-only flag
+                    example: false
               example:
                 order_id: 4180284841
                 client_order_id: "order1987111"
@@ -470,6 +481,7 @@ paths:
                   takeProfit: "50000"
                 positionSide: "LONG"
                 rpi: true
+                reduceOnly: false
         '422':
           description: Inner validation failed
           content:
@@ -489,6 +501,10 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -570,6 +586,11 @@ paths:
                         enum: [LONG, SHORT, BOTH]
                         description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                         example: "LONG"
+                      reduceOnly:
+                        type: boolean
+                        default: false
+                        description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                        example: false
                 stopOnFail:
                   type: boolean
                   default: false
@@ -597,6 +618,7 @@ paths:
                   client_order_id: ""
                   positionSide: LONG
                   rpi: true
+                  reduceOnly: false
                 - side: sell
                   amount: "0.0001"
                   price: "41000"
@@ -606,6 +628,7 @@ paths:
                   client_order_id: ""
                   positionSide: LONG
                   rpi: true
+                  reduceOnly: true
                 - side: sell
                   amount: "0.02"
                   price: "0.030"
@@ -615,6 +638,7 @@ paths:
                   client_order_id: ""
                   positionSide: LONG
                   rpi: true
+                  reduceOnly: false
               stopOnFail: true
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -707,6 +731,10 @@ paths:
                           type: boolean
                           description: Retail Price Improvement flag
                           example: true
+                        reduceOnly:
+                          type: boolean
+                          description: Reduce-only flag
+                          example: false
                     error:
                       type: object
                       nullable: true
@@ -749,6 +777,7 @@ paths:
                     stp: "no"
                     positionSide: "LONG"
                     rpi: true
+                    reduceOnly: false
                   error: null
                 - result: null
                   error:
@@ -775,6 +804,7 @@ paths:
                     stp: "no"
                     positionSide: "LONG"
                     rpi: true
+                    reduceOnly: false
                   error: null
         '400':
           description: Inner validation failed
@@ -801,6 +831,10 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -856,6 +890,11 @@ paths:
                   enum: [LONG, SHORT, BOTH]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                   example: "LONG"
+                reduceOnly:
+                  type: boolean
+                  default: false
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  example: false
                 request:
                   type: string
                   example: "{{request}}"
@@ -867,6 +906,7 @@ paths:
               side: buy
               amount: "0.01"
               client_order_id: order1987111
+              reduceOnly: false
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -950,6 +990,10 @@ paths:
                     description: Position side
                     enum: [LONG, SHORT, BOTH]
                     example: "LONG"
+                  reduceOnly:
+                    type: boolean
+                    description: Reduce-only flag
+                    example: false
               example:
                 order_id: 4180284841
                 client_order_id: "order1987111"
@@ -969,6 +1013,7 @@ paths:
                   stopLoss: "50000"
                   takeProfit: "40000"
                 positionSide: "LONG"
+                reduceOnly: false
         '422':
           description: Internal validation failed
           content:
@@ -984,10 +1029,14 @@ paths:
       operationId: createCollateralStopLimitOrder
       description: |
         The endpoint creates a collateral [stop-limit order](/glossary#stop-limit-order) using [collateral balance](/glossary#balance-collateral). The order remains inactive until the market price reaches `activation_price`, then places a limit order at `price`. Optionally attach `stopLoss` and `takeProfit` prices to create an [OTO](/glossary#one-triggers-the-other-oto) order that activates after the stop-limit order fills.
-        
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1053,6 +1102,11 @@ paths:
                   enum: [LONG, SHORT, BOTH]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                   example: "LONG"
+                reduceOnly:
+                  type: boolean
+                  default: false
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  example: false
                 request:
                   type: string
                   example: "{{request}}"
@@ -1069,6 +1123,7 @@ paths:
               takeProfit: "50000"
               client_order_id: order1987111
               positionSide: LONG
+              reduceOnly: false
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -1160,6 +1215,10 @@ paths:
                     description: Position side
                     enum: [LONG, SHORT, BOTH]
                     example: "LONG"
+                  reduceOnly:
+                    type: boolean
+                    description: Reduce-only flag
+                    example: false
               example:
                 order_id: 4180284841
                 client_order_id: "order1987111"
@@ -1181,6 +1240,7 @@ paths:
                   stopLoss: "30000"
                   takeProfit: "50000"
                 positionSide: "LONG"
+                reduceOnly: false
         '400':
           description: Inner validation failed
           content:
@@ -1206,6 +1266,10 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1266,6 +1330,11 @@ paths:
                   enum: [LONG, SHORT, BOTH]
                   description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
                   example: "LONG"
+                reduceOnly:
+                  type: boolean
+                  default: false
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  example: false
                 request:
                   type: string
                   example: "{{request}}"
@@ -1278,6 +1347,7 @@ paths:
               amount: "0.01"
               activation_price: "40000"
               client_order_id: order1987111
+              reduceOnly: false
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -1365,6 +1435,10 @@ paths:
                     description: Position side
                     enum: [LONG, SHORT, BOTH]
                     example: "LONG"
+                  reduceOnly:
+                    type: boolean
+                    description: Reduce-only flag
+                    example: false
               example:
                 order_id: 4180284841
                 client_order_id: "order1987111"
@@ -1385,6 +1459,7 @@ paths:
                   stopLoss: "50000"
                   takeProfit: "30000"
                 positionSide: "LONG"
+                reduceOnly: false
         '422':
           description: Inner validation failed
           content:
@@ -2327,6 +2402,10 @@ paths:
                               type: string
                               enum: [oco]
                               example: "oco"
+                            reduceOnly:
+                              type: boolean
+                              description: Reduce-only flag
+                              example: false
                             stop_loss:
                               type: object
                               properties:
@@ -2357,6 +2436,10 @@ paths:
                               type: string
                               enum: [oto]
                               example: "oto"
+                            reduceOnly:
+                              type: boolean
+                              description: Reduce-only flag
+                              example: false
                             stopLossPrice:
                               type: string
                               example: "30000"
@@ -2386,6 +2469,7 @@ paths:
                 records:
                   - id: 117703764513
                     type: "oco"
+                    reduceOnly: false
                     stop_loss:
                       order_id: 117703764514
                       client_order_id: ""
@@ -2431,6 +2515,7 @@ paths:
                       positionSide: "LONG"
                   - id: 29457221
                     type: "oto"
+                    reduceOnly: false
                     stopLossPrice: "30000"
                     takeProfitPrice: "50000"
                     conditionalOrder:
@@ -2731,6 +2816,10 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2782,6 +2871,11 @@ paths:
                   type: string
                   description: "Custom order identifier. Must be unique and contain only letters, numbers, dashes, dots, or underscores."
                   example: "order1987111"
+                reduceOnly:
+                  type: boolean
+                  default: false
+                  description: "When `true`, both legs of the OCO order can only reduce or close an existing position — neither leg can increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  example: false
                 request:
                   type: string
                   example: "{{request}}"
@@ -2796,6 +2890,7 @@ paths:
               activation_price: "41000"
               stop_limit_price: "42000"
               client_order_id: order1987111
+              reduceOnly: false
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -2810,6 +2905,10 @@ paths:
                     type: integer
                     description: OCO order identifier
                     example: 117703764513
+                  reduceOnly:
+                    type: boolean
+                    description: Reduce-only flag
+                    example: false
                   stop_loss:
                     type: object
                     description: Stop loss order details
@@ -2987,6 +3086,7 @@ paths:
                         example: "LONG"
               example:
                 id: 117703764513
+                reduceOnly: false
                 stop_loss:
                   order_id: 117703764514
                   client_order_id: ""
@@ -5800,6 +5900,10 @@ paths:
                         type: boolean
                         description: "Retail Price Improvement flag. `true` when the order used RPI pricing."
                         example: false
+                      reduceOnly:
+                        type: boolean
+                        description: "Reduce-only flag. When `true`, the order could only reduce or close an existing position. See [reduce-only](/glossary#reduce-only)."
+                        example: false
               example:
                 BTC_USDT:
                   - amount: "0.0009"
@@ -5821,6 +5925,7 @@ paths:
                     feeAsset: "USDT"
                     stp: "no"
                     rpi: false
+                    reduceOnly: false
         '400':
           description: Inner validation failed
           content:
@@ -6250,7 +6355,7 @@ components:
       example: "FILLED"
     OrderStatus:
       type: string
-      description: "Order lifecycle status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `CANCELED` — canceled before execution. `PARTIAL_FILLED` — partially executed, remainder still active. `PARTIAL_CANCELED` — partially filled, remainder canceled. `CANCELED_TAKER_BAND` — partially filled up to the taker band limit, remainder canceled to protect against excessive order book slippage."
+      description: "Order lifecycle status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `CANCELED` — canceled before execution. `PARTIAL_FILLED` — partially executed, remainder still active. `PARTIAL_CANCELED` — partially filled, remainder canceled. `CANCELED_TAKER_BAND` — partially filled up to the taker band limit, remainder canceled to protect against excessive order book slippage. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed."
       example: "FILLED"
     ExecutedDeal:
       type: object
@@ -6663,6 +6768,10 @@ components:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
           example: true
+        reduceOnly:
+          type: boolean
+          description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. See [reduce-only](/glossary#reduce-only)."
+          example: false
         activated:
           type: integer
           description: "Activation status of the stop order. 0 = not yet triggered

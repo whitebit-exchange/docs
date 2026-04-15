@@ -59,6 +59,7 @@ export const orderObject = [
   { name: "status", type: "string", description: "Order status (e.g., OPEN, FILLED, CANCELED)" },
   { name: "position_side", type: "string", enum: ["LONG","SHORT","BOTH"], description: "Position side - LONG or SHORT or BOTH" },
   { name: "rpi", type: "boolean", description: "Indicates Retail Price Improvement (RPI) mode for the order." },
+  { name: "reduce_only", type: "boolean", description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. See reduce-only." },
 ];
 
 export const unsubscribeRequest = [
@@ -137,7 +138,8 @@ export const exOrdersPendingResponse = {
         "stp": "no",
         "status": "OPEN",
         "position_side": "LONG",
-        "rpi": true
+        "rpi": true,
+        "reduce_only": false
       }
     ]
   },
@@ -185,7 +187,8 @@ export const exOrdersPendingUpdate = {
       "stp": "no",
       "status": "OPEN",
       "position_side": "LONG",
-      "rpi": true
+      "rpi": true,
+      "reduce_only": false
     }
   ]
 };
