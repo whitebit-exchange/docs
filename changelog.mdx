@@ -4,6 +4,35 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="Coming soon">
+## Reduce-only order parameter
+**Position-closing guarantee for collateral orders**
+
+A new `reduceOnly` boolean parameter for collateral order endpoints. When set to `true`, the order can only decrease or close an existing position — the order never increases the position or opens a new one.
+
+**Behavior:**
+- If the order amount exceeds the current position size, the system automatically reduces the order to match
+- The API returns error code `116` if no open position exists or the order direction matches the position direction
+- Pending reduce-only orders are auto-canceled with status `AUTO_CANCELED_REDUCE_ONLY` when the associated position closes
+
+**Supported on 6 collateral order creation endpoints:**
+
+<CardGroup cols={3}>
+  <Card title="Collateral Limit Order" href="/api-reference/collateral-trading/collateral-limit-order" icon="chart-line" horizontal/>
+  <Card title="Collateral Bulk Limit Order" href="/api-reference/collateral-trading/collateral-bulk-limit-order" icon="layer-group" horizontal/>
+  <Card title="Collateral Market Order" href="/api-reference/collateral-trading/collateral-market-order" icon="bolt" horizontal/>
+  <Card title="Collateral Stop-Limit Order" href="/api-reference/collateral-trading/collateral-stop-limit-order" icon="hand" horizontal/>
+  <Card title="Collateral Trigger Market Order" href="/api-reference/collateral-trading/collateral-trigger-market-order" icon="crosshairs" horizontal/>
+  <Card title="Collateral OCO Order" href="/api-reference/collateral-trading/create-collateral-oco-order" icon="code-branch" horizontal/>
+</CardGroup>
+
+The `reduceOnly` field also appears in the response of [query active orders](/api-reference/spot-trading/query-unexecuted-orders), [query executed orders](/api-reference/spot-trading/query-executed-orders), and [query conditional orders](/api-reference/collateral-trading/query-unexecuted-conditional-orders).
+
+**WebSocket channels:**
+
+The `reduce_only` field is added to the [Orders Pending](/websocket/account-streams/orders-pending) and [Orders Executed](/websocket/account-streams/orders-executed) channels — both in query responses and real-time update events.
+</Update>
+
 ## Previous Changes
 
 <Update label="March 6, 2026">

@@ -177,6 +177,7 @@ components:
                   status: "OPEN"
                   position_side: "LONG"
                   rpi: true
+                  reduce_only: false
             error: null
 
     ordersPendingSubscribe:
@@ -248,6 +249,7 @@ components:
                 status: "OPEN"
                 position_side: "LONG"
                 rpi: true
+                reduce_only: false
 
     ordersPendingUnsubscribe:
       name: OrdersPendingUnsubscribe
@@ -489,6 +491,10 @@ components:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
           example: true
+        reduce_only:
+          type: boolean
+          description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. See [reduce-only](/glossary#reduce-only)."
+          example: false
 
     UnsubscribeRequest:
       type: object
