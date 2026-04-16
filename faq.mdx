@@ -1,6 +1,6 @@
 ---
 title: "FAQ"
-description: "Find answers to common questions about WhiteBIT API rate limits, authentication, trading, and webhook integration."
+description: "Find answers to common questions about the WhiteBIT API, trading, deposits and withdrawals, webhooks, institutional onboarding, compliance, and integration."
 ---
 import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
@@ -16,7 +16,7 @@ Rate limit 429 errors occur when an endpoint exceeds the rate limit. To resolve:
 - Check the specific rate limit value in the endpoint documentation
 - Implement rate limiting in code
 
-For more details, see the [API v4 overview](/api-reference/market-data/overview).
+For more details, see the [API v4 overview](/api-reference/market-data/overview). For a dettrategies
 </Accordion>
 
 <Accordion title="CORS errors on ticker endpoint">
@@ -30,7 +30,7 @@ Nonce errors occur when timestamps or request ordering are invalid. To resolve:
 2. Recreate API keys
 3. Ensure system time is properly synchronized
 
-For details on nonce requirements, see the [Authentication guide](/api-reference/authentication).
+For details on nonce requirements, see the [Authentication guide](/api-reference/authentication). For full details on HMAC-SHA512 signing and nonce requirements, see [Authentication](/api-reference/authentication).
 </Accordion>
 
 <Accordion title="Smartplan endpoint 403 access errors">
@@ -41,6 +41,10 @@ Smartplan endpoints are restricted to B2B partner services only. To gain access:
 - Provide use case details
 
 For endpoint details, see the [Crypto Lending documentation](/api-reference/account-wallet/get-plans).
+</Accordion>
+
+<Accordion title="Common API error codes quick reference">
+The most frequent API errors and corresponding causes: `422` — validation failed (check required parameters); `429` — rate limit exceeded (wait for window reset); `401` — authentication failed (check API key and HMAC signature); `403` — insufficient permissions (verify API key permissions). See [Errors and Error Handling](/api-reference/rate-limits) for the complete error code reference.
 </Accordion>
 </AccordionGroup>
 
@@ -65,6 +69,10 @@ The system shows only the last 100 deals by default. To access more:
 
 For more details, see the [Trades channel documentation](/websocket/market-streams/trades).
 </Accordion>
+
+<Accordion title="Server locations and colocation regions">
+WhiteBIT offers colocation in two regions: Europe (Frankfurt) and Asia (Tokyo), with 3-5 millisecond latency. Colocation provides access to a subset of 34 trading endpoints. See [Colocation](/platform/colocation) for infrastructure details and the [Market Maker Guide](/guides/market-maker-guide) for the full endpoint list.
+</Accordion>
 </AccordionGroup>
 
 ## Transfers and withdrawals
@@ -77,15 +85,23 @@ Transfers may take up to 2 seconds to complete. When making transfers and withdr
 - Avoid initiating withdrawals before transfer completion
 - Implement proper error handling for transfer states
 
-For endpoint details, see the [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) documentation.
+For endpoint details, see the [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) documentation. For details on account types (Main, Trade, Collateral), see [Balances & Transfers](/concepts/balances).
 </Accordion>
 
 <Accordion title="Insufficient funds errors despite available balance">
-Insufficient funds errors occur when the withdrawal amount plus the fee exceeds available balance. Important considerations:
+Withdrawal amount plus fee must not exceed the available balance. Calculate the total required using the [fee endpoint](/api-reference/account-wallet/get-fees). Check the withdrawable amount before initiating a withdrawal. If the issue persists, review open orders possibly reserving funds. See [Balances & Transfers](/concepts/balances) for explanation of available vs. frozen balances.
+</Accordion>
 
-- Account for withdrawal fees in calculations
-- Check the [fees documentation](/api-reference/account-wallet/get-fees)
-- Ensure sufficient balance for both amount and fees
+<Accordion title="Network confirmation requirements for deposits">
+Each cryptocurrency network requires a specific number of block confirmations before a deposit is credited. The webhook payload includes `confirmations.actual` and `confirmations.required` fields. Check the [Asset Status endpoint](/api-reference/market-data/asset-status-list) for per-currency confirmation requirements.
+</Accordion>
+
+<Accordion title="USDT alternatives for EEA users (MiCA compliance)">
+Since December 30, 2024, EEA users cannot deposit, withdraw, or create WhiteBIT Codes in USDT. Use USDC (Circle holds an EU e-money license) or EURI (euro-pegged, MiCA-compliant) as alternatives. See [Regulatory Compliance](/institutional/compliance) for details.
+</Accordion>
+
+<Accordion title="Below-minimum deposit handling">
+Deposits below the minimum amount for a currency are not credited to the account balance. Check the minimum deposit amount via the [Asset Status endpoint](/api-reference/market-data/asset-status-list) before generating deposit addresses. No mechanism exists to recover below-minimum deposits.
 </Accordion>
 </AccordionGroup>
 
@@ -100,6 +116,14 @@ HTTPS is required for Webhook API communication:
 - HTTP connections are not supported
 
 For more details, see the [Webhook documentation](/platform/webhook).
+</Accordion>
+
+<Accordion title="Webhook signature verification">
+Each webhook request includes an `X-TXC-APIKEY` header and an `X-TXC-PAYLOAD` + `X-TXC-SIGNATURE` for verification. Verify the HMAC-SHA512 signature using the webhook secret key to confirm the request originates from WhiteBIT. See the [Webhook](/platform/webhook) reference for the full verification flow.
+</Accordion>
+
+<Accordion title="Webhook retry behavior">
+WhiteBIT retries failed webhook deliveries 5 times at 10-minute intervals, providing up to 50 minutes of coverage. There is no replay mechanism after the retry window expires. Implement polling of the deposit and withdrawal history endpoints as a fallback for outages exceeding 50 minutes. See [Webhook](/platform/webhook) for details.
 </Accordion>
 </AccordionGroup>
 
@@ -117,19 +141,57 @@ For endpoint details and response schema, see the [Asset status list](/api-refer
 </Accordion>
 </AccordionGroup>
 
+## Trading
+
+<AccordionGroup>
+<Accordion title="Collateral endpoint naming — Margin vs Futures">
+The API uses "collateral" as a shared prefix for both Margin Trading (up to 10x leverage on spot pairs like `BTC_USDT`) and Futures Trading (up to 100x leverage on perpetual pairs like `BTC_PERP`). The market pair determines the product — not the endpoint path. All endpoints under `/api/v4/order/collateral/` and `/api/v4/collateral-account/` serve both products. See [Margin Trading](/products/margin/overview) and [Futures Trading](/products/futures/overview).
+</Accordion>
+
+<Accordion title="Minimum order sizes per market">
+Each market has a minimum order amount (`minAmount`) and minimum order value (`minTotal`). Retrieve these values from `GET /api/v4/public/markets` (spot) or `GET /api/v4/public/futures` (futures). Orders below the minimum are rejected. See [Markets & Trading Pairs](/concepts/markets).
+</Accordion>
+
+<Accordion title="Kill-switch for emergency order cancellation">
+The kill-switch automatically cancels all active orders after a configurable timeout. Activate via `POST /api/v4/order/kill-switch` with a `timeout` parameter (in seconds). Use `POST /api/v4/order/kill-switch/status` to check the current state. Designed as a safety mechanism for automated trading strategies. See the [Market Maker Guide](/guides/market-maker-guide) for usage patterns.
+</Accordion>
+
+<Accordion title="Bulk order limits">
+The bulk order endpoint (`POST /api/v4/order/bulk`) accepts up to 20 limit orders in a single request. All orders in the batch must be for the same market pair. The collateral bulk endpoint (`POST /api/v4/order/collateral/bulk`) follows the same 20-order limit.
+</Accordion>
+
+<Accordion title="Market order price in API response">
+The price returned in a market order response may reflect an internal limit price, not the actual execution price. To obtain the true fill price, check the trade history via `POST /api/v4/trade-account/executed-history` or subscribe to the WebSocket deals channel. See [Order Types](/concepts/order-types) for market order execution details.
+</Accordion>
+
+<Accordion title="Reduce-only order parameter">
+A reduce-only order guarantees that the order only decreases or closes an existing position — the order cannot increase the position or open a new one. Set `reduceOnly: true` on any collateral order creation endpoint. Available on margin and futures markets only.
+
+If no open position exists or the order direction matches the position direction, the API returns error code `116`. If the order amount exceeds the current position size, the system reduces the order to match automatically.
+
+Pending reduce-only orders are auto-canceled with status `AUTO_CANCELED_REDUCE_ONLY` when the associated position closes.
+
+**Note:** The `reduceOnly` parameter is coming soon. See [Order Types — Reduce-only orders](/concepts/order-types#reduce-only-orders) for full details.
+</Accordion>
+</AccordionGroup>
+
 ## Security and API keys
 
 <AccordionGroup>
 <Accordion title="API key security best practices">
 Store API keys securely using environment variables, restrict IP access, and use minimum required permissions. Never commit keys to version control.
 
-For details, see the [Authentication guide](/api-reference/authentication).
+For details, see the [Authentication guide](/api-reference/authentication). For comprehensive security guidance, see [Security Best Practices](/best-practices/security).
 </Accordion>
 
 <Accordion title="Compromised API key response">
 Immediately delete the compromised key, review account activity for unauthorized actions, and create new API keys. Contact support if unauthorized activity is detected.
 
 For details, see the [Authentication guide](/api-reference/authentication).
+</Accordion>
+
+<Accordion title="API key expiration and auto-deactivation">
+API keys without IP address binding are automatically deactivated after 14 days of inactivity. Bind keys to specific IP addresses to prevent unexpected deactivation. See [Authentication](/api-reference/authentication) for API key management details.
 </Accordion>
 </AccordionGroup>
 
@@ -139,12 +201,91 @@ For details, see the [Authentication guide](/api-reference/authentication).
 <Accordion title="High-frequency trading API optimization">
 Use WebSocket for real-time data, batch requests when possible, implement proper rate limiting, and cache frequently accessed data.
 
-For details, see the [WebSocket API](/websocket/market-streams/overview).
+For details, see the [WebSocket API](/websocket/market-streams/overview). For rate limit tiers and endpoint-specific limits, see [Rate Limits](/api-reference/rate-limits). For colocation infrastructure, see the [Market Maker Guide](/guides/market-maker-guide).
 </Accordion>
 
 <Accordion title="API disconnection handling">
 Implement automatic reconnection with exponential backoff. Maintain local order state and set up monitoring and alerts for connection issues.
 
-For details, see the [WebSocket API](/websocket/market-streams/overview).
+For details, see the [WebSocket API](/websocket/market-streams/overview). For a pre-launch readiness checklist including reconnection testing, see the [Go-Live Checklist](/best-practices/go-live-checklist).
+</Accordion>
+
+<Accordion title="Getting started with the WhiteBIT API">
+Start with the [First API Call](/guides/first-api-call) guide for an orientation. The recommended path: create an API key, make a public endpoint call (no auth required), then authenticate a private endpoint call.
+</Accordion>
+
+<Accordion title="Available SDKs and quickstart examples">
+Official SDKs exist for Go, Python, and PHP. A multi-language quickstart repository provides examples in additional languages including Node.js and Rust. See the [SDKs page](/sdks) for installation instructions and GitHub links.
+</Accordion>
+
+<Accordion title="Testing without a sandbox environment">
+WhiteBIT does not offer a public sandbox or testnet. Test integrations using minimum order sizes on the live API, placing limit orders at prices far from the current market price to avoid fills. Cancel test orders after verification.
+</Accordion>
+
+<Accordion title="REST API vs WebSocket — when to use each">
+Use the REST API for one-time requests: placing orders, checking balances, fetching trade history. Use the WebSocket API for real-time streaming data: live orderbook updates, trade feeds, account balance changes. REST polling at high frequency consumes rate limits — switch to WebSocket for data that updates continuously. See [Rate Limits](/api-reference/rate-limits) for REST constraints and [WebSocket Quickstart](/guides/websocket-quickstart) for streaming setup.
+</Accordion>
+
+<Accordion title="Choosing the right SDK">
+Official SDKs are available for Go, Python, and PHP. Check the [SDKs page](/sdks) for current version, maintenance status, and whether each SDK handles HMAC signing automatically. The [api-quickstart repository](https://github.com/whitebit-exchange/api-quickstart) provides additional examples in Node.js and Rust.
+</Accordion>
+
+<Accordion title="API access levels and prerequisites">
+Public endpoints (market data, tickers, orderbook) require no account or authentication. Private endpoints (trading, account management) require API keys — create them in account Settings. Institutional features (colocation, OTC, Broker Program) require [institutional onboarding](/institutional/onboarding). See [First API Call](/guides/first-api-call) for the recommended integration path.
 </Accordion>
 </AccordionGroup>
+
+## Institutional and partner onboarding
+
+<AccordionGroup>
+<Accordion title="Available institutional products">
+WhiteBIT offers Market-Making Programs, Broker Program (40% fee share), Sub-Account management, OTC trading, Crypto Lending for business, colocation, and Liquidity Provision. See the [Institutional Overview](/institutional/overview) for the full catalog.
+</Accordion>
+
+<Accordion title="Institutional onboarding process">
+Onboarding has two phases: Phase 1 (crypto access) requires account registration, KYC for the director, and KYB verification. Phase 2 (fiat/SEPA access) requires additional documentation through the fiat processing partner. See [Institutional Onboarding](/institutional/onboarding) for the step-by-step process.
+</Accordion>
+
+<Accordion title="Fee structure for institutional clients">
+Base trading fees are 0.1% maker / 0.1% taker. The Market-Making Program offers rebates up to -0.012% maker. The Broker Program provides 40% fee share on referred user trading fees, with WBT holding boost tiers (200–2M WBT = 40–50% share). Contact institutional@whitebit.com for volume-based arrangements.
+</Accordion>
+
+<Accordion title="Sandbox or testnet availability">
+WhiteBIT does not offer a public sandbox or testnet environment. Test all integration flows on the live API using minimum order sizes. Use `GET /api/v4/public/markets` to find pairs with the lowest minimums. See the [Go-Live Checklist](/best-practices/go-live-checklist) for safe testing guidance.
+</Accordion>
+
+<Accordion title="Regulatory licenses and certifications">
+WhiteBIT holds licenses in multiple EU jurisdictions and is audited by Hacken for security (ISO 27001, PCI DSS, CCSS). GDPR compliance is maintained for data processing. For specific VASP authorization details and jurisdiction information, contact institutional@whitebit.com. See [Regulatory Compliance](/institutional/compliance).
+</Accordion>
+
+<Accordion title="Colocation for low-latency trading">
+Colocation is available in two regions: Europe (Frankfurt) and Asia (Tokyo), with 3-5 millisecond latency. Access is limited to a subset of 34 trading endpoints. See [Colocation](/platform/colocation) for setup details and the [Market Maker Guide](/guides/market-maker-guide) for the full endpoint list.
+</Accordion>
+</AccordionGroup>
+
+## Compliance and regulatory
+
+<AccordionGroup>
+<Accordion title="MiCA USDT restrictions for EEA users">
+Since December 30, 2024, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT under MiCA regulation. USDC and EURI are available as compliant alternatives. See [Regulatory Compliance](/institutional/compliance) for the full list of affected operations and recommended alternatives.
+</Accordion>
+
+<Accordion title="Travel Rule requirements for EEA withdrawals">
+Since May 19, 2025, crypto withdrawals from EEA accounts require a travelRule object in the withdrawal request containing originator details (name, address, birth date, account number). The travelRule object is part of the withdrawal API request body. See [Regulatory Compliance](/institutional/compliance) for the field reference and code examples.
+</Accordion>
+
+<Accordion title="Security certifications and audits">
+WhiteBIT is audited by Hacken. Certifications include ISO 27001, PCI DSS, and CCSS. GDPR is a regulation (not a certification) — WhiteBIT processes data in accordance with GDPR requirements. For audit reports or verification details, contact institutional@whitebit.com.
+</Accordion>
+</AccordionGroup>
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="First API Call" icon="rocket" href="/guides/first-api-call">
+    First steps for API integration — account setup, API keys, and the first authenticated call.
+  </Card>
+  <Card title="Integration Paths" icon="signs-post" href="/guides/integration-paths">
+    Find the recommended integration path for market makers, brokers, payment providers, and algo traders.
+  </Card>
+</CardGroup>

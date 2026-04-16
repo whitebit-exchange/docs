@@ -1,0 +1,101 @@
+---
+title: "Go-Live Checklist"
+description: "Pre-production readiness checklist for WhiteBIT API integrations — authentication, error handling, rate limits, compliance, WebSocket, webhooks, monitoring, and testing."
+sidebarTitle: "Go-Live Checklist"
+---
+
+Complete every item in the checklist below before deploying a WhiteBIT API integration to production. Each category covers a critical integration area with specific verification items.
+
+<Warning>
+  WhiteBIT does not offer a public testnet or sandbox environment. Test all flows on the live API with minimum order amounts before going to production volume. Use `GET /api/v4/public/markets` to find pairs with the lowest minimum order sizes for testing.
+</Warning>
+
+## Authentication
+
+- [ ] API key created with the minimum required permission level.
+- [ ] API secret stored in environment variables or a secrets manager — not in source code.
+- [ ] HMAC-SHA512 signing implemented and verified against a known-good response.
+- [ ] IP whitelist configured with production server IPs (up to 50 per key).
+- [ ] 2FA enabled on the WhiteBIT account.
+- [ ] Nonce implementation generates strictly increasing values (Unix timestamp in milliseconds recommended).
+
+See [Authentication](/api-reference/authentication) and [Security Best Practices](/best-practices/security) for implementation details.
+
+## Error handling
+
+- [ ] HTTP status codes handled: `200` (success), `400` (validation), `401` (auth), `403` (forbidden), `422` (unprocessable), `429` (rate limit), `500`/`503` (server error).
+- [ ] Rate limit responses (`429`) handled with exponential backoff and retry.
+- [ ] Authentication errors (`401`) do NOT trigger automatic retry — investigate the cause.
+- [ ] Validation errors (`400`, `422`) logged with the full response body for debugging.
+- [ ] Server errors (`500`, `503`) handled with retry and exponential backoff.
+- [ ] Error response JSON parsed for `code`, `message`, and `errors` fields.
+
+See [Errors and Error Handling](/api-reference/rate-limits) for the complete error code reference.
+
+## Rate limits
+
+- [ ] Per-endpoint rate limits documented and enforced in the application.
+- [ ] Request queuing implemented to stay within rate limits.
+- [ ] Bulk endpoints used where available (e.g., `/order/bulk` for up to 20 orders per call).
+- [ ] WebSocket used for real-time data instead of REST polling where possible.
+- [ ] Public endpoint caching implemented for data that changes infrequently (market list, asset status).
+
+See [Rate Limits](/api-reference/rate-limits) for per-endpoint values.
+
+## Regional compliance (EEA)
+
+- [ ] Travel Rule: `travelRule` object included in all EEA crypto withdrawal requests.
+- [ ] MiCA: USDT deposit/withdrawal/code operations NOT attempted for EEA accounts (blocked since December 30, 2024).
+- [ ] USDT alternatives: USDC and EURI used for EEA users instead of USDT.
+- [ ] Asset Status endpoint (`GET /api/v4/public/assets`) checked dynamically for currency availability.
+- [ ] Travel Rule deposit freezes (status 27, 28) handled in the deposit reconciliation flow.
+
+See [Regulatory Compliance](/institutional/compliance) and [Payment Integration](/guides/payment-integration) for the full compliance reference.
+
+## WebSocket
+
+- [ ] Automatic reconnection implemented with exponential backoff.
+- [ ] Channel re-subscription occurs after every reconnection.
+- [ ] Ping/pong heartbeat mechanism implemented to detect stale connections.
+- [ ] WebSocket authentication token refreshed before expiry (if using private channels).
+- [ ] Message ordering verified — check sequence numbers where available.
+
+See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setup.
+
+## Webhooks
+
+- [ ] Webhook URL configured in API key settings.
+- [ ] Domain verification completed (DNS TXT, file, or endpoint method).
+- [ ] HMAC-SHA512 signature verification implemented on every incoming webhook.
+- [ ] Webhook nonce tracked — each nonce is strictly greater than the previous.
+- [ ] Idempotency implemented using `uniqueId` to prevent double-processing.
+- [ ] Fallback polling implemented for reconciliation (webhook delivery: 5 retries at 10-minute intervals = 50 minutes).
+- [ ] Server responds with HTTP `200` for successfully processed webhooks.
+
+See [Webhooks](/platform/webhook) and [Security Best Practices](/best-practices/security) for verification implementation.
+
+## Monitoring
+
+- [ ] Balance monitoring active — alerts on unexpected balance changes.
+- [ ] Order status monitoring — track open orders and detect stuck states.
+- [ ] Kill-switch configured for trading applications — cancels all orders after a timeout if the system becomes unresponsive.
+- [ ] API response time monitoring — detect latency degradation.
+- [ ] Error rate monitoring — alert on elevated error rates (especially `429` and `500`).
+
+## Testing
+
+WhiteBIT does not offer a public testnet. The following approach validates an integration on the live API with minimal risk.
+
+1. **Start with public endpoints:** Verify connectivity and parsing by calling read-only public endpoints (`GET /api/v4/public/time`, `GET /api/v4/public/markets`). No authentication required.
+
+2. **Verify authentication:** Make an authenticated call to `POST /api/v4/trade-account/balance`. If the response is `401`, debug the HMAC signing implementation before proceeding.
+
+3. **Use minimum order sizes:** Query `GET /api/v4/public/markets` to find pairs with the lowest `minAmount`. Place test orders at minimum sizes to verify the full order lifecycle.
+
+4. **Verify error handling:** Send intentionally malformed requests (invalid ticker, zero amount, duplicate nonce) and verify the application handles error responses correctly.
+
+5. **Test webhook delivery:** Trigger a real (small) deposit or withdrawal and verify the webhook is received, the signature validates, and the application processes the event correctly.
+
+6. **Confirm Travel Rule compliance:** For EEA accounts, submit a test crypto withdrawal with the `travelRule` object and verify acceptance before processing customer funds.
+
+7. **Verify reconciliation:** Confirm that the polling fallback detects events missed by webhooks. Temporarily disable webhook processing and verify that polling catches up.

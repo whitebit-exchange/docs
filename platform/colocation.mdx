@@ -8,7 +8,7 @@ description: "WhiteBIT offers professional-grade [colocation](https://docs.white
 
 <Columns cols={2}>
 
-  <Card title="Ultra-Low Latency" href="/glossary#latency" arrow="true">Execute trades in just 5 milliseconds</Card>
+  <Card title="Ultra-Low Latency" href="/glossary#latency" arrow="true">Execute trades in 3-5 milliseconds</Card>
 
 <Card title="Direct Connection" href="/glossary#matching-engine" arrow="true">Connect directly to WhiteBIT's matching engine</Card>
 
@@ -29,15 +29,15 @@ description: "WhiteBIT offers professional-grade [colocation](https://docs.white
   </Step>
   <Step title="AWS Configuration">
     #### Network Setup
-    - Network Speed: 10Gbit connectivity required
-    - Instance Type: Dedicated EC2 instances (recommended)
+    - Network: 10Gbit connectivity minimum
+    - Compute: 4+ vCPU cores minimum
+    - Instance type: dedicated EC2 instances (recommended — low-performance VPS results in higher latency)
     - Security: IP address pool required for allowlisting
 
     #### Region Selection
-    - Primary: eu-central-1a (recommended)
-    - Alternative: eu-central-1c
-    - Asia Option: ap-northeast-1 (Tokyo)
-    - Choose based on trading requirements
+    - **Europe (Frankfurt)** — recommended for EEA and EMEA trading operations
+    - **Asia (Tokyo)** — recommended for APAC trading operations
+    - Contact the account manager for connection details including base URLs and availability zone placement
   </Step>
   <Step title="Technical Integration">
     The technical team will assist with:
@@ -47,6 +47,16 @@ description: "WhiteBIT offers professional-grade [colocation](https://docs.white
   </Step>
 </Steps>
 
+## Available Connectivity
+
+Colocation supports both REST API and WebSocket connections. The REST API provides access to a subset of endpoints optimized for low-latency trading. WebSocket connections enable real-time market data and order updates.
+
+For the full list of 34 available colocation endpoints, quoting strategies, and infrastructure best practices, see the [Market Maker Integration Guide](/guides/market-maker-guide).
+
+<Warning>
+  Colocation provides a **subset** of the full WhiteBIT API. Only specific trading, collateral, and utility endpoints are available via the colocation infrastructure. See the [Market Maker Integration Guide](/guides/market-maker-guide#available-colocation-endpoints) for the complete endpoint list.
+</Warning>
+
 ## Contact Options
 
 For detailed pricing and technical specifications:
@@ -54,3 +64,14 @@ For detailed pricing and technical specifications:
 - Web Form: [institutional.whitebit.com/colocation](https://institutional.whitebit.com/colocation#anchor-form)
 
 <Note>Service availability and specifications may vary by region. Contact the team for location-specific details.</Note>
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Market Maker Guide" icon="chart-line" href="/guides/market-maker-guide">
+    Full colocation walkthrough: endpoints, quoting strategy, and infrastructure best practices.
+  </Card>
+  <Card title="Self-Trade Prevention" icon="shield" href="/platform/self-trade-prevention">
+    Configure STP modes for two-sided quoting on colocation infrastructure.
+  </Card>
+</CardGroup>
