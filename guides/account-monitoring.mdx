@@ -4,21 +4,229 @@ description: "Monitor balances, deposits, withdrawals, and order activity across
 sidebarTitle: "Account Monitoring"
 ---
 
-This guide is coming soon. In the meantime, the following resources cover the key components for account monitoring:
+Monitor account state across Main, Trade, and Collateral balances using REST endpoints and WebSocket streams. This guide covers balance queries, deposit/withdrawal tracking, order activity monitoring, and the decision framework for choosing between REST polling and WebSocket subscriptions. Applicable to any integration that needs real-time or periodic account state awareness.
 
-- **Balance types** — [Balances & Transfers](/concepts/balances) for understanding Main, Trade, and Collateral accounts
-- **REST balance queries** — [Trade Balance](/api-reference/spot-trading/trade-balance) and [Collateral Balance](/api-reference/collateral-trading/collateral-account-balance)
-- **Real-time balance updates** — [WebSocket Balance Spot](/websocket/account-streams/balance-spot) and [Balance Margin](/websocket/account-streams/balance-margin) channels
-- **Deposit/withdrawal tracking** — [Deposit & Withdrawal History](/api-reference/account-wallet/get-deposit-withdraw-history) endpoint
-- **Webhook notifications** — [Webhooks](/platform/webhook) for real-time transaction events
+## Balance monitoring
+
+WhiteBIT separates funds into three account types. Each has a dedicated balance endpoint:
+
+| Account type | Endpoint | Doc page |
+|-------------|----------|----------|
+| Main | `POST /api/v4/main-account/balance` | [Main Balance](/api-reference/account-wallet/main-balance) |
+| Trade (Spot) | `POST /api/v4/trade-account/balance` | [Trading Balance](/api-reference/spot-trading/trading-balance) |
+| Collateral | `POST /api/v4/collateral-account/balance` | [Collateral Balance](/api-reference/collateral-trading/collateral-account-balance) |
+
+For an explanation of account types and how funds move between them, see [Balances & Transfers](/concepts/balances).
+
+### Fetch Trade balance
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    # See /api-reference/authentication for signing details.
+    curl -X POST https://api.whitebit.com/api/v4/trade-account/balance \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+      -d '{"request":"/api/v4/trade-account/balance","nonce":"1700000000000"}'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import base64, hashlib, hmac, json, time, requests
+
+    API_KEY = "YOUR_API_KEY"
+    API_SECRET = "YOUR_API_SECRET"
+    BASE_URL = "https://api.whitebit.com"
+
+    def send_request(path, data=None):
+        if data is None:
+            data = {}
+        data["request"] = path
+        data["nonce"] = str(int(time.time() * 1000))
+        data_json = json.dumps(data)
+        payload_b64 = base64.b64encode(data_json.encode()).decode()
+        signature = hmac.new(
+            API_SECRET.encode(), payload_b64.encode(), hashlib.sha512
+        ).hexdigest()
+        headers = {
+            "Content-Type": "application/json",
+            "X-TXC-APIKEY": API_KEY,
+            "X-TXC-PAYLOAD": payload_b64,
+            "X-TXC-SIGNATURE": signature,
+        }
+        return requests.post(BASE_URL + path, headers=headers, data=data_json).json()
+
+    balance = send_request("/api/v4/trade-account/balance")
+    for asset, info in balance.items():
+        if float(info["available"]) > 0 or float(info["freeze"]) > 0:
+            print(f"{asset}: available={info['available']}, freeze={info['freeze']}")
+    ```
+  </Tab>
+</Tabs>
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+**Response fields:**
+
+- `available` — funds ready for trading or withdrawal
+- `freeze` — funds locked in open orders or pending operations
+
+## Real-time balance via WebSocket
+
+REST polling provides point-in-time snapshots. For instant balance change notifications, subscribe to WebSocket account streams:
+
+| Channel | Subscribe method | Use case |
+|---------|-----------------|----------|
+| [Balance Spot](/websocket/account-streams/balance-spot) | `balanceSpot_subscribe` | Spot (Trade) balance changes |
+| [Balance Margin](/websocket/account-streams/balance-margin) | `balanceMargin_subscribe` | Collateral balance changes (Margin + Futures) |
+
+### Subscribe to balance updates
+
+```python
+import json, websockets, asyncio
+
+async def monitor_balance():
+    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+        # Authenticate first (see WebSocket Quickstart for auth flow)
+
+        # Subscribe to spot balance changes
+        await ws.send(json.dumps({
+            "id": 1,
+            "method": "balanceSpot_subscribe",
+            "params": []
+        }))
+
+        async for message in ws:
+            data = json.loads(message)
+            if "method" in data and data["method"] == "balanceSpot_update":
+                for asset, info in data["params"].items():
+                    print(f"Balance change: {asset} available={info['available']} freeze={info['freeze']}")
+
+asyncio.run(monitor_balance())
+```
+
+See the [WebSocket Quickstart](/guides/websocket-quickstart) for authentication and connection setup.
+
+## Deposit and withdrawal tracking
+
+### REST polling
+
+Query deposit and withdrawal history using the main account history endpoint:
+
+**Endpoint:** [`POST /api/v4/main-account/history`](/api-reference/account-wallet/get-deposit-withdraw-history)
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.whitebit.com/api/v4/main-account/history \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+      -d '{"transactionMethod":1,"request":"/api/v4/main-account/history","nonce":"1700000000000"}'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    # Fetch recent deposits (transactionMethod: 1 = deposits, 2 = withdrawals)
+    deposits = send_request("/api/v4/main-account/history", {
+        "transactionMethod": 1,
+        "limit": 50
+    })
+    for record in deposits.get("records", []):
+        print(f"{record['ticker']}: {record['amount']} — status {record['status']}")
+    ```
+  </Tab>
+</Tabs>
+
+### Webhook-based monitoring
+
+For real-time deposit and withdrawal notifications, configure webhooks. Webhook delivery includes up to 5 retries at 10-minute intervals (50-minute coverage window).
+
+**Recommended reconciliation approach:**
+
+- **Primary:** Webhooks — process events as they arrive for near-instant updates
+- **Fallback:** REST polling — periodically query the history endpoint to catch any events missed during webhook downtime or after the 50-minute retry window expires
+
+See [Webhooks](/platform/webhook) for setup, signature verification, and event types. For the full deposit/withdrawal lifecycle including status state machines and fee calculation, see [Payment Integration](/guides/payment-integration).
+
+## Order activity monitoring
+
+### Open orders
+
+Query active orders across all markets or filter by a specific market:
+
+**Endpoint:** [`POST /api/v4/orders`](/api-reference/spot-trading/query-unexecuted-orders)
+
+```python
+# Fetch all open orders for BTC_USDT
+open_orders = send_request("/api/v4/orders", {"market": "BTC_USDT"})
+print(f"Open orders: {len(open_orders)}")
+for order in open_orders:
+    print(f"  {order['side']} {order['amount']} @ {order['price']} (ID: {order['order_id']})")
+```
+
+### Executed orders
+
+Query trade history for filled and canceled orders:
+
+**Endpoint:** [`POST /api/v4/trade-account/order/history`](/api-reference/spot-trading/query-executed-orders)
+
+```python
+# Fetch order history for BTC_USDT
+history = send_request("/api/v4/trade-account/order/history", {"market": "BTC_USDT"})
+for market, orders in history.items():
+    for order in orders[:5]:
+        print(f"  {order['side']} {order['amount']} @ {order['price']} — {order.get('type', 'unknown')}")
+```
+
+### Real-time order updates via WebSocket
+
+For instant order state change notifications, subscribe to account streams:
+
+| Channel | Subscribe method | Events |
+|---------|-----------------|--------|
+| [Orders Pending](/websocket/account-streams/orders-pending) | `ordersPending_subscribe` | Order placed, partially filled, canceled |
+| [Deals](/websocket/account-streams/deals) | `deals_subscribe` | Trade executions (fills) |
+
+```python
+# Subscribe to order updates and trade fills
+await ws.send(json.dumps({
+    "id": 2,
+    "method": "ordersPending_subscribe",
+    "params": ["BTC_USDT"]
+}))
+await ws.send(json.dumps({
+    "id": 3,
+    "method": "deals_subscribe",
+    "params": ["BTC_USDT"]
+}))
+```
+
+## Polling vs WebSocket decision matrix
+
+| Use case | Recommended approach | Reason |
+|----------|---------------------|--------|
+| Balance snapshot | REST | One-time check, no persistent connection needed |
+| Live balance changes | WebSocket | Instant notification on every change |
+| Deposit/withdrawal status | Webhook + REST fallback | Reliability — webhooks for speed, REST for reconciliation |
+| Open order monitoring | WebSocket | Real-time state changes (fills, cancellations) |
+| Historical trades | REST | Paginated query over a time range |
+
+**General guidance:** Use REST for on-demand queries and historical data. Use WebSocket for any data that changes frequently and requires immediate reaction. Combine both: WebSocket for primary real-time flow, REST for startup state hydration and periodic reconciliation.
 
 ## What's Next
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Payment Integration" icon="money-bill" href="/guides/payment-integration">
-    Full deposit/withdrawal lifecycle and reconciliation.
+    Full deposit/withdrawal lifecycle, fee calculation, and reconciliation.
   </Card>
   <Card title="WebSocket Quickstart" icon="plug" href="/guides/websocket-quickstart">
-    Set up real-time data streams.
+    Connection setup, authentication, and real-time data streaming.
+  </Card>
+  <Card title="Building a Trading Bot" icon="robot" href="/guides/building-a-trading-bot">
+    End-to-end automated trading with order management and error handling.
   </Card>
 </CardGroup>

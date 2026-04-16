@@ -6,7 +6,7 @@ description: "WhiteBIT REST API overview — base URL, authentication, quickstar
 
 import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { ConceptTable } from '/snippets/ConceptTable.jsx';
-import { scopeLimits } from '/snippets/concept-data/rate-limits.jsx';
+import { scopeLimits, httpStatusCodes } from '/snippets/concept-data/rate-limits.jsx';
 
 <RegionBaseUrl />
 
@@ -175,6 +175,20 @@ All V4 endpoints return errors as JSON. The format differs slightly between publ
   }
 }
 ```
+
+## HTTP Status Codes
+
+<ConceptTable
+  columns={[
+    { key: 'status', header: 'Status', width: 'auto' },
+    { key: 'meaning', header: 'Meaning', width: '1fr' },
+  ]}
+  rows={httpStatusCodes}
+  codeColumns={['status']}
+/>
+
+For retry strategies, authentication errors, and best practices, see
+[Rate Limits & Error Codes](/api-reference/rate-limits).
 
 ---
 

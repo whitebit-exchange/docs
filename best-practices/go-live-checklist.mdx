@@ -7,7 +7,11 @@ sidebarTitle: "Go-Live Checklist"
 Complete every item in the checklist below before deploying a WhiteBIT API integration to production. Each category covers a critical integration area with specific verification items.
 
 <Warning>
-  WhiteBIT does not offer a public testnet or sandbox environment. Test all flows on the live API with minimum order amounts before going to production volume. Use `GET /api/v4/public/markets` to find pairs with the lowest minimum order sizes for testing.
+  WhiteBIT does not offer a public testnet or sandbox environment.
+  For risk-free Spot trading practice, use Demo Tokens (DBTC/DUSDT) — see step 1 below.
+  For all other flows, test on the live API with minimum order amounts.
+  Use [`GET /api/v4/public/markets`](/api-reference/market-data/market-info) to find
+  pairs with the lowest minimum order sizes.
 </Warning>
 
 ## Authentication
@@ -36,7 +40,7 @@ See [Errors and Error Handling](/api-reference/rate-limits) for the complete err
 
 - [ ] Per-endpoint rate limits documented and enforced in the application.
 - [ ] Request queuing implemented to stay within rate limits.
-- [ ] Bulk endpoints used where available (e.g., `/order/bulk` for up to 20 orders per call).
+- [ ] Bulk endpoints used where available (e.g., [`/order/bulk`](/api-reference/spot-trading/bulk-limit-order) for up to 20 orders per call).
 - [ ] WebSocket used for real-time data instead of REST polling where possible.
 - [ ] Public endpoint caching implemented for data that changes infrequently (market list, asset status).
 
@@ -47,7 +51,7 @@ See [Rate Limits](/api-reference/rate-limits) for per-endpoint values.
 - [ ] Travel Rule: `travelRule` object included in all EEA crypto withdrawal requests.
 - [ ] MiCA: USDT deposit/withdrawal/code operations NOT attempted for EEA accounts (blocked since December 30, 2024).
 - [ ] USDT alternatives: USDC and EURI used for EEA users instead of USDT.
-- [ ] Asset Status endpoint (`GET /api/v4/public/assets`) checked dynamically for currency availability.
+- [ ] Asset Status endpoint ([`GET /api/v4/public/assets`](/api-reference/market-data/asset-status-list)) checked dynamically for currency availability.
 - [ ] Travel Rule deposit freezes (status 27, 28) handled in the deposit reconciliation flow.
 
 See [Regulatory Compliance](/institutional/compliance) and [Payment Integration](/guides/payment-integration) for the full compliance reference.
@@ -86,16 +90,18 @@ See [Webhooks](/platform/webhook) and [Security Best Practices](/best-practices/
 
 WhiteBIT does not offer a public testnet. The following approach validates an integration on the live API with minimal risk.
 
-1. **Start with public endpoints:** Verify connectivity and parsing by calling read-only public endpoints (`GET /api/v4/public/time`, `GET /api/v4/public/markets`). No authentication required.
+1. **Start with Demo Tokens (risk-free):** Activate free Demo Tokens (0.5 DBTC + 1,000 DUSDT) via the [WhiteBIT Codes page](https://whitebit.com/codes) — no KYC required. Trade the `DBTC_DUSDT` spot pair via [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order) to validate the full order lifecycle (place, query, cancel, fill) without risking real funds. Demo tokens support Spot trading only — Margin and Futures testing requires real assets at minimum sizes.
 
-2. **Verify authentication:** Make an authenticated call to `POST /api/v4/trade-account/balance`. If the response is `401`, debug the HMAC signing implementation before proceeding.
+2. **Start with public endpoints:** Verify connectivity and parsing by calling read-only public endpoints ([`GET /api/v4/public/time`](/api-reference/market-data/server-time), [`GET /api/v4/public/markets`](/api-reference/market-data/market-info)). No authentication required.
 
-3. **Use minimum order sizes:** Query `GET /api/v4/public/markets` to find pairs with the lowest `minAmount`. Place test orders at minimum sizes to verify the full order lifecycle.
+3. **Verify authentication:** Make an authenticated call to [`POST /api/v4/trade-account/balance`](/api-reference/spot-trading/trading-balance). If the response is `401`, debug the HMAC signing implementation before proceeding.
 
-4. **Verify error handling:** Send intentionally malformed requests (invalid ticker, zero amount, duplicate nonce) and verify the application handles error responses correctly.
+4. **Use minimum order sizes:** Query `GET /api/v4/public/markets` to find pairs with the lowest `minAmount`. Place test orders at minimum sizes to verify the full order lifecycle.
 
-5. **Test webhook delivery:** Trigger a real (small) deposit or withdrawal and verify the webhook is received, the signature validates, and the application processes the event correctly.
+5. **Verify error handling:** Send intentionally malformed requests (invalid ticker, zero amount, duplicate nonce) and verify the application handles error responses correctly.
 
-6. **Confirm Travel Rule compliance:** For EEA accounts, submit a test crypto withdrawal with the `travelRule` object and verify acceptance before processing customer funds.
+6. **Test webhook delivery:** Trigger a real (small) deposit or withdrawal and verify the webhook is received, the signature validates, and the application processes the event correctly.
 
-7. **Verify reconciliation:** Confirm that the polling fallback detects events missed by webhooks. Temporarily disable webhook processing and verify that polling catches up.
+7. **Confirm Travel Rule compliance:** For EEA accounts, submit a test crypto withdrawal with the `travelRule` object and verify acceptance before processing customer funds.
+
+8. **Verify reconciliation:** Confirm that the polling fallback detects events missed by webhooks. Temporarily disable webhook processing and verify that polling catches up.
