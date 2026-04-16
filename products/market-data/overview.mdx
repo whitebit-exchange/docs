@@ -1,0 +1,68 @@
+---
+title: "Market Data"
+description: "Real-time and historical market data across 900+ trading pairs — no authentication required."
+sidebarTitle: "Overview"
+---
+
+Real-time and historical market data across 900+ trading pairs — no authentication required. The Market Data API provides prices, orderbooks, recent trades, asset statuses, and funding rates through 14 public GET endpoints.
+
+## Capabilities
+
+- **Server status** — Check platform availability before integrating (`GET /api/v4/public/ping`, `GET /api/v4/public/time`)
+- **Market catalog** — Fetch all available spot and futures markets with minimum amounts, tick sizes, and statuses ([Markets & Trading Pairs](/concepts/markets))
+- **Real-time pricing** — 24-hour ticker data for all pairs or individual markets
+- **Orderbook depth** — Full or limited-depth orderbook snapshots for any market
+- **Recent trades** — Latest executed trades per market
+- **Asset statuses** — Deposit/withdrawal availability per currency, network, and chain
+- **Funding rates** — Current and historical funding rates for perpetual futures markets
+
+## Who Uses This
+
+- **Developers evaluating the API** — Zero setup, no API key, no authentication. Start making calls immediately.
+- **Trading bots and algorithms** — Market state checks, price feeds, orderbook analysis before placing orders
+- **Analytics platforms** — Historical trade data, market statistics, asset network information
+- **Price aggregators** — Ticker data across 900+ pairs for display and comparison
+
+## Common Integration Patterns
+
+**Price feeds** — Poll the ticker endpoint for periodic price updates or subscribe to the `lastprice` [WebSocket channel](/guides/websocket-quickstart) for real-time streaming. The ticker endpoint returns 24-hour volume, last price, and percentage change.
+
+**Orderbook analysis** — Fetch depth snapshots via REST for point-in-time analysis or subscribe to the `depth` WebSocket channel for real-time updates. The depth endpoint accepts a `limit` parameter (1–100) to control response size.
+
+**Pre-trade checks** — Before placing orders, fetch market details to verify minimum order amounts, tick sizes, market status (active/disabled), and asset deposit/withdrawal availability.
+
+## Technical Overview
+
+| Detail | Value |
+|--------|-------|
+| Endpoints | 14 (all `GET`, all public) |
+| Authentication | None required |
+| Rate limit | 20,000 requests per 10 seconds (default); some endpoints differ — see [Rate Limits](/api-reference/rate-limits) |
+| Base URL | `https://api.whitebit.com` |
+
+Key endpoints:
+- `GET /api/v4/public/markets` — Spot and margin market pairs
+- `GET /api/v4/public/futures` — Futures market pairs
+- `GET /api/v4/public/ticker` — 24-hour ticker for all pairs
+- `GET /api/v4/public/orderbook/{market}` — Orderbook depth
+- `GET /api/v4/public/trades/{market}` — Recent trades
+- `GET /api/v4/public/assets` — Asset deposit/withdrawal statuses
+- `GET /api/v4/public/funding-history/{market}` — Funding rate history for perpetual pairs
+
+For full endpoint documentation, see the [Market Data API Reference](/api-reference/market-data/overview).
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Market Data Quickstart" icon="rocket" href="/products/market-data/quickstart">
+    Fetch live prices and orderbooks in under 2 minutes — no authentication required.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/market-data/overview">
+    Full endpoint documentation for all 14 public endpoints.
+  </Card>
+  <Card title="WebSocket Quickstart" icon="bolt" href="/guides/websocket-quickstart">
+    Stream real-time price updates and orderbook changes.
+  </Card>
+</CardGroup>

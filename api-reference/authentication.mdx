@@ -3,6 +3,10 @@ title: "Private HTTP API Authentication"
 description: "Authenticate with WhiteBIT private HTTP API endpoints using API keys and HMAC-SHA512 signatures."
 sidebarTitle: "Authentication"
 ---
+
+import { ConceptTable } from '/snippets/ConceptTable.jsx';
+import { requiredHeaders } from '/snippets/concept-data/auth.jsx';
+import { authErrors } from '/snippets/concept-data/error-codes.jsx';
  
 ## Overview
 
@@ -30,6 +34,12 @@ Generate a new API key
 	- Enable Endpoint access restrictions (select only necessary endpoints)
 </Step>
 </Steps>
+
+<Note>
+  Keys auto-deactivate after 14 days of inactivity. 2FA must be enabled before key creation.
+  Use separate keys per application with minimal permissions.
+</Note>
+
 ## Authentication Requirements
 
 All authenticated requests must:
@@ -45,7 +55,7 @@ The request body must be a JSON object containing:
 | Field | Description | Example |
 | --- | --- | --- |
 | `request` | Request path without domain name | `'/api/v4/trade-account/balance'` |
-| `nonce` | An incrementing number larger than previous requests | `'1594297865'` |
+| `nonce` | An incrementing number larger than previous requests | `'1594297865000'` |
 | `nonceWindow` | Optional boolean to enable time-based nonce validation | `true` |
 | Request-specific parameters | Additional parameters required by the endpoint | `"ticker": "BTC"` |
 
@@ -54,7 +64,7 @@ The request body must be a JSON object containing:
 ```json
 {
     "request": "/api/v4/trade-account/balance",
-    "nonce": 1594297865,
+    "nonce": 1594297865000,
     "nonceWindow": true,
     "ticker": "BTC"
 }
@@ -74,12 +84,15 @@ The request body must be a JSON object containing:
 
 Every authenticated request requires these headers:
 
-| Header | Value | Description |
-| --- | --- | --- |
-| `Content-type` | `application/json` | Specifies JSON format |
-| `X-TXC-APIKEY` | `YOUR_API_KEY` | The public WhiteBIT API key |
-| `X-TXC-PAYLOAD` | `base64_encoded_payload` | Base64-encoded request body |
-| `X-TXC-SIGNATURE` | `signature` | HMAC-SHA512 signature (hex encoded) |
+<ConceptTable
+  columns={[
+    { key: 'header', header: 'Header', width: 'minmax(140px, auto)' },
+    { key: 'value', header: 'Value', width: 'minmax(160px, auto)' },
+    { key: 'description', header: 'Description', width: '1fr' },
+  ]}
+  rows={requiredHeaders}
+  codeColumns={['header']}
+/>
 
 Create the signature using: `hex(HMAC_SHA512(payload, key=api_secret))`
 
@@ -100,18 +113,14 @@ WhiteBIT provides the [API Quick Start Helper](https://github.com/whitebit-excha
 
 ## Common Errors
 
-| Error Message | Cause | Solution |
-| --- | --- | --- |
-| `{“code”:2,”errors”:{},”message”:”Payload not provided.”}` | `X-TXC-PAYLOAD` header missing or empty | Include the base64-encoded request body as `X-TXC-PAYLOAD` |
-| “Too many requests.” | Nonce value is not greater than previous request | Use incrementing nonce values |
-| ”This action is unauthorized. Enable your key in API settings” | Using disabled API key | Enable key in API settings or check IP restrictions |
-| ”You don’t have permission to use this endpoint.” | Endpoint access is restricted | Update endpoint access in API key settings |
-| ”Invalid payload” | Payload does not match decoded value | Ensure proper base64 encoding of request body |
-| ”Unauthorized request.” | Request signed incorrectly | Verify signature creation process |
-| ”Nonce not provided.” | Missing nonce in request body | Include nonce in all requests |
-| ”Your nonce is more than 5 seconds lesser than the current nonce” | Invalid timestamp when using nonceWindow | Use current timestamp in milliseconds |
-| ”Invalid nonceWindow.” | nonceWindow is not a boolean | Ensure nonceWindow is set to true or false |
-| ”Request not provided.” | Missing request path in body | Include request path in all requests |
+<ConceptTable
+  columns={[
+    { key: ‘message’, header: ‘Error message’, width: ‘minmax(200px, 1.5fr)’ },
+    { key: ‘cause’, header: ‘Cause’, width: ‘1fr’ },
+    { key: ‘resolution’, header: ‘Resolution’, width: ‘1fr’ },
+  ]}
+  rows={authErrors}
+/>
 
 For rate limits and REST error format, see [Rate limits and error codes](/api-reference/rate-limits).
 
@@ -124,3 +133,4 @@ For rate limits and REST error format, see [Rate limits and error codes](/api-re
 - [API Reference Overview](/api-reference/overview) — Base URL, rate limits, and error format
 - [Market Data overview](/api-reference/market-data/overview) — Public endpoints (no authentication)
 - [Spot Trading overview](/api-reference/spot-trading/overview) — Private trading endpoints
+- [OAuth Overview](/platform/oauth/overview) — Third-party application authorization for ecosystem partners

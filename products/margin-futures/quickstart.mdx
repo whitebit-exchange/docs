@@ -1,0 +1,525 @@
+---
+title: "Margin & Futures Quickstart"
+description: "Open a first leveraged position on WhiteBIT — Margin Trading (up to 10x) or Futures Trading (up to 100x) — in under 5 minutes."
+sidebarTitle: "Quickstart"
+---
+
+Open a first leveraged position on WhiteBIT. Margin Trading and Futures Trading share identical API endpoints — only the pair name differs. Select a tab below to follow the steps for the preferred product.
+
+<Note>
+  **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
+  Margin and Futures trading. The market pair determines the product:
+  spot pairs (e.g., `BTC_USDT`) for Margin, perpetual pairs (e.g., `BTC_PERP`)
+  for Futures. All endpoints under `/api/v4/order/collateral/` and
+  `/api/v4/collateral-account/` serve both products.
+</Note>
+
+## Prerequisites
+
+- A WhiteBIT account ([register](https://whitebit.com/auth/register))
+- An API key with **Trading** permission ([create one](https://whitebit.com/settings/api))
+- Funds in the **Collateral** balance (transfer from Main balance if needed — see [Balances & Transfers](/concepts/balances))
+- Familiarity with HMAC-SHA512 signing — see [Authentication](/api-reference/authentication)
+
+<Warning>
+  WhiteBIT has no public testnet or sandbox. All leveraged orders execute against the live orderbook.
+  Use minimum order amounts, low leverage (2x–5x), and prices far from market to safely test.
+  Leveraged positions carry liquidation risk — see [Margin Trading](/products/margin/overview)
+  or [Futures Trading](/products/futures/overview) for risk details.
+</Warning>
+
+## Authentication Helper
+
+All Python examples in the steps below use the following signing helper. See [Authentication](/api-reference/authentication) for the full explanation.
+
+```python
+import base64
+import hashlib
+import hmac
+import json
+import time
+import requests
+
+API_KEY = "YOUR_API_KEY"        # Replace with actual API key
+API_SECRET = "YOUR_API_SECRET"  # Replace with actual API secret
+BASE_URL = "https://api.whitebit.com"
+
+def send_request(path, data=None):
+    if data is None:
+        data = {}
+    data["request"] = path
+    data["nonce"] = str(int(time.time() * 1000))
+    data_json = json.dumps(data)
+    payload_b64 = base64.b64encode(data_json.encode()).decode()
+    signature = hmac.new(
+        API_SECRET.encode(), payload_b64.encode(), hashlib.sha512
+    ).hexdigest()
+    headers = {
+        "Content-Type": "application/json",
+        "X-TXC-APIKEY": API_KEY,
+        "X-TXC-PAYLOAD": payload_b64,
+        "X-TXC-SIGNATURE": signature,
+    }
+    return requests.post(BASE_URL + path, headers=headers, data=data_json).json()
+```
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+## Steps
+
+<Tabs>
+  <Tab title="Margin Trading">
+    Margin Trading uses spot pairs (e.g., `BTC_USDT`) with up to 10x leverage.
+
+    <Steps>
+      <Step title="Check collateral balance">
+        Verify available collateral funds.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/collateral-account/balance \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"request":"/api/v4/collateral-account/balance","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            balance = send_request("/api/v4/collateral-account/balance")
+            print(balance)
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response:**
+        ```json
+        {
+          "USDT": 1000.50,
+          "BTC": 0.0
+        }
+        ```
+
+        The response maps each collateral asset to an available balance amount.
+      </Step>
+
+      <Step title="Set leverage">
+        Set the account leverage to 5x. Leverage applies account-wide across all collateral positions.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/collateral-account/leverage \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"leverage":5,"request":"/api/v4/collateral-account/leverage","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            result = send_request("/api/v4/collateral-account/leverage", {
+                "leverage": 5
+            })
+            print(result)
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response:**
+        ```json
+        {
+          "leverage": 5
+        }
+        ```
+
+        Allowed leverage values: 1, 2, 3, 5, 10. Margin Trading supports up to 10x.
+      </Step>
+
+      <Step title="Place a collateral limit order">
+        Create a limit buy order on BTC_USDT. Set the price well below the current market price — the order remains open without filling, allowing safe testing.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/order/collateral/limit \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"market":"BTC_USDT","side":"buy","amount":"0.001","price":"30000","request":"/api/v4/order/collateral/limit","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            order = send_request("/api/v4/order/collateral/limit", {
+                "market": "BTC_USDT",
+                "side": "buy",
+                "amount": "0.001",
+                "price": "30000"  # Price far below market — order will not fill
+            })
+            print(order)
+            order_id = order.get("order_id")
+            print(f"Order ID: {order_id}")
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response:**
+        ```json
+        {
+          "order_id": 12345678,
+          "market": "BTC_USDT",
+          "side": "buy",
+          "type": "limit",
+          "amount": "0.001",
+          "price": "30000",
+          "...": "..."
+        }
+        ```
+
+        When a collateral limit order fills, a position is created. Open positions include a `liquidationPrice` field — monitor the liquidation price for risk management. See the [open positions endpoint](/api-reference/collateral-trading/open-positions) for details.
+      </Step>
+
+      <Step title="Check open positions">
+        Query open positions. If the limit order from the previous step has not filled, the response is empty. Once an order fills, positions appear with key risk fields.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/collateral-account/positions/open \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"market":"BTC_USDT","request":"/api/v4/collateral-account/positions/open","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            positions = send_request("/api/v4/collateral-account/positions/open", {
+                "market": "BTC_USDT"
+            })
+            print(positions)
+            for pos in positions:
+                print(f"  Position {pos['positionId']}: {pos['positionSide']} "
+                      f"liquidation at {pos['liquidationPrice']}")
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response (when a position exists):**
+        ```json
+        [
+          {
+            "positionId": 87654321,
+            "market": "BTC_USDT",
+            "amount": "0.001",
+            "basePrice": "65000.00",
+            "pnl": "0",
+            "margin": "13.00",
+            "liquidationPrice": "52100.00",
+            "positionSide": "LONG",
+            "...": "..."
+          }
+        ]
+        ```
+
+        Key fields: `basePrice` (entry price), `liquidationPrice` (price at which the position is force-closed), `positionSide` (LONG, SHORT, or BOTH), `margin` (funds allocated to the position).
+      </Step>
+
+      <Step title="Cancel the order">
+        Cancel the limit order to release the reserved collateral.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/order/cancel \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"market":"BTC_USDT","order_id":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            cancel = send_request("/api/v4/order/cancel", {
+                "market": "BTC_USDT",
+                "order_id": order_id
+            })
+            print(cancel)
+            ```
+          </Tab>
+        </Tabs>
+
+        To close an open position (after a filled order), use the [close position endpoint](/api-reference/collateral-trading/close-position) with `positionId` and `market`:
+
+        ```python
+        # Close an open position (when one exists)
+        close = send_request("/api/v4/collateral-account/position/close", {
+            "positionId": 87654321,
+            "market": "BTC_USDT"
+        })
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Futures Trading">
+    Futures Trading uses perpetual pairs (e.g., `BTC_PERP`) with up to 100x leverage and optional Hedge Mode.
+
+    <Steps>
+      <Step title="Check collateral balance">
+        Verify available collateral funds. The same Collateral balance serves both Margin and Futures.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/collateral-account/balance \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"request":"/api/v4/collateral-account/balance","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            balance = send_request("/api/v4/collateral-account/balance")
+            print(balance)
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response:**
+        ```json
+        {
+          "USDT": 1000.50,
+          "BTC": 0.0
+        }
+        ```
+      </Step>
+
+      <Step title="Set leverage">
+        Set account leverage to 5x. Leverage applies account-wide. Futures supports up to 100x, but use a conservative value for testing.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/collateral-account/leverage \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"leverage":5,"request":"/api/v4/collateral-account/leverage","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            result = send_request("/api/v4/collateral-account/leverage", {
+                "leverage": 5
+            })
+            print(result)
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response:**
+        ```json
+        {
+          "leverage": 5
+        }
+        ```
+
+        Allowed leverage values: 1, 2, 3, 5, 10, 20, 50, 100.
+      </Step>
+
+      <Step title="Enable Hedge Mode (optional)">
+        Hedge Mode allows simultaneous long and short positions on the same pair. Skip to disable (default: one-directional positions only).
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/collateral-account/hedge-mode/update \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"hedgeMode":true,"request":"/api/v4/collateral-account/hedge-mode/update","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            hedge = send_request("/api/v4/collateral-account/hedge-mode/update", {
+                "hedgeMode": True
+            })
+            print(hedge)
+            ```
+          </Tab>
+        </Tabs>
+
+        Check the current mode at any time:
+        ```python
+        mode = send_request("/api/v4/collateral-account/hedge-mode")
+        print(mode)  # {"hedgeMode": true}
+        ```
+      </Step>
+
+      <Step title="Place a collateral limit order">
+        Create a limit buy order on BTC_PERP. Set the price well below the current market price — the order remains open without filling, allowing safe testing.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/order/collateral/limit \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"market":"BTC_PERP","side":"buy","amount":"0.001","price":"30000","request":"/api/v4/order/collateral/limit","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            order = send_request("/api/v4/order/collateral/limit", {
+                "market": "BTC_PERP",
+                "side": "buy",
+                "amount": "0.001",
+                "price": "30000"  # Price far below market — order will not fill
+            })
+            print(order)
+            order_id = order.get("order_id")
+            print(f"Order ID: {order_id}")
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response:**
+        ```json
+        {
+          "order_id": 12345678,
+          "market": "BTC_PERP",
+          "side": "buy",
+          "type": "limit",
+          "amount": "0.001",
+          "price": "30000",
+          "...": "..."
+        }
+        ```
+
+        The only difference from the Margin tab: `BTC_PERP` (perpetual pair) instead of `BTC_USDT` (spot pair). The API endpoint and request structure are identical.
+      </Step>
+
+      <Step title="Check open positions">
+        Query open positions. If the limit order from the previous step has not filled, the response is empty. Once an order fills, positions appear with key risk fields including `liquidationPrice`.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/collateral-account/positions/open \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"market":"BTC_PERP","request":"/api/v4/collateral-account/positions/open","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            positions = send_request("/api/v4/collateral-account/positions/open", {
+                "market": "BTC_PERP"
+            })
+            print(positions)
+            for pos in positions:
+                print(f"  Position {pos['positionId']}: {pos['positionSide']} "
+                      f"liquidation at {pos['liquidationPrice']}")
+            ```
+          </Tab>
+        </Tabs>
+
+        **Expected response (when a position exists):**
+        ```json
+        [
+          {
+            "positionId": 87654321,
+            "market": "BTC_PERP",
+            "amount": "0.001",
+            "basePrice": "65000.00",
+            "pnl": "0",
+            "margin": "13.00",
+            "liquidationPrice": "52100.00",
+            "positionSide": "LONG",
+            "...": "..."
+          }
+        ]
+        ```
+
+        Key fields: `basePrice` (entry price), `liquidationPrice` (price triggering forced closure — uses mark price, not last traded price), `positionSide` (LONG, SHORT, or BOTH in Hedge Mode), `margin` (funds allocated to the position).
+      </Step>
+
+      <Step title="Cancel the order">
+        Cancel the limit order to release the reserved collateral.
+
+        <Tabs>
+          <Tab title="cURL">
+            ```bash
+            curl -X POST https://api.whitebit.com/api/v4/order/cancel \
+              -H "Content-Type: application/json" \
+              -H "X-TXC-APIKEY: YOUR_API_KEY" \
+              -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+              -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+              -d '{"market":"BTC_PERP","order_id":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+            ```
+          </Tab>
+          <Tab title="Python">
+            ```python
+            cancel = send_request("/api/v4/order/cancel", {
+                "market": "BTC_PERP",
+                "order_id": order_id
+            })
+            print(cancel)
+            ```
+          </Tab>
+        </Tabs>
+
+        To close an open position (after a filled order), use the [close position endpoint](/api-reference/collateral-trading/close-position) with `positionId` and `market`:
+
+        ```python
+        # Close an open position (when one exists)
+        close = send_request("/api/v4/collateral-account/position/close", {
+            "positionId": 87654321,
+            "market": "BTC_PERP"
+        })
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+Position successfully managed through the collateral trading API. The Margin and Futures tabs demonstrate API symmetry — identical endpoints, identical request structure, differentiated only by pair name (`BTC_USDT` vs. `BTC_PERP`).
+
+<Accordion title="What just happened?">
+  **Collateral balance isolation** — Leveraged trading requires funds in the Collateral balance specifically. Depositing to the Main balance is not sufficient — an explicit transfer to Collateral is required before any collateral order can be placed. The Collateral balance is shared between Margin and Futures; there is no separate pool per product.
+
+  **How leverage amplifies risk** — At 5x leverage, 1 USDT of collateral controls 5 USDT of market exposure. A 20% adverse price move against a 5x position wipes the allocated margin entirely, triggering partial liquidation. WhiteBIT's partial liquidation mechanism closes 20–30% of the position first to restore margin; full liquidation follows only if that is insufficient. The `liquidationPrice` field in position responses shows exactly where this occurs — monitor it alongside the collateral balance in production.
+
+  **Why the pair name determines the product** — The API has no "margin" or "futures" parameter. The endpoint paths (`/api/v4/order/collateral/limit`, etc.) are identical for both products. Sending `BTC_USDT` routes the order to Margin Trading; sending `BTC_PERP` routes it to Futures Trading. Leverage is also set account-wide — a single call to `/api/v4/collateral-account/leverage` affects all open and future positions across both products.
+</Accordion>
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Margin Trading Overview" icon="chart-line" href="/products/margin/overview">
+    Capabilities, integration patterns, and risk context for up to 10x leverage.
+  </Card>
+  <Card title="Futures Trading Overview" icon="chart-candlestick" href="/products/futures/overview">
+    Perpetual contracts, Hedge Mode, funding rates, and risk mechanics.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/collateral-trading/overview">
+    Full endpoint documentation for all 19 collateral trading endpoints.
+  </Card>
+</CardGroup>

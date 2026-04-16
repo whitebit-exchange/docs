@@ -1,0 +1,230 @@
+---
+title: "Market Data Quickstart"
+description: "Fetch live prices, orderbooks, and recent trades from the WhiteBIT API — no authentication required."
+sidebarTitle: "Quickstart"
+---
+
+Fetch live market data from the WhiteBIT API in under 2 minutes. No API key, no authentication, no account required — all Market Data endpoints are public.
+
+## Prerequisites
+
+- A terminal or HTTP client (curl, Postman, or any programming language with HTTP support)
+- No WhiteBIT account needed
+- No API key needed
+
+<Steps>
+  <Step title="Check server availability">
+    Confirm the API is reachable and operational.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl https://api.whitebit.com/api/v4/public/ping
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        response = requests.get("https://api.whitebit.com/api/v4/public/ping")
+        print(response.json())
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    ["pong"]
+    ```
+  </Step>
+
+  <Step title="Fetch available markets">
+    Retrieve the full list of trading pairs with minimum amounts and trading rules.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl https://api.whitebit.com/api/v4/public/markets
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        response = requests.get("https://api.whitebit.com/api/v4/public/markets")
+        markets = response.json()
+        print(f"Total markets: {len(markets)}")
+        print(markets[0])
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response (trimmed):**
+    ```json
+    [
+      {
+        "name": "BTC_USDT",
+        "stock": "BTC",
+        "money": "USDT",
+        "stockPrec": "6",
+        "moneyPrec": "2",
+        "makerFee": "0.001",
+        "takerFee": "0.001",
+        "minAmount": "0.0001",
+        "minTotal": "1",
+        "tradesEnabled": true,
+        "type": "spot"
+      },
+      "..."
+    ]
+    ```
+
+    The response contains 900+ markets. Key fields: `name` (pair), `stock` (base currency), `money` (quote currency), `minAmount` (minimum order quantity), `minTotal` (minimum order value).
+
+    For Go and PHP examples, see [SDKs](/sdks).
+  </Step>
+
+  <Step title="Get BTC_USDT ticker">
+    Fetch 24-hour pricing and volume data. The ticker endpoint returns all pairs — filter for the desired market.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl https://api.whitebit.com/api/v4/public/ticker
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        response = requests.get("https://api.whitebit.com/api/v4/public/ticker")
+        ticker = response.json()
+        btc_usdt = ticker.get("BTC_USDT", {})
+        print(btc_usdt)
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response (BTC_USDT entry):**
+    ```json
+    {
+      "BTC_USDT": {
+        "base_id": 1,
+        "quote_id": 825,
+        "last_price": "65432.10",
+        "base_volume": "1234.567",
+        "quote_volume": "80765432.10",
+        "is_frozen": false,
+        "change": "2.5"
+      }
+    }
+    ```
+
+    Key fields: `last_price` (most recent trade price), `base_volume` (24h volume in base currency), `quote_volume` (24h volume in quote currency), `change` (24h percentage change).
+  </Step>
+
+  <Step title="Fetch BTC_USDT orderbook">
+    Retrieve the current orderbook depth. The `limit` parameter controls the number of price levels returned (1–100).
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl "https://api.whitebit.com/api/v4/public/orderbook/BTC_USDT?limit=5"
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        response = requests.get(
+            "https://api.whitebit.com/api/v4/public/orderbook/BTC_USDT",
+            params={"limit": 5}
+        )
+        orderbook = response.json()
+        print(f"Best ask: {orderbook['asks'][0]}")
+        print(f"Best bid: {orderbook['bids'][0]}")
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response (trimmed):**
+    ```json
+    {
+      "ticker_id": "BTC_USDT",
+      "timestamp": 1700000000,
+      "asks": [
+        ["65450.00", "0.500"],
+        ["65460.00", "1.200"]
+      ],
+      "bids": [
+        ["65430.00", "0.800"],
+        ["65420.00", "1.500"]
+      ]
+    }
+    ```
+
+    Each entry is a `[price, quantity]` pair. `asks` = sell orders (ascending by price), `bids` = buy orders (descending by price).
+  </Step>
+
+  <Step title="Fetch recent trades">
+    Retrieve the most recently executed trades for BTC_USDT.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl https://api.whitebit.com/api/v4/public/trades/BTC_USDT
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        response = requests.get("https://api.whitebit.com/api/v4/public/trades/BTC_USDT")
+        trades = response.json()
+        print(f"Latest trade: {trades[0]}")
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response (trimmed):**
+    ```json
+    [
+      {
+        "tradeID": 123456789,
+        "price": "65435.50",
+        "quote_volume": "0.015",
+        "base_volume": "981.53",
+        "trade_timestamp": 1700000000,
+        "type": "buy"
+      },
+      "..."
+    ]
+    ```
+
+    Key fields: `tradeID` (unique identifier), `price` (execution price), `type` ("buy" or "sell"), `trade_timestamp` (Unix time in seconds).
+  </Step>
+</Steps>
+
+All five requests completed without authentication. The Market Data API provides the foundation for price monitoring, orderbook analysis, and trade tracking — the building blocks for any trading integration.
+
+<Accordion title="What just happened?">
+  **No authentication — by design** — Market Data endpoints are intentionally public. No API key, no HMAC signing, no account. WhiteBIT exposes pricing, orderbook, and trade data publicly to support price aggregators, data vendors, and integration testing without requiring account creation. Public endpoints have their own rate limits but no per-key restrictions.
+
+  **Polling vs streaming** — The five steps above use REST (request → response). This is appropriate for one-time lookups but expensive for real-time monitoring: polling the ticker endpoint every second across hundreds of pairs exhausts rate limits quickly and adds latency. For continuous price or orderbook updates, use [WebSocket](/guides/websocket-quickstart) instead — a single persistent connection streams updates as they occur, with no polling overhead.
+
+  **Response shape conventions** — `asks` and `bids` arrays in the orderbook are always sorted: asks ascending by price (lowest ask first = best ask), bids descending (highest bid first = best bid). The first entry in each array is the best available price at that moment. `quote_volume` in the ticker is denominated in the quote currency (USDT for BTC_USDT); `base_volume` is denominated in the base currency (BTC).
+</Accordion>
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Spot Trading Quickstart" icon="arrow-right-arrow-left" href="/products/spot/quickstart">
+    Place a first trade — requires an API key with Trading permission.
+  </Card>
+  <Card title="WebSocket Quickstart" icon="bolt" href="/guides/websocket-quickstart">
+    Stream real-time price updates instead of polling.
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Set up API keys and HMAC signing for authenticated endpoints.
+  </Card>
+</CardGroup>

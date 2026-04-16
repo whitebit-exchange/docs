@@ -1,0 +1,290 @@
+---
+title: "Market Maker Integration Guide"
+description: "Complete guide for professional market makers — Market-Making Program, colocation setup, available endpoints, quoting strategy, and safety mechanisms."
+sidebarTitle: "Market Maker Guide"
+---
+
+The Market-Making Program provides dedicated infrastructure for professional liquidity providers — including fee rebates, colocation access, and a curated endpoint set optimized for low-latency quoting. The guide covers program enrollment, colocation setup, available endpoints, quoting strategy, and production safety mechanisms.
+
+## Market-Making Program overview
+
+The Market-Making Program offers tiered fee rebates based on 30-day rolling trading volume.
+
+**Fee tier structure:**
+
+| Tier | Maker Fee | Taker Fee | Requirement |
+|------|-----------|-----------|-------------|
+| Base rate | 0.1% | 0.1% | Default for all users |
+| VIP best tier | -0.001% | 0.03% | Volume-based VIP progression |
+| MM Program best tier | **-0.012%** | 0.020% | $100M+ spot volume per 30 days |
+
+Negative maker fees represent rebates — the exchange pays the market maker for each maker order filled.
+
+**Futures market making** has separate entry requirements and rebate tiers:
+
+| Tier | Maker Fee | Taker Fee | Requirement |
+|------|-----------|-----------|-------------|
+| Futures MM best tier | **-0.020%** | 0.032% | ≥2% of total WhiteBIT Futures maker volume per 30 days (min $30M) |
+
+For current tier breakpoints across all volume levels, see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program).
+
+**Worked example — MM Program best tier (-0.012% maker):**
+
+```
+Maker fill of $100,000 on BTC_USDT:
+Rebate = $100,000 × 0.00012 = $12.00 received per fill
+At $100M monthly maker volume: ~$12,000/month in rebates
+```
+
+For the complete fee tier table with all volume breakpoints, see the [trading fees page](https://whitebit.com/trading-data/trading-fees), the [VIP program](https://whitebit.com/vip-program), or the [Market-Making Program page](https://institutional.whitebit.com/market-making-program).
+
+**How to apply:** Contact **institutional@whitebit.com** with trading volume history and target markets.
+
+**Program benefits beyond fees:**
+
+- Colocation access (Frankfurt and Tokyo regions)
+- Dedicated account manager
+- Cross-marketing support
+- [Sub-accounts](/products/sub-accounts/overview) for strategy separation
+- Access to [Liquidity Provision program](https://whitebit.com/m/liquidity-provision) for non-MM liquidity partnerships
+
+## Colocation setup
+
+Colocation provides low-latency API access from AWS infrastructure co-located with the WhiteBIT matching engine.
+
+**Regions:**
+
+| Region | Location | AWS Region |
+|--------|----------|------------|
+| Europe (Primary) | **Frankfurt** | eu-central-1 |
+| Asia | **Tokyo** | ap-northeast-1 |
+
+**Performance:** 3-5 milliseconds latency from colocation infrastructure.
+
+**EC2 sizing recommendations:**
+
+- Network: up to **10Gbit bandwidth**
+- CPU: minimum **4 vCPU cores**
+- Low-performance VPS instances result in higher latency
+
+Both REST API and WebSocket connections are available via colocation.
+
+Contact the designated account manager for connection details including base URLs and availability zone placement.
+
+<Warning>
+  Colocation endpoints are a SUBSET of the full WhiteBIT API. Only the 34 endpoints listed below are available via colocation infrastructure. All other API endpoints must be accessed through the standard public API.
+</Warning>
+
+See the [Colocation](/platform/colocation) page for additional infrastructure details.
+
+## Available colocation endpoints
+
+The colocation infrastructure exposes 34 endpoints organized into three categories.
+{/* 34 is the authoritative count from the engineering team. Enumerated below: 15 spot + 14 collateral + 4 utility = 33 visible endpoints; the remaining endpoint may be an internal variant — verify with engineering. */}
+
+### Spot trading (15 endpoints)
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/v4/trade-account/balance` | Trade account balance |
+| `POST /api/v4/trade-account/executed-history` | Executed order history |
+| `POST /api/v4/trade-account/order` | Single order details |
+| `POST /api/v4/trade-account/order/history` | Order history |
+| `POST /api/v4/orders` | Active orders list |
+| `POST /api/v4/order/cancel` | Cancel an order |
+| `POST /api/v4/order/new` | Place a limit order |
+| `POST /api/v4/order/bulk` | Place up to 20 limit orders |
+| `POST /api/v4/order/modify` | Modify an existing order |
+| `POST /api/v4/order/market` | Place a market order |
+| `POST /api/v4/order/stock_market` | Place a stock market order |
+| `POST /api/v4/order/stop_limit` | Place a stop-limit order |
+| `POST /api/v4/order/stop_market` | Place a stop-market order |
+| `POST /api/v4/order/kill-switch` | Set or cancel the kill-switch timer |
+| `POST /api/v4/order/kill-switch/status` | Check kill-switch status |
+
+### Collateral / Margin and Futures trading (14 endpoints)
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/v4/collateral-account/balance` | Collateral account balance |
+| `POST /api/v4/collateral-account/balance-summary` | Collateral balance summary |
+| `POST /api/v4/collateral-account/summary` | Collateral account summary |
+| `POST /api/v4/collateral-account/leverage` | Set leverage |
+| `POST /api/v4/collateral-account/positions/open` | Open positions |
+| `POST /api/v4/collateral-account/positions/history` | Position history |
+| `POST /api/v4/collateral-account/funding-history` | Funding history |
+| `POST /api/v4/oco-orders` | OCO orders |
+| `POST /api/v4/order/collateral/limit` | Collateral limit order |
+| `POST /api/v4/order/collateral/market` | Collateral market order |
+| `POST /api/v4/order/collateral/stop-limit` | Collateral stop-limit order |
+| `POST /api/v4/order/collateral/trigger-market` | Collateral trigger-market order |
+| `POST /api/v4/order/collateral/oco` | Collateral OCO order |
+| `POST /api/v4/order/collateral/bulk` | Collateral bulk orders |
+
+<Note>
+  **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both Margin and Futures trading. The market pair determines the product: spot pairs (e.g., `BTC_USDT`) for Margin, perpetual pairs (e.g., `BTC_PERP`) for Futures. All endpoints under `/api/v4/order/collateral/` and `/api/v4/collateral-account/` serve both products.
+</Note>
+
+### Utility (4 endpoints)
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/v4/profile/websocket_token` | Generate WebSocket authentication token |
+| `GET /api/v4/public/ping` | Server health check |
+| `GET /api/v4/public/time` | Server time |
+| `POST /api/v4/market/fee` | Query market fee for a pair |
+
+For endpoints not listed above, use the standard WhiteBIT API at `https://api.whitebit.com`.
+
+## Quoting strategy
+
+Professional quoting on WhiteBIT combines bulk limit orders for position management with real-time market data for price discovery.
+
+**Bulk limit orders:** `POST /api/v4/order/bulk` — place up to 20 limit orders in a single API call. See the [API Reference](/api-reference/spot-trading/bulk-limit-order).
+
+**Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
+
+**Order modify:** `POST /api/v4/order/modify` — modify an existing order's price or amount without canceling and replacing. Critical for requoting. See the [API Reference](/api-reference/spot-trading/modify-order).
+
+{/* Open question: Does modify preserve queue priority? Document when confirmed by engineering. */}
+
+**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — set a timeout after which all active orders are automatically canceled. Essential safety mechanism for market-making operations. See the [API Reference](/api-reference/spot-trading/kill-switch).
+
+- Configuration: set the timeout period; the timer resets on each API call to the kill-switch endpoint
+- Check status: `POST /api/v4/order/kill-switch/status` — see the [API Reference](/api-reference/spot-trading/kill-switch-status)
+
+**Self-Trade Prevention:** Market makers providing two-sided quotes (bid + ask) must understand STP behavior to avoid self-trades. When a new order would match against an existing order from the same account, the STP mechanism cancels one side instead of executing the trade. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available STP modes and cancellation behavior.
+
+<Tabs>
+  <Tab title="curl">
+    ```bash
+    # Place a bulk order (up to 20 limit orders)
+    curl -X POST "https://api.whitebit.com/api/v4/order/bulk" \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -d '{
+        "market": "BTC_USDT",
+        "orders": [
+          {"side": "buy",  "amount": "0.01", "price": "60000"},
+          {"side": "buy",  "amount": "0.01", "price": "59900"},
+          {"side": "sell", "amount": "0.01", "price": "60200"},
+          {"side": "sell", "amount": "0.01", "price": "60300"}
+        ],
+        "request": "/api/v4/order/bulk",
+        "nonce": "YOUR_NONCE"
+      }'
+
+    # Set a kill-switch with 60-second timeout
+    curl -X POST "https://api.whitebit.com/api/v4/order/kill-switch" \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -d '{
+        "market": "BTC_USDT",
+        "timeout": 60,
+        "request": "/api/v4/order/kill-switch",
+        "nonce": "YOUR_NONCE"
+      }'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import hashlib
+    import hmac
+    import json
+    import time
+    import base64
+    import requests
+
+    API_KEY = "YOUR_API_KEY"
+    API_SECRET = "YOUR_SECRET"
+    BASE_URL = "https://api.whitebit.com"
+
+    def send_request(endpoint, payload):
+        payload["request"] = endpoint
+        payload["nonce"] = str(int(time.time() * 1000))
+        body = json.dumps(payload)
+        encoded = base64.b64encode(body.encode()).decode()
+        signature = hmac.new(
+            API_SECRET.encode(), encoded.encode(), hashlib.sha512
+        ).hexdigest()
+        headers = {
+            "Content-Type": "application/json",
+            "X-TXC-APIKEY": API_KEY,
+            "X-TXC-PAYLOAD": encoded,
+            "X-TXC-SIGNATURE": signature,
+        }
+        return requests.post(f"{BASE_URL}{endpoint}", headers=headers, data=body)
+
+    # Place a bulk order
+    response = send_request("/api/v4/order/bulk", {
+        "market": "BTC_USDT",
+        "orders": [
+            {"side": "buy",  "amount": "0.01", "price": "60000"},
+            {"side": "buy",  "amount": "0.01", "price": "59900"},
+            {"side": "sell", "amount": "0.01", "price": "60200"},
+            {"side": "sell", "amount": "0.01", "price": "60300"},
+        ],
+    })
+    print(response.json())
+
+    # Set a kill-switch with 60-second timeout
+    response = send_request("/api/v4/order/kill-switch", {
+        "market": "BTC_USDT",
+        "timeout": 60,
+    })
+    print(response.json())
+    ```
+  </Tab>
+</Tabs>
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+## Infrastructure best practices
+
+Production market-making systems require careful architecture around account structure, connectivity, and rate management.
+
+**Sub-accounts for strategy separation:** Use [sub-accounts](/products/sub-accounts/overview) to isolate different trading strategies or pair groups. Each sub-account has independent balances and can have dedicated API keys. Transfers between sub-accounts are fee-free.
+
+**WebSocket connection management:**
+
+- Implement automatic reconnection with exponential backoff
+- Re-subscribe to all channels after reconnection
+- Use the ping/pong mechanism to detect stale connections
+- See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setup
+
+**Rate limit management:**
+
+- Rate limits vary per endpoint — check [Rate Limits](/api-reference/rate-limits) for per-endpoint values
+- Use bulk orders (`/order/bulk`) to reduce request count: 20 orders per call vs. 20 individual calls
+- Use WebSocket for market data instead of polling REST endpoints
+- Implement request queuing with rate awareness
+
+## Monitoring and safety
+
+Market-making operations require continuous monitoring and automated safety mechanisms.
+
+**Kill-switch configuration:** Set the kill-switch timeout as the first action after connecting. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timer with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels all orders after the timeout expires.
+
+**Balance monitoring:** Use the WebSocket `balanceSpot` channel for real-time balance updates, or poll `POST /api/v4/trade-account/balance` for periodic checks. Monitor for unexpected balance changes.
+
+**Fee tracking:** Use `POST /api/v4/market/fee` to verify the current fee tier for each market pair. Fee tiers are based on 30-day rolling volume — monitor tier changes as volume accumulates. Look up tier breakpoints on the [VIP program page](https://whitebit.com/vip-program) or the [trading fees page](https://whitebit.com/trading-data/trading-fees).
+
+**Self-Trade Prevention:** Understand the STP mode active on the account. Two-sided quoters hit STP frequently when bid and ask orders overlap. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available modes and behavior.
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Colocation" icon="server" href="/platform/colocation">
+    Platform colocation page with infrastructure details.
+  </Card>
+  <Card title="Spot Trading API" icon="square-terminal" href="/api-reference/spot-trading/overview">
+    Full endpoint documentation for all spot trading endpoints.
+  </Card>
+  <Card title="Self-Trade Prevention" icon="shield" href="/platform/self-trade-prevention">
+    STP modes and behavior for two-sided quoting.
+  </Card>
+</CardGroup>

@@ -1,0 +1,189 @@
+---
+title: "WhiteBIT Codes"
+description: "Create and apply fee-free digital vouchers to transfer crypto between WhiteBIT accounts."
+sidebarTitle: "WhiteBIT Codes"
+---
+
+WhiteBIT Codes are fee-free digital vouchers for transferring cryptocurrency between WhiteBIT accounts. A code encapsulates a specific amount of a currency — the creator generates the code, shares the code string, and the recipient applies the code to receive the funds.
+
+## Use cases
+
+Codes provide a simple transfer mechanism without requiring the recipient's deposit address.
+
+- **Internal transfers** — Move funds between accounts without withdrawal fees
+- **Partner payouts** — Distribute funds to multiple recipients by generating codes programmatically
+- **Promotions and rewards** — Create codes as promotional vouchers; optionally protect with a passphrase
+
+## Code lifecycle
+
+The code lifecycle has two phases: creation and application.
+
+<Steps>
+  <Step title="Create a code">
+    Send a `POST` request to [`/api/v4/main-account/codes`](/api-reference/account-wallet/create-code) with `ticker` (e.g., `ETH`), `amount` (string, max 8 decimals), optional `passphrase` (max 25 characters, latin letters + numbers + symbols, no whitespace), and optional `description` (max 75 characters, visible only to the creator). The amount is debited from the [Main balance](/concepts/balances). The response returns a `code` string (format: `WB{uuid}{TICKER}`, e.g., `WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH`) and an `external_id`.
+  </Step>
+  <Step title="Share the code">
+    Transmit the code string to the intended recipient. If a passphrase was set, share the passphrase separately.
+  </Step>
+  <Step title="Apply the code">
+    The recipient calls [`POST /api/v4/main-account/codes/apply`](/api-reference/account-wallet/apply-code) with the `code` string and `passphrase` (if set). Funds are credited to the recipient's [Main balance](/concepts/balances). A `code.apply` [webhook event](/platform/webhook) fires on the creator's account.
+  </Step>
+</Steps>
+
+## API endpoints
+
+WhiteBIT Codes uses 4 authenticated endpoints. All operate on the [Main balance](/concepts/balances).
+
+| Endpoint | Purpose | Rate limit |
+|----------|---------|------------|
+| [`POST /api/v4/main-account/codes`](/api-reference/account-wallet/create-code) | Create a new code | 1,000 req / 10 sec |
+| [`POST /api/v4/main-account/codes/apply`](/api-reference/account-wallet/apply-code) | Apply (redeem) a code | 60 req / 1 sec |
+| [`POST /api/v4/main-account/codes/my`](/api-reference/account-wallet/get-my-codes) | List codes created by the account | 1,000 req / 10 sec |
+| [`POST /api/v4/main-account/codes/history`](/api-reference/account-wallet/get-codes-history) | Full code history (created + applied) | 1,000 req / 10 sec |
+
+## Create parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `ticker` | string | Yes | Currency ticker (e.g., `ETH`, `BTC`) |
+| `amount` | string | Yes | Amount to encapsulate. Max precision: 8 decimals. Must be greater than 0 and less than or equal to the Main balance. |
+| `passphrase` | string | No | Optional protection. Latin letters, numbers, symbols only. Max 25 characters. No whitespace. |
+| `description` | string | No | Internal note visible only to the creator. Max 75 characters. |
+
+## Code example
+
+Create a code for 0.002 ETH with a passphrase, then apply the code on a different account.
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    # Step 1: Create a WhiteBIT code
+    curl -X POST https://api.whitebit.com/api/v4/main-account/codes \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "ticker": "ETH",
+        "amount": "0.002",
+        "passphrase": "mySecretPass1",
+        "request": "/api/v4/main-account/codes",
+        "nonce": 1
+      }'
+    ```
+
+    ```json
+    {
+      "code": "WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH",
+      "message": "Code was successfully created",
+      "external_id": "be08a482-5faf-11ed-9b6a-0242ac120002"
+    }
+    ```
+
+    ```bash
+    # Step 2: Apply the code on the recipient's account
+    curl -X POST https://api.whitebit.com/api/v4/main-account/codes/apply \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "code": "WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH",
+        "passphrase": "mySecretPass1",
+        "request": "/api/v4/main-account/codes/apply",
+        "nonce": 2
+      }'
+    ```
+
+    ```json
+    {
+      "message": "Code was successfully applied",
+      "ticker": "ETH",
+      "amount": "0.002",
+      "external_id": "be08a482-5faf-11ed-9b6a-0242ac120002"
+    }
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import time
+    import json
+    import hmac
+    import hashlib
+    import base64
+    import requests
+
+    API_KEY = "YOUR_API_KEY"
+    SECRET = "YOUR_SECRET"
+    BASE_URL = "https://api.whitebit.com"
+
+    def send_request(path, data):
+        data["request"] = path
+        data["nonce"] = int(time.time() * 1000)
+        payload = base64.b64encode(json.dumps(data).encode())
+        signature = hmac.new(
+            SECRET.encode(), payload, hashlib.sha512
+        ).hexdigest()
+        headers = {
+            "X-TXC-APIKEY": API_KEY,
+            "X-TXC-PAYLOAD": payload.decode(),
+            "X-TXC-SIGNATURE": signature,
+            "Content-Type": "application/json",
+        }
+        return requests.post(BASE_URL + path, headers=headers, json=data)
+
+    # Step 1: Create a WhiteBIT code
+    create = send_request("/api/v4/main-account/codes", {
+        "ticker": "ETH",
+        "amount": "0.002",
+        "passphrase": "mySecretPass1",
+    })
+    create_data = create.json()
+    print("Code:", create_data["code"])
+    print("External ID:", create_data["external_id"])
+
+    # Step 2: Apply the code on the recipient's account
+    apply = send_request("/api/v4/main-account/codes/apply", {
+        "code": create_data["code"],
+        "passphrase": "mySecretPass1",
+    })
+    apply_data = apply.json()
+    print("Applied:", apply_data["amount"], apply_data["ticker"])
+    ```
+  </Tab>
+</Tabs>
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+## Error codes
+
+Create endpoint error codes:
+
+| Code | Description |
+|------|-------------|
+| 0 | Fiat currencies available on the front-end only |
+| 1 | Currency is not withdrawable |
+| 3 | Amount is too small |
+| 5 | Not enough balance |
+| 6 | Amount is less than or equal to fee |
+
+<Note>
+  For apply errors, the most common is "Incorrect code or passphrase" — verify the code string and passphrase are correct.
+</Note>
+
+## Regional restrictions
+
+<Warning>
+  EEA users: USDT codes are blocked since December 30, 2024 (MiCA compliance). Tether has not obtained EU authorization. Use USDC or EURI as alternatives. See [Regulatory Compliance](/institutional/compliance) for details.
+</Warning>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Webhook Events" icon="bell" href="/platform/webhook">
+    Receive real-time notifications when codes are applied.
+  </Card>
+  <Card title="Convert" icon="arrows-rotate" href="/platform/convert">
+    Instantly convert between currencies at a quoted rate.
+  </Card>
+</CardGroup>

@@ -1,0 +1,97 @@
+---
+title: "Balances & Transfers"
+description: "Understand WhiteBIT's three account types — Main, Trade, and Collateral — and how funds move between them."
+sidebarTitle: "Balances"
+---
+
+WhiteBIT uses three account types to separate funds by purpose: Main, Trade, and Collateral. Funds must be transferred between accounts before use — deposits arrive in Main, trading requires Trade or Collateral.
+
+## Account types
+
+**Main balance** — The primary holding account. Deposits arrive here. Withdrawals leave from here. Lending (U EARN) investments are held in Main. Main balance is not used for direct trading.
+
+- Endpoint: `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/overview)
+
+**Trade balance (Spot)** — Holds funds for spot trading. Transfer funds from Main to Trade before placing spot orders. Each currency has an `available` amount (ready to trade) and a `freeze` amount (locked in open orders).
+
+- Endpoint: `POST /api/v4/trade-account/balance` — [API Reference](/api-reference/account-wallet/overview)
+
+**Collateral balance (Margin & Futures)** — Holds funds for both margin and futures trading. Transfer funds from Main to Collateral before opening leveraged positions. The same Collateral balance serves both products — the market pair determines whether the position is Margin or Futures.
+
+- Endpoint: `POST /api/v4/collateral-account/balance` — [API Reference](/api-reference/collateral-trading/collateral-account-balance)
+
+<Note>
+  **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
+  Margin and Futures trading. The market pair determines the product:
+  spot pairs (e.g., `BTC_USDT`) for Margin, perpetual pairs (e.g., `BTC_PERP`)
+  for Futures. All endpoints under `/api/v4/order/collateral/` and
+  `/api/v4/collateral-account/` serve both products.
+</Note>
+
+## Fund flow
+
+Transfers between account types use a single endpoint and are instant and fee-free.
+
+```
+Main ↔ Trade          (for spot trading)
+Main ↔ Collateral     (for margin and futures trading)
+```
+
+Direct transfers between Trade and Collateral are not supported. Route funds through Main when moving between the two.
+
+- Transfer endpoint: `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
+
+Transfer direction is controlled via the `method` parameter:
+- `deposit` — Main → Trade
+- `withdraw` — Trade → Main
+- `collateral-deposit` — Main → Collateral
+- `collateral-withdraw` — Collateral → Main
+
+## Available vs. frozen balance
+
+Each balance entry includes two fields:
+
+| Field | Description |
+|-------|-------------|
+| `available` | Funds ready to use for new orders or transfers |
+| `freeze` | Funds locked by open orders or pending operations |
+
+Total balance = `available` + `freeze`. Only `available` funds can be transferred or used to place orders.
+
+## USDTB (bonus collateral)
+
+USDTB is a bonus collateral token used for futures trading. USDTB cannot be deposited or withdrawn — the platform grants USDTB as a bonus asset. USDTB appears in the Collateral balance and counts toward futures margin requirements.
+
+## Deposit flow
+
+1. Generate a deposit address via `POST /api/v4/main-account/create-new-address` or through the platform UI.
+2. Send crypto to the generated address.
+3. Funds arrive in Main balance after blockchain confirmations. Confirmation requirements vary by asset.
+4. Transfer from Main to Trade (for spot orders) or to Collateral (for margin/futures positions).
+
+## Withdrawal flow
+
+1. Ensure funds are in Main balance — transfer from Trade or Collateral if needed.
+2. Submit a withdrawal request via `POST /api/v4/main-account/withdraw`.
+3. Withdrawal processes after security checks complete.
+
+<Note>
+  **EEA users:** Crypto withdrawals require a `travelRule` object with beneficiary
+  information (name, address, VASP). Deposits may be held for Travel Rule
+  verification (status codes 27, 28). See [Regulatory Compliance](/institutional/compliance)
+  for full details.
+</Note>
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Generate API keys and sign requests.
+  </Card>
+  <Card title="First API Call" icon="rocket" href="/guides/first-api-call">
+    Choose an integration path.
+  </Card>
+  <Card title="Account & Wallet API" icon="wallet" href="/api-reference/account-wallet/overview">
+    Full endpoint documentation for balances, deposits, and withdrawals.
+  </Card>
+</CardGroup>
