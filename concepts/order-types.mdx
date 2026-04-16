@@ -1,0 +1,150 @@
+---
+title: "Order Types"
+description: "All 7 order types supported by WhiteBIT, their availability across market types, and time-in-force options."
+sidebarTitle: "Order Types"
+---
+
+WhiteBIT supports 7 order types across spot, margin, and futures markets. All order endpoints require authentication and use the `POST` method.
+
+## Order types overview
+
+| Order Type | Spot | Margin | Futures | Description |
+|-----------|------|--------|---------|-------------|
+| Market | Yes | Yes | Yes | Execute immediately at best available price |
+| Limit | Yes | Yes | Yes | Execute at a specified price or better |
+| Advanced-Limit | Yes | No | No | Limit order with IOC or post-only conditions (spot only) |
+| Stop-Market | Yes | Yes | Yes | Trigger at stop price, execute as market order |
+| Stop-Limit | Yes | Yes | Yes | Trigger at stop price, place limit order |
+| Multi-Limit (Bulk) | Yes | Yes | Yes | Place up to 20 limit orders in a single API call |
+| OCO | No | Yes | Yes | One-Cancels-Other: two linked orders (margin/futures only) |
+
+Verify availability per market type in the [API Reference](/api-reference/spot-trading/overview).
+
+## Market orders
+
+A market order executes at the best available price immediately. No price parameter is needed. Orders fill immediately subject to available liquidity. Market orders are useful for exiting positions quickly when price precision matters less than execution speed.
+
+- Spot endpoint: `POST /api/v4/order/market` — [API Reference](/api-reference/spot-trading/create-market-order)
+- Spot stock market endpoint: `POST /api/v4/order/stock_market` — always denominated in the base (stock) currency
+- Collateral endpoint: `POST /api/v4/order/collateral/market`
+
+## Limit orders
+
+A limit order specifies an exact price. The order rests on the orderbook until filled or canceled. Maker fees apply when the order provides liquidity rather than consuming it. Limit orders are the most common order type for automated trading.
+
+**Post-only mode:** Setting `postOnly: true` ensures the order is placed as a maker order. If the order would immediately match an existing order, the API rejects the request instead of allowing a taker fill.
+
+- Spot endpoint: `POST /api/v4/order/new` — [API Reference](/api-reference/spot-trading/create-limit-order)
+- Collateral endpoint: `POST /api/v4/order/collateral/limit`
+
+## Advanced-Limit orders
+
+An Advanced-Limit order is a spot limit order with additional execution conditions. Setting `ioc: true` (Immediate-or-Cancel) causes the order to fill what it can immediately and cancel any unfilled portion. IOC is available on spot markets only. See `POST /api/v4/order/new` with the `ioc` flag — [API Reference](/api-reference/spot-trading/create-limit-order).
+
+<Note>
+  The `ioc` flag and `postOnly` flag are mutually exclusive. Setting both to `true` returns error code `37`.
+</Note>
+
+## Stop-Market orders
+
+A stop-market order uses a trigger price as a condition. When the market reaches the trigger price, a market order is placed immediately. Stop-market orders are common for stop-loss scenarios where immediate execution at market price is preferred over price control.
+
+- Spot endpoint: `POST /api/v4/order/stop_market`
+- Collateral endpoint: `POST /api/v4/order/collateral/trigger-market`
+
+## Stop-Limit orders
+
+A stop-limit order uses two prices — a trigger price and a limit price. When the market reaches the trigger price, a limit order is placed at the specified limit price. Stop-limit orders provide more price control than stop-market orders but may not execute if the market moves past the limit price.
+
+- Spot endpoint: `POST /api/v4/order/stop_limit`
+- Collateral endpoint: `POST /api/v4/order/collateral/stop-limit`
+
+## Multi-Limit orders (Bulk)
+
+Multi-Limit allows placing up to 20 limit orders in a single API call. Available on spot and collateral (margin/futures) markets. Designed for market makers managing many price levels simultaneously without issuing separate requests per order.
+
+- Spot endpoint: `POST /api/v4/order/bulk` — [API Reference](/api-reference/spot-trading/bulk-limit-order)
+- Collateral endpoint: `POST /api/v4/order/collateral/bulk`
+
+## OCO orders
+
+An OCO (One-Cancels-Other) order pairs two linked orders — typically a take-profit limit and a stop-loss stop-limit. When one leg executes, the system automatically cancels the other. Available on margin and futures markets only (collateral balance required).
+
+- Collateral endpoint: `POST /api/v4/order/collateral/oco`
+
+## Reduce-only orders
+
+<Note>
+The `reduceOnly` parameter is **coming soon**. The documentation is published in advance for integration planning. The parameter is not yet accepted by the API.
+</Note>
+
+A reduce-only order guarantees that the order only decreases or closes an existing position — the order cannot increase the position or open a new one in the opposite direction. Available on collateral (margin and futures) markets only.
+
+**Behavior**
+
+- If the order amount exceeds the current position size, the system automatically reduces the order to match the position.
+- The reduction applies on placement and execution.
+- Set `reduceOnly: true` in the request body of any collateral order creation endpoint.
+
+**Rejection**
+
+The API returns error code `116` synchronously if:
+- No open position exists for the specified market
+- The order direction matches the position direction (e.g., a buy reduce-only order on a long position)
+
+```json
+{
+  "code": 116,
+  "message": "Validation failed",
+  "errors": {
+    "reduceOnly": ["Reduce-only: Position doesn't exist or wrong side"]
+  }
+}
+```
+
+**Auto-cancellation**
+
+If a position closes while a reduce-only limit order is still pending, the backend auto-cancels the order with status `AUTO_CANCELED_REDUCE_ONLY`.
+
+**Supported endpoints**
+
+| Endpoint | Path |
+|----------|------|
+| Collateral limit order | [`POST /api/v4/order/collateral/limit`](/api-reference/collateral-trading/collateral-limit-order) |
+| Collateral bulk limit order | [`POST /api/v4/order/collateral/bulk`](/api-reference/collateral-trading/collateral-bulk-limit-order) |
+| Collateral market order | [`POST /api/v4/order/collateral/market`](/api-reference/collateral-trading/collateral-market-order) |
+| Collateral stop-limit order | [`POST /api/v4/order/collateral/stop-limit`](/api-reference/collateral-trading/collateral-stop-limit-order) |
+| Collateral trigger market order | [`POST /api/v4/order/collateral/trigger-market`](/api-reference/collateral-trading/collateral-trigger-market-order) |
+| Collateral OCO order | [`POST /api/v4/order/collateral/oco`](/api-reference/collateral-trading/create-collateral-oco-order) |
+
+For OCO orders, `reduceOnly` is a single top-level parameter that applies to both the take-profit and stop-loss legs simultaneously.
+
+## Execution flags
+
+| Flag | Behavior | Available on |
+|------|----------|-------------|
+| Default (neither flag) | GTC — order remains active until filled or manually canceled | All limit-type orders |
+| `ioc: true` | IOC — fills immediately what it can; cancels the unfilled remainder | Limit orders (spot only via `order/new`) |
+| `postOnly: true` | Post-only — rejects the order if it would match immediately (ensures maker) | All limit-type orders |
+| `reduceOnly: true` | Reduce-only — order can only decrease or close an existing position | Collateral orders only (coming soon) |
+
+## Related features
+
+- **Client Order ID** — Attach a custom identifier to orders for tracking. See [Client Order ID guide](/guides/client-order-id).
+- **Kill-switch** — Emergency cancellation mechanism that cancels all active orders after a configurable timeout. Endpoints: `POST /api/v4/order/kill-switch` (activate) and `GET /api/v4/order/kill-switch/status` (check).
+- **Self-Trade Prevention** — Prevents an account's orders from matching against each other. See [Self-Trade Prevention](/platform/self-trade-prevention).
+- **Reduce-only** — Guarantees an order only decreases or closes an existing position. See [Reduce-only orders](#reduce-only-orders) above.
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/products/spot/overview">
+    Place orders on 750+ spot pairs.
+  </Card>
+  <Card title="Margin Trading" icon="chart-line" href="/products/margin/overview">
+    Leveraged trading up to 10×.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/spot-trading/overview">
+    Full endpoint documentation for all order types.
+  </Card>
+</CardGroup>
