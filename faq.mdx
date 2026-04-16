@@ -219,7 +219,12 @@ Official SDKs exist for Go, Python, and PHP. A multi-language quickstart reposit
 </Accordion>
 
 <Accordion title="Testing without a sandbox environment">
-WhiteBIT does not offer a public sandbox or testnet. Test integrations using minimum order sizes on the live API, placing limit orders at prices far from the current market price to avoid fills. Cancel test orders after verification.
+WhiteBIT does not offer a public testnet or sandbox. For risk-free Spot testing, activate
+Demo Tokens (DBTC + DUSDT) from the [WhiteBIT Codes page](https://whitebit.com/codes) —
+no KYC required. Trade the `DBTC_DUSDT` pair via the standard API to validate the full
+order lifecycle without real funds. For Margin, Futures, and fund-movement testing, use
+minimum order sizes on the live API. See the
+[Go-Live Checklist](/best-practices/go-live-checklist) for the complete testing strategy.
 </Accordion>
 
 <Accordion title="REST API vs WebSocket — when to use each">
@@ -251,7 +256,12 @@ Base trading fees are 0.1% maker / 0.1% taker. The Market-Making Program offers 
 </Accordion>
 
 <Accordion title="Sandbox or testnet availability">
-WhiteBIT does not offer a public sandbox or testnet environment. Test all integration flows on the live API using minimum order sizes. Use `GET /api/v4/public/markets` to find pairs with the lowest minimums. See the [Go-Live Checklist](/best-practices/go-live-checklist) for safe testing guidance.
+WhiteBIT does not offer a public testnet or sandbox. However, free Demo Tokens
+(0.5 DBTC + 1,000 DUSDT) are available for risk-free Spot trading via the
+[WhiteBIT Codes page](https://whitebit.com/codes) — no KYC required. The `DBTC_DUSDT`
+pair works with all standard Spot API endpoints. For Margin, Futures, and deposit/withdrawal
+testing, use minimum order sizes on the live API. See the
+[Go-Live Checklist](/best-practices/go-live-checklist) for the complete testing strategy.
 </Accordion>
 
 <Accordion title="Regulatory licenses and certifications">
