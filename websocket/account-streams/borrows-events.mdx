@@ -48,6 +48,10 @@ Subscribe to margin call and liquidation event notifications for collateral borr
   unsubscribe={exBorrowsEventsUnsubscribe}
 />
 
+<Note>
+This channel delivers events only on state changes — no snapshot is sent on subscribe, and events missed during a disconnection are not replayed. For complete borrow state awareness, pair this channel with [Borrows](/websocket/account-streams/borrows), which sends full snapshots every 1.5 seconds.
+</Note>
+
 ## Update frequency
 
 Updates are pushed in **real time** on borrow state changes (new borrow, repayment, liquidation).
