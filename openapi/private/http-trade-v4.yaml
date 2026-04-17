@@ -245,7 +245,7 @@ paths:
         
         
         <Accordion title="Error Codes">
-          - `30` - default validation error code
+          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
           - `31` - market validation failed
           - `32` - amount validation failed
           - `33` - price validation failed
@@ -334,7 +334,7 @@ paths:
                 reduceOnly:
                   type: boolean
                   default: false
-                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
                 request:
                   type: string
@@ -503,6 +503,7 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
+          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit` (per-order)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
         </Accordion>
       tags:
@@ -589,7 +590,7 @@ paths:
                       reduceOnly:
                         type: boolean
                         default: false
-                        description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                        description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                         example: false
                 stopOnFail:
                   type: boolean
@@ -833,6 +834,7 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
+          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -893,7 +895,7 @@ paths:
                 reduceOnly:
                   type: boolean
                   default: false
-                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
                 request:
                   type: string
@@ -1035,6 +1037,7 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
+          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1105,7 +1108,7 @@ paths:
                 reduceOnly:
                   type: boolean
                   default: false
-                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
                 request:
                   type: string
@@ -1268,6 +1271,7 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
+          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1333,7 +1337,7 @@ paths:
                 reduceOnly:
                   type: boolean
                   default: false
-                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
                 request:
                   type: string
@@ -2874,7 +2878,7 @@ paths:
                 reduceOnly:
                   type: boolean
                   default: false
-                  description: "When `true`, both legs of the OCO order can only reduce or close an existing position — neither leg can increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
+                  description: "When `true`, both legs of the OCO order can only reduce or close an existing position — neither leg can increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
                 request:
                   type: string
