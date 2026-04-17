@@ -4,7 +4,7 @@ description: "Connect to the WhiteBIT WebSocket API — subscribe to real-time p
 sidebarTitle: "WebSocket Quickstart"
 ---
 
-Connect to the WhiteBIT WebSocket API for real-time streaming data. The quickstart covers connecting to the WebSocket endpoint, subscribing to public price updates, subscribing to orderbook depth, authenticating for private channels, and receiving balance updates.
+Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide targets developers building trading bots, live price feeds, or account monitoring dashboards. The walkthrough covers connecting to the WebSocket endpoint, subscribing to public price updates, subscribing to orderbook depth, authenticating for private channels, and receiving balance updates.
 
 ## Prerequisites
 
@@ -12,13 +12,22 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The quicksta
 - For private channels: a WhiteBIT API key with **Trading** permission and familiarity with [Authentication](/api-reference/authentication)
 - No special setup for public channels — same zero-authentication principle as the [Market Data API](/products/market-data/overview)
 
-## Connection Details
+<Warning>
+  WhiteBIT has no public testnet or sandbox. Private channel subscriptions
+  expose live account data. Store API credentials securely — never commit
+  secrets to version control or expose them in shared environments.
+  For risk-free balance-change testing, use Demo Tokens (DBTC/DUSDT) —
+  activate from the [WhiteBIT Codes page](https://whitebit.com/codes).
+</Warning>
+
+## Connection parameters
 
 | Detail | Value |
 |--------|-------|
 | Endpoint | `wss://api.whitebit.com/ws` |
 | Protocol | JSON-RPC 2.0 over WebSocket |
-| Ping/Pong | Server accepts `ping` method; respond to keep connection alive |
+| Inactivity timeout | 60 seconds — send `ping` every 50 seconds or less |
+| Rate limit | 200 requests per minute per connection |
 
 <Steps>
   <Step title="Connect to the WebSocket endpoint">
@@ -123,7 +132,7 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The quicksta
       </Tab>
     </Tabs>
 
-    **Parameters:** market name, limit (1/5/10/20/30/50/100), price interval ("0" = no aggregation), multiple subscription flag (true = add subscription).
+    **Parameters:** market name, depth limit (`1`/`5`/`10`/`20`/`30`/`50`/`100`), price aggregation interval (`"0"` = no aggregation), and multiple subscription flag. Set the flag to `true` to add a subscription alongside existing depth subscriptions. Setting the flag to `false` unsubscribes from all active depth subscriptions. Full parameter details: [Depth channel](/websocket/market-streams/depth).
 
     **Update message:**
     ```json
@@ -147,6 +156,12 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The quicksta
   </Step>
 
   <Step title="Authenticate for private channels">
+    <Note>
+      Steps 1–3 cover public channels (no authentication required). Steps 4–5
+      require an API key — see [Authentication](/api-reference/authentication)
+      for key creation and HMAC-SHA512 signing details.
+    </Note>
+
     Private channels (balance updates, order updates) require authentication. First obtain a WebSocket token via the REST API, then send an `authorize` message.
 
     <Tabs>
@@ -162,7 +177,7 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The quicksta
         API_SECRET = "YOUR_API_SECRET"
         BASE_URL = "https://api.whitebit.com"
 
-        # Step 1: Get WebSocket token via REST API
+        # Part A — Get WebSocket token via REST API
         path = "/api/v4/profile/websocket_token"
         data = {"request": path, "nonce": str(int(time.time() * 1000))}
         data_json = json.dumps(data)
@@ -180,7 +195,7 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The quicksta
         ws_token = token_response.json().get("websocket_token")
         print(f"WebSocket token obtained")
 
-        # Step 2: Send authorize message over WebSocket
+        # Part B — Send authorize message over WebSocket
         auth_msg = {
             "id": 3,
             "method": "authorize",
@@ -257,29 +272,49 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The quicksta
     Key fields: `available` (funds ready for trading), `freeze` (funds locked in open orders).
   </Step>
 
-  <Step title="Handle reconnection">
-    WebSocket connections can drop due to network issues or server maintenance. Implement reconnection logic for production integrations:
+  <Step title="Send a keepalive ping">
+    The server closes the connection after 60 seconds of inactivity. Send a ping message to verify the connection is alive.
 
-    - Implement automatic reconnection with exponential backoff (e.g., 1s, 2s, 4s, 8s delays)
-    - After reconnecting, re-authenticate (for private channels) and re-subscribe to all channels
-    - Monitor for ping/pong timeouts as a connection health check
-    - Send periodic ping messages to detect stale connections:
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        ping_msg = {"id": 0, "method": "ping", "params": []}
+        ws.send(json.dumps(ping_msg))
+        pong = json.loads(ws.recv())
+        print(f"Ping result: {pong}")
+        ```
+      </Tab>
+      <Tab title="wscat">
+        ```bash
+        > {"id": 0, "method": "ping", "params": []}
+        ```
+      </Tab>
+    </Tabs>
 
-    ```python
-    # Send ping to check connection health
-    ping_msg = {"id": 0, "method": "ping", "params": []}
-    ws.send(json.dumps(ping_msg))
-    pong = json.loads(ws.recv())
-    # Expected: {"id": 0, "result": "pong", "error": null}
+    **Expected response:**
+    ```json
+    {"id": 0, "result": "pong", "error": null}
     ```
 
-    For a production-grade reconnection implementation, see the [Trading Bot Guide](/guides/building-a-trading-bot).
+    In production, send a ping every 50 seconds or less to prevent disconnection.
   </Step>
 </Steps>
 
-Successfully connected to the WebSocket API, received real-time price updates and orderbook snapshots on public channels, authenticated, and received a private balance update. The WebSocket API provides the real-time data layer for trading bots, price feeds, and account monitoring.
+The walkthrough covered connecting to the WebSocket API, receiving real-time price updates and orderbook depth on public channels, authenticating for private data, and subscribing to balance updates. The WebSocket API provides the real-time data layer for trading bots, price feeds, and account monitoring.
 
-## What's Next
+<Accordion title="Reconnection and recovery">
+  WebSocket connections can drop due to network issues or server maintenance.
+  Production integrations require reconnection logic:
+
+  - Implement automatic reconnection with exponential backoff (1s, 2s, 4s, 8s delays)
+  - After reconnecting, re-authenticate (for private channels) and re-subscribe to all channels
+  - Monitor for ping/pong timeouts as a connection health indicator
+
+  For a production-grade implementation with automatic resubscription, see the
+  [Trading Bot Guide](/guides/building-a-trading-bot).
+</Accordion>
+
+## What's next
 
 <CardGroup cols={3}>
   <Card title="Market Data Overview" icon="chart-bar" href="/products/market-data/overview">
@@ -288,7 +323,7 @@ Successfully connected to the WebSocket API, received real-time price updates an
   <Card title="Building a Trading Bot" icon="robot" href="/guides/building-a-trading-bot">
     Combine WebSocket data with REST order placement for automated trading.
   </Card>
-  <Card title="Spot Trading Quickstart" icon="arrow-right-arrow-left" href="/products/spot/quickstart">
-    Place a first trade using the REST API with authenticated endpoints.
+  <Card title="WebSocket Channels" icon="satellite-dish" href="/websocket/overview">
+    Full channel catalog — 10 market streams and 11 account streams with schema references.
   </Card>
 </CardGroup>

@@ -6,6 +6,8 @@ sidebarTitle: "Account Monitoring"
 
 Monitor account state across Main, Trade, and Collateral balances using REST endpoints and WebSocket streams. This guide covers balance queries, deposit/withdrawal tracking, order activity monitoring, and the decision framework for choosing between REST polling and WebSocket subscriptions. Applicable to any integration that needs real-time or periodic account state awareness.
 
+**Payment processing integrations** (deposit/withdrawal monitoring): focus on the balance monitoring and deposit/withdrawal tracking sections — Main balance does not support WebSocket streaming, so webhooks and REST polling are the primary mechanisms. **Trading integrations** (bots, dashboards): focus on balance monitoring and order activity monitoring via WebSocket for real-time state.
+
 ## Balance monitoring
 
 WhiteBIT separates funds into three account types. Each has a dedicated balance endpoint:
@@ -82,16 +84,25 @@ REST polling provides point-in-time snapshots. For instant balance change notifi
 | [Balance Spot](/websocket/account-streams/balance-spot) | `balanceSpot_subscribe` | Spot (Trade) balance changes |
 | [Balance Margin](/websocket/account-streams/balance-margin) | `balanceMargin_subscribe` | Collateral balance changes (Margin + Futures) |
 
+<Note>
+  Main balance does not have a WebSocket subscription channel. Monitor Main balance changes — including deposit arrivals — via [webhooks](/platform/webhook) for real-time notifications or REST polling of `POST /api/v4/main-account/history` as a fallback.
+</Note>
+
 ### Subscribe to balance updates
+
+The following example assumes an authenticated WebSocket session. See [WebSocket Quickstart — Authenticate for private channels](/guides/websocket-quickstart#authenticate-for-private-channels) for the full authentication flow. Without authentication, the subscription request is rejected.
 
 ```python
 import json, websockets, asyncio
 
 async def monitor_balance():
     async with websockets.connect("wss://api.whitebit.com/ws") as ws:
-        # Authenticate first (see WebSocket Quickstart for auth flow)
+        # Authenticate first — see WebSocket Quickstart Step 4 for the full flow.
+        # Without auth, balanceSpot_subscribe silently fails.
 
-        # Subscribe to spot balance changes
+        # Subscribe to spot balance changes.
+        # params: [] subscribes to all assets.
+        # Pass specific tickers (e.g., ["USDT", "BTC"]) to filter updates.
         await ws.send(json.dumps({
             "id": 1,
             "method": "balanceSpot_subscribe",
@@ -100,14 +111,14 @@ async def monitor_balance():
 
         async for message in ws:
             data = json.loads(message)
+            # Subscription confirmation has a "result" key.
+            # Balance updates have a "method" key set to "balanceSpot_update".
             if "method" in data and data["method"] == "balanceSpot_update":
                 for asset, info in data["params"].items():
                     print(f"Balance change: {asset} available={info['available']} freeze={info['freeze']}")
 
 asyncio.run(monitor_balance())
 ```
-
-See the [WebSocket Quickstart](/guides/websocket-quickstart) for authentication and connection setup.
 
 ## Deposit and withdrawal tracking
 
@@ -160,13 +171,27 @@ Query active orders across all markets or filter by a specific market:
 
 **Endpoint:** [`POST /api/v4/orders`](/api-reference/spot-trading/query-unexecuted-orders)
 
-```python
-# Fetch all open orders for BTC_USDT
-open_orders = send_request("/api/v4/orders", {"market": "BTC_USDT"})
-print(f"Open orders: {len(open_orders)}")
-for order in open_orders:
-    print(f"  {order['side']} {order['amount']} @ {order['price']} (ID: {order['order_id']})")
-```
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.whitebit.com/api/v4/orders \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+      -d '{"market":"BTC_USDT","request":"/api/v4/orders","nonce":"1700000000000"}'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    # Fetch all open orders for BTC_USDT
+    open_orders = send_request("/api/v4/orders", {"market": "BTC_USDT"})
+    print(f"Open orders: {len(open_orders)}")
+    for order in open_orders:
+        print(f"  {order['side']} {order['amount']} @ {order['price']} (ID: {order['order_id']})")
+    ```
+  </Tab>
+</Tabs>
 
 ### Executed orders
 
@@ -174,13 +199,27 @@ Query trade history for filled and canceled orders:
 
 **Endpoint:** [`POST /api/v4/trade-account/order/history`](/api-reference/spot-trading/query-executed-orders)
 
-```python
-# Fetch order history for BTC_USDT
-history = send_request("/api/v4/trade-account/order/history", {"market": "BTC_USDT"})
-for market, orders in history.items():
-    for order in orders[:5]:
-        print(f"  {order['side']} {order['amount']} @ {order['price']} — {order.get('type', 'unknown')}")
-```
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.whitebit.com/api/v4/trade-account/order/history \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+      -d '{"market":"BTC_USDT","request":"/api/v4/trade-account/order/history","nonce":"1700000000000"}'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    # Fetch order history for BTC_USDT
+    history = send_request("/api/v4/trade-account/order/history", {"market": "BTC_USDT"})
+    for market, orders in history.items():
+        for order in orders[:5]:
+            print(f"  {order['side']} {order['amount']} @ {order['price']} — {order.get('type', 'unknown')}")
+    ```
+  </Tab>
+</Tabs>
 
 ### Real-time order updates via WebSocket
 
@@ -191,19 +230,31 @@ For instant order state change notifications, subscribe to account streams:
 | [Orders Pending](/websocket/account-streams/orders-pending) | `ordersPending_subscribe` | Order placed, partially filled, canceled |
 | [Deals](/websocket/account-streams/deals) | `deals_subscribe` | Trade executions (fills) |
 
-```python
-# Subscribe to order updates and trade fills
-await ws.send(json.dumps({
-    "id": 2,
-    "method": "ordersPending_subscribe",
-    "params": ["BTC_USDT"]
-}))
-await ws.send(json.dumps({
-    "id": 3,
-    "method": "deals_subscribe",
-    "params": ["BTC_USDT"]
-}))
-```
+For final order state with aggregate data (fully filled or canceled), see also [Orders Executed](/websocket/account-streams/orders-executed).
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Subscribe to order updates and trade fills
+    await ws.send(json.dumps({
+        "id": 2,
+        "method": "ordersPending_subscribe",
+        "params": ["BTC_USDT"]
+    }))
+    await ws.send(json.dumps({
+        "id": 3,
+        "method": "deals_subscribe",
+        "params": [["BTC_USDT"]]
+    }))
+    ```
+  </Tab>
+  <Tab title="wscat">
+    ```bash
+    > {"id": 2, "method": "ordersPending_subscribe", "params": ["BTC_USDT"]}
+    > {"id": 3, "method": "deals_subscribe", "params": [["BTC_USDT"]]}
+    ```
+  </Tab>
+</Tabs>
 
 ## Polling vs WebSocket decision matrix
 
@@ -217,6 +268,16 @@ await ws.send(json.dumps({
 
 **General guidance:** Use REST for on-demand queries and historical data. Use WebSocket for any data that changes frequently and requires immediate reaction. Combine both: WebSocket for primary real-time flow, REST for startup state hydration and periodic reconciliation.
 
+### Recommended polling intervals
+
+When using REST polling, align the interval with the use case and the endpoint rate budget. See [Rate Limits & Error Codes](/api-reference/rate-limits) for per-scope request limits.
+
+| Use case | Endpoint | Suggested interval |
+|----------|----------|-------------------|
+| Balance dashboard | `POST /api/v4/trade-account/balance` | 5–30 seconds |
+| Deposit detection (fallback) | `POST /api/v4/main-account/history` | 5 minutes |
+| Order history reconciliation | `POST /api/v4/trade-account/order/history` | 30–60 seconds |
+
 ## What's Next
 
 <CardGroup cols={3}>
@@ -226,7 +287,7 @@ await ws.send(json.dumps({
   <Card title="WebSocket Quickstart" icon="plug" href="/guides/websocket-quickstart">
     Connection setup, authentication, and real-time data streaming.
   </Card>
-  <Card title="Building a Trading Bot" icon="robot" href="/guides/building-a-trading-bot">
+  <Card title="Trading Bot" icon="robot" href="/guides/building-a-trading-bot">
     End-to-end automated trading with order management and error handling.
   </Card>
 </CardGroup>
