@@ -61,6 +61,10 @@ Fetch current spot balances for specific assets without subscribing.
   unsubscribe={exBalanceSpotUnsubscribe}
 />
 
+<Tip>
+Updates include only assets whose balance changed. To hydrate full state on startup or after reconnection, send a `balanceSpot_request` query before subscribing. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect) for the full pattern.
+</Tip>
+
 ## Update frequency
 
 The server pushes updates every **1 second** when the balance changes.

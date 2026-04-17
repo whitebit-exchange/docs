@@ -72,6 +72,10 @@ The private stream returns executed orders, including orders using Retail Price 
   unsubscribe={exOrdersExecutedUnsubscribe}
 />
 
+<Note>
+Execution events during a disconnection are not replayed. After reconnecting, use `ordersExecuted_request` to query recent executed orders, or call the REST [Executed Order History](/api-reference/spot-trading/query-executed-order-history) endpoint to backfill missed records. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect).
+</Note>
+
 ## Update frequency
 
 Updates are pushed in **real time** when an order is fully executed or canceled.

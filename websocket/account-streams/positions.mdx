@@ -49,6 +49,10 @@ This channel does **NOT** support query operations — only subscribe/update/uns
   unsubscribe={exPositionsUnsubscribe}
 />
 
+<Tip>
+Each update is a full snapshot of all open positions — local state auto-recovers within 1 second of subscribing. No gap-filling is needed after reconnection.
+</Tip>
+
 ## Update frequency
 
 The server pushes updates every **1 second** when position data changes.

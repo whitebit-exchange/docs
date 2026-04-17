@@ -302,17 +302,117 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide ta
 
 The walkthrough covered connecting to the WebSocket API, receiving real-time price updates and orderbook depth on public channels, authenticating for private data, and subscribing to balance updates. The WebSocket API provides the real-time data layer for trading bots, price feeds, and account monitoring.
 
-<Accordion title="Reconnection and recovery">
-  WebSocket connections can drop due to network issues or server maintenance.
-  Production integrations require reconnection logic:
+## Reconnection and state recovery
 
-  - Implement automatic reconnection with exponential backoff (1s, 2s, 4s, 8s delays)
-  - After reconnecting, re-authenticate (for private channels) and re-subscribe to all channels
-  - Monitor for ping/pong timeouts as a connection health indicator
+WebSocket connections can drop due to network issues or server maintenance. Production integrations require automatic reconnection, re-authentication, and state recovery logic.
 
-  For a production-grade implementation with automatic resubscription, see the
-  [Trading Bot Guide](/guides/building-a-trading-bot).
-</Accordion>
+### Reconnection with exponential backoff
+
+```python
+import asyncio, json, random, time, websockets, requests, base64, hashlib, hmac
+
+API_KEY = "YOUR_API_KEY"
+API_SECRET = "YOUR_API_SECRET"
+BASE_URL = "https://api.whitebit.com"
+
+# Channels to subscribe after every (re)connect
+PUBLIC_SUBS = [
+    {"method": "depth_subscribe", "params": ["BTC_USDT", 20, "0", True]},
+    {"method": "lastprice_subscribe", "params": ["BTC_USDT"]},
+]
+PRIVATE_SUBS = [
+    {"method": "balanceSpot_subscribe", "params": ["USDT", "BTC"]},
+    {"method": "ordersPending_subscribe", "params": ["BTC_USDT"]},
+]
+
+def get_ws_token():
+    """Fetch a fresh WebSocket token via the REST API."""
+    path = "/api/v4/profile/websocket_token"
+    data = json.dumps({"request": path, "nonce": str(int(time.time() * 1000))})
+    payload = base64.b64encode(data.encode()).decode()
+    sig = hmac.new(API_SECRET.encode(), payload.encode(), hashlib.sha512).hexdigest()
+    headers = {
+        "Content-Type": "application/json",
+        "X-TXC-APIKEY": API_KEY,
+        "X-TXC-PAYLOAD": payload,
+        "X-TXC-SIGNATURE": sig,
+    }
+    resp = requests.post(BASE_URL + path, headers=headers, data=data)
+    return resp.json()["websocket_token"]
+
+async def subscribe_all(ws):
+    """Authenticate and subscribe to all channels."""
+    # Authenticate for private channels
+    token = get_ws_token()
+    await ws.send(json.dumps({"id": 1, "method": "authorize", "params": [token, "public"]}))
+    auth = json.loads(await ws.recv())
+    if auth.get("error"):
+        raise Exception(f"Auth failed: {auth['error']}")
+
+    # Subscribe to all channels
+    msg_id = 2
+    for sub in PUBLIC_SUBS + PRIVATE_SUBS:
+        await ws.send(json.dumps({"id": msg_id, **sub}))
+        msg_id += 1
+
+async def run():
+    """Main loop with automatic reconnection."""
+    delay = 1
+    while True:
+        try:
+            async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+                delay = 1  # reset backoff on successful connection
+                await subscribe_all(ws)
+                while True:
+                    msg = json.loads(await asyncio.wait_for(ws.recv(), timeout=55))
+                    # Process updates here
+        except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed):
+            jitter = random.uniform(0, delay * 0.5)
+            wait = min(delay + jitter, 30)
+            print(f"Disconnected — reconnecting in {wait:.1f}s")
+            await asyncio.sleep(wait)
+            delay = min(delay * 2, 30)  # exponential backoff, max 30s
+
+asyncio.run(run())
+```
+
+Key points:
+- **Exponential backoff** — delays double on each failure (1s → 2s → 4s → ... → 30s max) with random jitter to prevent thundering herd
+- **Fresh token** — obtain a new WebSocket token on every reconnect; tokens may expire during long disconnections
+- **Full resubscription** — re-subscribe to all channels after reconnecting; the server does not remember previous subscriptions
+
+For a production-grade implementation with fill monitoring, grid strategy logic, and error recovery, see [Building a Trading Bot — Auto-resubscription](/guides/building-a-trading-bot#auto-resubscription-after-reconnect).
+
+### State recovery after reconnect
+
+Different channels use different update models. The recovery strategy depends on the channel type:
+
+| Update model | Channels | Recovery strategy |
+|---|---|---|
+| Snapshot on subscribe | [Depth](/websocket/market-streams/depth) | First message after subscribe is a full snapshot — local state auto-recovers. Apply incremental updates from subsequent messages. Detect gaps via `update_id` sequencing. |
+| Periodic full snapshot | [Positions](/websocket/account-streams/positions), [Borrows](/websocket/account-streams/borrows), [Market](/websocket/market-streams/market), [Market Today](/websocket/market-streams/market-today) | Full state arrives within 1–1.5s of subscribing — no gap to fill. |
+| Incremental delta | [Balance Spot](/websocket/account-streams/balance-spot), [Balance Margin](/websocket/account-streams/balance-margin) | **Query first, then subscribe.** Send a one-time query (`balanceSpot_request` / `balanceMargin_request`) to get full state, then subscribe for incremental changes. |
+| Event stream | [Orders Pending](/websocket/account-streams/orders-pending), [Orders Executed](/websocket/account-streams/orders-executed), [Deals](/websocket/account-streams/deals) | **Query first, then subscribe.** Events during disconnection are lost. Use the one-time query operation or the REST equivalent to backfill, then subscribe. |
+| Event-only (no snapshot) | [Margin Positions Events](/websocket/account-streams/margin-positions-events), [Borrows Events](/websocket/account-streams/borrows-events) | Pair with the snapshot channel ([Positions](/websocket/account-streams/positions) / [Borrows](/websocket/account-streams/borrows)) for complete state awareness. |
+| Simple replacement | [Last Price](/websocket/market-streams/lastprice), [Book Ticker](/websocket/market-streams/book-ticker), [Kline](/websocket/market-streams/kline) | Each message replaces previous value — no gap handling needed. |
+
+For incremental-delta and event-stream channels, use a **query-then-subscribe** pattern:
+
+```python
+async def recover_and_subscribe(ws):
+    """Query current state, then subscribe for live updates."""
+    # Step 1 — query full state
+    await ws.send(json.dumps({
+        "id": 10, "method": "balanceSpot_request", "params": []
+    }))
+    snapshot = json.loads(await ws.recv())
+    # Initialize local state from snapshot["result"]
+
+    # Step 2 — subscribe for incremental updates
+    await ws.send(json.dumps({
+        "id": 11, "method": "balanceSpot_subscribe", "params": ["USDT", "BTC"]
+    }))
+```
 
 ## What's next
 
