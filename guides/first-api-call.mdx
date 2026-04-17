@@ -1,0 +1,248 @@
+---
+title: "First API Call"
+description: "Make a first WhiteBIT API call — public market data with no authentication, then an authenticated balance check with HMAC-SHA512 signing."
+sidebarTitle: "First API Call"
+---
+
+Make a first WhiteBIT API call — public data with no authentication, then a private request with HMAC-SHA512 signing. The guide covers server time, market data, and an authenticated balance read.
+
+<Note>
+  WhiteBIT does not offer a public testnet or sandbox environment.
+  All API calls in this guide execute against the live API.
+  Steps 1 and 2 are read-only public calls — safe to run freely.
+  Step 4 reads account balances only — no orders are placed and no funds are moved.
+</Note>
+
+## Prerequisites
+
+- curl or Python 3.x installed
+- WhiteBIT [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) (optional — provides signing examples in 10+ languages)
+- Steps 1–2: No account required
+- Steps 3–4: WhiteBIT account ([register](https://whitebit.com/auth/register)), 2FA enabled, API key with **Info + Trading** permissions ([create key](https://whitebit.com/settings/api))
+
+<Steps>
+  <Step title="Check server time (public, no auth)">
+    Verify connectivity by calling the public server time endpoint. No authentication is required.
+
+    **Endpoint:** `GET https://api.whitebit.com/api/v4/public/time`
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X GET https://api.whitebit.com/api/v4/public/time
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        response = requests.get("https://api.whitebit.com/api/v4/public/time")
+        print(response.json())
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {
+      "time": 1700000000
+    }
+    ```
+
+    The `time` field is a Unix timestamp in seconds.
+  </Step>
+
+  <Step title="Fetch market data (public, no auth)">
+    Retrieve the list of available spot markets. No authentication is required.
+
+    **Endpoint:** `GET https://api.whitebit.com/api/v4/public/markets`
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X GET https://api.whitebit.com/api/v4/public/markets
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        response = requests.get("https://api.whitebit.com/api/v4/public/markets")
+        markets = response.json()
+        # Print first 3 markets
+        for market in markets[:3]:
+            print(market["name"], market["minAmount"], market["tradesEnabled"])
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response (truncated — the full response contains 900+ markets):**
+    ```json
+    [
+      {
+        "name": "BTC_USDT",
+        "stock": "BTC",
+        "money": "USDT",
+        "stockPrec": "6",
+        "moneyPrec": "2",
+        "makerFee": "0.001",
+        "takerFee": "0.001",
+        "minAmount": "0.0001",
+        "minTotal": "1",
+        "tradesEnabled": true
+      }
+    ]
+    ```
+
+    Key fields: `name` (pair), `minAmount` (minimum order size in base asset), `tradesEnabled` (pair active status).
+
+    <Note>
+      For risk-free Spot trading practice, activate Demo Tokens (DBTC + DUSDT) from the
+      [WhiteBIT Codes page](https://whitebit.com/codes). The `DBTC_DUSDT` pair supports
+      the same API endpoints as any Spot market — place, query, and cancel orders without
+      risking real funds. No KYC required.
+    </Note>
+  </Step>
+
+  <Step title="Generate an API key">
+    An API key is required for all private endpoints. Skip this step if a key is already available.
+
+    1. Navigate to [API key settings](https://whitebit.com/settings/api).
+    2. Enable 2FA if not already active — 2FA is required before key creation.
+    3. Create a new key with **Info + Trading** permissions.
+    4. Optionally whitelist the current IP address (up to 50 addresses per key).
+    5. Save the API key and secret immediately — the secret is shown only once and cannot be retrieved later.
+
+    <Warning>
+      Store the API secret securely in an environment variable or secrets manager.
+      Never commit secrets to version control or include them in client-side code.
+    </Warning>
+  </Step>
+
+  <Step title="Authenticated balance check (private)">
+    Read the spot trading account balance. This call requires HMAC-SHA512 signing.
+
+    **Endpoint:** `POST https://api.whitebit.com/api/v4/trade-account/balance`
+
+    Every private request requires three headers computed from the request body:
+    - `X-TXC-APIKEY` — the API key string
+    - `X-TXC-PAYLOAD` — Base64-encoded JSON request body
+    - `X-TXC-SIGNATURE` — HMAC-SHA512 of the Base64 payload, hex-encoded, signed with the API secret
+
+    The JSON request body must include `request` (the endpoint path) and `nonce` (an ever-increasing integer — use Unix milliseconds).
+
+    See [Authentication](/api-reference/authentication) for the full signing walkthrough.
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        import requests
+        import hmac
+        import hashlib
+        import base64
+        import json
+        import time
+
+        API_KEY = "YOUR_API_KEY"        # Replace with actual API key
+        API_SECRET = "YOUR_API_SECRET"  # Replace with actual API secret
+
+        url = "https://api.whitebit.com/api/v4/trade-account/balance"
+        payload = {
+            "request": "/api/v4/trade-account/balance",
+            "nonce": str(int(time.time() * 1000))
+        }
+        payload_json = json.dumps(payload)
+        payload_base64 = base64.b64encode(payload_json.encode()).decode()
+        signature = hmac.new(
+            API_SECRET.encode(),
+            payload_base64.encode(),
+            hashlib.sha512
+        ).hexdigest()
+
+        headers = {
+            "Content-Type": "application/json",
+            "X-TXC-APIKEY": API_KEY,
+            "X-TXC-PAYLOAD": payload_base64,
+            "X-TXC-SIGNATURE": signature,
+        }
+        response = requests.post(url, headers=headers, data=payload_json)
+        print(response.json())
+        ```
+      </Tab>
+      <Tab title="cURL">
+        ```bash
+        # The payload and signature must be computed before calling curl.
+        # Use the Python example for a complete signing implementation.
+        # Replace BASE64_PAYLOAD and HMAC_SIGNATURE with computed values.
+
+        curl -X POST https://api.whitebit.com/api/v4/trade-account/balance \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+          -d '{"request":"/api/v4/trade-account/balance","nonce":"1700000000000"}'
+        ```
+      </Tab>
+    </Tabs>
+
+    For Go and PHP examples, see [SDKs](/sdks).
+
+    **Expected response:**
+    ```json
+    {
+      "BTC": {
+        "available": "0.00100000",
+        "freeze": "0"
+      },
+      "USDT": {
+        "available": "100.00000000",
+        "freeze": "0"
+      }
+    }
+    ```
+
+    Each key is an asset ticker. `available` is the amount ready to trade. `freeze` is locked in open orders. An empty response (`{}`) means the Trade balance holds no assets — transfer funds from Main first. See [Balances & Transfers](/concepts/balances) for details on Main, Trade, and Collateral account types.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Invalid signature error">
+    The payload used for Base64 encoding must be the exact same JSON string sent as the request body. Verify:
+
+    - The `request` field matches the endpoint path exactly (e.g., `"/api/v4/trade-account/balance"`).
+    - The `nonce` is a string (not an integer) and is larger than the previous request's nonce.
+    - The API secret is correct and has not been regenerated.
+    - The HMAC uses the Base64-encoded string as input, not the raw JSON.
+
+    See [Authentication](/api-reference/authentication) for the complete signing walkthrough.
+  </Accordion>
+  <Accordion title="API key not found or 401 Unauthorized">
+    Verify:
+
+    - The API key is copied correctly — no leading or trailing spaces.
+    - The key is active. Keys auto-deactivate after 14 days of inactivity. Reactivate at [whitebit.com/settings/api](https://whitebit.com/settings/api).
+    - The key has **Info + Trading** permissions for balance endpoints.
+  </Accordion>
+  <Accordion title="IP address not allowed">
+    If the API key has IP whitelisting enabled, the request must come from a whitelisted IP address. Add the current IP at [whitebit.com/settings/api](https://whitebit.com/settings/api).
+  </Accordion>
+  <Accordion title="Nonce is too small">
+    The `nonce` must be greater than the previous request's nonce for the same API key. Use `str(int(time.time() * 1000))` to generate a millisecond-precision Unix timestamp. Avoid reusing nonces across requests.
+  </Accordion>
+</AccordionGroup>
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Spot Trading Quickstart" icon="arrow-right-arrow-left" href="/products/spot/quickstart">
+    Place a first order on a spot market.
+  </Card>
+  <Card title="WebSocket Quickstart" icon="plug" href="/guides/websocket-quickstart">
+    Stream real-time prices over WebSocket.
+  </Card>
+  <Card title="Market Data Overview" icon="chart-bar" href="/products/market-data/overview">
+    Explore all public market data endpoints.
+  </Card>
+</CardGroup>

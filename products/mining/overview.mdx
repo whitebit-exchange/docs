@@ -1,0 +1,61 @@
+---
+title: "Mining Pool"
+description: "Manage Bitcoin mining operations via API -- from account creation to hashrate monitoring, worker management, and payout configuration."
+sidebarTitle: "Overview"
+---
+
+Manage Bitcoin mining operations via API -- from account creation to hashrate monitoring, worker management, and payout configuration. 11 API endpoints provide full operational visibility and control.
+
+<Warning>
+  Mining Pool is not a cloud mining platform. Actual mining requires connecting ASIC hardware
+  (or a hosted mining service) to the stratum URL provided by the API. The endpoints below
+  manage mining accounts and monitor performance -- physical hardware must be connected separately.
+</Warning>
+
+## Capabilities
+
+The Mining Pool API covers the full mining operations lifecycle.
+
+- **Mining account creation** -- create and manage multiple mining accounts via `POST /api/v4/mining/accounts/create`. Each account name must be unique (alphanumeric + underscores).
+- **Hashrate monitoring** -- track hashrate performance per account and per individual worker. Historical hashrate data available via `POST /api/v4/mining/hashrate` with configurable intervals (5m, 1h, 24h).
+- **Rewards tracking** -- view mining rewards received per account via `POST /api/v4/mining/rewards`.
+- **Worker management** -- list online workers by name, monitor individual worker hashrate performance.
+- **Payout configuration** -- set payout destination to [Main balance](/concepts/balances) or an external BTC address via `POST /api/v4/mining/payout-destination/edit`.
+- **Watcher links** -- create shareable monitoring links with configurable permissions and expiration via `POST /api/v4/mining/watcher-links/create`. Useful for hosting providers sharing stats with clients.
+
+## Who Uses This
+
+- **Mining operations** -- large-scale miners managing multiple accounts and workers. API integration for automated hashrate monitoring and payout management.
+- **Hosting providers** -- mining hosting services managing client accounts. Watcher links allow sharing monitoring access without exposing API keys.
+- **Individual miners** -- miners connecting ASIC hardware to the WhitePool stratum endpoint. API provides programmatic access to rewards and performance data.
+
+## Common Integration Patterns
+
+**Mining operations dashboard** -- Create mining accounts per physical location or hardware batch. Monitor aggregate and per-worker hashrate via API. Set up automated alerts when hashrate drops below thresholds. Configure payout destinations ([Main balance](/concepts/balances) for trading, external BTC address for cold storage). Share read-only access with stakeholders via watcher links.
+
+**Hosting provider integration** -- Create separate mining accounts per client (one mining account per customer). Generate watcher links with appropriate permissions for client visibility. Track rewards per account for billing and revenue sharing. Monitor worker status programmatically for uptime SLAs.
+
+## Platform Context
+
+The WhiteBIT platform brands the mining pool as **WhitePool**. Stratum connection details (pool URL, ports) are available via the `POST /api/v4/mining/miners/info` endpoint after creating a mining account. Miners connect ASIC hardware to the provided stratum URL (`stratum+tcp://pool.whitebit.com:3333` or `:3334`).
+
+## Technical Overview
+
+- **11 endpoints** (all `POST`, all authenticated)
+- **Endpoint groups:** accounts (2), rewards (1), hashrate (1), payout (2), miners/workers (3), watcher links (2)
+- **Authentication:** HMAC-SHA512 ([guide](/api-reference/authentication))
+- **Rate limits:** 1000 requests per 10 seconds per endpoint ([details](/api-reference/rate-limits))
+- **Mining protocol:** Stratum (connection details returned by `POST /api/v4/mining/miners/info`)
+
+For full endpoint documentation, see the [Mining Pool API Reference](/api-reference/account-wallet/overview).
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/products/mining/quickstart">
+    Create a mining account and configure payouts in under 5 minutes.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/account-wallet/overview">
+    Full endpoint documentation for all 11 mining endpoints.
+  </Card>
+</CardGroup>

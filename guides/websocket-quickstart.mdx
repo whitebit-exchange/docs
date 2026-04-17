@@ -1,0 +1,329 @@
+---
+title: "WebSocket Quickstart"
+description: "Connect to the WhiteBIT WebSocket API — subscribe to real-time prices, orderbook updates, and private balance changes."
+sidebarTitle: "WebSocket Quickstart"
+---
+
+Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide targets developers building trading bots, live price feeds, or account monitoring dashboards. The walkthrough covers connecting to the WebSocket endpoint, subscribing to public price updates, subscribing to orderbook depth, authenticating for private channels, and receiving balance updates.
+
+## Prerequisites
+
+- A terminal with a WebSocket client (Python `websocket-client` library, or `wscat` for interactive testing)
+- For private channels: a WhiteBIT API key with **Trading** permission and familiarity with [Authentication](/api-reference/authentication)
+- No special setup for public channels — same zero-authentication principle as the [Market Data API](/products/market-data/overview)
+
+<Warning>
+  WhiteBIT has no public testnet or sandbox. Private channel subscriptions
+  expose live account data. Store API credentials securely — never commit
+  secrets to version control or expose them in shared environments.
+  For risk-free balance-change testing, use Demo Tokens (DBTC/DUSDT) —
+  activate from the [WhiteBIT Codes page](https://whitebit.com/codes).
+</Warning>
+
+## Connection parameters
+
+| Detail | Value |
+|--------|-------|
+| Endpoint | `wss://api.whitebit.com/ws` |
+| Protocol | JSON-RPC 2.0 over WebSocket |
+| Inactivity timeout | 60 seconds — send `ping` every 50 seconds or less |
+| Rate limit | 200 requests per minute per connection |
+
+<Steps>
+  <Step title="Connect to the WebSocket endpoint">
+    Establish a WebSocket connection.
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        import websocket
+        import json
+
+        ws = websocket.create_connection("wss://api.whitebit.com/ws")
+        print("Connected to WebSocket API")
+        ```
+      </Tab>
+      <Tab title="wscat">
+        ```bash
+        wscat -c wss://api.whitebit.com/ws
+        ```
+      </Tab>
+    </Tabs>
+
+    A successful connection produces no immediate response. The server is ready to receive subscription messages.
+
+    For Go and PHP examples, see [SDKs](/sdks).
+  </Step>
+
+  <Step title="Subscribe to last price updates">
+    Subscribe to real-time price updates for BTC_USDT.
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        # Subscribe to BTC_USDT last price
+        subscribe_msg = {
+            "id": 1,
+            "method": "lastprice_subscribe",
+            "params": ["BTC_USDT"]
+        }
+        ws.send(json.dumps(subscribe_msg))
+
+        # Receive subscribe confirmation
+        result = json.loads(ws.recv())
+        print(f"Subscribe result: {result}")
+
+        # Receive price updates
+        update = json.loads(ws.recv())
+        print(f"Price update: {update}")
+        ```
+      </Tab>
+      <Tab title="wscat">
+        ```bash
+        > {"id": 1, "method": "lastprice_subscribe", "params": ["BTC_USDT"]}
+        ```
+      </Tab>
+    </Tabs>
+
+    **Subscribe confirmation:**
+    ```json
+    {"id": 1, "result": {"status": "success"}, "error": null}
+    ```
+
+    **Update message:**
+    ```json
+    {
+      "id": null,
+      "method": "lastprice_update",
+      "params": ["BTC_USDT", "65432.10"]
+    }
+    ```
+
+    The `params` array contains: market name (index 0) and last traded price (index 1). Updates arrive whenever a trade executes on the pair.
+  </Step>
+
+  <Step title="Subscribe to orderbook depth">
+    Subscribe to orderbook depth updates for BTC_USDT with 5 price levels.
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        # Subscribe to BTC_USDT depth, 5 levels, no aggregation
+        depth_msg = {
+            "id": 2,
+            "method": "depth_subscribe",
+            "params": ["BTC_USDT", 5, "0", True]
+        }
+        ws.send(json.dumps(depth_msg))
+
+        # Receive subscribe confirmation
+        result = json.loads(ws.recv())
+        print(f"Depth subscribe: {result}")
+
+        # Receive depth snapshot/update
+        depth = json.loads(ws.recv())
+        print(f"Depth update: {depth}")
+        ```
+      </Tab>
+      <Tab title="wscat">
+        ```bash
+        > {"id": 2, "method": "depth_subscribe", "params": ["BTC_USDT", 5, "0", true]}
+        ```
+      </Tab>
+    </Tabs>
+
+    **Parameters:** market name, depth limit (`1`/`5`/`10`/`20`/`30`/`50`/`100`), price aggregation interval (`"0"` = no aggregation), and multiple subscription flag. Set the flag to `true` to add a subscription alongside existing depth subscriptions. Setting the flag to `false` unsubscribes from all active depth subscriptions. Full parameter details: [Depth channel](/websocket/market-streams/depth).
+
+    **Update message:**
+    ```json
+    {
+      "id": null,
+      "method": "depth_update",
+      "params": [
+        true,
+        {
+          "asks": [["65450.00", "0.500"], ["65460.00", "1.200"]],
+          "bids": [["65430.00", "0.800"], ["65420.00", "1.500"]],
+          "timestamp": 1700000000,
+          "update_id": 12345
+        },
+        "BTC_USDT"
+      ]
+    }
+    ```
+
+    The first element in `params` is a boolean: `true` = full snapshot, `false` = incremental update. For local orderbook maintenance, apply incremental updates to the initial snapshot.
+  </Step>
+
+  <Step title="Authenticate for private channels">
+    <Note>
+      Steps 1–3 cover public channels (no authentication required). Steps 4–5
+      require an API key — see [Authentication](/api-reference/authentication)
+      for key creation and HMAC-SHA512 signing details.
+    </Note>
+
+    Private channels (balance updates, order updates) require authentication. First obtain a WebSocket token via the REST API, then send an `authorize` message.
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        import base64
+        import hashlib
+        import hmac
+        import time
+        import requests
+
+        API_KEY = "YOUR_API_KEY"
+        API_SECRET = "YOUR_API_SECRET"
+        BASE_URL = "https://api.whitebit.com"
+
+        # Part A — Get WebSocket token via REST API
+        path = "/api/v4/profile/websocket_token"
+        data = {"request": path, "nonce": str(int(time.time() * 1000))}
+        data_json = json.dumps(data)
+        payload_b64 = base64.b64encode(data_json.encode()).decode()
+        signature = hmac.new(
+            API_SECRET.encode(), payload_b64.encode(), hashlib.sha512
+        ).hexdigest()
+        headers = {
+            "Content-Type": "application/json",
+            "X-TXC-APIKEY": API_KEY,
+            "X-TXC-PAYLOAD": payload_b64,
+            "X-TXC-SIGNATURE": signature,
+        }
+        token_response = requests.post(BASE_URL + path, headers=headers, data=data_json)
+        ws_token = token_response.json().get("websocket_token")
+        print(f"WebSocket token obtained")
+
+        # Part B — Send authorize message over WebSocket
+        auth_msg = {
+            "id": 3,
+            "method": "authorize",
+            "params": [ws_token, "public"]
+        }
+        ws.send(json.dumps(auth_msg))
+        auth_result = json.loads(ws.recv())
+        print(f"Auth result: {auth_result}")
+        ```
+      </Tab>
+      <Tab title="wscat">
+        ```bash
+        # First obtain a token via REST (see Python example),
+        # then send in wscat:
+        > {"id": 3, "method": "authorize", "params": ["YOUR_WS_TOKEN", "public"]}
+        ```
+      </Tab>
+    </Tabs>
+
+    **Token endpoint:** `POST /api/v4/profile/websocket_token` (authenticated REST call).
+
+    **Authorization response:**
+    ```json
+    {"id": 3, "result": {"status": "success"}, "error": null}
+    ```
+  </Step>
+
+  <Step title="Subscribe to spot balance updates">
+    After authentication, subscribe to real-time spot balance changes.
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        # Subscribe to USDT and BTC balance updates
+        balance_msg = {
+            "id": 4,
+            "method": "balanceSpot_subscribe",
+            "params": ["USDT", "BTC"]
+        }
+        ws.send(json.dumps(balance_msg))
+
+        # Receive subscribe confirmation
+        result = json.loads(ws.recv())
+        print(f"Balance subscribe: {result}")
+
+        # Balance updates arrive when trades execute or transfers occur
+        update = json.loads(ws.recv())
+        print(f"Balance update: {update}")
+        ```
+      </Tab>
+      <Tab title="wscat">
+        ```bash
+        > {"id": 4, "method": "balanceSpot_subscribe", "params": ["USDT", "BTC"]}
+        ```
+      </Tab>
+    </Tabs>
+
+    **Update message (triggered by a trade or transfer):**
+    ```json
+    {
+      "id": null,
+      "method": "balanceSpot_update",
+      "params": [
+        {
+          "USDT": {
+            "available": "985.50",
+            "freeze": "14.50"
+          }
+        }
+      ]
+    }
+    ```
+
+    Key fields: `available` (funds ready for trading), `freeze` (funds locked in open orders).
+  </Step>
+
+  <Step title="Send a keepalive ping">
+    The server closes the connection after 60 seconds of inactivity. Send a ping message to verify the connection is alive.
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        ping_msg = {"id": 0, "method": "ping", "params": []}
+        ws.send(json.dumps(ping_msg))
+        pong = json.loads(ws.recv())
+        print(f"Ping result: {pong}")
+        ```
+      </Tab>
+      <Tab title="wscat">
+        ```bash
+        > {"id": 0, "method": "ping", "params": []}
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {"id": 0, "result": "pong", "error": null}
+    ```
+
+    In production, send a ping every 50 seconds or less to prevent disconnection.
+  </Step>
+</Steps>
+
+The walkthrough covered connecting to the WebSocket API, receiving real-time price updates and orderbook depth on public channels, authenticating for private data, and subscribing to balance updates. The WebSocket API provides the real-time data layer for trading bots, price feeds, and account monitoring.
+
+<Accordion title="Reconnection and recovery">
+  WebSocket connections can drop due to network issues or server maintenance.
+  Production integrations require reconnection logic:
+
+  - Implement automatic reconnection with exponential backoff (1s, 2s, 4s, 8s delays)
+  - After reconnecting, re-authenticate (for private channels) and re-subscribe to all channels
+  - Monitor for ping/pong timeouts as a connection health indicator
+
+  For a production-grade implementation with automatic resubscription, see the
+  [Trading Bot Guide](/guides/building-a-trading-bot).
+</Accordion>
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Market Data Overview" icon="chart-bar" href="/products/market-data/overview">
+    REST API counterpart — polling-based market data for simpler integrations.
+  </Card>
+  <Card title="Building a Trading Bot" icon="robot" href="/guides/building-a-trading-bot">
+    Combine WebSocket data with REST order placement for automated trading.
+  </Card>
+  <Card title="WebSocket Channels" icon="satellite-dish" href="/websocket/overview">
+    Full channel catalog — 10 market streams and 11 account streams with schema references.
+  </Card>
+</CardGroup>

@@ -1,0 +1,265 @@
+---
+title: "Mining Pool Quickstart"
+description: "Create a mining account, view stratum connection details, check hashrate, and configure payout destination -- step by step."
+sidebarTitle: "Quickstart"
+---
+
+Create a mining account, retrieve stratum connection details, monitor hashrate, and configure payout destination -- all via API.
+
+## Prerequisites
+
+- A WhiteBIT account with completed KYC ([register](https://whitebit.com/auth/register))
+- An API key with appropriate permissions ([create key](https://whitebit.com/settings/api))
+- HMAC-SHA512 signing configured ([authentication guide](/api-reference/authentication))
+- `curl` and `jq` installed (for command-line examples)
+
+<Warning>
+  Mining account creation is fully API-driven and requires no prior UI setup. However, actual
+  mining requires connecting ASIC hardware (or a hosted mining service) to the stratum URL
+  provided in Step 2. Without connected hardware, hashrate will be zero and no rewards will accrue.
+</Warning>
+
+<Steps>
+  <Step title="Create a mining account">
+    Create a new mining account with a unique name.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/mining/accounts/create \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "name": "my_miner_01",
+            "request": "/api/v4/mining/accounts/create",
+            "nonce": "1709340000000"
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests, json, hmac, hashlib, base64, time
+
+        API_KEY = "YOUR_API_KEY"
+        API_SECRET = "YOUR_SECRET"
+        BASE_URL = "https://api.whitebit.com"
+
+        def make_request(endpoint, body):
+            nonce = str(int(time.time() * 1000))
+            body["request"] = endpoint
+            body["nonce"] = nonce
+            data_json = json.dumps(body)
+            payload = base64.b64encode(data_json.encode())
+            signature = hmac.new(
+                API_SECRET.encode(), payload, hashlib.sha512
+            ).hexdigest()
+            headers = {
+                "Content-Type": "application/json",
+                "X-TXC-APIKEY": API_KEY,
+                "X-TXC-PAYLOAD": payload.decode(),
+                "X-TXC-SIGNATURE": signature,
+            }
+            return requests.post(f"{BASE_URL}{endpoint}", headers=headers, data=data_json)
+
+        # Create a mining account
+        response = make_request("/api/v4/mining/accounts/create", {
+            "name": "my_miner_01",
+        })
+        print(json.dumps(response.json(), indent=2))
+        ```
+      </Tab>
+    </Tabs>
+
+    For Go and PHP examples, see [SDKs](/sdks).
+
+    **Required field:** `name` (unique, alphanumeric + underscores, max 255 characters). **Optional:** `referralCode`.
+
+    **Expected response:**
+    ```json
+    {
+      "data": {
+        "name": "my_miner_01",
+        "createdAt": 1709340000
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="View stratum connection details">
+    Retrieve stratum URLs, fee information, and worker counts for the mining account.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/mining/miners/info \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "account": "my_miner_01",
+            "request": "/api/v4/mining/miners/info",
+            "nonce": "1709340000001"
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # Get stratum connection details
+        response = make_request("/api/v4/mining/miners/info", {
+            "account": "my_miner_01",
+        })
+        print(json.dumps(response.json(), indent=2))
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {
+      "data": {
+        "fee": "2.5",
+        "workers": {
+          "online": 0,
+          "offline": 0,
+          "low": 0
+        },
+        "stratum": [
+          {"url": "stratum+tcp://pool.whitebit.com:3333", "workersCount": 0},
+          {"url": "stratum+tcp://pool.whitebit.com:3334", "workersCount": 0}
+        ]
+      }
+    }
+    ```
+
+    Use the returned stratum URL and port to configure mining hardware. Set the `user` field in the miner configuration to the mining account name (`my_miner_01`).
+  </Step>
+
+  <Step title="Check hashrate">
+    Monitor hashrate performance for the mining account.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/mining/hashrate \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "account": "my_miner_01",
+            "interval": "1h",
+            "request": "/api/v4/mining/hashrate",
+            "nonce": "1709340000002"
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # Check hashrate
+        response = make_request("/api/v4/mining/hashrate", {
+            "account": "my_miner_01",
+            "interval": "1h",
+        })
+        print(json.dumps(response.json(), indent=2))
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {
+      "data": {
+        "account": "my_miner_01",
+        "hashrate": [
+          {"timestamp": 1709340000, "hashrate": "0", "rejectRate": 0}
+        ]
+      }
+    }
+    ```
+
+    Hashrate will be zero until mining hardware connects and submits shares. Available intervals: `5m`, `1h`, `24h`.
+  </Step>
+
+  <Step title="Configure payout destination">
+    Set the payout destination to Main balance (for trading or lending) or an external BTC address (for cold storage).
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        # Option A: Payout to Main balance
+        curl -X POST https://api.whitebit.com/api/v4/mining/payout-destination/edit \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "accountName": "my_miner_01",
+            "destination": "main_balance",
+            "request": "/api/v4/mining/payout-destination/edit",
+            "nonce": "1709340000003"
+          }'
+
+        # Option B: Payout to external BTC address
+        curl -X POST https://api.whitebit.com/api/v4/mining/payout-destination/edit \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "accountName": "my_miner_01",
+            "destination": "external_address",
+            "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+            "request": "/api/v4/mining/payout-destination/edit",
+            "nonce": "1709340000004"
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # Option A: Payout to Main balance
+        response = make_request("/api/v4/mining/payout-destination/edit", {
+            "accountName": "my_miner_01",
+            "destination": "main_balance",
+        })
+        print(response.json())
+
+        # Option B: Payout to external BTC address
+        response = make_request("/api/v4/mining/payout-destination/edit", {
+            "accountName": "my_miner_01",
+            "destination": "external_address",
+            "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+        })
+        print(response.json())
+        ```
+      </Tab>
+    </Tabs>
+
+    **Required fields:** `accountName`, `destination` (`main_balance` or `external_address`). When `destination` is `external_address`, the `address` field (BTC address) is also required.
+
+    **Expected response:**
+    ```json
+    {
+      "payoutDestination": "main_balance",
+      "externalAddress": null
+    }
+    ```
+  </Step>
+</Steps>
+
+After connecting mining hardware to the stratum URL from Step 2, hashrate data appears within minutes. Rewards begin accruing once shares are submitted. Track rewards via `POST /api/v4/mining/rewards`.
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Mining Pool Overview" icon="book-open" href="/products/mining/overview">
+    Capabilities, integration patterns, and technical details.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/account-wallet/overview">
+    Full endpoint documentation for all 11 mining endpoints.
+  </Card>
+</CardGroup>
+
+For Go and PHP examples, see [SDKs](/sdks).

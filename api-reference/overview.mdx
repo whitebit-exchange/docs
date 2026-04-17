@@ -5,6 +5,8 @@ description: "WhiteBIT REST API overview — base URL, authentication, quickstar
 ---
 
 import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+import { ConceptTable } from '/snippets/ConceptTable.jsx';
+import { scopeLimits, httpStatusCodes } from '/snippets/concept-data/rate-limits.jsx';
 
 <RegionBaseUrl />
 
@@ -135,10 +137,15 @@ The response contains balance data for each asset. Omitted assets have a zero ba
 
 ## Rate Limits
 
-| Scope | Limit |
-|-------|-------|
-| Public REST endpoints | 2000 requests / 10 sec |
-| Private REST endpoints | Varies per endpoint (see individual docs) |
+<ConceptTable
+  columns={[
+    { key: 'scope', header: 'Scope', width: 'minmax(200px, 1fr)' },
+    { key: 'limit', header: 'Limit', width: 'minmax(200px, 1fr)' },
+    { key: 'period', header: 'Period', width: 'auto' },
+  ]}
+  rows={scopeLimits.map(r => ({ ...r, limit: r.limit.toLocaleString() + ' requests' }))}
+  codeColumns={['scope']}
+/>
 
 For complete rate limits, error codes, and best practices, see [Rate Limits & Error Codes](/api-reference/rate-limits).
 
@@ -169,13 +176,27 @@ All V4 endpoints return errors as JSON. The format differs slightly between publ
 }
 ```
 
+## HTTP Status Codes
+
+<ConceptTable
+  columns={[
+    { key: 'status', header: 'Status', width: 'auto' },
+    { key: 'meaning', header: 'Meaning', width: '1fr' },
+  ]}
+  rows={httpStatusCodes}
+  codeColumns={['status']}
+/>
+
+For retry strategies, authentication errors, and best practices, see
+[Rate Limits & Error Codes](/api-reference/rate-limits).
+
 ---
 
 ## Endpoint Groups
 
 <CardGroup cols={2}>
   <Card title="Market Data" icon="chart-bar" href="/api-reference/market-data/overview">
-    Public market info, orderbook, trades, fees, server status, and more. No authentication required.
+    Public market info, orderbook, trades, fees, server status, and more. No authentication required. See [Markets & Trading Pairs](/concepts/markets) for pair notation.
   </Card>
   <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/api-reference/spot-trading/overview">
     Place and manage spot orders, query execution history, and control kill-switch timers.
@@ -187,7 +208,7 @@ All V4 endpoints return errors as JSON. The format differs slightly between publ
     Estimate, confirm, and review currency conversion operations.
   </Card>
   <Card title="Account & Wallet" icon="wallet" href="/api-reference/account-wallet/overview">
-    Main balance, deposits, withdrawals, transfers, codes, crypto lending, and fees.
+    Main balance, deposits, withdrawals, transfers, codes, crypto lending, and fees. See [Balances & Transfers](/concepts/balances) for account types.
   </Card>
   <Card title="Mining Pool" icon="pickaxe" href="/api-reference/mining-pool/pool-overview">
     Monitor mining operations, manage payouts, track worker performance, and create watcher links.

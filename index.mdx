@@ -1,25 +1,25 @@
 ---
-title: "Home"
-description: "The WhiteBIT API platform covers REST API, WebSocket API, SDKs, and guides for trading integration."
+title: "WhiteBIT API Platform"
+description: "Build trading integrations, payment flows, and institutional infrastructure on one of Europe's largest cryptocurrency exchanges."
 ---
 
 <div className="w-full flex flex-col items-center justify-center py-6 text-center px-4">
   <div
     className="text-5xl font-bold max-w-4xl text-[#252525] dark:text-[#D8AF48] leading-[1.2] tracking-tight"
   >
-   <h1>WhiteBIT API Platform</h1>
+    <h1>WhiteBIT API Platform</h1>
   </div>
 
   <p className="text-lg max-w-[44rem] mx-auto mt-2" style={{ fontWeight: '500' }}>
-    Access the global cryptocurrency market with WhiteBIT's comprehensive trading APIs. Build powerful trading applications with developer-friendly tools.
+    Build trading integrations, payment flows, and institutional infrastructure on one of Europe's largest cryptocurrency exchanges.
   </p>
 
   <div className="flex items-center justify-center gap-4 mt-6">
     <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
-      <span className='text-sm'>Low Latency</span>
+      <span className='text-sm'>900+ Trading Pairs</span>
     </span>
     <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
-      <span className='text-sm'>Global Access</span>
+      <span className='text-sm'>REST + WebSocket</span>
     </span>
     <span className='px-3 py-1 bg-gray-200 dark:bg-gray-900 rounded-full dark:text-white text-black flex items-center gap-2'>
       <span className='text-sm'>24/7 Support</span>
@@ -29,24 +29,52 @@ description: "The WhiteBIT API platform covers REST API, WebSocket API, SDKs, an
 
 <div className="mb-32 max-w-6xl mx-auto px-6 pb-8">
 
-<div className='my-8'>
-  <div className="text-3xl text-center font-bold w-full">
-    Explore the APIs
-  </div>
-  <p className="text-lg text-center" style={{ fontWeight: '500', maxWidth: '40rem', margin: '0 auto', marginTop: '0.5rem' }}>
-    Three integration interfaces — pick the one that fits your use case
-  </p>
-</div>
+## About WhiteBIT
 
-<CardGroup cols={3}>
-  <Card title="REST API" icon="square-terminal" href="/api-reference/overview">
-    Full access to market data, spot trading, collateral trading, account management, and sub-accounts. Authenticated with HMAC-SHA512.
+WhiteBIT is a European cryptocurrency exchange founded in 2018 and part of the W Group ecosystem. One of the largest crypto exchanges in Europe by traffic, WhiteBIT serves 8,000,000+ registered users with $3.5T in cumulative trading volume.
+
+**Security certifications:**
+
+- ISO/IEC 27001 information security management
+- ISO/IEC 27701:2019 privacy information management
+- CCSS Level 3 cryptocurrency security standard (certified by Hacken, December 2024)
+- PCI DSS Level 1 payment card industry compliance (October 2024)
+- CER.live security score: 100/100 — first exchange to achieve a perfect score
+- Proof of reserves audited by Hacken (November 2024) — [audit report](https://hacken.io/audits/whitebit/)
+- Processes data in accordance with GDPR
+- **96% cold wallet storage** — the majority of platform digital assets are held in cold storage
+
+<div className="border-t border-gray-200 dark:border-gray-700 mt-12 mb-8"></div>
+
+## Getting Started
+
+<Warning>
+  WhiteBIT does not offer a public testnet or sandbox environment.
+  Test integrations on the live API using minimum order sizes.
+  Pairs like USDT_UAH and assets with low minimums are suitable for testing.
+  Check minimum order sizes via `GET /api/v4/public/markets`.
+</Warning>
+
+### Prerequisites
+
+- WhiteBIT account — [Register at whitebit.com](https://whitebit.com/auth/register)
+- Identity verification completed
+- API key generated (required for private endpoints only) — [API key settings](https://whitebit.com/settings/api)
+
+<Note>
+  Public endpoints (market data, server time, asset statuses) require no authentication and no account. Generate an API key only when accessing private endpoints.
+</Note>
+
+### Choose an integration method
+
+For understanding market structure and trading pair notation, see [Markets & Trading Pairs](/concepts/markets).
+
+<CardGroup cols={2}>
+  <Card title="REST API" icon="square-terminal" href="/guides/first-api-call">
+    Make a public call, then add HMAC signing for authenticated endpoints.
   </Card>
-  <Card title="WebSocket API" icon="plug" href="/websocket/overview">
-    Real-time market streams and private account streams over persistent connections. Millisecond latency for prices, order books, and trades.
-  </Card>
-  <Card title="Platform Features" icon="gear" href="/platform/overview">
-    Webhooks, OAuth, colocation, and self-trade prevention. Extend your integration beyond core trading operations.
+  <Card title="WebSocket" icon="plug" href="/guides/websocket-quickstart">
+    Stream real-time market data and account updates over persistent connections.
   </Card>
 </CardGroup>
 
@@ -54,48 +82,126 @@ description: "The WhiteBIT API platform covers REST API, WebSocket API, SDKs, an
 
 <div className='my-8'>
   <div className="text-3xl text-center font-bold w-full">
-    Common starting points
+    Partner Programs
   </div>
   <p className="text-lg text-center" style={{ fontWeight: '500', maxWidth: '40rem', margin: '0 auto', marginTop: '0.5rem' }}>
-    Jump directly to the section that matches what you are building
+    Dedicated integration paths for market makers and brokers.
   </p>
 </div>
 
 <CardGroup cols={2}>
-  <Card title="Market Data" icon="chart-bar" href="/api-reference/market-data/overview">
-    Public endpoints for order books, trade history, ticker prices, fees, and server status. No authentication required.
+  <Card title="Market Maker Guide" icon="chart-mixed" href="/guides/market-maker-guide">
+    Maker rebates, colocation infrastructure, bulk order capabilities, and the Market-Making Program.
   </Card>
-  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/api-reference/spot-trading/overview">
-    Place and manage limit, market, stop-limit, and stop-market orders. Query execution history and control kill-switch timers.
-  </Card>
-  <Card title="Account & Wallet" icon="wallet" href="/api-reference/account-wallet/overview">
-    Main balance, deposits, withdrawals, internal transfers, codes, and crypto lending.
-  </Card>
-  <Card title="SDKs & Helpers" icon="code" href="https://github.com/whitebit-exchange/api-quickstart">
-    Multi-language API Quick Start Helper with examples in Python, Node.js, Go, PHP, Rust, and more.
+  <Card title="Broker Guide" icon="building-columns" href="/guides/broker-guide">
+    Sub-account management, fee sharing, and the Broker Program onboarding process.
   </Card>
 </CardGroup>
 
 <div className="border-t border-gray-200 dark:border-gray-700 mt-12 mb-8"></div>
 
 <div className='my-8'>
-    <div
-    className="text-3xl text-center font-bold w-full"
-  >
-Ready to Get Started?
+  <div className="text-3xl text-center font-bold w-full">
+    Popular Quickstarts
   </div>
-
-    <p className="text-lg text-center " style={{  fontWeight: '500' , maxWidth: '32rem', margin: '0 auto', marginTop: '0.5rem'}}>
-
-Join thousands of developers building with WhiteBIT's API platform
-</p>
-<div className='flex justify-center items-center gap-8 mt-8'>
-<a href="https://whitebit.com/settings/api" className="px-4 py-2 bg-[#EABE4D] hover:bg-[#EABE4A] rounded-xl text-black no-underline">Create API Key</a>
-<a href="/platform/overview" className="px-4 py-2 rounded-xl border border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 no-underline">Read the Docs</a>
+  <p className="text-lg text-center" style={{ fontWeight: '500', maxWidth: '40rem', margin: '0 auto', marginTop: '0.5rem' }}>
+    Jump directly to a common integration task.
+  </p>
 </div>
 
-<div className="border-t border-gray-200 dark:border-gray-700 mt-12"></div>
+<CardGroup cols={2}>
+  <Card title="Fetch live market data" icon="chart-bar" href="/products/market-data/quickstart">
+    Public endpoints — no authentication required.
+  </Card>
+  <Card title="Place a first trade" icon="arrow-right-arrow-left" href="/products/spot/quickstart">
+    Limit order on a spot pair in 5 minutes.
+  </Card>
+  <Card title="Stream real-time prices" icon="plug" href="/guides/websocket-quickstart">
+    Subscribe to live ticker and orderbook channels.
+  </Card>
+  <Card title="Manage sub-accounts" icon="users" href="/products/sub-accounts/quickstart">
+    Create accounts, transfer funds, issue per-account API keys.
+  </Card>
+</CardGroup>
 
+<div className="border-t border-gray-200 dark:border-gray-700 mt-12 mb-8"></div>
+
+<div className='my-8'>
+  <div className="text-3xl text-center font-bold w-full">
+    Explore Products
+  </div>
+  <p className="text-lg text-center" style={{ fontWeight: '500', maxWidth: '40rem', margin: '0 auto', marginTop: '0.5rem' }}>
+    All products available for programmatic integration.
+  </p>
+</div>
+
+<CardGroup cols={3}>
+  <Card title="Market Data" icon="chart-bar" href="/products/market-data/overview">
+    Public endpoints for prices, orderbooks, and trades. No authentication required.
+  </Card>
+  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/products/spot/overview">
+    750+ trading pairs with 6 order types including bulk orders.
+  </Card>
+  <Card title="Margin Trading" icon="chart-line" href="/products/margin/overview">
+    Leveraged spot trading up to 10x on collateral balance.
+  </Card>
+  <Card title="Futures Trading" icon="chart-candlestick" href="/products/futures/overview">
+    Perpetual contracts with up to 100x leverage on 270+ pairs.
+  </Card>
+  <Card title="Crypto Lending" icon="piggy-bank" href="/products/lending/overview">
+    Fixed and flexible lending plans via the U EARN platform.
+  </Card>
+  <Card title="Sub-Accounts" icon="users" href="/products/sub-accounts/overview">
+    Create thousands of separate trading accounts under one umbrella.
+  </Card>
+  <Card title="Mining Pool" icon="server" href="/products/mining/overview">
+    Programmatic access to WhitePool mining statistics and payouts.
+  </Card>
+  <Card title="Convert" icon="arrow-right-arrow-left" href="/platform/convert">
+    Instant asset conversion at quoted rates.
+  </Card>
+  <Card title="WhiteBIT Codes" icon="qrcode" href="/platform/whitebit-codes">
+    Generate and apply redeemable codes for internal transfers.
+  </Card>
+</CardGroup>
+
+<div className="border-t border-gray-200 dark:border-gray-700 mt-12 mb-8"></div>
+
+## Integration Methods
+
+- **REST API** — 100+ authenticated endpoints and 14 public endpoints. [API Reference](/api-reference/overview)
+- **WebSocket API** — Real-time market data and account updates over persistent connections. [WebSocket Reference](/websocket/overview)
+- **SDKs** — Go, Python, PHP client libraries. [SDKs page](/sdks)
+- **OAuth 2.0** — Partner-only, for third-party applications acting on behalf of WhiteBIT users. [OAuth overview](/platform/oauth/overview)
+- **AI Tools** — MCP server and CLI for AI-assisted integration. [AI Hub](/guides/use-with-ai)
+
+## Platform-only features
+
+The following features are available through the WhiteBIT platform interface and are not accessible via API: Auto-Invest, Nova Card, Staking, P2P, Copy Trading. Visit [whitebit.com](https://whitebit.com) for details.
+
+## Platform availability
+
+- **Status page:** [status.whitebit.com](https://status.whitebit.com) — real-time operational status for the platform, API, and blog
+- **Per-asset status:** [whitebit.com/system-page](https://whitebit.com/system-page) — deposit, withdrawal, and transfer availability per asset
+- **Maintenance:** Planned maintenance is announced via the status page and official channels. Unplanned incidents are tracked on the status page in real time.
+
+<div className="border-t border-gray-200 dark:border-gray-700 mt-12 mb-8"></div>
+
+<div className='my-8'>
+  <div className="text-3xl text-center font-bold w-full">
+    Ready to Get Started?
+  </div>
+
+  <p className="text-lg text-center" style={{ fontWeight: '500', maxWidth: '32rem', margin: '0 auto', marginTop: '0.5rem' }}>
+    Start building with the WhiteBIT API.
+  </p>
+
+  <div className='flex justify-center items-center gap-8 mt-8'>
+    <a href="https://whitebit.com/settings/api" className="px-4 py-2 bg-[#EABE4D] hover:bg-[#EABE4A] rounded-xl text-black no-underline">Create API Key</a>
+    <a href="/guides/first-api-call" className="px-4 py-2 rounded-xl border border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 no-underline">Read the Docs</a>
+  </div>
+
+  <div className="border-t border-gray-200 dark:border-gray-700 mt-12"></div>
 </div>
 
 </div>

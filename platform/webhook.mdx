@@ -34,6 +34,29 @@ sidebarTitle: "Webhook"
 
 </CardGroup>
 
+## Why Webhooks?
+
+Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT account — deposits arriving, withdrawals completing, codes being applied, and refunds processing. Without webhooks, the only alternative is polling the deposit/withdrawal history endpoints repeatedly.
+
+**Webhooks vs polling:**
+
+| | Webhooks | Polling |
+|---|---|---|
+| Latency | Real-time (seconds) | Depends on polling interval |
+| Server load | Event-driven — no wasted requests | Constant requests, mostly empty |
+| Reliability | 5 retries at 10-minute intervals (50-minute coverage) | As reliable as the polling loop |
+| Recommended for | Production payment flows | Fallback during outages > 50 minutes |
+
+<Note>
+  There is no webhook replay mechanism. If the consumer server is unreachable for more than 50 minutes (5 retries x 10-minute intervals), those events are lost. Implement polling of the [deposit history](/api-reference/account-wallet/get-deposit-history) and [withdrawal history](/api-reference/account-wallet/get-withdrawal-history) endpoints as a fallback.
+</Note>
+
+**Common use cases:**
+- **Payment processing** — Detect incoming deposits and credit end users automatically
+- **Withdrawal monitoring** — Track withdrawal lifecycle from creation to completion or cancellation
+- **Code redemption** — Receive notification when a WhiteBIT Code is applied
+- **Refund handling** — Detect successful or failed refunds for reconciliation
+
 ## How to use
 
 1. Log in to whitebit.com.
@@ -229,9 +252,21 @@ Performed when deposit was canceled. Request example:
 }
 ```
 
+#### Travel Rule deposit events (EEA)
+
+For EEA users, deposits may be frozen pending Travel Rule verification. When a deposit is frozen, the webhook delivers deposit.updated events with Travel Rule-specific status codes. The end user must complete Travel Rule verification through the WhiteBIT platform UI — the partner cannot submit Travel Rule data via API.
+
+For details on Travel Rule requirements and the travelRule object for withdrawals, see [Regulatory Compliance](/institutional/compliance).
+
 Deposit status codes:
 
-- Pending - 15
+| Code | Status | Description |
+|---|---|---|
+| 15 | Pending | Deposit detected, awaiting confirmations |
+| 27 | Travel Rule Frozen | Deposit frozen — Travel Rule verification required (EEA) |
+| 28 | Travel Rule Frozen Processing | Travel Rule verification in progress (EEA) |
+
+{/* TODO: verify complete deposit status code list with engineering — codes beyond 15, 27, 28 may exist */}
 
 ### WhiteBIT withdraw from main balance
 
@@ -379,3 +414,14 @@ Triggered after the system fails to complete a refund. The system rejects the re
   "id": "uuid"
 }
 ```
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Payment Integration" icon="credit-card" href="/guides/payment-integration">
+    End-to-end guide for deposit and withdrawal processing with webhook reconciliation.
+  </Card>
+  <Card title="Security Best Practices" icon="shield" href="/best-practices/security">
+    HMAC-SHA512 signature verification, API key management, and production hardening.
+  </Card>
+</CardGroup>
