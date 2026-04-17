@@ -1,0 +1,250 @@
+---
+title: "Spot Trading Quickstart"
+description: "Place a first spot trade on WhiteBIT — check balance, create a limit order, and cancel the order — in under 5 minutes."
+sidebarTitle: "Quickstart"
+---
+
+Place a first spot trade on the WhiteBIT API — check the Trade balance, place a limit order on BTC_USDT, verify the order, and cancel the order — in under 5 minutes.
+
+## Prerequisites
+
+- A WhiteBIT account ([register](https://whitebit.com/auth/register))
+- An API key with **Trading** permission ([create one](https://whitebit.com/settings/api))
+- Funds in the **Trade** balance (transfer from Main balance if needed — see [Balances & Transfers](/concepts/balances))
+- Familiarity with HMAC-SHA512 signing — see [Authentication](/api-reference/authentication)
+
+<Warning>
+  WhiteBIT has no public testnet or sandbox. All orders execute against the live orderbook.
+  For risk-free practice, use Demo Tokens (DBTC/DUSDT) — activate from the
+  [WhiteBIT Codes page](https://whitebit.com/codes). For real-asset testing,
+  use minimum order sizes and cancel test orders after verification.
+</Warning>
+
+<Steps>
+  <Step title="Check Trade balance">
+    Verify available funds before placing an order.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        # See /api-reference/authentication for signing details.
+        curl -X POST https://api.whitebit.com/api/v4/trade-account/balance \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{"ticker":"USDT","request":"/api/v4/trade-account/balance","nonce":"1700000000000"}'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import base64
+        import hashlib
+        import hmac
+        import json
+        import time
+        import requests
+
+        API_KEY = "YOUR_API_KEY"        # Replace with actual API key
+        API_SECRET = "YOUR_SECRET"     # Replace with actual API secret
+        BASE_URL = "https://api.whitebit.com"
+
+        def send_request(path, data=None):
+            if data is None:
+                data = {}
+            data["request"] = path
+            data["nonce"] = str(int(time.time() * 1000))
+            data_json = json.dumps(data)
+            payload_b64 = base64.b64encode(data_json.encode()).decode()
+            signature = hmac.new(
+                API_SECRET.encode(), payload_b64.encode(), hashlib.sha512
+            ).hexdigest()
+            headers = {
+                "Content-Type": "application/json",
+                "X-TXC-APIKEY": API_KEY,
+                "X-TXC-PAYLOAD": payload_b64,
+                "X-TXC-SIGNATURE": signature,
+            }
+            return requests.post(BASE_URL + path, headers=headers, data=data_json).json()
+
+        # Check USDT balance
+        balance = send_request("/api/v4/trade-account/balance", {"ticker": "USDT"})
+        print(balance)
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {
+      "USDT": {
+        "available": "1000.00",
+        "freeze": "0"
+      }
+    }
+    ```
+
+    `available` = funds ready for trading. `freeze` = funds locked in active orders.
+
+    <Note>
+      The cURL examples show request structure with placeholder headers. For a runnable signing implementation, use the Python tab or the [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) library (Python, Go, PHP, Node.js, and more).
+    </Note>
+
+    For Go and PHP examples, see [SDKs](/sdks).
+  </Step>
+
+  <Step title="Place a limit order">
+    Create a limit buy order on BTC_USDT. Set the price well below the current market price to avoid immediate execution — the order remains open for safe testing.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        # Set price well below current market to prevent execution.
+        curl -X POST https://api.whitebit.com/api/v4/order/new \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{"market":"BTC_USDT","side":"buy","amount":"0.0001","price":"30000","request":"/api/v4/order/new","nonce":"1700000000000"}'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        order = send_request("/api/v4/order/new", {
+            "market": "BTC_USDT",
+            "side": "buy",
+            "amount": "0.0001",
+            "price": "30000"       # Well below market — adjust if needed
+        })
+        print(order)
+        order_id = order.get("order_id")
+        print(f"Order ID: {order_id}")
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {
+      "order_id": 12345678,
+      "client_order_id": "",
+      "market": "BTC_USDT",
+      "side": "buy",
+      "type": "limit",
+      "timestamp": 1700000000.000,
+      "amount": "0.0001",
+      "price": "30000",
+      "...": "..."
+    }
+    ```
+
+    Request fields: `market` (trading pair), `side` ("buy" or "sell"), `amount` (quantity in the base asset), `price` (limit price in the quote asset). Optional: `client_order_id` (custom identifier), `stp` (self-trade prevention mode).
+  </Step>
+
+  <Step title="Check active orders">
+    Verify the newly placed order appears in the active orders list.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/orders \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{"market":"BTC_USDT","request":"/api/v4/orders","nonce":"1700000000000"}'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        active_orders = send_request("/api/v4/orders", {"market": "BTC_USDT"})
+        print(f"Active orders: {len(active_orders)}")
+        for o in active_orders:
+            print(f"  Order {o['order_id']}: {o['side']} {o['amount']} @ {o['price']}")
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response (trimmed):**
+    ```json
+    [
+      {
+        "order_id": 12345678,
+        "market": "BTC_USDT",
+        "side": "buy",
+        "amount": "0.0001",
+        "price": "30000",
+        "...": "..."
+      }
+    ]
+    ```
+  </Step>
+
+  <Step title="Cancel the order">
+    Cancel the limit order using the `order_id` returned in Step 2.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/order/cancel \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{"market":"BTC_USDT","order_id":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        cancel = send_request("/api/v4/order/cancel", {
+            "market": "BTC_USDT",
+            "order_id": order_id
+        })
+        print(cancel)
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {
+      "order_id": 12345678,
+      "market": "BTC_USDT",
+      "side": "buy",
+      "amount": "0.0001",
+      "price": "30000",
+      "...": "..."
+    }
+    ```
+
+    The response confirms the canceled order details. The previously frozen funds return to the available Trade balance.
+
+    <Tip>
+      To verify canceled orders later, query the [order history](/api-reference/spot-trading/query-executed-order-history) endpoint.
+    </Tip>
+  </Step>
+</Steps>
+
+The Trade balance now reflects the returned funds. Explore advanced order types and automation below.
+
+<Accordion title="Signing and balance mechanics">
+  **HMAC-SHA512 signing** — Every private request includes three headers (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE`) proving authenticity without transmitting the API secret. The `nonce` field prevents replay attacks. Full signing details: [Authentication](/api-reference/authentication).
+
+  **Trade balance vs Main balance** — WhiteBIT separates funds into Main balance (deposits, withdrawals) and Trade balance (order placement). An explicit transfer moves funds between balances — the API never draws from Main balance automatically. Details: [Balances & Transfers](/concepts/balances).
+
+  **The freeze field** — When a limit order is accepted, the required funds move from `available` to `freeze` in the Trade balance. After cancellation, `freeze` returns to zero and `available` is restored.
+</Accordion>
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Margin & Futures Quickstart" icon="chart-line" href="/products/margin-futures/quickstart">
+    Open a first leveraged position with up to 100x leverage.
+  </Card>
+  <Card title="Order Types" icon="layer-group" href="/concepts/order-types">
+    Explore all 6 order types including Stop-Limit and Bulk-Limit.
+  </Card>
+  <Card title="Trading Bot Guide" icon="robot" href="/guides/building-a-trading-bot">
+    Build an automated trading system end-to-end.
+  </Card>
+</CardGroup>

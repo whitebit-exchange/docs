@@ -1,0 +1,120 @@
+---
+title: "Futures Trading"
+description: "Perpetual contracts on 270+ pairs with up to 100x leverage, Hedge Mode, and funding rate mechanics on WhiteBIT."
+sidebarTitle: "Overview"
+---
+
+Perpetual contracts on 270+ [pairs](/concepts/markets) with up to 100x leverage and Hedge Mode for simultaneous long/short positions. The Futures Trading API shares the collateral trading endpoints with Margin Trading — the perpetual pair name (e.g., `BTC_PERP`) determines routing to the futures market.
+
+## Capabilities
+
+- **Up to 100x leverage** — Adjustable per account via the [leverage endpoint](/api-reference/collateral-trading/change-collateral-account-leverage). Allowed values: 1, 2, 3, 5, 10, 20, 50, 100.
+- **Cash-settled** — profit and loss is the difference between entry and exit price; no physical delivery of the underlying asset
+- **Hedge Mode** — Hold simultaneous long and short positions on the same pair ([check mode](/api-reference/collateral-trading/collateral-account-hedge-mode), [update mode](/api-reference/collateral-trading/update-collateral-account-hedge-mode))
+- **270+ perpetual pairs** — BTC_PERP, ETH_PERP, and more
+- **Funding rates** — Periodic settlement between long and short holders ([funding history](/api-reference/collateral-trading/funding-history))
+- **USDTB bonus collateral** — Platform-granted bonus collateral token usable for futures margin (not depositable, not withdrawable)
+- **6 order types** — Limit, Market, Stop-Limit, Trigger-Market, OCO, Bulk-Limit ([details](/concepts/order-types))
+
+<Note>
+  **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
+  Margin and Futures trading. The market pair determines the product:
+  spot pairs (e.g., `BTC_USDT`) for Margin, perpetual pairs (e.g., `BTC_PERP`)
+  for Futures. All endpoints under `/api/v4/order/collateral/` and
+  `/api/v4/collateral-account/` serve both products.
+  See [Compare Trading Products](/products/compare-trading) for a full side-by-side comparison.
+</Note>
+
+<Warning>
+  WhiteBIT's demo account supports **spot trading only** — it does not support Futures or Margin
+  trading. Test all leveraged trading flows on the live API with minimum order sizes.
+  See [First API Call](/guides/first-api-call) for safe testing guidance.
+</Warning>
+
+## Who Uses This
+
+- **Hedge funds** — Delta-neutral strategies, funding rate harvesting, directional leveraged trades on perpetual contracts
+- **HFT / Prop trading firms** — High-frequency futures strategies with [colocation](/platform/colocation) (3–5 ms latency)
+- **Quantitative developers** — Programmatic position management, cross-margin optimization, automated hedging
+
+## Common Integration Patterns
+
+**Directional perpetual trading** — Open leveraged long or short positions on perpetual contracts. Set leverage via the [leverage endpoint](/api-reference/collateral-trading/change-collateral-account-leverage), place orders through the [collateral order endpoints](/api-reference/collateral-trading/overview), and monitor positions with the [open positions endpoint](/api-reference/collateral-trading/open-positions). The API returns a `liquidationPrice` field in position responses for risk monitoring.
+
+**Delta-neutral strategies** — Use [Hedge Mode](/api-reference/collateral-trading/update-collateral-account-hedge-mode) to hold simultaneous long and short positions on the same perpetual pair. Profit from funding rate differentials while maintaining market-neutral exposure. Fetch current funding rates via the [public futures endpoint](/api-reference/market-data/available-futures-markets-list) and historical rates via the [funding history endpoint](/api-reference/collateral-trading/funding-history).
+
+## Risk Mechanics
+
+### Margin Modes
+
+Futures positions operate in one of two margin modes:
+
+- **Cross Margin** — All available collateral in the account backs every open position. Higher capital efficiency, but a single losing position can affect the entire account balance.
+- **Isolated Margin** — Each position has a fixed margin allocation. Losses are capped at the isolated margin amount. Other positions and the remaining collateral balance remain unaffected.
+
+Check the current margin configuration via the [collateral account summary endpoint](/api-reference/collateral-trading/collateral-account-summary). Leverage can be adjusted using the [leverage endpoint](/api-reference/collateral-trading/change-collateral-account-leverage).
+
+### Liquidation
+
+Positions face liquidation when the maintenance margin requirement is breached. Key details:
+
+- **Mark price** is used for liquidation calculations (not last traded price) — reducing the risk of liquidation from temporary price wicks
+- **Partial liquidation** is the primary mechanism: only a portion (e.g., 20–30%) of the position is closed first to restore margin. If partial liquidation is insufficient, full liquidation follows.
+- **Liquidation sequence:** margin positions first (smallest to largest initial margin value) → crypto borrowings → futures positions last
+- **Maintenance Margin Rate (MMR):** 3% for leverage 1x–10x. Per-market leverage limits and collateral brackets: [collateral brackets page](https://whitebit.com/trading-data/collateral-brackets)
+- The API returns a `liquidationPrice` field in position responses — monitor the liquidation price alongside collateral balance
+- When a position is liquidated, the collateral allocated to the position is lost
+
+> **Coming soon:** Detailed mark price methodology and liquidation price formulas will be published here. For institutional inquiries, contact institutional@whitebit.com.
+
+### Funding Rates
+
+Perpetual contracts use a funding rate mechanism to keep the contract price aligned with the spot index price:
+
+- **Settlement occurs periodically** — Long holders pay short holders (or vice versa) based on the funding rate
+- **Positive rate** = longs pay shorts (contract price above index). **Negative rate** = shorts pay longs.
+- Fetch the current predicted funding rate for any pair via `GET /api/v4/public/futures`
+- Fetch historical funding rates via `GET /api/v4/public/funding-history/{market}`
+- Fetch account-specific funding payments via `POST /api/v4/collateral-account/funding-history`
+
+### USDTB
+
+USDTB is a platform-granted bonus collateral token:
+- Usable as margin for futures positions
+- Cannot be deposited or withdrawn — granted through platform promotions or programs
+- Appears in the collateral account balance alongside USDT and other collateral assets
+
+## Technical Overview
+
+| Detail | Value |
+|--------|-------|
+| Endpoints | 19 shared with Margin (all `POST`, all authenticated) |
+| Authentication | HMAC-SHA512 ([guide](/api-reference/authentication)) |
+| Rate limits | Vary per endpoint ([details](/api-reference/rate-limits)) |
+| Pair format | Perpetual pairs: `BTC_PERP`, `ETH_PERP`, etc. |
+
+Endpoint categories (shared with Margin Trading):
+- **Account & Balance** — Balance, balance summary, account summary, leverage, hedge mode (6 endpoints)
+- **Order Management** — Limit, bulk-limit, market, stop-limit, trigger-market, OCO, cancel (7 endpoints)
+- **Order Queries** — Conditional orders, OCO orders (2 endpoints)
+- **Position Management** — Open positions, close position, position history, funding history (4 endpoints)
+
+The pair name determines whether an order is Margin or Futures. Perpetual pairs (e.g., `BTC_PERP`) route to Futures. Spot pairs (e.g., `BTC_USDT`) route to Margin.
+
+For full endpoint documentation, see the [Collateral Trading API Reference](/api-reference/collateral-trading/overview).
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Margin & Futures Quickstart" icon="rocket" href="/products/margin-futures/quickstart">
+    Open a first futures position in 5 minutes.
+  </Card>
+  <Card title="Margin Trading" icon="chart-line" href="/products/margin/overview">
+    Compare with leveraged spot pairs — up to 10x leverage.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/collateral-trading/overview">
+    Full endpoint documentation for all 19 collateral trading endpoints.
+  </Card>
+</CardGroup>

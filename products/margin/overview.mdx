@@ -1,0 +1,96 @@
+---
+title: "Margin Trading"
+description: "Leveraged trading on spot pairs with up to 10x leverage using a collateral account on WhiteBIT."
+sidebarTitle: "Overview"
+---
+
+Leveraged trading on [spot pairs](/concepts/markets) with up to 10x leverage using a collateral account. Margin Trading provides access to the same liquid spot markets (e.g., BTC_USDT, ETH_USDT) with amplified exposure through borrowed funds.
+
+## Capabilities
+
+- **Up to 10x leverage** — Adjustable per account via the [leverage endpoint](/api-reference/collateral-trading/change-collateral-account-leverage)
+- **Isolated Margin mode** — Limit risk to the margin allocated to a specific position, preventing cross-position liquidation cascades
+- **6 order types** — Limit, Market, Stop-Limit, Trigger-Market, OCO, Bulk-Limit ([details](/concepts/order-types))
+- **Bulk orders** — Place up to 20 collateral limit orders in a single call ([endpoint](/api-reference/collateral-trading/collateral-bulk-limit-order))
+- **Position management** — Open, monitor, and close positions programmatically ([open positions](/api-reference/collateral-trading/open-positions), [close](/api-reference/collateral-trading/close-position))
+
+<Note>
+  **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
+  Margin and Futures trading. The market pair determines the product:
+  spot pairs (e.g., `BTC_USDT`) for Margin, perpetual pairs (e.g., `BTC_PERP`)
+  for Futures. All endpoints under `/api/v4/order/collateral/` and
+  `/api/v4/collateral-account/` serve both products.
+  See [Compare Trading Products](/products/compare-trading) for a full side-by-side comparison.
+</Note>
+
+## Who Uses This
+
+- **Hedge funds** — Hedging spot holdings or amplifying directional exposure with controlled risk
+- **Prop trading firms** — Leveraged strategies on liquid spot pairs with isolated margin for risk containment
+- **Experienced algo traders** — Programmatic margin management through the collateral account API
+
+## Common Integration Patterns
+
+**Hedging** — Open opposing margin positions to offset risk on existing spot holdings. For example, short BTC_USDT on margin while holding BTC in a spot wallet. Use the [collateral account balance](/api-reference/collateral-trading/collateral-account-balance) endpoint to monitor margin utilization.
+
+**Leveraged directional trading** — Amplify exposure with controlled risk via isolated margin. Set leverage via the [leverage endpoint](/api-reference/collateral-trading/change-collateral-account-leverage), place orders, and monitor positions through the [open positions endpoint](/api-reference/collateral-trading/open-positions). The API returns a `liquidationPrice` field in position responses for risk monitoring.
+
+## Risk Context
+
+**Borrowed funds fee:** A commission is charged for using borrowed funds — only applied when an order is at least partially executed. Unexecuted orders incur no borrowing fee. See the [trading fees page](https://whitebit.com/trading-data/trading-fees) for the current rate.
+
+Liquidation can occur when the maintenance margin threshold is breached. Key details:
+
+- **Partial liquidation** is the primary mechanism: only a portion (e.g., 20–30%) of the position is closed first to restore margin. If partial liquidation is insufficient, full liquidation follows.
+- **Liquidation sequence:** margin positions first (smallest to largest initial margin value) → crypto borrowings → futures positions last
+- **Maintenance Margin Rate (MMR):** 3% for leverage 1x–10x. Per-market leverage limits and collateral brackets: [collateral brackets page](https://whitebit.com/trading-data/collateral-brackets)
+- The API returns a `liquidationPrice` field in position responses — monitor the liquidation price alongside the collateral account balance to manage risk
+
+> **Coming soon:** Detailed mark price methodology and liquidation price formulas will be published here. For institutional inquiries, contact institutional@whitebit.com.
+
+<Tip>
+  **WBT holder benefit:** Holding WBT (WhiteBIT Token) can reduce the maker commission by up to
+  100% on margin orders. See the [VIP program](https://whitebit.com/vip-program) for current tier details.
+</Tip>
+
+<Note>
+  **Portfolio Margin** is available for institutional clients with a minimum 200,000 USDT collateral balance.
+  Portfolio Margin provides up to 10x leverage with portfolio-level risk assessment.
+  Contact [institutional@whitebit.com](mailto:institutional@whitebit.com) or see the
+  [Institutional Overview](/institutional/overview) for details.
+</Note>
+
+## Technical Overview
+
+| Detail | Value |
+|--------|-------|
+| Endpoints | 19 shared with Futures (all `POST`, all authenticated) |
+| Authentication | HMAC-SHA512 ([guide](/api-reference/authentication)) |
+| Rate limits | Vary per endpoint ([details](/api-reference/rate-limits)) |
+| Pair format | Spot pairs: `BTC_USDT`, `ETH_USDT`, etc. |
+
+Endpoint categories (shared with Futures Trading):
+- **Account & Balance** — Balance, balance summary, account summary, leverage, hedge mode (6 endpoints)
+- **Order Management** — Limit, bulk-limit, market, stop-limit, trigger-market, OCO, cancel (7 endpoints)
+- **Order Queries** — Conditional orders, OCO orders (2 endpoints)
+- **Position Management** — Open positions, close position, position history, funding history (4 endpoints)
+
+The pair name determines whether an order is Margin or Futures. Spot pairs (e.g., `BTC_USDT`) route to Margin. Perpetual pairs (e.g., `BTC_PERP`) route to Futures.
+
+For full endpoint documentation, see the [Collateral Trading API Reference](/api-reference/collateral-trading/overview).
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Margin & Futures Quickstart" icon="rocket" href="/products/margin-futures/quickstart">
+    Open a first leveraged position in 5 minutes.
+  </Card>
+  <Card title="Futures Trading" icon="chart-candlestick" href="/products/futures/overview">
+    Compare with perpetual contracts — up to 100x leverage and Hedge Mode.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/collateral-trading/overview">
+    Full endpoint documentation for all 19 collateral trading endpoints.
+  </Card>
+</CardGroup>

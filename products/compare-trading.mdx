@@ -1,0 +1,56 @@
+---
+title: "Compare Trading Products"
+description: "Choose between Spot, Margin, and Futures trading on the WhiteBIT API — use case guide, capability comparison, and API routing reference."
+sidebarTitle: "Compare Products"
+---
+
+Not sure which trading product to integrate? Use the comparison below to match the target use case to the right product, then go directly to that product's overview.
+
+## Which product is right for this use case?
+
+- **No leverage needed** — Use [Spot Trading](/products/spot/overview). Direct asset ownership, no liquidation risk, 750+ pairs.
+- **Leverage on spot pairs, simpler risk model** — Use [Margin Trading](/products/margin/overview). Up to 10x leverage on spot pairs (e.g., `BTC_USDT`). No funding rates, no Hedge Mode.
+- **Perpetual contracts, higher leverage, funding rate mechanics** — Use [Futures Trading](/products/futures/overview). Up to 100x leverage on perpetual pairs (e.g., `BTC_PERP`), Hedge Mode for simultaneous long/short positions, periodic funding rate settlement.
+
+## Comparison
+
+| | Spot | Margin | Futures |
+|---|---|---|---|
+| Instrument type | Spot pairs (`BTC_USDT`) | Spot pairs (`BTC_USDT`) | Perpetual pairs (`BTC_PERP`) |
+| Leverage | None | Up to 10x | Up to 100x |
+| Liquidation risk | No | Yes | Yes |
+| Maintenance Margin Rate | — | 3% for 1x–10x | 3% for 1x–10x |
+| Hedge Mode | No | No | Yes — long + short on the same pair simultaneously |
+| Funding rates | No | No | Yes — periodic settlement between longs and shorts |
+| Available pairs | 750+ | Spot pairs with collateral enabled | 270+ perpetual pairs |
+| Balance required | [Trade balance](/concepts/balances) | [Collateral balance](/concepts/balances) | [Collateral balance](/concepts/balances) |
+| API endpoints | Spot Trading (`/api/v4/order/new`, etc.) | Collateral (`/api/v4/order/collateral/`) | Same collateral endpoints — pair name routes the order |
+| Kill-switch | Yes | No | No |
+| Bulk orders | Yes (up to 20 per call) | Yes (up to 20 per call) | Yes (up to 20 per call) |
+
+## API routing: Margin vs Futures
+
+Margin Trading and Futures Trading share the same API endpoints. The **pair name** is the only differentiator:
+
+- Spot pair (e.g., `BTC_USDT`) → **Margin Trading**
+- Perpetual pair (e.g., `BTC_PERP`) → **Futures Trading**
+
+All endpoints under `/api/v4/order/collateral/` and `/api/v4/collateral-account/` serve both products. There is no separate "margin" or "futures" parameter in the request body — the market pair name alone determines which product is used.
+
+<Note>
+  Both Margin and Futures draw from the same **Collateral balance**. Leverage is also configured account-wide via a single endpoint — it applies to both products simultaneously.
+</Note>
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/products/spot/overview">
+    750+ pairs, 6 order types, kill-switch, bulk orders. No leverage.
+  </Card>
+  <Card title="Margin Trading" icon="chart-line" href="/products/margin/overview">
+    Up to 10x leverage on spot pairs using the Collateral account.
+  </Card>
+  <Card title="Futures Trading" icon="chart-candlestick" href="/products/futures/overview">
+    Perpetual contracts up to 100x, Hedge Mode, and funding rates.
+  </Card>
+</CardGroup>

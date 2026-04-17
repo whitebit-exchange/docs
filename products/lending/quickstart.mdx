@@ -1,0 +1,234 @@
+---
+title: "Crypto Lending Quickstart"
+description: "Create a first Flex lending investment, check earnings, and withdraw -- in under 5 minutes."
+sidebarTitle: "Quickstart"
+---
+
+Create a Flex lending investment, monitor earnings, and withdraw funds -- all via API.
+
+## Prerequisites
+
+- A WhiteBIT account with completed KYC ([register](https://whitebit.com/auth/register))
+- An API key with **Trade** permission ([create key](https://whitebit.com/settings/api))
+- Funds in [Main balance](/concepts/balances) (the lending API operates on Main balance, not Trade balance)
+- HMAC-SHA512 signing configured ([authentication guide](/api-reference/authentication))
+- `curl` and `jq` installed (for command-line examples)
+
+<Note>
+  The quickstart uses **Flex plan** endpoints, which are available to all authenticated users.
+  Fixed plan endpoints require B2B partner permissions -- see the [overview](/products/lending/overview) for details.
+</Note>
+
+<Steps>
+  <Step title="Fetch available Flex plans">
+    Retrieve the list of available Flex plans to find a plan ID for investment.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/main-account/smart-flex/plans \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{"request": "/api/v4/main-account/smart-flex/plans", "nonce": "1709340000000"}'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests, json, hmac, hashlib, base64, time
+
+        API_KEY = "YOUR_API_KEY"
+        API_SECRET = "YOUR_SECRET"
+        BASE_URL = "https://api.whitebit.com"
+
+        def make_request(endpoint, body):
+            nonce = str(int(time.time() * 1000))
+            body["request"] = endpoint
+            body["nonce"] = nonce
+            data_json = json.dumps(body)
+            payload = base64.b64encode(data_json.encode())
+            signature = hmac.new(
+                API_SECRET.encode(), payload, hashlib.sha512
+            ).hexdigest()
+            headers = {
+                "Content-Type": "application/json",
+                "X-TXC-APIKEY": API_KEY,
+                "X-TXC-PAYLOAD": payload.decode(),
+                "X-TXC-SIGNATURE": signature,
+            }
+            return requests.post(f"{BASE_URL}{endpoint}", headers=headers, data=data_json)
+
+        # Fetch available Flex plans
+        response = make_request("/api/v4/main-account/smart-flex/plans", {})
+        plans = response.json()
+        print(json.dumps(plans, indent=2))
+        ```
+      </Tab>
+    </Tabs>
+
+    For Go and PHP examples, see [SDKs](/sdks).
+
+    **Expected response:**
+    ```json
+    [
+      {
+        "id": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
+        "ticker": "USDT",
+        "minInvestment": "10.0",
+        "maxInvestment": "100000.0",
+        "maxRate": "0.15"
+      },
+      "..."
+    ]
+    ```
+
+    Save the `id` value from a plan to use in the next step.
+  </Step>
+
+  <Step title="Create a Flex investment">
+    Invest into the selected Flex plan using the plan ID from Step 1.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/main-account/smart-flex/investments/invest \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
+            "amount": "100.00",
+            "withReinvest": true,
+            "request": "/api/v4/main-account/smart-flex/investments/invest",
+            "nonce": "1709340000001"
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # Create a Flex investment (use plan ID from Step 1)
+        response = make_request("/api/v4/main-account/smart-flex/investments/invest", {
+            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
+            "amount": "100.00",
+            "withReinvest": True,
+        })
+        print(response.json())
+        ```
+      </Tab>
+    </Tabs>
+
+    **Required fields:** `plan` (UUID from Step 1), `amount` (string). **Optional:** `withReinvest` (boolean, enables auto-reinvestment).
+
+    **Expected response:**
+    ```json
+    {
+      "data": {
+        "transaction_id": "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Check investment status">
+    Verify the investment was created and check the current investment status.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/main-account/smart-flex/investments \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{"request": "/api/v4/main-account/smart-flex/investments", "nonce": "1709340000002"}'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # Check active investments
+        response = make_request("/api/v4/main-account/smart-flex/investments", {})
+        investments = response.json()
+        print(json.dumps(investments, indent=2))
+        ```
+      </Tab>
+    </Tabs>
+
+    **Expected response:**
+    ```json
+    {
+      "data": [
+        {
+          "id": "inv_7e2d9c3b-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
+          "planId": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
+          "currency": "USDT",
+          "invested": "100.00",
+          "withAutoReinvest": true,
+          "status": 1,
+          "..."
+        }
+      ],
+      "..."
+    }
+    ```
+  </Step>
+
+  <Step title="Withdraw from investment">
+    Withdraw funds from the Flex investment back to Main balance.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://api.whitebit.com/api/v4/main-account/smart-flex/investments/withdraw \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
+            "amount": "50.00",
+            "request": "/api/v4/main-account/smart-flex/investments/withdraw",
+            "nonce": "1709340000003"
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # Withdraw from Flex investment (partial withdrawal)
+        response = make_request("/api/v4/main-account/smart-flex/investments/withdraw", {
+            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
+            "amount": "50.00",
+        })
+        print(response.json())
+        ```
+      </Tab>
+    </Tabs>
+
+    **Required fields:** `plan` (UUID), `amount` (string). Partial withdrawals are supported. To withdraw everything, use the full invested amount.
+
+    **Expected response:**
+    ```json
+    {
+      "data": {
+        "transaction_id": "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+After completing Step 4, the withdrawn amount returns to the [Main balance](/concepts/balances). Verify by checking the [Main balance endpoint](/api-reference/account-wallet/overview).
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Crypto Lending Overview" icon="book-open" href="/products/lending/overview">
+    Plan types, capabilities, and integration patterns.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/account-wallet/overview">
+    Full endpoint documentation for all 13 lending endpoints.
+  </Card>
+</CardGroup>
+
+For Go and PHP examples, see [SDKs](/sdks).

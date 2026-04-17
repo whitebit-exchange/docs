@@ -4,6 +4,10 @@ sidebarTitle: "Rate limits and errors"
 description: "Reference for REST API rate limits, error formats, authentication error codes, and best practices."
 ---
 
+import { ConceptTable } from '/snippets/ConceptTable.jsx';
+import { scopeLimits, httpStatusCodes } from '/snippets/concept-data/rate-limits.jsx';
+import { authErrors } from '/snippets/concept-data/error-codes.jsx';
+
 Reference for REST API rate limits, error formats, and error codes.
 
 ## REST API rate limits
@@ -52,31 +56,37 @@ All v4 endpoints return errors as JSON. The format differs between public and pr
 
 The following errors are returned by private REST endpoints when the request signature or credentials are invalid.
 
-| Error message | Cause | Resolution |
-|---------------|-------|------------|
-| "Too many requests." | Nonce value is not greater than previous request | Use incrementing nonce values |
-| "This action is unauthorized. Enable your key in API settings" | Using a disabled API key | Enable the key in API settings or check IP restrictions |
-| "You don't have permission to use this endpoint." | Endpoint access is restricted | Update endpoint access in API key settings |
-| "Invalid payload" | Payload does not match the decoded value | Ensure proper base64 encoding of the request body |
-| "Unauthorized request." | Request signed incorrectly | Verify the signature creation process |
-| "Nonce not provided." | Missing nonce in request body | Include nonce in all requests |
-| "Your nonce is more than 5 seconds lesser than the current nonce" | Invalid timestamp when using nonceWindow | Use current Unix timestamp in milliseconds |
-| "Invalid nonceWindow." | nonceWindow is not a boolean | Set nonceWindow to `true` or `false` |
-| "Request not provided." | Missing request path in body | Include the request path in all requests |
+<ConceptTable
+  columns={[
+    { key: 'message', header: 'Error message', width: 'minmax(200px, 1.5fr)' },
+    { key: 'cause', header: 'Cause', width: '1fr' },
+    { key: 'resolution', header: 'Resolution', width: '1fr' },
+  ]}
+  rows={authErrors}
+/>
 
 ## HTTP status codes
 
-| Status | Meaning |
-|--------|---------|
-| `200` | Success |
-| `400` | Bad request — invalid parameters |
-| `401` | Unauthorized — missing or invalid authentication |
-| `403` | Forbidden — insufficient permissions |
-| `404` | Not found — endpoint does not exist |
-| `429` | Too Many Requests — rate limit exceeded |
-| `500` | Internal server error — retry with backoff |
+<ConceptTable
+  columns={[
+    { key: 'status', header: 'Status', width: 'auto' },
+    { key: 'meaning', header: 'Meaning', width: '1fr' },
+  ]}
+  rows={httpStatusCodes}
+  codeColumns={['status']}
+/>
 
 ## Best practices
+
+### Retry strategy by error type
+
+| Error type | Retry? | Strategy |
+|-----------|--------|----------|
+| Rate limit (429) | Yes | Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter. |
+| Authentication error | No | Fix the root cause: check API key validity, signature computation, and header names. |
+| Validation error | No | Fix the request parameters. Read the `errors` field for field-level feedback. |
+| Insufficient balance | No | Check the account balance and wait for pending operations to settle. |
+| Server error (5xx) | Yes | Exponential backoff. If persistent, check platform status or contact support. |
 
 ### Exponential backoff
 
@@ -89,6 +99,13 @@ Combine multiple operations when the API supports batch endpoints. For example, 
 ### Nonce management
 
 For private endpoints, ensure each request uses a unique, incrementing nonce. Use Unix timestamp in milliseconds when `nonceWindow` is enabled. Avoid concurrent requests with the same nonce.
+
+### Reduce REST polling
+
+- **Use WebSocket for real-time data** — Subscribe to price, orderbook, and balance channels instead of polling REST endpoints. One WebSocket connection replaces hundreds of REST requests. See [WebSocket Quickstart](/guides/websocket-quickstart).
+- **Cache public data** — Market info, asset statuses, and fee structures change infrequently. Cache responses and refresh periodically (for example, every 60 seconds).
+- **Use conditional requests** — Check local state before making API calls. Avoid redundant balance checks when no trades have executed.
+- **Distribute requests** — Spread requests evenly across the 10-second window instead of sending bursts.
 
 ## Related resources
 

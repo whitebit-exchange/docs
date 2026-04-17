@@ -1,0 +1,143 @@
+---
+title: "Security Best Practices"
+description: "API key management, IP whitelisting, secret storage, key rotation, and webhook verification for WhiteBIT API integrations."
+sidebarTitle: "Security"
+---
+
+Secure API integration requires careful management of credentials, network access, and verification mechanisms. The following practices apply to all WhiteBIT API integrations regardless of the use case.
+
+## API key management
+
+Create separate API keys for each application, service, or environment.
+
+- **One key per application:** Do not share a single API key across multiple applications or services. If one application is compromised, revoke the compromised key without affecting other applications.
+- **Minimal permissions:** Assign the minimum permission set required:
+  - `Info + Trading` — for applications that only read data and place trades
+  - `Info + Trading + Deposit + Withdraw` — only for applications that need to move funds
+- **No client-side keys:** Never embed API secrets in client-side code (browser JavaScript, mobile apps). API secrets must remain server-side only.
+- **Environment isolation:** Use separate API keys for each application or service (e.g., one for the trading bot, one for the monitoring dashboard, one for the withdrawal service).
+
+<Warning>
+  Never expose API secrets in client-side code, version control, or log files. Store secrets in environment variables or a dedicated secrets manager.
+</Warning>
+
+## IP whitelisting
+
+Restrict API key usage to known IP addresses using the IP whitelist.
+
+- Each API key supports up to **50 IP addresses** in the whitelist
+- Configure the whitelist in the API key settings at [whitebit.com/settings/api](https://whitebit.com/settings/api)
+- **Production recommendation:** Always enable IP whitelisting for production API keys
+- If the application runs on dynamic infrastructure (e.g., autoscaling), whitelist the NAT gateway or load balancer IP range
+- IP whitelisting is the primary defense against stolen API credentials
+
+## Secret storage
+
+Store API secrets using environment variables or a dedicated secrets management service.
+
+- **Environment variables:** Store the API secret in an environment variable (e.g., `WHITEBIT_API_SECRET`); load at runtime
+- **Secrets managers:** For production deployments, use a dedicated secrets manager (AWS Secrets Manager, HashiCorp Vault, GCP Secret Manager, Azure Key Vault)
+- **Never commit secrets:** Add API key files and `.env` files to `.gitignore`
+- **No hardcoded secrets:** Secrets must not appear in source code, configuration files committed to version control, Docker images, or CI/CD logs
+
+## Key rotation
+
+Rotate API keys regularly and monitor for inactive key auto-deactivation.
+
+- **Auto-deactivation:** API keys that remain unused for **14 consecutive days** are automatically deactivated
+- **Rotation strategy:**
+  1. Create a new API key with the same permissions and IP whitelist
+  2. Update the application configuration to use the new key
+  3. Verify the application works with the new key
+  4. Deactivate (delete) the old key
+- **Zero-downtime rotation:** If the application supports multiple keys, configure the new key alongside the old key before deactivating the old one
+- Monitor key activity to detect unauthorized usage patterns
+
+## Two-factor authentication
+
+Two-factor authentication (2FA) is required for API key creation and management.
+
+- 2FA must be enabled on the WhiteBIT account before creating API keys
+- 2FA protects against unauthorized key creation even if account credentials are compromised
+- Recommendation: use a hardware security key or authenticator app (not SMS)
+
+## Webhook HMAC verification
+
+Verify the HMAC-SHA512 signature on every incoming webhook to confirm the request originated from WhiteBIT.
+
+WhiteBIT signs all webhook payloads using HMAC-SHA512.
+
+**Verification headers:**
+
+| Header | Content |
+|--------|---------|
+| `X-TXC-APIKEY` | WhiteBIT webhook API key |
+| `X-TXC-PAYLOAD` | Base64-encoded body data |
+| `X-TXC-SIGNATURE` | `hex(HMAC_SHA512(payload, key=api_secret))` |
+
+**Verification algorithm:**
+
+1. Read the raw request body
+2. Base64-encode the body — compare with the `X-TXC-PAYLOAD` header
+3. Compute `HMAC_SHA512(base64_encoded_body, api_secret)`
+4. Convert to hex string — compare with the `X-TXC-SIGNATURE` header
+5. If the signature does not match, reject the request (return non-200 status)
+
+```python
+import hashlib
+import hmac
+import base64
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+WEBHOOK_SECRET = "YOUR_WEBHOOK_SECRET"
+
+@app.route("/webhook", methods=["POST"])
+def handle_webhook():
+    raw_body = request.get_data()
+
+    # Base64-encode the raw body
+    encoded_payload = base64.b64encode(raw_body).decode()
+
+    # Verify the payload header matches
+    expected_payload = request.headers.get("X-TXC-PAYLOAD", "")
+    if encoded_payload != expected_payload:
+        return jsonify({"error": "Payload mismatch"}), 400
+
+    # Compute the HMAC-SHA512 signature
+    computed_signature = hmac.new(
+        WEBHOOK_SECRET.encode(),
+        encoded_payload.encode(),
+        hashlib.sha512,
+    ).hexdigest()
+
+    # Compare with the signature header
+    received_signature = request.headers.get("X-TXC-SIGNATURE", "")
+    if not hmac.compare_digest(computed_signature, received_signature):
+        return jsonify({"error": "Invalid signature"}), 401
+
+    # Process the verified webhook
+    data = request.get_json()
+    print(f"Verified webhook: {data.get('method')} — ID: {data.get('id')}")
+    return jsonify({"status": "ok"}), 200
+```
+
+See [Webhooks](/platform/webhook) for the full webhook setup and event types.
+
+## Environment isolation
+
+Separate API credentials by application function to limit the blast radius of any single compromise.
+
+<Warning>
+  WhiteBIT does not offer a public testnet or sandbox environment. All API calls execute against the live exchange. Use separate API keys per application and test with minimum order amounts.
+</Warning>
+
+Create distinct API keys for distinct concerns:
+
+| Application | Permissions | Rationale |
+|------------|-------------|-----------|
+| Trading application | `Info + Trading` | Cannot move funds off the exchange |
+| Fund management | `Info + Trading + Deposit + Withdraw` | Full access required for deposits/withdrawals |
+| Monitoring / analytics | `Info + Trading` | Read-only usage with no trade execution |
+
+Each key has a dedicated IP whitelist — configure the whitelist to match the application's infrastructure. Revoking one key does not affect other applications.

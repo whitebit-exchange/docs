@@ -1,0 +1,700 @@
+---
+title: "Trading Bot"
+description: "End-to-end guide for building an automated trading bot on the WhiteBIT API — from market data ingestion to order execution and risk management."
+sidebarTitle: "Trading Bot"
+---
+
+Build an automated trading bot on the WhiteBIT API. The guide covers the full loop: market data ingestion, order placement, fill monitoring via WebSocket, error handling, reconnection recovery, and a grid bot example. All code examples use Python with the `requests` and `websockets` libraries.
+
+## Prerequisites
+
+- A WhiteBIT account ([register](https://whitebit.com/auth/register))
+- An API key with **Trading** permission ([create one](https://whitebit.com/settings/api))
+- Funds in the **Trade** balance — transfer from Main balance if needed (see [Balances & Transfers](/concepts/balances))
+- Familiarity with HMAC-SHA512 signing — see [Authentication](/api-reference/authentication)
+- Python 3.7+ with `requests` and `websockets` packages installed
+
+<Warning>
+  WhiteBIT has no public testnet or sandbox. All orders execute against the live
+  orderbook. For risk-free testing, use Demo Tokens (DBTC/DUSDT) — activate from
+  the [WhiteBIT Codes page](https://whitebit.com/codes). Test with the
+  `DBTC_DUSDT` market pair before switching to real assets.
+</Warning>
+
+## Architecture overview
+
+A trading bot operates as a continuous loop:
+
+```text
+┌─────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  Market Data     │────▶│  Signal / Logic   │────▶│  Order Execution │
+│  (WS + REST)     │     │  (Strategy)       │     │  (REST API)      │
+└─────────────────┘     └──────────────────┘     └──────────────────┘
+        ▲                                                 │
+        │           ┌──────────────────┐                  │
+        └───────────│  Fill Monitoring  │◀─────────────────┘
+                    │  (WebSocket)      │
+                    └──────────────────┘
+```
+
+1. **Market data** — receive prices and orderbook updates via WebSocket (or REST polling for lower-frequency strategies)
+2. **Signal generation** — apply strategy logic to determine when and what to trade
+3. **Order execution** — place orders via REST API (single or bulk)
+4. **Fill monitoring** — track order fills and state changes via WebSocket
+5. **Position management** — update internal state, replace filled orders, manage risk
+
+Signal generation (step 2) is strategy-specific. The grid bot example at the end of the guide demonstrates one concrete strategy. The remaining sections cover the infrastructure around the trading loop.
+
+## Market data ingestion
+
+### REST polling
+
+For strategies that do not require sub-second data, poll market data via REST:
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    # Fetch ticker data for BTC_USDT
+    curl -X GET "https://api.whitebit.com/api/v4/public/ticker"
+
+    # Fetch orderbook for BTC_USDT (depth: 20 levels)
+    curl -X GET "https://api.whitebit.com/api/v4/public/orderbook/BTC_USDT?limit=20"
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import requests
+
+    BASE_URL = "https://api.whitebit.com"
+
+    # Fetch ticker data
+    ticker = requests.get(f"{BASE_URL}/api/v4/public/ticker").json()
+    btc_price = ticker.get("BTC_USDT", {})
+    print(f"BTC_USDT last price: {btc_price.get('last_price')}")
+
+    # Fetch orderbook
+    orderbook = requests.get(
+        f"{BASE_URL}/api/v4/public/orderbook/BTC_USDT",
+        params={"limit": 20}
+    ).json()
+    best_bid = orderbook["bids"][0] if orderbook.get("bids") else None
+    best_ask = orderbook["asks"][0] if orderbook.get("asks") else None
+    print(f"Best bid: {best_bid}, Best ask: {best_ask}")
+    ```
+  </Tab>
+</Tabs>
+
+For Go and PHP examples, see [SDKs](/sdks).
+
+**Endpoints:**
+- [`GET /api/v4/public/ticker`](/api-reference/market-data/market-activity) — 24h ticker statistics for all markets
+- [`GET /api/v4/public/orderbook/{market}`](/api-reference/market-data/orderbook) — orderbook snapshot with configurable depth
+
+### WebSocket streaming
+
+For real-time data, subscribe to WebSocket market streams:
+
+| Channel | Subscribe method | Data |
+|---------|-----------------|------|
+| [Last Price](/websocket/market-streams/lastprice) | `lastprice_subscribe` | Price updates on every trade |
+| [Depth](/websocket/market-streams/depth) | `depth_subscribe` | Orderbook depth updates |
+
+```python
+import json, asyncio, websockets
+
+async def stream_market_data():
+    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+        # Subscribe to last price updates
+        await ws.send(json.dumps({
+            "id": 1,
+            "method": "lastprice_subscribe",
+            "params": ["BTC_USDT"]
+        }))
+        # Subscribe to orderbook depth
+        await ws.send(json.dumps({
+            "id": 2,
+            "method": "depth_subscribe",
+            "params": ["BTC_USDT", 20, "0"]
+        }))
+
+        async for message in ws:
+            data = json.loads(message)
+            method = data.get("method")
+            if method == "lastprice_update":
+                print(f"Price: {data['params']}")
+            elif method == "depth_update":
+                print(f"Orderbook update: {len(data['params'][1].get('bids', []))} bids")
+```
+
+See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setup and authentication.
+
+## Order placement
+
+All private endpoint examples in the guide use the following `send_request` helper for HMAC-SHA512 signing:
+
+```python
+import base64, hashlib, hmac, json, time, requests
+
+API_KEY = "YOUR_API_KEY"
+API_SECRET = "YOUR_API_SECRET"
+BASE_URL = "https://api.whitebit.com"
+
+def send_request(path, data=None):
+    if data is None:
+        data = {}
+    data["request"] = path
+    data["nonce"] = str(int(time.time() * 1000))
+    data_json = json.dumps(data)
+    payload_b64 = base64.b64encode(data_json.encode()).decode()
+    signature = hmac.new(
+        API_SECRET.encode(), payload_b64.encode(), hashlib.sha512
+    ).hexdigest()
+    headers = {
+        "Content-Type": "application/json",
+        "X-TXC-APIKEY": API_KEY,
+        "X-TXC-PAYLOAD": payload_b64,
+        "X-TXC-SIGNATURE": signature,
+    }
+    return requests.post(BASE_URL + path, headers=headers, data=data_json).json()
+```
+
+See [Authentication](/api-reference/authentication) for the full signing walkthrough.
+
+### Single order
+
+Place a limit order using the order creation endpoint:
+
+**Endpoint:** [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order)
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.whitebit.com/api/v4/order/new \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
+      -d '{"market":"BTC_USDT","side":"buy","amount":"0.001","price":"60000","request":"/api/v4/order/new","nonce":"1700000000000"}'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    order = send_request("/api/v4/order/new", {
+        "market": "BTC_USDT",
+        "side": "buy",
+        "amount": "0.001",
+        "price": "60000"
+    })
+    print(f"Order placed: {order.get('order_id')}")
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  For bot integrations, include a `client_order_id` to map fills back to
+  internal strategy state without depending on server-assigned `order_id`.
+  Custom identifiers survive reconnections and simplify order reconciliation.
+  See [Client Order ID](/guides/client-order-id) for usage patterns.
+</Note>
+
+### Bulk orders
+
+Place up to 20 limit orders in a single request — significantly reducing round trips for multi-order strategies.
+
+**Endpoint:** [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order)
+
+```python
+# Place 5 buy orders at descending prices
+orders = [
+    {"side": "buy", "amount": "0.001", "price": str(60000 - i * 100)}
+    for i in range(5)
+]
+result = send_request("/api/v4/order/bulk", {
+    "market": "BTC_USDT",
+    "orders": orders
+})
+
+# Handle partial failures — some orders may succeed while others fail
+for i, order_result in enumerate(result):
+    if "order_id" in order_result:
+        print(f"Order {i}: placed (ID {order_result['order_id']})")
+    else:
+        print(f"Order {i}: failed — {order_result.get('message', 'unknown error')}")
+```
+
+<Note>
+  The bulk endpoint accepts up to **20 limit orders** per request. All orders in a batch must target the same market pair. Partial failures are possible — always check each order result individually.
+</Note>
+
+## Kill-switch setup
+
+The kill-switch automatically cancels all active orders after a configurable timeout. The kill-switch is a critical safety mechanism for unattended bots — if the bot process crashes or loses connectivity, the kill-switch prevents stale orders from executing.
+
+**Endpoints:**
+- [`POST /api/v4/order/kill-switch`](/api-reference/spot-trading/sync-kill-switch-timer) — activate or refresh the timer
+- [`POST /api/v4/order/kill-switch/status`](/api-reference/spot-trading/status-kill-switch-timer) — check current timer state
+
+### Activate kill-switch
+
+```python
+# Activate kill-switch with 60-second timeout
+ks = send_request("/api/v4/order/kill-switch", {
+    "market": "BTC_USDT",
+    "timeout": 60  # seconds (valid range: 5–600)
+})
+print(f"Kill-switch active, expires at: {ks.get('timeout')}")
+```
+
+### Heartbeat refresh loop
+
+The bot must refresh the kill-switch before the timer expires. If the bot fails to refresh, all orders cancel automatically.
+
+```python
+import threading
+
+def kill_switch_heartbeat(market, timeout, refresh_interval):
+    """Refresh kill-switch on a regular interval. If this thread stops,
+    the kill-switch expires and all orders are canceled automatically."""
+    while True:
+        try:
+            send_request("/api/v4/order/kill-switch", {
+                "market": market,
+                "timeout": timeout
+            })
+        except Exception as e:
+            print(f"Kill-switch refresh failed: {e}")
+        time.sleep(refresh_interval)
+
+# Refresh every 45 seconds with a 60-second timeout (15-second safety margin).
+# Runs as a daemon thread (not an asyncio task) so refreshes continue even
+# when the event loop is busy processing WebSocket messages.
+heartbeat = threading.Thread(
+    target=kill_switch_heartbeat,
+    args=("BTC_USDT", 60, 45),
+    daemon=True
+)
+heartbeat.start()
+```
+
+### Deactivate kill-switch
+
+```python
+# Deactivate by setting timeout to null (None in Python → null in JSON)
+send_request("/api/v4/order/kill-switch", {
+    "market": "BTC_USDT",
+    "timeout": None
+})
+```
+
+## WebSocket fill monitoring
+
+Subscribe to account streams to receive real-time notifications for order state changes and trade executions:
+
+| Channel | Subscribe method | Events |
+|---------|-----------------|--------|
+| [Deals](/websocket/account-streams/deals) | `deals_subscribe` | Trade executions (fills) |
+| [Orders Pending](/websocket/account-streams/orders-pending) | `ordersPending_subscribe` | Order placed, partially filled, canceled |
+
+```python
+async def monitor_fills(ws):
+    # Subscribe to trade fills
+    await ws.send(json.dumps({
+        "id": 10,
+        "method": "deals_subscribe",
+        "params": [["BTC_USDT"]]
+    }))
+    # Subscribe to order state changes
+    await ws.send(json.dumps({
+        "id": 11,
+        "method": "ordersPending_subscribe",
+        "params": ["BTC_USDT"]
+    }))
+
+    async for message in ws:
+        data = json.loads(message)
+        method = data.get("method")
+
+        if method == "deals_update":
+            for deal in data["params"]:
+                print(f"Fill: {deal['side']} {deal['amount']} @ {deal['price']}"
+                      f" (order {deal['order_id']})")
+
+        elif method == "ordersPending_update":
+            order = data["params"]
+            print(f"Order update: {order[0]['order_id']} — "
+                  f"remaining: {order[0].get('left', 'N/A')}")
+```
+
+## Error handling
+
+Robust error handling is critical for unattended bots. Handle the following scenarios:
+
+### Rate limit backoff
+
+```python
+import random
+
+def send_request_with_retry(path, data=None, max_retries=5):
+    """Send a request with exponential backoff on rate limit errors."""
+    for attempt in range(max_retries):
+        response = send_request(path, data)
+        if isinstance(response, dict) and response.get("code") == 429:
+            delay = min(30, (2 ** attempt)) + random.uniform(0, 1)
+            print(f"Rate limited, retrying in {delay:.1f}s...")
+            time.sleep(delay)
+            continue
+        return response
+    raise Exception(f"Max retries exceeded for {path}")
+```
+
+### Error classification
+
+| Error | Action | Auto-retry? |
+|-------|--------|-------------|
+| `429` Rate limit | Exponential backoff (1s → 2s → 4s → max 30s, with jitter) | Yes |
+| `401` Authentication | Stop trading, investigate — never auto-retry auth failures | No |
+| `422` Insufficient balance | Log, skip order, re-check balance | No |
+| `400` Market suspended | Skip market, check status via REST | No |
+| `500`/`503` Server error | Backoff and retry | Yes |
+
+<Warning>
+  Never auto-retry `401` authentication errors. A failed auth indicates an incorrect signature, expired key, or IP whitelist mismatch — retrying floods the API without resolving the root cause.
+</Warning>
+
+See [Rate Limits & Error Codes](/api-reference/rate-limits) for the complete error reference.
+
+## Reconnection and recovery
+
+WebSocket connections drop due to network issues, server maintenance, or idle timeouts. A production bot must handle disconnections without losing state.
+
+### Ping/pong keepalive
+
+Send periodic ping messages to detect stale connections before a timeout occurs:
+
+```python
+PING_INTERVAL = 50   # seconds between pings
+PONG_TIMEOUT = 60    # seconds to wait for pong before considering connection dead
+
+async def keepalive(ws):
+    """Send ping messages and monitor for pong responses."""
+    while True:
+        try:
+            await ws.send(json.dumps({"id": 0, "method": "ping", "params": []}))
+            pong = await asyncio.wait_for(ws.recv(), timeout=PONG_TIMEOUT)
+            data = json.loads(pong)
+            if data.get("result") != "pong":
+                # Not a pong — process as regular message and wait for pong
+                pass
+        except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed):
+            print("Connection lost — triggering reconnection")
+            break
+        await asyncio.sleep(PING_INTERVAL)
+```
+
+<Note>
+  The keepalive function above is shown in isolation. In production, integrate
+  ping/pong handling into the main message loop — running a separate `recv()`
+  consumer conflicts with the primary message loop and causes missed messages.
+</Note>
+
+### Reconnection with exponential backoff
+
+```python
+async def connect_with_retry(url, max_delay=60):
+    """Connect to WebSocket with exponential backoff."""
+    delay = 1
+    while True:
+        try:
+            ws = await websockets.connect(url)
+            print("WebSocket connected")
+            return ws
+        except Exception as e:
+            jitter = random.uniform(0, 1)
+            print(f"Connection failed: {e}. Retrying in {delay + jitter:.1f}s...")
+            await asyncio.sleep(delay + jitter)
+            delay = min(max_delay, delay * 2)
+```
+
+### Auto-resubscription after reconnect
+
+After reconnecting, the bot must re-authenticate (for private channels) and re-subscribe to all channels. Resubscription ensures fresh data snapshots replace any state that went stale during the disconnection.
+
+```python
+async def run_bot():
+    """Main bot loop with automatic reconnection and resubscription."""
+    subscriptions = [
+        {"method": "lastprice_subscribe", "params": ["BTC_USDT"]},
+        {"method": "depth_subscribe", "params": ["BTC_USDT", 20, "0"]},
+        {"method": "deals_subscribe", "params": [["BTC_USDT"]]},
+        {"method": "ordersPending_subscribe", "params": ["BTC_USDT"]},
+    ]
+
+    while True:
+        ws = await connect_with_retry("wss://api.whitebit.com/ws")
+        try:
+            # Re-authenticate for private channels
+            # (see WebSocket Quickstart for auth flow)
+
+            # Re-subscribe to all channels
+            for i, sub in enumerate(subscriptions):
+                await ws.send(json.dumps({"id": i + 1, **sub}))
+
+            # Process messages
+            async for message in ws:
+                data = json.loads(message)
+                await handle_message(data)
+
+        except websockets.exceptions.ConnectionClosed:
+            print("Disconnected — reconnecting...")
+            continue
+```
+
+## Worked example: Grid bot
+
+A grid bot places buy and sell orders at fixed price intervals around a center price. When a buy fills, a sell is placed one grid level above. When a sell fills, a buy is placed one grid level below. The strategy profits from price oscillation within the grid range.
+
+```python
+import asyncio
+import base64
+import hashlib
+import hmac
+import json
+import random
+import time
+
+import requests
+import websockets
+
+# ── Configuration ──────────────────────────────────────────
+API_KEY = "YOUR_API_KEY"
+API_SECRET = "YOUR_API_SECRET"
+BASE_URL = "https://api.whitebit.com"
+WS_URL = "wss://api.whitebit.com/ws"
+
+MARKET = "BTC_USDT"
+GRID_SIZE = 10          # number of grid levels per side
+GRID_SPACING = 50       # price distance between levels (in quote currency)
+ORDER_AMOUNT = "0.001"  # order size per grid level (in base currency)
+KS_TIMEOUT = 120        # kill-switch timeout in seconds
+KS_REFRESH = 90         # kill-switch refresh interval
+
+
+# ── REST API helper (same as earlier in the guide) ────────
+def send_request(path, data=None):
+    if data is None:
+        data = {}
+    data["request"] = path
+    data["nonce"] = str(int(time.time() * 1000))
+    data_json = json.dumps(data)
+    payload_b64 = base64.b64encode(data_json.encode()).decode()
+    signature = hmac.new(
+        API_SECRET.encode(), payload_b64.encode(), hashlib.sha512
+    ).hexdigest()
+    headers = {
+        "Content-Type": "application/json",
+        "X-TXC-APIKEY": API_KEY,
+        "X-TXC-PAYLOAD": payload_b64,
+        "X-TXC-SIGNATURE": signature,
+    }
+    resp = requests.post(BASE_URL + path, headers=headers, data=data_json)
+    return resp.json()
+
+
+# ── Grid state ─────────────────────────────────────────────
+grid_orders = {}  # order_id -> {"side": str, "price": str, "level": int}
+# Accessed only from the asyncio event loop. Do not access from threads.
+
+
+def calculate_grid_levels(center_price):
+    """Calculate buy and sell grid prices around a center price."""
+    levels = []
+    for i in range(1, GRID_SIZE + 1):
+        levels.append({
+            "side": "buy",
+            "price": str(center_price - i * GRID_SPACING),
+            "level": -i,
+        })
+        levels.append({
+            "side": "sell",
+            "price": str(center_price + i * GRID_SPACING),
+            "level": i,
+        })
+    return levels
+
+
+def place_grid_orders(center_price):
+    """Place initial grid orders using the bulk endpoint."""
+    global grid_orders
+    levels = calculate_grid_levels(center_price)
+
+    # Split into batches of 20 (bulk endpoint limit)
+    for batch_start in range(0, len(levels), 20):
+        batch = levels[batch_start:batch_start + 20]
+        orders = [
+            {"side": lvl["side"], "amount": ORDER_AMOUNT, "price": lvl["price"]}
+            for lvl in batch
+        ]
+        result = send_request("/api/v4/order/bulk", {
+            "market": MARKET,
+            "orders": orders,
+        })
+        for i, order_result in enumerate(result):
+            if "order_id" in order_result:
+                oid = order_result["order_id"]
+                grid_orders[oid] = batch[i]
+                print(f"Grid order placed: {batch[i]['side']} @ {batch[i]['price']}"
+                      f" (ID {oid})")
+            else:
+                print(f"Grid order failed: {order_result.get('message')}")
+
+
+def replace_filled_order(filled_order):
+    """When a grid order fills, place the opposite order one level away."""
+    level = filled_order["level"]
+    filled_price = float(filled_order["price"])
+
+    if filled_order["side"] == "buy":
+        # Buy filled — place sell one grid level above
+        new_side = "sell"
+        new_price = str(filled_price + GRID_SPACING)
+    else:
+        # Sell filled — place buy one grid level below
+        new_side = "buy"
+        new_price = str(filled_price - GRID_SPACING)
+
+    result = send_request("/api/v4/order/new", {
+        "market": MARKET,
+        "side": new_side,
+        "amount": ORDER_AMOUNT,
+        "price": new_price,
+    })
+    if "order_id" in result:
+        grid_orders[result["order_id"]] = {
+            "side": new_side,
+            "price": new_price,
+            "level": -level,
+        }
+        print(f"Replacement order: {new_side} @ {new_price} (ID {result['order_id']})")
+    else:
+        print(f"Replacement failed: {result.get('message')}")
+
+
+# ── Kill-switch heartbeat ──────────────────────────────────
+def start_kill_switch():
+    """Start a daemon thread that refreshes the kill-switch."""
+    import threading
+
+    def heartbeat():
+        while True:
+            try:
+                send_request("/api/v4/order/kill-switch", {
+                    "market": MARKET,
+                    "timeout": KS_TIMEOUT,
+                })
+            except Exception as e:
+                print(f"Kill-switch refresh error: {e}")
+            time.sleep(KS_REFRESH)
+
+    t = threading.Thread(target=heartbeat, daemon=True)
+    t.start()
+    print(f"Kill-switch active: {KS_TIMEOUT}s timeout, refreshing every {KS_REFRESH}s")
+
+
+# ── WebSocket message handler ──────────────────────────────
+async def handle_message(data):
+    """Process WebSocket messages for fills and order updates."""
+    method = data.get("method")
+
+    if method == "deals_update":
+        for deal in data.get("params", []):
+            order_id = deal.get("order_id")
+            if order_id in grid_orders:
+                filled = grid_orders.pop(order_id)
+                print(f"Grid fill: {filled['side']} @ {filled['price']}")
+                replace_filled_order(filled)
+
+    elif method == "ordersPending_update":
+        for order in data.get("params", []):
+            oid = order.get("order_id")
+            left = order.get("left", "0")
+            if oid in grid_orders and float(left) == 0:
+                filled = grid_orders.pop(oid)
+                replace_filled_order(filled)
+
+
+# ── Main bot loop ──────────────────────────────────────────
+async def run_grid_bot():
+    """Initialize grid orders and run the WebSocket monitoring loop."""
+    # 1. Get current market price
+    ticker = requests.get(f"{BASE_URL}/api/v4/public/ticker").json()
+    last_price = float(ticker["BTC_USDT"]["last_price"])
+    center = round(last_price / GRID_SPACING) * GRID_SPACING  # snap to grid
+    print(f"Center price: {center} (last: {last_price})")
+
+    # 2. Place initial grid orders
+    place_grid_orders(center)
+
+    # 3. Activate kill-switch
+    start_kill_switch()
+
+    # 4. Connect to WebSocket and monitor fills
+    subscriptions = [
+        {"method": "deals_subscribe", "params": [[MARKET]]},
+        {"method": "ordersPending_subscribe", "params": [MARKET]},
+    ]
+
+    while True:
+        try:
+            async with websockets.connect(WS_URL) as ws:
+                # Authenticate for private channels
+                # (see WebSocket Quickstart for auth implementation)
+
+                for i, sub in enumerate(subscriptions):
+                    await ws.send(json.dumps({"id": i + 1, **sub}))
+
+                async for message in ws:
+                    data = json.loads(message)
+                    await handle_message(data)
+
+        except websockets.exceptions.ConnectionClosed:
+            delay = random.uniform(1, 5)
+            print(f"Disconnected — reconnecting in {delay:.1f}s...")
+            await asyncio.sleep(delay)
+
+
+if __name__ == "__main__":
+    asyncio.run(run_grid_bot())
+```
+
+<Note>
+  The grid bot uses synchronous `requests.post()` calls inside an async context
+  for simplicity. In production, synchronous HTTP calls block the event loop and
+  delay WebSocket message processing. Wrap REST calls in `asyncio.to_thread()`
+  for concurrent execution.
+</Note>
+
+**How the grid bot works:**
+
+1. **Initialization** — fetches the current market price, snaps to the nearest grid level, and places buy orders below and sell orders above using the bulk endpoint
+2. **Kill-switch** — a background thread refreshes the kill-switch every 90 seconds with a 120-second timeout, ensuring all orders cancel if the bot stops
+3. **Fill monitoring** — WebSocket `deals_subscribe` and `ordersPending_subscribe` channels detect when a grid order fills
+4. **Order replacement** — each filled buy triggers a sell one grid level above; each filled sell triggers a buy one grid level below
+5. **Reconnection** — the outer loop reconnects automatically if the WebSocket connection drops
+
+<Warning>
+  The grid bot is a teaching example. Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), and add proper logging.
+</Warning>
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Account Monitoring" icon="chart-line" href="/guides/account-monitoring">
+    Monitor balances, deposits, and order activity across all account types.
+  </Card>
+  <Card title="Client Order ID" icon="fingerprint" href="/guides/client-order-id">
+    Attach custom identifiers to orders for tracking across systems.
+  </Card>
+  <Card title="Rate Limits & Errors" icon="gauge" href="/api-reference/rate-limits">
+    Per-endpoint rate limits, error codes, and retry strategies.
+  </Card>
+</CardGroup>
