@@ -1,10 +1,25 @@
 ---
-title: "Building a Trading Bot"
+title: "Trading Bot"
 description: "End-to-end guide for building an automated trading bot on the WhiteBIT API — from market data ingestion to order execution and risk management."
 sidebarTitle: "Trading Bot"
 ---
 
-Build an automated trading bot on the WhiteBIT API. This guide covers the full loop: market data ingestion, order placement, fill monitoring via WebSocket, error handling, reconnection recovery, and a worked grid bot example. All code examples use Python with the `requests` and `websockets` libraries.
+Build an automated trading bot on the WhiteBIT API. The guide covers the full loop: market data ingestion, order placement, fill monitoring via WebSocket, error handling, reconnection recovery, and a grid bot example. All code examples use Python with the `requests` and `websockets` libraries.
+
+## Prerequisites
+
+- A WhiteBIT account ([register](https://whitebit.com/auth/register))
+- An API key with **Trading** permission ([create one](https://whitebit.com/settings/api))
+- Funds in the **Trade** balance — transfer from Main balance if needed (see [Balances & Transfers](/concepts/balances))
+- Familiarity with HMAC-SHA512 signing — see [Authentication](/api-reference/authentication)
+- Python 3.7+ with `requests` and `websockets` packages installed
+
+<Warning>
+  WhiteBIT has no public testnet or sandbox. All orders execute against the live
+  orderbook. For risk-free testing, use Demo Tokens (DBTC/DUSDT) — activate from
+  the [WhiteBIT Codes page](https://whitebit.com/codes). Test with the
+  `DBTC_DUSDT` market pair before switching to real assets.
+</Warning>
 
 ## Architecture overview
 
@@ -27,6 +42,8 @@ A trading bot operates as a continuous loop:
 3. **Order execution** — place orders via REST API (single or bulk)
 4. **Fill monitoring** — track order fills and state changes via WebSocket
 5. **Position management** — update internal state, replace filled orders, manage risk
+
+Signal generation (step 2) is strategy-specific. The grid bot example at the end of the guide demonstrates one concrete strategy. The remaining sections cover the infrastructure around the trading loop.
 
 ## Market data ingestion
 
@@ -113,7 +130,7 @@ See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setu
 
 ## Order placement
 
-All private endpoint examples in this guide use the following `send_request` helper for HMAC-SHA512 signing:
+All private endpoint examples in the guide use the following `send_request` helper for HMAC-SHA512 signing:
 
 ```python
 import base64, hashlib, hmac, json, time, requests
@@ -173,6 +190,13 @@ Place a limit order using the order creation endpoint:
   </Tab>
 </Tabs>
 
+<Note>
+  For bot integrations, include a `client_order_id` to map fills back to
+  internal strategy state without depending on server-assigned `order_id`.
+  Custom identifiers survive reconnections and simplify order reconciliation.
+  See [Client Order ID](/guides/client-order-id) for usage patterns.
+</Note>
+
 ### Bulk orders
 
 Place up to 20 limit orders in a single request — significantly reducing round trips for multi-order strategies.
@@ -204,7 +228,7 @@ for i, order_result in enumerate(result):
 
 ## Kill-switch setup
 
-The kill-switch automatically cancels all active orders after a configurable timeout. This is a critical safety mechanism for unattended bots — if the bot process crashes or loses connectivity, the kill-switch prevents stale orders from executing.
+The kill-switch automatically cancels all active orders after a configurable timeout. The kill-switch is a critical safety mechanism for unattended bots — if the bot process crashes or loses connectivity, the kill-switch prevents stale orders from executing.
 
 **Endpoints:**
 - [`POST /api/v4/order/kill-switch`](/api-reference/spot-trading/sync-kill-switch-timer) — activate or refresh the timer
@@ -223,7 +247,7 @@ print(f"Kill-switch active, expires at: {ks.get('timeout')}")
 
 ### Heartbeat refresh loop
 
-The bot must refresh the kill-switch before it expires. If the bot fails to refresh, all orders cancel automatically.
+The bot must refresh the kill-switch before the timer expires. If the bot fails to refresh, all orders cancel automatically.
 
 ```python
 import threading
@@ -241,7 +265,9 @@ def kill_switch_heartbeat(market, timeout, refresh_interval):
             print(f"Kill-switch refresh failed: {e}")
         time.sleep(refresh_interval)
 
-# Refresh every 45 seconds with a 60-second timeout (15-second safety margin)
+# Refresh every 45 seconds with a 60-second timeout (15-second safety margin).
+# Runs as a daemon thread (not an asyncio task) so refreshes continue even
+# when the event loop is busy processing WebSocket messages.
 heartbeat = threading.Thread(
     target=kill_switch_heartbeat,
     args=("BTC_USDT", 60, 45),
@@ -275,7 +301,7 @@ async def monitor_fills(ws):
     await ws.send(json.dumps({
         "id": 10,
         "method": "deals_subscribe",
-        "params": ["BTC_USDT"]
+        "params": [["BTC_USDT"]]
     }))
     # Subscribe to order state changes
     await ws.send(json.dumps({
@@ -301,7 +327,7 @@ async def monitor_fills(ws):
 
 ## Error handling
 
-Robust error handling is critical for unattended bots. Handle these common scenarios:
+Robust error handling is critical for unattended bots. Handle the following scenarios:
 
 ### Rate limit backoff
 
@@ -365,6 +391,12 @@ async def keepalive(ws):
         await asyncio.sleep(PING_INTERVAL)
 ```
 
+<Note>
+  The keepalive function above is shown in isolation. In production, integrate
+  ping/pong handling into the main message loop — running a separate `recv()`
+  consumer conflicts with the primary message loop and causes missed messages.
+</Note>
+
 ### Reconnection with exponential backoff
 
 ```python
@@ -385,7 +417,7 @@ async def connect_with_retry(url, max_delay=60):
 
 ### Auto-resubscription after reconnect
 
-After reconnecting, the bot must re-authenticate (for private channels) and re-subscribe to all channels. This ensures fresh data snapshots replace any state that went stale during the disconnection.
+After reconnecting, the bot must re-authenticate (for private channels) and re-subscribe to all channels. Resubscription ensures fresh data snapshots replace any state that went stale during the disconnection.
 
 ```python
 async def run_bot():
@@ -393,7 +425,7 @@ async def run_bot():
     subscriptions = [
         {"method": "lastprice_subscribe", "params": ["BTC_USDT"]},
         {"method": "depth_subscribe", "params": ["BTC_USDT", 20, "0"]},
-        {"method": "deals_subscribe", "params": ["BTC_USDT"]},
+        {"method": "deals_subscribe", "params": [["BTC_USDT"]]},
         {"method": "ordersPending_subscribe", "params": ["BTC_USDT"]},
     ]
 
@@ -447,7 +479,7 @@ KS_TIMEOUT = 120        # kill-switch timeout in seconds
 KS_REFRESH = 90         # kill-switch refresh interval
 
 
-# ── REST API helper ────────────────────────────────────────
+# ── REST API helper (same as earlier in the guide) ────────
 def send_request(path, data=None):
     if data is None:
         data = {}
@@ -470,6 +502,7 @@ def send_request(path, data=None):
 
 # ── Grid state ─────────────────────────────────────────────
 grid_orders = {}  # order_id -> {"side": str, "price": str, "level": int}
+# Accessed only from the asyncio event loop. Do not access from threads.
 
 
 def calculate_grid_levels(center_price):
@@ -606,7 +639,7 @@ async def run_grid_bot():
 
     # 4. Connect to WebSocket and monitor fills
     subscriptions = [
-        {"method": "deals_subscribe", "params": [MARKET]},
+        {"method": "deals_subscribe", "params": [[MARKET]]},
         {"method": "ordersPending_subscribe", "params": [MARKET]},
     ]
 
@@ -633,6 +666,13 @@ if __name__ == "__main__":
     asyncio.run(run_grid_bot())
 ```
 
+<Note>
+  The grid bot uses synchronous `requests.post()` calls inside an async context
+  for simplicity. In production, synchronous HTTP calls block the event loop and
+  delay WebSocket message processing. Wrap REST calls in `asyncio.to_thread()`
+  for concurrent execution.
+</Note>
+
 **How the grid bot works:**
 
 1. **Initialization** — fetches the current market price, snaps to the nearest grid level, and places buy orders below and sell orders above using the bulk endpoint
@@ -642,7 +682,7 @@ if __name__ == "__main__":
 5. **Reconnection** — the outer loop reconnects automatically if the WebSocket connection drops
 
 <Warning>
-  This grid bot is a teaching example. Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), add proper logging, and test with Demo Tokens (DBTC/DUSDT) on the `DBTC_DUSDT` pair first.
+  The grid bot is a teaching example. Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), and add proper logging.
 </Warning>
 
 ## What's Next
