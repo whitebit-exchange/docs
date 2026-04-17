@@ -82,8 +82,10 @@ A reduce-only order guarantees that the order only decreases or closes an existi
 
 **Behavior**
 
-- If the order amount exceeds the current position size, the system automatically reduces the order to match the position.
+- If the order amount exceeds the current position size, the system automatically reduces the order to match the position — the response returns the adjusted amount.
 - The reduction applies on placement and execution.
+- `reduceOnly` is set at order creation and cannot be changed via order modification.
+- Cannot be combined with `stopLoss` or `takeProfit` parameters (the API returns error code `30`).
 - Set `reduceOnly: true` in the request body of any collateral order creation endpoint.
 
 **Rejection**

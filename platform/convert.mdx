@@ -167,9 +167,18 @@ For Go and PHP examples, see [SDKs](/sdks).
 
 The [history endpoint](/api-reference/convert/convert-history) supports filtering by `fromTicker`, `toTicker`, `quoteId`, and time range (`from`/`to` timestamps). The default limit is 100 records. The maximum history depth is 6 months from the current month.
 
+## Convert in payment flows
+
+Convert is commonly used as part of the withdrawal flow when the currency held in Main balance differs from the currency an end user needs to withdraw. The pattern is: transfer Main → Trade, convert, transfer Trade → Main, then withdraw.
+
+For the full step-by-step withdrawal-with-conversion flow including code examples, see [Payment Integration](/guides/payment-integration).
+
 ## What's next
 
 <CardGroup cols={2}>
+  <Card title="Payment Integration" icon="money-bill" href="/guides/payment-integration">
+    Deposit and withdrawal flows including conversion.
+  </Card>
   <Card title="Spot Trading" icon="chart-line" href="/products/spot/overview">
     Place orders on the orderbook with 6 order types.
   </Card>

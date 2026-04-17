@@ -22,6 +22,7 @@ import {
   exBalanceMarginUpdate,
   exBalanceMarginUnsubscribe,
 } from '/snippets/ws-data/balance_margin.jsx'
+import { RelatedResources } from '/components/RelatedResources.jsx'
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -64,6 +65,10 @@ Fetch current margin balances for specific assets without subscribing.
   unsubscribe={exBalanceMarginUnsubscribe}
 />
 
+<Tip>
+Updates include only assets whose margin balance changed. To hydrate full state on startup or after reconnection, send a `balanceMargin_request` query before subscribing. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect) for the full pattern.
+</Tip>
+
 ## Update frequency
 
 The server pushes updates every **1.5 seconds** when the margin balance changes.
@@ -75,3 +80,8 @@ The server pushes updates every **1.5 seconds** when the margin balance changes.
 ## Balance object
 
 <WsSchemaTable fields={balanceMarginUpdate} />
+
+<RelatedResources>
+- [Collateral Account Balance](/api-reference/collateral-trading/collateral-account-balance) — margin balance snapshot via REST.
+- [Balance Spot](/websocket/account-streams/balance-spot) — spot (trade) balance updates via WebSocket.
+</RelatedResources>
