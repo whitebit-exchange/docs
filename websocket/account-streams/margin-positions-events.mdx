@@ -55,6 +55,10 @@ Subscribe to margin call and liquidation event notifications for collateral posi
   unsubscribe={exMarginPositionsEventsUnsubscribe}
 />
 
+<Note>
+This channel delivers events only on state changes — no snapshot is sent on subscribe, and events missed during a disconnection are not replayed. For complete position state awareness, pair this channel with [Positions](/websocket/account-streams/positions), which sends full snapshots every second.
+</Note>
+
 ## Update frequency
 
 Updates are pushed in **real time** on margin position state changes (open, close, liquidation).

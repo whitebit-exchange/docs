@@ -64,7 +64,7 @@ USDTB is a bonus collateral token used for futures trading. USDTB cannot be depo
 
 ## Deposit flow
 
-1. Generate a deposit address via `POST /api/v4/main-account/create-new-address` or through the platform UI.
+1. Generate a deposit address. Use `POST /api/v4/main-account/create-new-address` ([API Reference](/api-reference/account-wallet/create-new-address-for-deposit)) to generate a unique address per request, or `POST /api/v4/main-account/address` ([API Reference](/api-reference/deposits/get-deposit-address)) to retrieve a persistent reusable address. Alternatively, create an address through the platform UI.
 2. Send crypto to the generated address.
 3. Funds arrive in Main balance after blockchain confirmations. Confirmation requirements vary by asset.
 4. Transfer from Main to Trade (for spot orders) or to Collateral (for margin/futures positions).
@@ -72,8 +72,9 @@ USDTB is a bonus collateral token used for futures trading. USDTB cannot be depo
 ## Withdrawal flow
 
 1. Ensure funds are in Main balance — transfer from Trade or Collateral if needed.
-2. Submit a withdrawal request via `POST /api/v4/main-account/withdraw`.
-3. Withdrawal processes after security checks complete.
+2. (Optional) If the held currency differs from the withdrawal currency, transfer to Trade balance, convert via the [Convert](/platform/convert) feature, and transfer back to Main balance. See [Payment Integration](/guides/payment-integration) for the full withdrawal-with-conversion flow.
+3. Submit a withdrawal request via `POST /api/v4/main-account/withdraw`.
+4. Withdrawal processes after security checks complete.
 
 <Note>
   **EEA users:** Crypto withdrawals require a `travelRule` object with beneficiary

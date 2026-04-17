@@ -45,6 +45,10 @@ Subscribe to collateral borrow status updates for all open margin positions, inc
   unsubscribe={exBorrowsUnsubscribe}
 />
 
+<Tip>
+Each update is a full snapshot of all open borrows — local state auto-recovers within 1.5 seconds of subscribing. No gap-filling is needed after reconnection.
+</Tip>
+
 ## Update frequency
 
 The server pushes updates every **1.5 seconds** when borrow data changes.
