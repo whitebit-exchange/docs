@@ -60,11 +60,11 @@ Passing one of these checks enables the webhook.
 
 ### For processing web-hook requests
 
-All web hook requests are performing using POST method and with application/json content type. Consumer server should respond with 200 HTTP status code. If consumer was unable to handle web-hook, the request will be retry every 10 minutes but not more than 5 times.
+All webhook requests are performed using the POST method with application/json content type. The consumer server should respond with a 200 HTTP status code. If the consumer was unable to handle the webhook, the request will be retried every 10 minutes but not more than 5 times.
 
 #### Body data
 
-All web-hook requests are performing with
+All webhook requests are performed with
 
 ```json
 {
@@ -86,12 +86,12 @@ All web-hook requests are performing with
 
 #### Request headers
 
-Also, all request contains additional data in headers:
+Also, all requests contain additional data in headers:
 
 1. `'Content-type': 'application/json'`
 2. `'X-TXC-APIKEY': api_key` - the WhiteBIT webhook API key
-3. `'X-TXC-PAYLOAD': payload'` - where payload is base64-encoded body data
-4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload), key=api_secret))`
+3. `'X-TXC-PAYLOAD': payload` - where payload is base64-encoded body data
+4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload), key=api_secret)`
 
 On the consumer side, process the security headers to verify the request originated from WhiteBIT.
 
@@ -143,7 +143,7 @@ Performed when deposit was accepted. Request example:
 }
 ```
 
-Performed when deposit was update. Request example:
+Performed when deposit was updated. Request example:
 
 ```json
 {
