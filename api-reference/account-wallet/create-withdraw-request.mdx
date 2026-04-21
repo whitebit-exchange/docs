@@ -6,7 +6,7 @@ openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/withdraw
 
 ## Withdrawal Scenarios Guide
 
-The endpoint supports **8 different withdrawal scenarios**. Each scenario requires different fields depending on the currency type, destination, and regulatory requirements. Use the example selector above to switch between scenarios.
+The endpoint supports **7 different withdrawal scenarios**. Each scenario requires different fields depending on the currency type, destination, and regulatory requirements. Use the example selector above to switch between scenarios.
 
 ### 🔹 Cryptocurrency Withdrawals
 
@@ -54,7 +54,7 @@ For withdrawals exceeding standard limits with "partially successful" status sup
 #### **Scenario 6: IBAN Transfers (UAH_IBAN)**
 Bank transfer withdrawals to IBAN accounts.
 - **Required fields**: Standard fields + `beneficiary` object with:
-  - `firstName`, `lastName` (max 40 symbols, latin letters)
+  - `firstName`, `lastName` (max 40 symbols, Latin letters)
   - `tin` (Tax Identification Number, 10 digits)
 - **Use when**: Withdrawing UAH to Ukrainian bank accounts via IBAN
 
