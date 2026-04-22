@@ -9,7 +9,7 @@ WhiteBIT supports 7 order types across spot, margin, and futures markets. All or
 ## Order types overview
 
 | Order Type | Spot | Margin | Futures | Description |
-|-----------|------|--------|---------|-------------|
+| --- | --- | --- | --- | --- |
 | Market | Yes | Yes | Yes | Execute immediately at best available price |
 | Limit | Yes | Yes | Yes | Execute at a specified price or better |
 | Advanced-Limit | Yes | No | No | Limit order with IOC or post-only conditions (spot only) |
@@ -74,10 +74,6 @@ An OCO (One-Cancels-Other) order pairs two linked orders — typically a take-pr
 
 ## Reduce-only orders
 
-<Note>
-The `reduceOnly` parameter is **coming soon**. The documentation is published in advance for integration planning. The parameter is not yet accepted by the API.
-</Note>
-
 A reduce-only order guarantees that the order only decreases or closes an existing position — the order cannot increase the position or open a new one in the opposite direction. Available on collateral (margin and futures) markets only.
 
 **Behavior**
@@ -89,6 +85,7 @@ A reduce-only order guarantees that the order only decreases or closes an existi
 **Rejection**
 
 The API returns error code `116` synchronously if:
+
 - No open position exists for the specified market
 - The order direction matches the position direction (e.g., a buy reduce-only order on a long position)
 
@@ -109,7 +106,7 @@ If a position closes while a reduce-only limit order is still pending, the backe
 **Supported endpoints**
 
 | Endpoint | Path |
-|----------|------|
+| --- | --- |
 | Collateral limit order | [`POST /api/v4/order/collateral/limit`](/api-reference/collateral-trading/collateral-limit-order) |
 | Collateral bulk limit order | [`POST /api/v4/order/collateral/bulk`](/api-reference/collateral-trading/collateral-bulk-limit-order) |
 | Collateral market order | [`POST /api/v4/order/collateral/market`](/api-reference/collateral-trading/collateral-market-order) |
@@ -122,7 +119,7 @@ For OCO orders, `reduceOnly` is a single top-level parameter that applies to bot
 ## Execution flags
 
 | Flag | Behavior | Available on |
-|------|----------|-------------|
+| --- | --- | --- |
 | Default (neither flag) | GTC — order remains active until filled or manually canceled | All limit-type orders |
 | `ioc: true` | IOC — fills immediately what it can; cancels the unfilled remainder | Limit orders (spot only via `order/new`) |
 | `postOnly: true` | Post-only — rejects the order if it would match immediately (ensures maker) | All limit-type orders |
@@ -139,11 +136,13 @@ For OCO orders, `reduceOnly` is a single top-level parameter that applies to bot
 
 <CardGroup cols={2}>
   <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/products/spot/overview">
-    Place orders on 750+ spot pairs.
+    Place orders on 750\+ spot pairs.
   </Card>
+
   <Card title="Margin Trading" icon="chart-line" href="/products/margin/overview">
     Leveraged trading up to 10×.
   </Card>
+
   <Card title="API Reference" icon="square-terminal" href="/api-reference/spot-trading/overview">
     Full endpoint documentation for all order types.
   </Card>
