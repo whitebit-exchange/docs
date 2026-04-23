@@ -1,5 +1,5 @@
 ---
-title: Orders Executed
+title: "Orders Executed"
 tag: "WSS"
 description: "Subscribe to real-time notifications when account orders are executed on WhiteBIT via WebSocket."
 ---
@@ -27,15 +27,13 @@ import {
 } from '/snippets/ws-data/orders_executed.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
 
-<Note>
-The `reduce_only` response field documented on this page is **coming soon**. The documentation is published in advance for integration planning. The field is not yet returned by the API. See [Reduce-only orders](/concepts/order-types#reduce-only-orders) for details.
-</Note>
-
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to executed order history with optional filtering by order type (limit, market, or both). Each record includes execution details, fees, and status. **Update interval:** real-time.
 
-<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
+<Note>
+  Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.
+</Note>
 
 ## Rate limits
 
@@ -58,19 +56,14 @@ Fetch historical executed orders for a market without subscribing.
 <WsMessageExample data={exOrdersExecutedResponse} />
 
 <Note>
-The private stream returns executed orders, including orders using Retail Price Improvement (RPI) mode.
+  The private stream returns executed orders, including orders using Retail Price Improvement (RPI) mode.
 </Note>
 
 ## Subscribe to executed orders
 
 <WsTupleTable fields={ordersExecutedSubscribeParamsTupleFields} />
 
-<WsSubscribeSteps
-  subscribe={exOrdersExecutedSubscribe}
-  confirmation={exOrdersExecutedSubscribeResponse}
-  update={exOrdersExecutedUpdate}
-  unsubscribe={exOrdersExecutedUnsubscribe}
-/>
+<WsSubscribeSteps subscribe={exOrdersExecutedSubscribe} confirmation={exOrdersExecutedSubscribeResponse} update={exOrdersExecutedUpdate} unsubscribe={exOrdersExecutedUnsubscribe} />
 
 ## Update frequency
 
@@ -85,6 +78,6 @@ Updates are pushed in **real time** when an order is fully executed or canceled.
 <WsSchemaTable fields={executedOrderObject} />
 
 <RelatedResources>
-- [Orders Pending](/websocket/account-streams/orders-pending) — stream of open (unexecuted) orders.
-- [Deals](/websocket/account-streams/deals) — individual trade fills for each executed order.
+  * [Orders Pending](/websocket/account-streams/orders-pending) — stream of open (unexecuted) orders.
+  * [Deals](/websocket/account-streams/deals) — individual trade fills for each executed order.
 </RelatedResources>

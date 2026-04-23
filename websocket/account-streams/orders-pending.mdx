@@ -1,5 +1,5 @@
 ---
-title: Orders Pending
+title: "Orders Pending"
 tag: "WSS"
 description: "Subscribe to real-time updates on pending account orders on WhiteBIT via WebSocket."
 ---
@@ -27,17 +27,15 @@ import {
 } from '/snippets/ws-data/orders_pending.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
 
-<Note>
-The `reduce_only` response field documented on this page is **coming soon**. The documentation is published in advance for integration planning. The field is not yet returned by the API. See [Reduce-only orders](/concepts/order-types#reduce-only-orders) for details.
-</Note>
-
 <WsAuthBadge required={channelMeta.authRequired} />
 
 Query or subscribe to active (unexecuted) orders across specified markets. The server pushes `ordersPending_update` events in real time on every order state change. Subscribe to multiple markets simultaneously by passing market names in the `params` array.
 
 <WsChannelOverview operations={channelOperations} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
+<Note>
+  Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.
+</Note>
 
 ## Rate limits
 
@@ -66,14 +64,14 @@ Fetch current pending orders for a market without subscribing to updates.
   update={exOrdersPendingUpdate}
   updateNote="The server pushes ordersPending_update on every order change — no further requests needed."
   updateExtra={
-    <div>
-      <p><code>params[0]</code> is the update event ID. <code>params[1]</code> is the Order object — see <a href="#order-object">Order object</a> below.</p>
-      <WsTupleTable fields={ordersPendingUpdateParamsTupleFields} />
-      <div style={{borderLeft: '3px solid #60a5fa', paddingLeft: '0.75rem', marginTop: '0.75rem', fontSize: '0.8125rem', color: '#374151', lineHeight: '1.5'}}>
-        If a new order instantly matches an existing order from the order book, only one message is received — with event ID <code>3</code>.
-      </div>
+  <div>
+    <p><code>params[0]</code> is the update event ID. <code>params[1]</code> is the Order object — see <a href="#order-object">Order object</a> below.</p>
+    <WsTupleTable fields={ordersPendingUpdateParamsTupleFields} />
+    <div style={{borderLeft: '3px solid #60a5fa', paddingLeft: '0.75rem', marginTop: '0.75rem', fontSize: '0.8125rem', color: '#374151', lineHeight: '1.5'}}>
+      If a new order instantly matches an existing order from the order book, only one message is received — with event ID <code>3</code>.
     </div>
-  }
+  </div>
+}
   unsubscribe={exOrdersPendingUnsubscribe}
 />
 
@@ -105,5 +103,5 @@ Fields present in both the query response (`records[]`) and the pushed `ordersPe
 <WsSchemaTable fields={orderObject} />
 
 <RelatedResources>
-- [Orders Executed](/websocket/account-streams/orders-executed) — stream of filled and cancelled orders.
+  * [Orders Executed](/websocket/account-streams/orders-executed) — stream of filled and cancelled orders.
 </RelatedResources>
