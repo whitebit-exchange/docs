@@ -74,10 +74,6 @@ An OCO (One-Cancels-Other) order pairs two linked orders — typically a take-pr
 
 ## Reduce-only orders
 
-<Note>
-The `reduceOnly` parameter is **coming soon**. The documentation is published in advance for integration planning. The parameter is not yet accepted by the API.
-</Note>
-
 A reduce-only order guarantees that the order only decreases or closes an existing position — the order cannot increase the position or open a new one in the opposite direction. Available on collateral (margin and futures) markets only.
 
 **Behavior**
@@ -97,10 +93,12 @@ The API returns error code `116` synchronously if:
 ```json
 {
   "code": 116,
-  "message": "Validation failed",
   "errors": {
-    "reduceOnly": ["Reduce-only: Position doesn't exist or wrong side"]
-  }
+    "reduceOnly": [
+      "Reduce-only: Position doesn't exist or wrong side"
+    ]
+  },
+  "message": "Validation failed"
 }
 ```
 
@@ -128,7 +126,7 @@ For OCO orders, `reduceOnly` is a single top-level parameter that applies to bot
 | Default (neither flag) | GTC — order remains active until filled or manually canceled | All limit-type orders |
 | `ioc: true` | IOC — fills immediately what it can; cancels the unfilled remainder | Limit orders (spot only via `order/new`) |
 | `postOnly: true` | Post-only — rejects the order if it would match immediately (ensures maker) | All limit-type orders |
-| `reduceOnly: true` | Reduce-only — order can only decrease or close an existing position | Collateral orders only (coming soon) |
+| `reduceOnly: true` | Reduce-only — order can only decrease or close an existing position | Collateral orders only |
 
 ## Related features
 
