@@ -151,7 +151,10 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
             "request": "/api/v4/trade-account/balance",
             "nonce": str(int(time.time() * 1000))
         }
-        payload_json = json.dumps(payload)
+        # Use compact separators: the server validates the body against a
+        # canonical (no-whitespace) serialization and rejects spaced JSON
+        # with HTTP 400 `{"code":9,"message":"Invalid payload."}`.
+        payload_json = json.dumps(payload, separators=(",", ":"))
         payload_base64 = base64.b64encode(payload_json.encode()).decode()
         signature = hmac.new(
             API_SECRET.encode(),
