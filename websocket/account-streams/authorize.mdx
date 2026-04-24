@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Authorize a WebSocket connection to subscribe to private account data streams on WhiteBIT."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
@@ -16,6 +17,8 @@ import {
   exAuthorizeRequest,
   exAuthorizeResponse,
 } from '/snippets/ws-data/authorize.jsx'
+
+<RegionBaseUrl />
 
 Authorize the WebSocket connection for private channel access. Send a WebSocket token obtained from the REST API. This channel handles WebSocket connection authorization. Authorize once per connection — all private channels become accessible after a single successful authorization.
 
