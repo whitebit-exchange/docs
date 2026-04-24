@@ -63,7 +63,7 @@ Estimate a BTC-to-USDT conversion and confirm the quote.
   <Tab title="cURL">
     ```bash
     # Step 1: Request a conversion estimate
-    curl -X POST https://api.whitebit.com/api/v4/convert/estimate \
+    curl -X POST https://whitebit.com/api/v4/convert/estimate \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
@@ -92,7 +92,7 @@ Estimate a BTC-to-USDT conversion and confirm the quote.
 
     ```bash
     # Step 2: Confirm the quote using the id from the estimate response
-    curl -X POST https://api.whitebit.com/api/v4/convert/confirm \
+    curl -X POST https://whitebit.com/api/v4/convert/confirm \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
@@ -122,7 +122,7 @@ Estimate a BTC-to-USDT conversion and confirm the quote.
 
     API_KEY = "YOUR_API_KEY"
     SECRET = "YOUR_SECRET"
-    BASE_URL = "https://api.whitebit.com"
+    BASE_URL = "https://whitebit.com"
 
     def send_request(path, data):
         data["request"] = path
