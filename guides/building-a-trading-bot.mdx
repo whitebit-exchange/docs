@@ -118,7 +118,8 @@ async def stream_market_data():
         await ws.send(json.dumps({
             "id": 2,
             "method": "depth_subscribe",
-            "params": ["BTC_USDT", 20, "0"]
+            # params: [market, limit, price_interval, multi_subscription_flag]
+            "params": ["BTC_USDT", 20, "0", True]
         }))
 
         async for message in ws:
@@ -132,22 +133,50 @@ async def stream_market_data():
 
 See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setup and authentication.
 
+<Note>
+  `depth_update` messages carry an `update_id`. Non-contiguous IDs indicate
+  a missed message — resnapshot by unsubscribing and re-subscribing. See
+  [WS Quickstart — State recovery after reconnect](/guides/websocket-quickstart#state-recovery-after-reconnect)
+  for the full pattern.
+</Note>
+
 ## Order placement
 
 All private endpoint examples in the guide use the following `send_request` helper for HMAC-SHA512 signing:
 
+<Note>
+  `send_request` uses a millisecond nonce. If multiple threads call the helper
+  in the same millisecond, the server rejects the duplicate via its nonceWindow
+  (±5 seconds). The helper below uses a monotonic counter protected by a lock
+  — safe under concurrent callers (for example, the kill-switch heartbeat
+  thread and the strategy thread placing orders simultaneously).
+</Note>
+
 ```python
-import base64, hashlib, hmac, json, time, requests
+import base64, hashlib, hmac, json, threading, time, requests
 
 API_KEY = "YOUR_API_KEY"
 API_SECRET = "YOUR_API_SECRET"
 BASE_URL = "https://whitebit.com"
 
+_nonce_lock = threading.Lock()
+_last_nonce = 0
+
+def _next_nonce():
+    """Monotonic millisecond nonce — safe under concurrent callers."""
+    global _last_nonce
+    with _nonce_lock:
+        n = max(int(time.time() * 1000), _last_nonce + 1)
+        _last_nonce = n
+        return str(n)
+
 def send_request(path, data=None):
-    if data is None:
-        data = {}
+    """Send a signed request. Returns the decoded JSON body.
+    Raises requests.HTTPError on HTTP 4xx/5xx — caller can inspect
+    `.response.status_code` and `.response.json()`."""
+    data = dict(data or {})
     data["request"] = path
-    data["nonce"] = str(int(time.time() * 1000))
+    data["nonce"] = _next_nonce()
     data_json = json.dumps(data)
     payload_b64 = base64.b64encode(data_json.encode()).decode()
     signature = hmac.new(
@@ -159,7 +188,26 @@ def send_request(path, data=None):
         "X-TXC-PAYLOAD": payload_b64,
         "X-TXC-SIGNATURE": signature,
     }
-    return requests.post(BASE_URL + path, headers=headers, data=data_json).json()
+    resp = requests.post(BASE_URL + path, headers=headers, data=data_json)
+    resp.raise_for_status()
+    return resp.json()
+```
+
+Private WebSocket channels require an `authorize` handshake. The helper below fetches a token via REST (rate limit: 10 requests / 60 s) and sends the `authorize` message. Call it once per WebSocket connection, before any private subscribe:
+
+```python
+async def authenticate_ws(ws):
+    """Fetch a WebSocket token via REST and authorize the WS connection."""
+    token_resp = send_request("/api/v4/profile/websocket_token")
+    token = token_resp["websocket_token"]
+    await ws.send(json.dumps({
+        "id": 999,
+        "method": "authorize",
+        "params": [token, "public"],
+    }))
+    ack = json.loads(await ws.recv())
+    if ack.get("id") != 999 or ack.get("result", {}).get("status") != "success":
+        raise RuntimeError(f"WS authorize failed: {ack}")
 ```
 
 See [Authentication](/api-reference/authentication) for the full signing walkthrough.
@@ -189,16 +237,18 @@ Place a limit order using the order creation endpoint:
         "amount": "0.001",
         "price": "60000"
     })
-    print(f"Order placed: {order.get('order_id')}")
+    print(f"Order placed: {order.get('orderId')}")
     ```
   </Tab>
 </Tabs>
 
 <Note>
-  For bot integrations, include a `client_order_id` to map fills back to
-  internal strategy state without depending on server-assigned `order_id`.
-  Custom identifiers survive reconnections and simplify order reconciliation.
-  See [Client Order ID](/guides/client-order-id) for usage patterns.
+  For bot integrations, include `clientOrderId` in the request to map fills
+  back to internal strategy state without depending on the server-assigned
+  `orderId`. The identifier is preserved across `order/modify` calls (modify
+  issues a new `orderId` but retains the caller-supplied `clientOrderId`),
+  which makes it the right key for order reconciliation. See
+  [Client Order ID](/guides/client-order-id) for usage patterns.
 </Note>
 
 ### Bulk orders
@@ -208,22 +258,21 @@ Place up to 20 limit orders in a single request — significantly reducing round
 **Endpoint:** [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order)
 
 ```python
-# Place 5 buy orders at descending prices
+# Place 5 buy orders at descending prices.
+# Note: `market` goes on each order item, not at the top level.
 orders = [
-    {"side": "buy", "amount": "0.001", "price": str(60000 - i * 100)}
+    {"side": "buy", "amount": "0.001", "price": str(60000 - i * 100), "market": "BTC_USDT"}
     for i in range(5)
 ]
-result = send_request("/api/v4/order/bulk", {
-    "market": "BTC_USDT",
-    "orders": orders
-})
+result = send_request("/api/v4/order/bulk", {"orders": orders})
 
-# Handle partial failures — some orders may succeed while others fail
-for i, order_result in enumerate(result):
-    if "order_id" in order_result:
-        print(f"Order {i}: placed (ID {order_result['order_id']})")
+# Bulk response is an array of {result, error} pairs. `result` is null on failure.
+for i, item in enumerate(result):
+    if item.get("result"):
+        print(f"Order {i}: placed (ID {item['result']['orderId']})")
     else:
-        print(f"Order {i}: failed — {order_result.get('message', 'unknown error')}")
+        err = item.get("error") or {}
+        print(f"Order {i}: failed — code {err.get('code')}, {err.get('message', 'unknown')}")
 ```
 
 <Note>
@@ -241,13 +290,21 @@ The kill-switch automatically cancels all active orders after a configurable tim
 ### Activate kill-switch
 
 ```python
-# Activate kill-switch with 60-second timeout
+# Activate kill-switch with 60-second timeout.
+# Note: the API expects `timeout` as a STRING, not an integer.
 ks = send_request("/api/v4/order/kill-switch", {
     "market": "BTC_USDT",
-    "timeout": 60  # seconds (valid range: 5–600)
+    "timeout": "60"  # seconds as string, valid range: "5"–"600"
 })
-print(f"Kill-switch active, expires at: {ks.get('timeout')}")
+print(f"Kill-switch active, cancellationTime: {ks.get('cancellationTime')}")
 ```
+
+<Note>
+  The kill-switch scope defaults to **all order types** (spot, margin, futures).
+  To scope it to just spot orders — for example, when the same account runs
+  futures positions that must not be canceled by a spot kill-switch — pass
+  `"types": ["spot"]` in the request.
+</Note>
 
 ### Heartbeat refresh loop
 
@@ -256,14 +313,15 @@ The bot must refresh the kill-switch before the timer expires. If the bot fails 
 ```python
 import threading
 
-def kill_switch_heartbeat(market, timeout, refresh_interval):
+def kill_switch_heartbeat(market, timeout_seconds, refresh_interval):
     """Refresh kill-switch on a regular interval. If this thread stops,
     the kill-switch expires and all orders are canceled automatically."""
+    timeout_str = str(timeout_seconds)  # API requires timeout as string
     while True:
         try:
             send_request("/api/v4/order/kill-switch", {
                 "market": market,
-                "timeout": timeout
+                "timeout": timeout_str,
             })
         except Exception as e:
             print(f"Kill-switch refresh failed: {e}")
@@ -319,14 +377,20 @@ async def monitor_fills(ws):
         method = data.get("method")
 
         if method == "deals_update":
-            for deal in data["params"]:
-                print(f"Fill: {deal['side']} {deal['amount']} @ {deal['price']}"
-                      f" (order {deal['order_id']})")
+            # params is a flat 11-element tuple — not an array of objects.
+            # Elements: [deal_id, time, market, order_id, price, amount, fee,
+            #            client_order_id, side_int, role_int, fee_asset]
+            p = data["params"]
+            deal_id, ts, market, order_id, price, amount, fee, client_oid, side_int, role_int, fee_asset = p
+            side = "sell" if side_int == 1 else "buy"
+            print(f"Fill: {side} {amount} @ {price} (order {order_id})")
 
         elif method == "ordersPending_update":
-            order = data["params"]
-            print(f"Order update: {order[0]['order_id']} — "
-                  f"remaining: {order[0].get('left', 'N/A')}")
+            # params is [event_id, order_object].
+            # event_id: 1=new, 2=update, 3=finish (cancel or execute)
+            event_id, order = data["params"]
+            event_label = {1: "new", 2: "update", 3: "finish"}.get(event_id, "?")
+            print(f"Order {event_label}: {order['id']} — remaining: {order.get('left', 'N/A')}")
 ```
 
 ## Error handling
@@ -339,27 +403,32 @@ Robust error handling is critical for unattended bots. Handle the following scen
 import random
 
 def send_request_with_retry(path, data=None, max_retries=5):
-    """Send a request with exponential backoff on rate limit errors."""
+    """Send a request with exponential backoff on HTTP 429 or 5xx.
+    Requires `send_request` to raise on HTTP errors (via resp.raise_for_status())."""
     for attempt in range(max_retries):
-        response = send_request(path, data)
-        if isinstance(response, dict) and response.get("code") == 429:
-            delay = min(30, (2 ** attempt)) + random.uniform(0, 1)
-            print(f"Rate limited, retrying in {delay:.1f}s...")
-            time.sleep(delay)
-            continue
-        return response
+        try:
+            return send_request(path, data)
+        except requests.HTTPError as e:
+            status = e.response.status_code
+            if status == 429 or 500 <= status < 600:
+                delay = min(30, 2 ** attempt) + random.uniform(0, 1)
+                print(f"HTTP {status}, retrying in {delay:.1f}s...")
+                time.sleep(delay)
+                continue
+            raise  # 4xx other than 429 — don't retry
     raise Exception(f"Max retries exceeded for {path}")
 ```
 
 ### Error classification
 
-| Error | Action | Auto-retry? |
-|-------|--------|-------------|
-| `429` Rate limit | Exponential backoff (1s → 2s → 4s → max 30s, with jitter) | Yes |
-| `401` Authentication | Stop trading, investigate — never auto-retry auth failures | No |
-| `422` Insufficient balance | Log, skip order, re-check balance | No |
-| `400` Market suspended | Skip market, check status via REST | No |
-| `500`/`503` Server error | Backoff and retry | Yes |
+| Signal | Example | Action | Auto-retry? |
+|--------|---------|--------|-------------|
+| HTTP `429` | — | Exponential backoff (1s → 2s → 4s → max 30s, with jitter) | Yes |
+| HTTP `401` | — | Stop trading, investigate — never auto-retry auth failures | No |
+| HTTP `422` + body `code: 5` | Not enough balance | Log, skip order, re-check balance | No |
+| HTTP `422` + body `code: 30/31/32/33` | Validation failed (field-specific) | Fix the request — inspect the `errors` map | No |
+| HTTP `422` + body `code: 10` | Market not found or disabled | Skip market, check status via REST | No |
+| HTTP `5xx` | — | Backoff and retry | Yes |
 
 <Warning>
   Never auto-retry `401` authentication errors. A failed auth indicates an incorrect signature, expired key, or IP whitelist mismatch — retrying floods the API without resolving the root cause.
@@ -428,7 +497,7 @@ async def run_bot():
     """Main bot loop with automatic reconnection and resubscription."""
     subscriptions = [
         {"method": "lastprice_subscribe", "params": ["BTC_USDT"]},
-        {"method": "depth_subscribe", "params": ["BTC_USDT", 20, "0"]},
+        {"method": "depth_subscribe", "params": ["BTC_USDT", 20, "0", True]},
         {"method": "deals_subscribe", "params": [["BTC_USDT"]]},
         {"method": "ordersPending_subscribe", "params": ["BTC_USDT"]},
     ]
@@ -436,14 +505,16 @@ async def run_bot():
     while True:
         ws = await connect_with_retry("wss://api.whitebit.com/ws")
         try:
-            # Re-authenticate for private channels
-            # (see WebSocket Quickstart for auth flow)
+            # Private channels require authentication first
+            await authenticate_ws(ws)
 
             # Re-subscribe to all channels
             for i, sub in enumerate(subscriptions):
                 await ws.send(json.dumps({"id": i + 1, **sub}))
 
-            # Process messages
+            # Process messages — `handle_message` is a strategy-specific
+            # callback the caller provides. The grid-bot worked example
+            # below shows one complete implementation.
             async for message in ws:
                 data = json.loads(message)
                 await handle_message(data)
@@ -452,6 +523,32 @@ async def run_bot():
             print("Disconnected — reconnecting...")
             continue
 ```
+
+### State reconciliation
+
+WebSocket streams do not replay messages that arrived during a disconnection. After reconnecting and re-authenticating, reconcile local state against the authoritative server state:
+
+```python
+def reconcile_state(market, local_orders):
+    """Query active orders; reconcile against local state."""
+    # 1. Active orders on the exchange right now
+    active = send_request("/api/v4/orders", {"market": market})
+    server_ids = {o["orderId"] for o in active}
+
+    # 2. Drop any local order that the server no longer knows about
+    disappeared = set(local_orders) - server_ids
+    for oid in disappeared:
+        local_orders.pop(oid)
+        print(f"Reconcile: {oid} vanished — assuming filled or canceled")
+
+    # 3. Orders the server knows about that are missing from local state
+    #    (e.g., after a restart)
+    unknown_locally = server_ids - set(local_orders)
+    for oid in unknown_locally:
+        print(f"Reconcile: adopting server-side order {oid}")
+```
+
+Call `reconcile_state(MARKET, grid_orders)` after `authenticate_ws(ws)` and before re-subscribing. For a per-fill audit trail, also query [`POST /api/v4/trade-account/executed-history`](/api-reference/spot-trading/query-executed-order-history) to see fills that happened during the disconnect.
 
 ## Worked example: Grid bot
 
@@ -464,6 +561,7 @@ import hashlib
 import hmac
 import json
 import random
+import threading
 import time
 
 import requests
@@ -475,20 +573,33 @@ API_SECRET = "YOUR_API_SECRET"
 BASE_URL = "https://whitebit.com"
 WS_URL = "wss://api.whitebit.com/ws"
 
-MARKET = "BTC_USDT"
+# Demo market — DBTC/DUSDT costs nothing and uses the real API endpoints.
+# Swap to "BTC_USDT" (or another real pair) after validating the strategy.
+# Always re-check market constraints (`GET /api/v4/public/markets`) when
+# switching markets — precision and min/max totals are per-pair.
+MARKET = "DBTC_DUSDT"
 GRID_SIZE = 10          # number of grid levels per side
 GRID_SPACING = 50       # price distance between levels (in quote currency)
 ORDER_AMOUNT = "0.001"  # order size per grid level (in base currency)
-KS_TIMEOUT = 120        # kill-switch timeout in seconds
-KS_REFRESH = 90         # kill-switch refresh interval
+KS_TIMEOUT = "120"      # kill-switch timeout in seconds (API requires string)
+KS_REFRESH = 90         # kill-switch refresh interval in seconds
 
 
 # ── REST API helper (same as earlier in the guide) ────────
+_nonce_lock = threading.Lock()
+_last_nonce = 0
+
+def _next_nonce():
+    global _last_nonce
+    with _nonce_lock:
+        n = max(int(time.time() * 1000), _last_nonce + 1)
+        _last_nonce = n
+        return str(n)
+
 def send_request(path, data=None):
-    if data is None:
-        data = {}
+    data = dict(data or {})
     data["request"] = path
-    data["nonce"] = str(int(time.time() * 1000))
+    data["nonce"] = _next_nonce()
     data_json = json.dumps(data)
     payload_b64 = base64.b64encode(data_json.encode()).decode()
     signature = hmac.new(
@@ -501,7 +612,19 @@ def send_request(path, data=None):
         "X-TXC-SIGNATURE": signature,
     }
     resp = requests.post(BASE_URL + path, headers=headers, data=data_json)
+    resp.raise_for_status()
     return resp.json()
+
+
+async def authenticate_ws(ws):
+    """Fetch a WebSocket token and authorize the connection."""
+    token = send_request("/api/v4/profile/websocket_token")["websocket_token"]
+    await ws.send(json.dumps({
+        "id": 999, "method": "authorize", "params": [token, "public"],
+    }))
+    ack = json.loads(await ws.recv())
+    if ack.get("id") != 999 or ack.get("result", {}).get("status") != "success":
+        raise RuntimeError(f"WS authorize failed: {ack}")
 
 
 # ── Grid state ─────────────────────────────────────────────
@@ -535,21 +658,19 @@ def place_grid_orders(center_price):
     for batch_start in range(0, len(levels), 20):
         batch = levels[batch_start:batch_start + 20]
         orders = [
-            {"side": lvl["side"], "amount": ORDER_AMOUNT, "price": lvl["price"]}
+            {"side": lvl["side"], "amount": ORDER_AMOUNT, "price": lvl["price"], "market": MARKET}
             for lvl in batch
         ]
-        result = send_request("/api/v4/order/bulk", {
-            "market": MARKET,
-            "orders": orders,
-        })
-        for i, order_result in enumerate(result):
-            if "order_id" in order_result:
-                oid = order_result["order_id"]
+        result = send_request("/api/v4/order/bulk", {"orders": orders})
+        for i, item in enumerate(result):
+            if item.get("result"):
+                oid = item["result"]["orderId"]
                 grid_orders[oid] = batch[i]
                 print(f"Grid order placed: {batch[i]['side']} @ {batch[i]['price']}"
                       f" (ID {oid})")
             else:
-                print(f"Grid order failed: {order_result.get('message')}")
+                err = item.get("error") or {}
+                print(f"Grid order failed: code {err.get('code')} {err.get('message')}")
 
 
 def replace_filled_order(filled_order):
@@ -572,15 +693,15 @@ def replace_filled_order(filled_order):
         "amount": ORDER_AMOUNT,
         "price": new_price,
     })
-    if "order_id" in result:
-        grid_orders[result["order_id"]] = {
+    if "orderId" in result:
+        grid_orders[result["orderId"]] = {
             "side": new_side,
             "price": new_price,
             "level": -level,
         }
-        print(f"Replacement order: {new_side} @ {new_price} (ID {result['order_id']})")
+        print(f"Replacement order: {new_side} @ {new_price} (ID {result['orderId']})")
     else:
-        print(f"Replacement failed: {result.get('message')}")
+        print(f"Replacement failed: code {result.get('code')} {result.get('message')}")
 
 
 # ── Kill-switch heartbeat ──────────────────────────────────
@@ -610,18 +731,21 @@ async def handle_message(data):
     method = data.get("method")
 
     if method == "deals_update":
-        for deal in data.get("params", []):
-            order_id = deal.get("order_id")
+        # Unpack the 11-element tuple — see Fill monitoring section above.
+        p = data.get("params", [])
+        if len(p) == 11:
+            _, _, _, order_id, _, _, _, _, _, _, _ = p
             if order_id in grid_orders:
                 filled = grid_orders.pop(order_id)
                 print(f"Grid fill: {filled['side']} @ {filled['price']}")
                 replace_filled_order(filled)
 
     elif method == "ordersPending_update":
-        for order in data.get("params", []):
-            oid = order.get("order_id")
-            left = order.get("left", "0")
-            if oid in grid_orders and float(left) == 0:
+        # params is [event_id, order_object]. Act only on event_id == 3 (finish).
+        event_id, order = data["params"]
+        if event_id == 3:
+            oid = order["id"]
+            if oid in grid_orders and float(order.get("left", "0")) == 0:
                 filled = grid_orders.pop(oid)
                 replace_filled_order(filled)
 
@@ -635,13 +759,16 @@ async def run_grid_bot():
     center = round(last_price / GRID_SPACING) * GRID_SPACING  # snap to grid
     print(f"Center price: {center} (last: {last_price})")
 
-    # 2. Place initial grid orders
+    # 2. Clean slate — cancel any orders left from a previous run.
+    send_request("/api/v4/order/cancel/all", {"market": MARKET, "type": ["spot"]})
+
+    # 3. Place initial grid orders
     place_grid_orders(center)
 
-    # 3. Activate kill-switch
+    # 4. Activate kill-switch
     start_kill_switch()
 
-    # 4. Connect to WebSocket and monitor fills
+    # 5. Connect to WebSocket and monitor fills
     subscriptions = [
         {"method": "deals_subscribe", "params": [[MARKET]]},
         {"method": "ordersPending_subscribe", "params": [MARKET]},
@@ -650,8 +777,8 @@ async def run_grid_bot():
     while True:
         try:
             async with websockets.connect(WS_URL) as ws:
-                # Authenticate for private channels
-                # (see WebSocket Quickstart for auth implementation)
+                # Private channels require authentication first
+                await authenticate_ws(ws)
 
                 for i, sub in enumerate(subscriptions):
                     await ws.send(json.dumps({"id": i + 1, **sub}))
