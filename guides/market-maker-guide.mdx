@@ -144,43 +144,57 @@ For endpoints not listed above, use the standard WhiteBIT API at `https://whiteb
 
 Professional quoting on WhiteBIT combines bulk limit orders for position management with real-time market data for price discovery.
 
-**Bulk limit orders:** `POST /api/v4/order/bulk` — place up to 20 limit orders in a single API call. See the [API Reference](/api-reference/spot-trading/bulk-limit-order).
+**Bulk limit orders:** `POST /api/v4/order/bulk` — place up to 20 limit orders in a single API call. Each order item can set `rpi: true` to enable **Retail Price Improvement** mode — post-only by design, not visible in public `depth` feeds, and incompatible with `ioc`. See the [API Reference](/api-reference/spot-trading/bulk-limit-order).
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
-**Order modify:** `POST /api/v4/order/modify` — modify an existing order's price or amount without canceling and replacing. Critical for requoting. See the [API Reference](/api-reference/spot-trading/modify-order).
+**Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order).
 
-{/* Open question: Does modify preserve queue priority? Document when confirmed by engineering. */}
-
-**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — set a timeout after which all active orders are automatically canceled. Essential safety mechanism for market-making operations. See the [API Reference](/api-reference/spot-trading/kill-switch).
+**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — set a timeout after which all active orders are automatically canceled. Essential safety mechanism for market-making operations. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
 
 - Configuration: set the timeout period; the timer resets on each API call to the kill-switch endpoint
-- Check status: `POST /api/v4/order/kill-switch/status` — see the [API Reference](/api-reference/spot-trading/kill-switch-status)
+- Scope: pass the optional `types` array (`"spot"`, `"margin"`, `"futures"`) to restrict the breaker to a subset of order types — useful when running spot market-making alongside futures positions you do not want to kill
+- Check status: `POST /api/v4/order/kill-switch/status` — see the [API Reference](/api-reference/spot-trading/status-kill-switch-timer)
 
-**Self-Trade Prevention:** Market makers providing two-sided quotes (bid + ask) must understand STP behavior to avoid self-trades. When a new order would match against an existing order from the same account, the STP mechanism cancels one side instead of executing the trade. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available STP modes and cancellation behavior.
+**Self-Trade Prevention:** Market makers providing two-sided quotes (bid + ask) must understand STP behavior to avoid self-trades. When a new order would match against an existing order from the same account, the STP mechanism cancels the new order, the existing order, both, or neither — depending on the `stp` mode passed at order placement. The default mode (`no`) allows self-trades, which is usually not what a two-sided quoter wants. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available modes.
 
 <Tabs>
   <Tab title="curl">
     ```bash
-    # Place a bulk order (up to 20 limit orders)
+    # Place a bulk order (up to 20 limit orders). Each order item carries its
+    # own "market" field — there is no top-level market parameter.
     curl -X POST "https://whitebit.com/api/v4/order/bulk" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
       -d '{
-        "market": "BTC_USDT",
         "orders": [
-          {"side": "buy",  "amount": "0.01", "price": "60000"},
-          {"side": "buy",  "amount": "0.01", "price": "59900"},
-          {"side": "sell", "amount": "0.01", "price": "60200"},
-          {"side": "sell", "amount": "0.01", "price": "60300"}
+          {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "60000", "clientOrderId": "quote-bid-1"},
+          {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "59900", "clientOrderId": "quote-bid-2"},
+          {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60200", "clientOrderId": "quote-ask-1"},
+          {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60300", "clientOrderId": "quote-ask-2"}
         ],
         "request": "/api/v4/order/bulk",
         "nonce": "YOUR_NONCE"
       }'
 
-    # Set a kill-switch with 60-second timeout
+    # Requote the top bid by clientOrderId. The response carries a new orderId;
+    # the clientOrderId is preserved so local tracking survives the modify.
+    curl -X POST "https://whitebit.com/api/v4/order/modify" \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -d '{
+        "market": "BTC_USDT",
+        "clientOrderId": "quote-bid-1",
+        "price": "60050",
+        "request": "/api/v4/order/modify",
+        "nonce": "YOUR_NONCE"
+      }'
+
+    # Set a kill-switch with 60-second timeout. The timeout field is a string.
     curl -X POST "https://whitebit.com/api/v4/order/kill-switch" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
@@ -188,7 +202,7 @@ Professional quoting on WhiteBIT combines bulk limit orders for position managem
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
       -d '{
         "market": "BTC_USDT",
-        "timeout": 60,
+        "timeout": "60",
         "request": "/api/v4/order/kill-switch",
         "nonce": "YOUR_NONCE"
       }'
@@ -223,22 +237,33 @@ Professional quoting on WhiteBIT combines bulk limit orders for position managem
         }
         return requests.post(f"{BASE_URL}{endpoint}", headers=headers, data=body)
 
-    # Place a bulk order
+    # Place a bulk order. Each order item carries its own "market" field —
+    # there is no top-level market parameter. The response is a list of
+    # {"result": {...}, "error": {...}} pairs — check each item individually
+    # since per-order failures do not fail the HTTP request.
     response = send_request("/api/v4/order/bulk", {
-        "market": "BTC_USDT",
         "orders": [
-            {"side": "buy",  "amount": "0.01", "price": "60000"},
-            {"side": "buy",  "amount": "0.01", "price": "59900"},
-            {"side": "sell", "amount": "0.01", "price": "60200"},
-            {"side": "sell", "amount": "0.01", "price": "60300"},
+            {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "60000", "clientOrderId": "quote-bid-1"},
+            {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "59900", "clientOrderId": "quote-bid-2"},
+            {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60200", "clientOrderId": "quote-ask-1"},
+            {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60300", "clientOrderId": "quote-ask-2"},
         ],
     })
     print(response.json())
 
-    # Set a kill-switch with 60-second timeout
+    # Requote the top bid by clientOrderId. Response carries a new orderId;
+    # clientOrderId is preserved so local tracking survives the modify.
+    response = send_request("/api/v4/order/modify", {
+        "market": "BTC_USDT",
+        "clientOrderId": "quote-bid-1",
+        "price": "60050",
+    })
+    print(response.json())
+
+    # Set a kill-switch with 60-second timeout. The timeout field is a string.
     response = send_request("/api/v4/order/kill-switch", {
         "market": "BTC_USDT",
-        "timeout": 60,
+        "timeout": "60",
     })
     print(response.json())
     ```
@@ -255,10 +280,12 @@ Production market-making systems require careful architecture around account str
 
 **WebSocket connection management:**
 
+- Authenticate after connecting: fetch a token via `POST /api/v4/profile/websocket_token` (rate limit: **10 requests per 60 seconds** — cache the token across reconnects within its lifetime), then send `{"id": N, "method": "authorize", "params": ["<token>", "public"]}` on the socket. On `{"result": {"status": "success"}}`, subscribe to private channels such as `balanceSpot`, `ordersPending`, and `deals`
 - Implement automatic reconnection with exponential backoff
 - Re-subscribe to all channels after reconnection
 - Use the ping/pong mechanism to detect stale connections
-- See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setup
+- After reconnecting, reconcile local state: call `POST /api/v4/orders` for the current active set and `POST /api/v4/trade-account/executed-history` for fills since the last-seen ID. Do not assume in-memory state survived the disconnect
+- See the [WebSocket Quickstart](/guides/websocket-quickstart) for a full connection + auth example
 
 **Rate limit management:**
 
@@ -273,9 +300,40 @@ Market-making operations require continuous monitoring and automated safety mech
 
 **Kill-switch configuration:** Set the kill-switch timeout as the first action after connecting. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timer with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels all orders after the timeout expires.
 
+**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for when you are not there. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
+
+<Tabs>
+  <Tab title="curl">
+    ```bash
+    # Cancel all spot orders on BTC_USDT
+    curl -X POST "https://whitebit.com/api/v4/order/cancel/all" \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -d '{
+        "market": "BTC_USDT",
+        "type": ["spot"],
+        "request": "/api/v4/order/cancel/all",
+        "nonce": "YOUR_NONCE"
+      }'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    # Uses send_request helper from the Quoting strategy example above.
+    response = send_request("/api/v4/order/cancel/all", {
+        "market": "BTC_USDT",
+        "type": ["spot"],
+    })
+    print(response.json())
+    ```
+  </Tab>
+</Tabs>
+
 **Balance monitoring:** Use the WebSocket `balanceSpot` channel for real-time balance updates, or poll `POST /api/v4/trade-account/balance` for periodic checks. Monitor for unexpected balance changes.
 
-**Fee tracking:** Use `POST /api/v4/market/fee` to verify the current fee tier for each market pair. Fee tiers are based on 30-day rolling volume — monitor tier changes as volume accumulates. Look up tier breakpoints on the [VIP program page](https://whitebit.com/vip-program) or the [trading fees page](https://whitebit.com/trading-data/trading-fees).
+**Fee tracking:** Use `POST /api/v4/market/fee` to pull the account's global maker and taker fees plus any per-pair custom fees — the `market` request parameter is currently ignored, so the endpoint returns fees for all markets regardless. Filter the per-pair `custom_fee` map client-side. Fee tiers are based on 30-day rolling volume — monitor tier changes as volume accumulates. Look up tier breakpoints on the [VIP program page](https://whitebit.com/vip-program) or the [trading fees page](https://whitebit.com/trading-data/trading-fees).
 
 **Self-Trade Prevention:** Understand the STP mode active on the account. Two-sided quoters hit STP frequently when bid and ask orders overlap. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available modes and behavior.
 
