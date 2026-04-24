@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time candlestick (OHLCV) chart updates for a trading pair via WhiteBIT WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -27,6 +28,8 @@ import {
   exCandlesUnsubscribe,
 } from '/snippets/ws-data/kline.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 Query or subscribe to candlestick (OHLCV) data for a market and interval. Each candle contains open, high, low, close, and volume values for the specified interval. The server pushes updates every 0.5 seconds while a candle is active, reflecting the latest trade activity. Use this channel to power real-time charting or detect price movements as they occur.
 

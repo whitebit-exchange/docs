@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time best bid and ask price updates for trading pairs via WhiteBIT WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -22,6 +23,8 @@ import {
   exBookTickerUpdate,
   exBookTickerUnsubscribe,
 } from '/snippets/ws-data/book_ticker.jsx'
+
+<RegionBaseUrl />
 
 Real-time best bid and best ask price updates for a market. The server sends an update instantly whenever the best bid or best ask changes. Each update contains the current best bid price, best bid amount, best ask price, and best ask amount for the subscribed market. Use this stream to maintain an accurate top-of-book view without polling the REST API.
 

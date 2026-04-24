@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time current-day market statistics for trading pairs via WhiteBIT WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -22,6 +23,8 @@ import {
   exMarketTodaySubscribe,
   exMarketTodayUpdate,
 } from '/snippets/ws-data/market_today.jsx'
+
+<RegionBaseUrl />
 
 Query or subscribe to current UTC day market statistics for one or more trading pairs. The channel delivers open, high, low, last price, and volume data accumulated since 00:00 UTC. All statistics reset at UTC midnight. Updates arrive every second for active subscriptions, making this channel suitable for live daily market summaries and intraday performance displays.
 
