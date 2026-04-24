@@ -4,6 +4,10 @@ description: "Monitor balances, deposits, withdrawals, and order activity across
 sidebarTitle: "Account Monitoring"
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
 Monitor account state across Main, Trade, and Collateral balances using REST endpoints and WebSocket streams. This guide covers balance queries, deposit/withdrawal tracking, order activity monitoring, and the decision framework for choosing between REST polling and WebSocket subscriptions. Applicable to any integration that needs real-time or periodic account state awareness.
 
 **Payment processing integrations** (deposit/withdrawal monitoring): focus on the balance monitoring and deposit/withdrawal tracking sections — Main balance does not support WebSocket streaming, so webhooks and REST polling are the primary mechanisms. **Trading integrations** (bots, dashboards): focus on balance monitoring and order activity monitoring via WebSocket for real-time state.
@@ -26,7 +30,7 @@ For an explanation of account types and how funds move between them, see [Balanc
   <Tab title="cURL">
     ```bash
     # See /api-reference/authentication for signing details.
-    curl -X POST https://api.whitebit.com/api/v4/trade-account/balance \
+    curl -X POST https://whitebit.com/api/v4/trade-account/balance \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -40,7 +44,7 @@ For an explanation of account types and how funds move between them, see [Balanc
 
     API_KEY = "YOUR_API_KEY"
     API_SECRET = "YOUR_API_SECRET"
-    BASE_URL = "https://api.whitebit.com"
+    BASE_URL = "https://whitebit.com"
 
     def send_request(path, data=None):
         if data is None:
@@ -131,7 +135,7 @@ Query deposit and withdrawal history using the main account history endpoint:
 <Tabs>
   <Tab title="cURL">
     ```bash
-    curl -X POST https://api.whitebit.com/api/v4/main-account/history \
+    curl -X POST https://whitebit.com/api/v4/main-account/history \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -174,7 +178,7 @@ Query active orders across all markets or filter by a specific market:
 <Tabs>
   <Tab title="cURL">
     ```bash
-    curl -X POST https://api.whitebit.com/api/v4/orders \
+    curl -X POST https://whitebit.com/api/v4/orders \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -202,7 +206,7 @@ Query trade history for filled and canceled orders:
 <Tabs>
   <Tab title="cURL">
     ```bash
-    curl -X POST https://api.whitebit.com/api/v4/trade-account/order/history \
+    curl -X POST https://whitebit.com/api/v4/trade-account/order/history \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \

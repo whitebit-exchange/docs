@@ -4,6 +4,10 @@ description: "Open a first leveraged position on WhiteBIT — Margin Trading (up
 sidebarTitle: "Quickstart"
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
 Open a first leveraged position on WhiteBIT. Margin Trading and Futures Trading share identical API endpoints — only the pair name differs. Select a tab below to follow the steps for the preferred product.
 
 <Note>
@@ -42,7 +46,7 @@ import requests
 
 API_KEY = "YOUR_API_KEY"        # Replace with actual API key
 API_SECRET = "YOUR_API_SECRET"  # Replace with actual API secret
-BASE_URL = "https://api.whitebit.com"
+BASE_URL = "https://whitebit.com"
 
 def send_request(path, data=None):
     if data is None:
@@ -78,7 +82,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/collateral-account/balance \
+            curl -X POST https://whitebit.com/api/v4/collateral-account/balance \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -111,7 +115,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/collateral-account/leverage \
+            curl -X POST https://whitebit.com/api/v4/collateral-account/leverage \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -145,7 +149,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/order/collateral/limit \
+            curl -X POST https://whitebit.com/api/v4/order/collateral/limit \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -190,7 +194,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/collateral-account/positions/open \
+            curl -X POST https://whitebit.com/api/v4/collateral-account/positions/open \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -237,7 +241,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/order/cancel \
+            curl -X POST https://whitebit.com/api/v4/order/cancel \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -279,7 +283,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/collateral-account/balance \
+            curl -X POST https://whitebit.com/api/v4/collateral-account/balance \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -310,7 +314,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/collateral-account/leverage \
+            curl -X POST https://whitebit.com/api/v4/collateral-account/leverage \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -344,7 +348,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/collateral-account/hedge-mode/update \
+            curl -X POST https://whitebit.com/api/v4/collateral-account/hedge-mode/update \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -375,7 +379,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/order/collateral/limit \
+            curl -X POST https://whitebit.com/api/v4/order/collateral/limit \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -420,7 +424,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/collateral-account/positions/open \
+            curl -X POST https://whitebit.com/api/v4/collateral-account/positions/open \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -467,7 +471,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         <Tabs>
           <Tab title="cURL">
             ```bash
-            curl -X POST https://api.whitebit.com/api/v4/order/cancel \
+            curl -X POST https://whitebit.com/api/v4/order/cancel \
               -H "Content-Type: application/json" \
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \

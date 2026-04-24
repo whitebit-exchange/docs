@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time spot balance updates for a WhiteBIT account via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -23,6 +24,8 @@ import {
   exBalanceSpotUnsubscribe,
 } from '/snippets/ws-data/balance_spot.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 

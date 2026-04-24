@@ -4,6 +4,10 @@ description: "Create and apply fee-free digital vouchers to transfer crypto betw
 sidebarTitle: "WhiteBIT Codes"
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
 WhiteBIT Codes are fee-free digital vouchers for transferring cryptocurrency between WhiteBIT accounts. A code encapsulates a specific amount of a currency — the creator generates the code, shares the code string, and the recipient applies the code to receive the funds.
 
 ## Use cases
@@ -58,7 +62,7 @@ Create a code for 0.002 ETH with a passphrase, then apply the code on a differen
   <Tab title="cURL">
     ```bash
     # Step 1: Create a WhiteBIT code
-    curl -X POST https://api.whitebit.com/api/v4/main-account/codes \
+    curl -X POST https://whitebit.com/api/v4/main-account/codes \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
@@ -82,7 +86,7 @@ Create a code for 0.002 ETH with a passphrase, then apply the code on a differen
 
     ```bash
     # Step 2: Apply the code on the recipient's account
-    curl -X POST https://api.whitebit.com/api/v4/main-account/codes/apply \
+    curl -X POST https://whitebit.com/api/v4/main-account/codes/apply \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
@@ -115,7 +119,7 @@ Create a code for 0.002 ETH with a passphrase, then apply the code on a differen
 
     API_KEY = "YOUR_API_KEY"
     SECRET = "YOUR_SECRET"
-    BASE_URL = "https://api.whitebit.com"
+    BASE_URL = "https://whitebit.com"
 
     def send_request(path, data):
         data["request"] = path

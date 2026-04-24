@@ -4,6 +4,10 @@ description: "Create a sub-account, transfer funds, generate an API key, and che
 sidebarTitle: "Quickstart"
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
 Create a sub-account, transfer funds into the sub-account, generate a dedicated API key, and verify the balance -- all via API.
 
 ## Prerequisites
@@ -21,7 +25,7 @@ Create a sub-account, transfer funds into the sub-account, generate a dedicated 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/sub-account/create \
+        curl -X POST https://whitebit.com/api/v4/sub-account/create \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -41,7 +45,7 @@ Create a sub-account, transfer funds into the sub-account, generate a dedicated 
 
         API_KEY = "YOUR_API_KEY"
         API_SECRET = "YOUR_SECRET"
-        BASE_URL = "https://api.whitebit.com"
+        BASE_URL = "https://whitebit.com"
 
         def make_request(endpoint, body):
             nonce = str(int(time.time() * 1000))
@@ -85,7 +89,7 @@ Create a sub-account, transfer funds into the sub-account, generate a dedicated 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/sub-account/transfer \
+        curl -X POST https://whitebit.com/api/v4/sub-account/transfer \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -130,7 +134,7 @@ Create a sub-account, transfer funds into the sub-account, generate a dedicated 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/sub-account/api-key/create \
+        curl -X POST https://whitebit.com/api/v4/sub-account/api-key/create \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -170,7 +174,7 @@ Create a sub-account, transfer funds into the sub-account, generate a dedicated 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/sub-account/balances \
+        curl -X POST https://whitebit.com/api/v4/sub-account/balances \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \

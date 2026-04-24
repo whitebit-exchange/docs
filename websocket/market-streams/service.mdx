@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Ping the WhiteBIT WebSocket server to check connection health and keep the connection alive."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
@@ -17,6 +18,8 @@ import {
   exTimeRequest,
   exTimeResponse,
 } from '/snippets/ws-data/service.jsx'
+
+<RegionBaseUrl />
 
 Check API availability with ping/pong and query the current server time. The Service channel supports one-time queries only — no subscription or push events. Use ping to verify connection health and retrieve the server timestamp for clock synchronization.
 

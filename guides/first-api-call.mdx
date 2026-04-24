@@ -4,6 +4,10 @@ description: "Make a first WhiteBIT API call — public market data with no auth
 sidebarTitle: "First API Call"
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
 Make a first WhiteBIT API call — public data with no authentication, then a private request with HMAC-SHA512 signing. The guide covers server time, market data, and an authenticated balance read.
 
 <Note>
@@ -24,19 +28,19 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
   <Step title="Check server time (public, no auth)">
     Verify connectivity by calling the public server time endpoint. No authentication is required.
 
-    **Endpoint:** `GET https://api.whitebit.com/api/v4/public/time`
+    **Endpoint:** `GET https://whitebit.com/api/v4/public/time`
 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X GET https://api.whitebit.com/api/v4/public/time
+        curl -X GET https://whitebit.com/api/v4/public/time
         ```
       </Tab>
       <Tab title="Python">
         ```python
         import requests
 
-        response = requests.get("https://api.whitebit.com/api/v4/public/time")
+        response = requests.get("https://whitebit.com/api/v4/public/time")
         print(response.json())
         ```
       </Tab>
@@ -55,19 +59,19 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
   <Step title="Fetch market data (public, no auth)">
     Retrieve the list of available spot markets. No authentication is required.
 
-    **Endpoint:** `GET https://api.whitebit.com/api/v4/public/markets`
+    **Endpoint:** `GET https://whitebit.com/api/v4/public/markets`
 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X GET https://api.whitebit.com/api/v4/public/markets
+        curl -X GET https://whitebit.com/api/v4/public/markets
         ```
       </Tab>
       <Tab title="Python">
         ```python
         import requests
 
-        response = requests.get("https://api.whitebit.com/api/v4/public/markets")
+        response = requests.get("https://whitebit.com/api/v4/public/markets")
         markets = response.json()
         # Print first 3 markets
         for market in markets[:3]:
@@ -122,7 +126,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
   <Step title="Authenticated balance check (private)">
     Read the spot trading account balance. This call requires HMAC-SHA512 signing.
 
-    **Endpoint:** `POST https://api.whitebit.com/api/v4/trade-account/balance`
+    **Endpoint:** `POST https://whitebit.com/api/v4/trade-account/balance`
 
     Every private request requires three headers computed from the request body:
     - `X-TXC-APIKEY` — the API key string
@@ -146,12 +150,15 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
         API_KEY = "YOUR_API_KEY"        # Replace with actual API key
         API_SECRET = "YOUR_API_SECRET"  # Replace with actual API secret
 
-        url = "https://api.whitebit.com/api/v4/trade-account/balance"
+        url = "https://whitebit.com/api/v4/trade-account/balance"
         payload = {
             "request": "/api/v4/trade-account/balance",
             "nonce": str(int(time.time() * 1000))
         }
-        payload_json = json.dumps(payload)
+        # Use compact separators: the server validates the body against a
+        # canonical (no-whitespace) serialization and rejects spaced JSON
+        # with HTTP 400 `{"code":9,"message":"Invalid payload."}`.
+        payload_json = json.dumps(payload, separators=(",", ":"))
         payload_base64 = base64.b64encode(payload_json.encode()).decode()
         signature = hmac.new(
             API_SECRET.encode(),
@@ -175,7 +182,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
         # Use the Python example for a complete signing implementation.
         # Replace BASE64_PAYLOAD and HMAC_SIGNATURE with computed values.
 
-        curl -X POST https://api.whitebit.com/api/v4/trade-account/balance \
+        curl -X POST https://whitebit.com/api/v4/trade-account/balance \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \

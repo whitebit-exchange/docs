@@ -4,6 +4,10 @@ description: "Place a first spot trade on WhiteBIT — check balance, create a l
 sidebarTitle: "Quickstart"
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
 Place a first spot trade on the WhiteBIT API — check the Trade balance, place a limit order on BTC_USDT, verify the order, and cancel the order — in under 5 minutes.
 
 ## Prerequisites
@@ -28,7 +32,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
       <Tab title="cURL">
         ```bash
         # See /api-reference/authentication for signing details.
-        curl -X POST https://api.whitebit.com/api/v4/trade-account/balance \
+        curl -X POST https://whitebit.com/api/v4/trade-account/balance \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -47,7 +51,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
 
         API_KEY = "YOUR_API_KEY"        # Replace with actual API key
         API_SECRET = "YOUR_SECRET"     # Replace with actual API secret
-        BASE_URL = "https://api.whitebit.com"
+        BASE_URL = "https://whitebit.com"
 
         def send_request(path, data=None):
             if data is None:
@@ -100,7 +104,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
       <Tab title="cURL">
         ```bash
         # Set price well below current market to prevent execution.
-        curl -X POST https://api.whitebit.com/api/v4/order/new \
+        curl -X POST https://whitebit.com/api/v4/order/new \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -147,7 +151,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/orders \
+        curl -X POST https://whitebit.com/api/v4/orders \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -186,7 +190,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/order/cancel \
+        curl -X POST https://whitebit.com/api/v4/order/cancel \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
