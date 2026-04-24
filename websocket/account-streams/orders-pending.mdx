@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time updates on pending account orders on WhiteBIT via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -26,6 +27,8 @@ import {
   exOrdersPendingUnsubscribe,
 } from '/snippets/ws-data/orders_pending.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
