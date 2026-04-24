@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time margin borrow events for a WhiteBIT account via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -23,6 +24,8 @@ import {
   exBorrowsEventsUnsubscribe,
 } from '/snippets/ws-data/borrows_events.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -47,6 +50,10 @@ Subscribe to margin call and liquidation event notifications for collateral borr
   updateExtra={<WsTupleTable fields={borrowsEventsUpdateParamsTupleFields} />}
   unsubscribe={exBorrowsEventsUnsubscribe}
 />
+
+<Note>
+This channel delivers events only on state changes — no snapshot is sent on subscribe, and events missed during a disconnection are not replayed. For complete borrow state awareness, pair this channel with [Borrows](/websocket/account-streams/borrows), which sends full snapshots every 1.5 seconds.
+</Note>
 
 ## Update frequency
 

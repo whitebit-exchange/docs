@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Query current margin borrows for a WhiteBIT account via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,6 +22,8 @@ import {
   exBorrowsUnsubscribe,
 } from '/snippets/ws-data/borrows.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -44,6 +47,10 @@ Subscribe to collateral borrow status updates for all open margin positions, inc
   updateNote="The server pushes borrowsMargin_update periodically with the full current state of all open borrows. amount — borrowed amount (negative value). unrealized_funding — accrued but unpaid funding cost. liq_price — price at which the position would be liquidated."
   unsubscribe={exBorrowsUnsubscribe}
 />
+
+<Tip>
+Each update is a full snapshot of all open borrows — local state auto-recovers within 1.5 seconds of subscribing. No gap-filling is needed after reconnection.
+</Tip>
 
 ## Update frequency
 

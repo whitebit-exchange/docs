@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time 24-hour market statistics for trading pairs via WhiteBIT WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -22,6 +23,8 @@ import {
   exMarketSubscribe,
   exMarketUpdate,
 } from '/snippets/ws-data/market.jsx'
+
+<RegionBaseUrl />
 
 Query or subscribe to rolling 24-hour market statistics for one or more trading pairs. Each update delivers a full statistics snapshot — open, close, high, low prices, and volume — covering the past 24 hours. The server pushes a new snapshot every second. Use this channel to power market overview displays, screeners, or price monitoring tools.
 

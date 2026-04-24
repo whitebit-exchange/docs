@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time margin position change events for a WhiteBIT account via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -23,6 +24,8 @@ import {
   exMarginPositionsEventsUnsubscribe,
 } from '/snippets/ws-data/margin_positions_events.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -54,6 +57,10 @@ Subscribe to margin call and liquidation event notifications for collateral posi
   }
   unsubscribe={exMarginPositionsEventsUnsubscribe}
 />
+
+<Note>
+This channel delivers events only on state changes — no snapshot is sent on subscribe, and events missed during a disconnection are not replayed. For complete position state awareness, pair this channel with [Positions](/websocket/account-streams/positions), which sends full snapshots every second.
+</Note>
 
 ## Update frequency
 

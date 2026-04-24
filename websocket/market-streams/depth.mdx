@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time order book depth updates for a trading pair via WhiteBIT WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -25,6 +26,8 @@ import {
   exDepthPartialUpdate,
 } from '/snippets/ws-data/depth.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 Real-time order book data with support for both one-time snapshots and continuous subscription updates. Each update contains changed price levels (asks and bids) as `[price, amount]` tuples. The server pushes incremental deltas every 100ms; when no changes occur for 10 seconds, a full snapshot is sent as a keepalive. Use this channel to maintain a live local order book for trading logic or display.
 

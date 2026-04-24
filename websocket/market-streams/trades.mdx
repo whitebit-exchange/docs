@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time trade execution updates for a trading pair via WhiteBIT WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -24,6 +25,8 @@ import {
   exTradesUpdate,
 } from '/snippets/ws-data/trades.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 Subscribe to real-time trade execution updates for one or more markets. Each message delivers a batch of trade objects containing price, quantity, trade direction, and execution timestamp. The channel supports both targeted subscriptions for specific markets and a wildcard subscription for all available markets.
 

@@ -5,10 +5,14 @@ description: "Connect Claude Code, Cursor, Claude Desktop, Codex, or OpenClaw to
 icon: "server"
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
 The WhiteBIT MCP server exposes the full WhiteBIT API as AI tools over the Model Context Protocol. Connect a supported AI client and interact with markets, trading, balances, wallets, and sub-accounts using natural language.
 
 - **115 tools** across market data, spot trading, collateral trading, wallet, lending, sub-accounts, mining pool, and currency conversion
-- Runs as a local Docker container — API keys never leave the machine
+- Runs locally — API keys never leave the machine
 - Credentials are passed per tool call and are not stored or logged by the server
 
 <Note>
@@ -17,51 +21,125 @@ The MCP server documented on this page enables **trading** via AI clients. For d
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) installed and running, **or** Python 3.10+ for the no-Docker option
 - A WhiteBIT account with an API key (for trading tools) — see [API key generation](/api-reference/authentication)
 - A supported AI client: Claude Code, Cursor, Claude Desktop, Codex, or OpenClaw
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) **or** [Docker](https://docs.docker.com/get-docker/)
 
 ## Quick start
 
-### Start the server
+<Tabs>
+  <Tab title="Auto-setup (recommended)">
+    One command configures the MCP server for every supported AI client at once. No Docker, no manual config editing.
 
-<Steps>
-  <Step title="Clone the repository">
+    <Steps>
+      <Step title="Install uv">
+        `uv` is a Python package manager that provides the `uvx` command used to run the server.
+
+        <Tabs>
+          <Tab title="macOS / Linux">
+            ```bash
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            source $HOME/.local/bin/env
+            ```
+          </Tab>
+          <Tab title="Windows">
+            ```powershell
+            powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+            ```
+          </Tab>
+        </Tabs>
+      </Step>
+      <Step title="Run the setup command">
+        ```bash
+        uvx whitebit-mcp-setup --public=YOUR_API_KEY --secret=YOUR_SECRET_KEY
+        ```
+
+        The script writes the server configuration and credentials into the config of each AI tool it finds:
+
+        | AI tool | Config file |
+        |---|---|
+        | Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) / `%APPDATA%\Claude\…` (Windows) |
+        | Claude Code | `~/.claude/mcp.json` |
+        | Cursor | `~/.cursor/mcp.json` |
+        | OpenAI Codex | `~/.codex/config.toml` |
+        | OpenClaw | `~/.openclaw/openclaw.json` |
+
+        Existing configs are updated in place — other MCP servers you have configured are not affected.
+      </Step>
+      <Step title="Start the MCP server">
+        The MCP server is started automatically by your AI client — there is no separate server process to run manually. Under the hood, the setup command registered the following as the server entry in each config:
+
+        ```bash
+        uvx whitebit-mcp
+        ```
+
+        Your AI client will execute this command on startup and keep the server running in the background as long as the client is open.
+      </Step>
+      <Step title="Restart your AI client">
+        Restart the AI client so it picks up the new config and launches the server.
+
+        - **Claude Desktop** — quit and reopen the app
+        - **Claude Code** — run `claude mcp list` to reload, or start a new session
+        - **Cursor** — open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run **MCP: Reload Servers**
+        - **Codex** — start a new Codex session
+        - **OpenClaw** — restart the agent
+      </Step>
+      <Step title="Verify the connection">
+        Ask your AI client something like:
+
+        ```text
+        What is the current BTC_USDT price?
+        ```
+
+        If the WhiteBIT MCP server is connected, the AI client will call the tool and return live data.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Docker">
+    <Steps>
+      <Step title="Clone the repository">
+        ```bash
+        git clone https://github.com/whitebit-exchange/whitebit-mcp
+        cd whitebit-mcp
+        ```
+      </Step>
+      <Step title="Start the server">
+        ```bash
+        docker compose up -d
+        ```
+        The MCP endpoint is available at `http://localhost:8080/mcp`.
+      </Step>
+      <Step title="Verify the server is running">
+        ```bash
+        docker compose ps
+        ```
+        The `whitebit-mcp` container status shows `Up`.
+      </Step>
+    </Steps>
+
+    Stop the server at any time:
+
     ```bash
-    git clone https://github.com/whitebit-exchange/whitebit-mcp
-    cd whitebit-mcp
+    docker compose down
     ```
-  </Step>
-  <Step title="Start the server">
+
+    Then follow the [Connect an AI client](#connect-an-ai-client) section below to register the server in your AI tool.
+  </Tab>
+  <Tab title="Without Docker">
     ```bash
-    docker compose up -d
+    pip install mcp whitebit-python-sdk
+    mcp run server.py
     ```
-    The MCP endpoint is available at `http://localhost:8080/mcp`.
-  </Step>
-  <Step title="Verify the server is running">
-    ```bash
-    docker compose ps
-    ```
-    The `whitebit-mcp` container status shows `Up`.
-  </Step>
-</Steps>
 
-Stop the server at any time:
+    The server listens on `http://0.0.0.0:8000`. Use port `8000` in place of `8080` in all client configurations below.
 
-```bash
-docker compose down
-```
-
-### Run without Docker
-
-```bash
-pip install -r requirements.txt
-python server.py
-```
-
-The server listens on `http://0.0.0.0:8000`. Replace port `8080` with `8000` in all client configurations below.
+    Then follow the [Connect an AI client](#connect-an-ai-client) section below to register the server in your AI tool.
+  </Tab>
+</Tabs>
 
 ## Connect an AI client
+
+Skip this section if you used the auto-setup tab above — your AI clients are already configured.
 
 <Tabs>
   <Tab title="Claude Code">
