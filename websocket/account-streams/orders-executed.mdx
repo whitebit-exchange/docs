@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time notifications when account orders are executed on WhiteBIT via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -27,9 +28,7 @@ import {
 } from '/snippets/ws-data/orders_executed.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
 
-<Note>
-The `reduce_only` response field documented on this page is **coming soon**. The documentation is published in advance for integration planning. The field is not yet returned by the API. See [Reduce-only orders](/concepts/order-types#reduce-only-orders) for details.
-</Note>
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -71,6 +70,10 @@ The private stream returns executed orders, including orders using Retail Price 
   update={exOrdersExecutedUpdate}
   unsubscribe={exOrdersExecutedUnsubscribe}
 />
+
+<Note>
+Execution events during a disconnection are not replayed. After reconnecting, use `ordersExecuted_request` to query recent executed orders, or call the REST [Executed Order History](/api-reference/spot-trading/query-executed-order-history) endpoint to backfill missed records. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect).
+</Note>
 
 ## Update frequency
 

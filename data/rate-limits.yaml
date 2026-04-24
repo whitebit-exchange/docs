@@ -1,0 +1,87 @@
+# Rate Limits — Single source of truth
+# Consumed by: api-reference/rate-limits.mdx, api-reference/overview.mdx
+# Generator: node scripts/generate-concept-data.mjs → snippets/concept-data/rate-limits.jsx
+
+scopeLimits:
+  - scope: "/api/v4/public/*"
+    limit: 20000
+    period: "10 sec"
+    enforcement: "per IP address"
+  - scope: "/api/v4/trade-account/*"
+    limit: 12000
+    period: "10 sec"
+    enforcement: "per IP address"
+  - scope: "/api/v4/main-account/*"
+    limit: 1000
+    period: "10 sec"
+    enforcement: "per IP address"
+
+endpointLimits:
+  - endpoint: "GET /api/v4/public/markets"
+    method: "GET"
+    limit: 2000
+  - endpoint: "GET /api/v4/public/ticker"
+    method: "GET"
+    limit: 2000
+  - endpoint: "GET /api/v4/public/orderbook/{market}"
+    method: "GET"
+    limit: 600
+  - endpoint: "POST /api/v4/trade-account/balance"
+    method: "POST"
+    limit: 12000
+  - endpoint: "POST /api/v4/order/new"
+    method: "POST"
+    limit: 10000
+  - endpoint: "POST /api/v4/order/market"
+    method: "POST"
+    limit: 10000
+  - endpoint: "POST /api/v4/order/bulk"
+    method: "POST"
+    limit: 10000
+  - endpoint: "POST /api/v4/order/cancel"
+    method: "POST"
+    limit: 10000
+  - endpoint: "POST /api/v4/order/modify"
+    method: "POST"
+    limit: 10000
+  - endpoint: "POST /api/v4/order/kill-switch"
+    method: "POST"
+    limit: 10000
+  - endpoint: "POST /api/v4/collateral-account/balance"
+    method: "POST"
+    limit: 12000
+  - endpoint: "POST /api/v4/order/collateral/limit"
+    method: "POST"
+    limit: 10000
+  - endpoint: "POST /api/v4/order/collateral/bulk"
+    method: "POST"
+    limit: 10000
+
+exceededBehavior:
+  httpStatus: 429
+  message: "Too Many Requests"
+  behavior: "Requests are rejected — not queued"
+  escalation: "Repeated 429 responses may result in temporary IP or key restrictions"
+
+backoff:
+  strategy: "exponential"
+  initialSeconds: 1
+  multiplier: 2
+  capSeconds: 30
+  jitter: true
+
+httpStatusCodes:
+  - status: 200
+    meaning: "Success"
+  - status: 400
+    meaning: "Bad request — invalid parameters"
+  - status: 401
+    meaning: "Unauthorized — missing or invalid authentication"
+  - status: 403
+    meaning: "Forbidden — insufficient permissions"
+  - status: 404
+    meaning: "Not found — endpoint does not exist"
+  - status: 429
+    meaning: "Too Many Requests — rate limit exceeded"
+  - status: 500
+    meaning: "Internal server error — retry with backoff"

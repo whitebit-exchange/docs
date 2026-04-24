@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time collateral position updates for a WhiteBIT account via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,6 +22,8 @@ import {
   exPositionsUnsubscribe,
 } from '/snippets/ws-data/positions.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
+
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -48,6 +51,10 @@ This channel does **NOT** support query operations — only subscribe/update/uns
   updateNote="The server pushes positionsMargin_update with a full snapshot of all open positions every second. amount — position size (negative = short). pnl — unrealized profit and loss. liq_price — liquidation price. liq_stage — null (healthy) or margin_call. position_side — LONG, SHORT, or BOTH."
   unsubscribe={exPositionsUnsubscribe}
 />
+
+<Tip>
+Each update is a full snapshot of all open positions — local state auto-recovers within 1 second of subscribing. No gap-filling is needed after reconnection.
+</Tip>
 
 ## Update frequency
 

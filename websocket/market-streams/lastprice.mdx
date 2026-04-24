@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time last trade price updates for trading pairs via WhiteBIT WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -24,6 +25,8 @@ import {
   exLastpriceUpdate,
   exLastpriceUnsubscribe,
 } from '/snippets/ws-data/lastprice.jsx'
+
+<RegionBaseUrl />
 
 Query or subscribe to real-time last traded price updates for one or more markets. The channel delivers the most recent executed trade price for each subscribed market. Updates arrive every second when the price changes, making this channel suitable for live price tickers and market data dashboards.
 

@@ -1,0 +1,74 @@
+---
+title: "Markets & Trading Pairs"
+description: "Understand market types, trading pair notation, and how to fetch market data from the WhiteBIT API."
+sidebarTitle: "Markets"
+---
+
+WhiteBIT organizes trading around **market pairs** — combinations of a base asset and a quote asset, written as `BASE_QUOTE` (for example, `BTC_USDT`). The base asset (left side) is what gets bought or sold. The quote asset (right side) is what gets paid with.
+
+## Market types
+
+WhiteBIT supports three market types, each using different account balances and leverage settings.
+
+| Type | Pairs | Balance | Leverage | Example |
+|------|-------|---------|----------|---------|
+| **Spot** | 750+ | Trade | None (1×) | `BTC_USDT` |
+| **Margin** | Spot pairs | Collateral | Up to 10× | `BTC_USDT` |
+| **Futures** | 270+ perpetuals | Collateral | Up to 100× | `BTC_PERP` |
+
+**Spot** — Direct buy/sell. Orders execute against the spot orderbook. Funds held in the [Trade balance](/concepts/balances).
+
+**Margin** — Leveraged trading on spot pairs with up to 10× leverage. Pair names are identical to spot (e.g., `BTC_USDT`). Funds held in the [Collateral balance](/concepts/balances). Isolated margin mode available.
+
+**Futures** — Perpetual contracts with up to 100× leverage. Pairs use the `_PERP` suffix (e.g., `BTC_PERP`). Funds held in the [Collateral balance](/concepts/balances). Hedge Mode allows simultaneous long and short positions.
+
+<Note>
+  **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
+  Margin and Futures trading. The market pair determines the product:
+  spot pairs (e.g., `BTC_USDT`) for Margin, perpetual pairs (e.g., `BTC_PERP`)
+  for Futures. All endpoints under `/api/v4/order/collateral/` and
+  `/api/v4/collateral-account/` serve both products.
+</Note>
+
+## How to fetch market info
+
+Public endpoints — no authentication required:
+
+- **Spot + Margin markets:** `GET /api/v4/public/markets` — [API Reference](/api-reference/market-data/market-info)
+- **Futures markets:** `GET /api/v4/public/futures` — [API Reference](/api-reference/market-data/available-futures-markets-list)
+
+## Key market fields
+
+Each market returned by `GET /api/v4/public/markets` includes:
+
+| Field | Description |
+|-------|-------------|
+| `stock` | Base asset ticker (e.g., `BTC`) |
+| `money` | Quote asset ticker (e.g., `USDT`) |
+| `minAmount` | Minimum order quantity in the base asset |
+| `minTotal` | Minimum order total in the quote asset |
+| `makerFee` | Default maker fee rate (decimal) |
+| `takerFee` | Default taker fee rate (decimal) |
+| `tradesEnabled` | Whether trading is active on the pair |
+| `stockPrec` | Maximum decimal places for base asset quantity |
+| `moneyPrec` | Maximum decimal places for quote asset amount |
+
+## Market statuses
+
+The `tradesEnabled` field indicates whether a market is actively accepting orders. Markets can be temporarily disabled by the platform without prior notice.
+
+For platform-wide maintenance status, call `GET /api/v4/public/platform/status` — [API Reference](/api-reference/market-data/maintenance-status).
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Order Types" icon="layer-group" href="/concepts/order-types">
+    Learn about the 7 order types available on WhiteBIT.
+  </Card>
+  <Card title="Balances & Transfers" icon="wallet" href="/concepts/balances">
+    Understand Main, Trade, and Collateral account types.
+  </Card>
+  <Card title="Market Data Quickstart" icon="chart-bar" href="/products/market-data/quickstart">
+    Fetch live prices and orderbooks — no auth required.
+  </Card>
+</CardGroup>

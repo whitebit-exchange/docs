@@ -4,6 +4,7 @@ tag: "WSS"
 description: "Subscribe to real-time updates on pending account orders on WhiteBIT via WebSocket."
 ---
 
+import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -27,9 +28,7 @@ import {
 } from '/snippets/ws-data/orders_pending.jsx'
 import { RelatedResources } from '/components/RelatedResources.jsx'
 
-<Note>
-The `reduce_only` response field documented on this page is **coming soon**. The documentation is published in advance for integration planning. The field is not yet returned by the API. See [Reduce-only orders](/concepts/order-types#reduce-only-orders) for details.
-</Note>
+<RegionBaseUrl />
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
@@ -77,6 +76,10 @@ Fetch current pending orders for a market without subscribing to updates.
   unsubscribe={exOrdersPendingUnsubscribe}
 />
 
+<Note>
+Events during a disconnection are not replayed. After reconnecting, query current open orders with `ordersPending_request` or the REST [Query Unexecuted Orders](/api-reference/spot-trading/query-unexecuted-orders) endpoint before re-subscribing. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect).
+</Note>
+
 ## Update frequency
 
 Updates are pushed in **real time** on every order state change (new, modified, partially filled).
@@ -106,4 +109,5 @@ Fields present in both the query response (`records[]`) and the pushed `ordersPe
 
 <RelatedResources>
 - [Orders Executed](/websocket/account-streams/orders-executed) — stream of filled and cancelled orders.
+- [Query Unexecuted Orders](/api-reference/spot-trading/query-unexecuted-orders) — open order snapshot via REST for state recovery after reconnection.
 </RelatedResources>

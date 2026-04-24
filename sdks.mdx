@@ -8,16 +8,16 @@ description: "WhiteBIT provides official SDKs for Python, PHP, Go, and more to i
 ## Key Features
 
 <CardGroup cols={3}>
-  <Card title="Seamless Integration" icon="plug">
-    Effortlessly integrate the WhiteBIT APIs with just a few lines of code, eliminating manual configuration hassles.
+  <Card title="Built-in Authentication" icon="plug">
+    Automatic HMAC-SHA512 request signing — no manual signature implementation required.
   </Card>
 
   <Card title="Multi-Language Support" icon="code">
-    SDKs available for popular languages – Python, PHP, GO, and more to come.
+    Official SDKs for Go, Python, and PHP. Additional examples available in Node.js, Rust, and more via the quickstart repository.
   </Card>
 
-  <Card title="Automatic Updates" icon="arrows-rotate">
-    Stay current with the latest features through automatic SDK updates.
+  <Card title="Open Source" icon="github">
+    Published on GitHub. Review the code, report issues, or contribute improvements.
   </Card>
 </CardGroup>
 
@@ -29,12 +29,11 @@ Choose a programming language to get started:
 
 <CardGroup cols={3}>
   <Card
-    title="GO SDK"
+    title="Go SDK"
     icon="golang"
     href="https://github.com/whitebit-exchange/go-sdk"
   >
     Official WhiteBIT SDK for Go developers
-
   </Card>
 
   <Card
@@ -43,7 +42,6 @@ Choose a programming language to get started:
     href="https://github.com/whitebit-exchange/python-sdk"
   >
     Official WhiteBIT SDK for Python developers
-
   </Card>
 
   <Card
@@ -52,6 +50,102 @@ Choose a programming language to get started:
     href="https://github.com/whitebit-exchange/php-sdk"
   >
     Official WhiteBIT SDK for PHP developers
+  </Card>
+</CardGroup>
 
+## Quick Start
+
+Install the SDK and make a first authenticated API call.
+
+<Tabs>
+  <Tab title="Go">
+  ```bash
+  go get github.com/whitebit-exchange/go-sdk
+  ```
+
+  ```go
+  // TODO: verify SDK method names against github.com/whitebit-exchange/go-sdk
+  package main
+
+  import (
+      "fmt"
+      whitebit "github.com/whitebit-exchange/go-sdk"
+      "os"
+  )
+
+  func main() {
+      client := whitebit.NewClient(os.Getenv("WB_API_KEY"), os.Getenv("WB_API_SECRET"))
+      balance, err := client.GetTradeBalance()
+      if err != nil {
+          panic(err)
+      }
+      fmt.Println(balance)
+  }
+  ```
+  </Tab>
+  <Tab title="Python">
+  ```bash
+  pip install whitebit
+  ```
+
+  ```python
+  # TODO: verify SDK method names against github.com/whitebit-exchange/python-sdk
+  import os
+  from whitebit import Client
+
+  client = Client(
+      api_key=os.environ["WB_API_KEY"],
+      api_secret=os.environ["WB_API_SECRET"]
+  )
+  balance = client.get_trade_balance()
+  print(balance)
+  ```
+  </Tab>
+  <Tab title="PHP">
+  ```bash
+  composer require whitebit/api-sdk
+  ```
+
+  ```php
+  <?php
+  // TODO: verify SDK method names against github.com/whitebit-exchange/php-sdk
+  require 'vendor/autoload.php';
+
+  $client = new \WhiteBIT\Client(
+      apiKey: getenv('WB_API_KEY'),
+      apiSecret: getenv('WB_API_SECRET')
+  );
+  $balance = $client->getTradeBalance();
+  print_r($balance);
+  ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Store API keys in environment variables (`WB_API_KEY`, `WB_API_SECRET`). Never hardcode credentials in source files.
+</Note>
+
+## SDK Details
+
+| SDK | Language | GitHub | Auth handling |
+|-----|----------|--------|---------------|
+| go-sdk | Go | [github.com/whitebit-exchange/go-sdk](https://github.com/whitebit-exchange/go-sdk) | Built-in HMAC-SHA512 |
+| python-sdk | Python | [github.com/whitebit-exchange/python-sdk](https://github.com/whitebit-exchange/python-sdk) | Built-in HMAC-SHA512 |
+| php-sdk | PHP | [github.com/whitebit-exchange/php-sdk](https://github.com/whitebit-exchange/php-sdk) | Built-in HMAC-SHA512 |
+
+{/* TODO: verify GitHub repository URLs and add version/last-updated information */}
+
+## Additional Languages
+
+The [api-quickstart](https://github.com/whitebit-exchange/api-quickstart) repository contains example implementations in Node.js, Rust, and other languages, demonstrating raw HMAC-SHA512 signing without an SDK dependency.
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="First API Call" href="/guides/first-api-call">
+    Step-by-step quickstart using curl and Python — no SDK required.
+  </Card>
+  <Card title="Authentication" href="/api-reference/authentication">
+    HMAC-SHA512 signing, API key setup, and IP binding.
   </Card>
 </CardGroup>
