@@ -34,7 +34,7 @@ The endpoint returns the same address for the same ticker and network combinatio
   <Tab title="curl">
     ```bash
     # Generate a BTC deposit address
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/address" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/address" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -46,7 +46,7 @@ The endpoint returns the same address for the same ticker and network combinatio
       }'
 
     # Generate an ERC20 USDT deposit address
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/address" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/address" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -70,7 +70,7 @@ The endpoint returns the same address for the same ticker and network combinatio
 
     API_KEY = "YOUR_API_KEY"
     API_SECRET = "YOUR_SECRET"
-    BASE_URL = "https://api.whitebit.com"
+    BASE_URL = "https://whitebit.com"
 
     def send_request(endpoint, payload):
         payload["request"] = endpoint
@@ -124,7 +124,7 @@ The `POST /api/v4/main-account/address` endpoint above returns the same address 
   <Tab title="curl">
     ```bash
     # Generate a unique BTC deposit address
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/create-new-address" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/create-new-address" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -252,7 +252,7 @@ Two withdrawal endpoints are available:
 <Tabs>
   <Tab title="curl">
     ```bash
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/withdraw" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/withdraw" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -296,7 +296,7 @@ Crypto withdrawals from EEA accounts require a `travelRule` object in the reques
 <Tabs>
   <Tab title="curl — Individual">
     ```bash
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/withdraw" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/withdraw" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -319,7 +319,7 @@ Crypto withdrawals from EEA accounts require a `travelRule` object in the reques
   </Tab>
   <Tab title="curl — Entity">
     ```bash
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/withdraw" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/withdraw" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -438,7 +438,7 @@ When a deposit is canceled (status 4 or 9), a refund may be available.
 <Tabs>
   <Tab title="curl">
     ```bash
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/refund-deposit" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/refund-deposit" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -573,7 +573,7 @@ Rate limit: 60 requests per 1 second.
   <Tab title="curl">
     ```bash
     # Create a WhiteBIT Code
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/codes" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/codes" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -588,7 +588,7 @@ Rate limit: 60 requests per 1 second.
       }'
 
     # Apply a WhiteBIT Code
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/codes/apply" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/codes/apply" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -739,7 +739,7 @@ Convert USDT to BTC and withdraw BTC to an external address. The `send_request()
   <Tab title="curl">
     ```bash
     # Step 1: Transfer USDT from Main to Trade (method "deposit" = Main → Trade)
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/transfer" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/transfer" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -753,7 +753,7 @@ Convert USDT to BTC and withdraw BTC to an external address. The `send_request()
       }'
 
     # Step 2: Request conversion estimate (USDT → BTC)
-    curl -X POST "https://api.whitebit.com/api/v4/convert/estimate" \
+    curl -X POST "https://whitebit.com/api/v4/convert/estimate" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -768,7 +768,7 @@ Convert USDT to BTC and withdraw BTC to an external address. The `send_request()
       }'
 
     # Step 3: Confirm conversion (use the "id" from estimate response)
-    curl -X POST "https://api.whitebit.com/api/v4/convert/confirm" \
+    curl -X POST "https://whitebit.com/api/v4/convert/confirm" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -780,7 +780,7 @@ Convert USDT to BTC and withdraw BTC to an external address. The `send_request()
       }'
 
     # Step 4: Transfer BTC from Trade to Main (method "withdraw" = Trade → Main)
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/transfer" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/transfer" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -794,7 +794,7 @@ Convert USDT to BTC and withdraw BTC to an external address. The `send_request()
       }'
 
     # Step 5: Create withdrawal
-    curl -X POST "https://api.whitebit.com/api/v4/main-account/withdraw" \
+    curl -X POST "https://whitebit.com/api/v4/main-account/withdraw" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \

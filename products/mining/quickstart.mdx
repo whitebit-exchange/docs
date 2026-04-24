@@ -26,7 +26,7 @@ Create a mining account, retrieve stratum connection details, monitor hashrate, 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/mining/accounts/create \
+        curl -X POST https://whitebit.com/api/v4/mining/accounts/create \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -44,7 +44,7 @@ Create a mining account, retrieve stratum connection details, monitor hashrate, 
 
         API_KEY = "YOUR_API_KEY"
         API_SECRET = "YOUR_SECRET"
-        BASE_URL = "https://api.whitebit.com"
+        BASE_URL = "https://whitebit.com"
 
         def make_request(endpoint, body):
             nonce = str(int(time.time() * 1000))
@@ -93,7 +93,7 @@ Create a mining account, retrieve stratum connection details, monitor hashrate, 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/mining/miners/info \
+        curl -X POST https://whitebit.com/api/v4/mining/miners/info \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -143,7 +143,7 @@ Create a mining account, retrieve stratum connection details, monitor hashrate, 
     <Tabs>
       <Tab title="cURL">
         ```bash
-        curl -X POST https://api.whitebit.com/api/v4/mining/hashrate \
+        curl -X POST https://whitebit.com/api/v4/mining/hashrate \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -190,7 +190,7 @@ Create a mining account, retrieve stratum connection details, monitor hashrate, 
       <Tab title="cURL">
         ```bash
         # Option A: Payout to Main balance
-        curl -X POST https://api.whitebit.com/api/v4/mining/payout-destination/edit \
+        curl -X POST https://whitebit.com/api/v4/mining/payout-destination/edit \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -203,7 +203,7 @@ Create a mining account, retrieve stratum connection details, monitor hashrate, 
           }'
 
         # Option B: Payout to external BTC address
-        curl -X POST https://api.whitebit.com/api/v4/mining/payout-destination/edit \
+        curl -X POST https://whitebit.com/api/v4/mining/payout-destination/edit \
           -H "Content-Type: application/json" \
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \

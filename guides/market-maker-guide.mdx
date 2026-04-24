@@ -134,7 +134,7 @@ The colocation infrastructure exposes 34 endpoints organized into three categori
 | `GET /api/v4/public/time` | Server time |
 | `POST /api/v4/market/fee` | Query market fee for a pair |
 
-For endpoints not listed above, use the standard WhiteBIT API at `https://api.whitebit.com`.
+For endpoints not listed above, use the standard WhiteBIT API at `https://whitebit.com`.
 
 ## Quoting strategy
 
@@ -159,7 +159,7 @@ Professional quoting on WhiteBIT combines bulk limit orders for position managem
   <Tab title="curl">
     ```bash
     # Place a bulk order (up to 20 limit orders)
-    curl -X POST "https://api.whitebit.com/api/v4/order/bulk" \
+    curl -X POST "https://whitebit.com/api/v4/order/bulk" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -177,7 +177,7 @@ Professional quoting on WhiteBIT combines bulk limit orders for position managem
       }'
 
     # Set a kill-switch with 60-second timeout
-    curl -X POST "https://api.whitebit.com/api/v4/order/kill-switch" \
+    curl -X POST "https://whitebit.com/api/v4/order/kill-switch" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
@@ -201,7 +201,7 @@ Professional quoting on WhiteBIT combines bulk limit orders for position managem
 
     API_KEY = "YOUR_API_KEY"
     API_SECRET = "YOUR_SECRET"
-    BASE_URL = "https://api.whitebit.com"
+    BASE_URL = "https://whitebit.com"
 
     def send_request(endpoint, payload):
         payload["request"] = endpoint

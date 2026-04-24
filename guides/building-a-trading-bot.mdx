@@ -55,17 +55,17 @@ For strategies that do not require sub-second data, poll market data via REST:
   <Tab title="cURL">
     ```bash
     # Fetch ticker data for BTC_USDT
-    curl -X GET "https://api.whitebit.com/api/v4/public/ticker"
+    curl -X GET "https://whitebit.com/api/v4/public/ticker"
 
     # Fetch orderbook for BTC_USDT (depth: 20 levels)
-    curl -X GET "https://api.whitebit.com/api/v4/public/orderbook/BTC_USDT?limit=20"
+    curl -X GET "https://whitebit.com/api/v4/public/orderbook/BTC_USDT?limit=20"
     ```
   </Tab>
   <Tab title="Python">
     ```python
     import requests
 
-    BASE_URL = "https://api.whitebit.com"
+    BASE_URL = "https://whitebit.com"
 
     # Fetch ticker data
     ticker = requests.get(f"{BASE_URL}/api/v4/public/ticker").json()
@@ -137,7 +137,7 @@ import base64, hashlib, hmac, json, time, requests
 
 API_KEY = "YOUR_API_KEY"
 API_SECRET = "YOUR_API_SECRET"
-BASE_URL = "https://api.whitebit.com"
+BASE_URL = "https://whitebit.com"
 
 def send_request(path, data=None):
     if data is None:
@@ -169,7 +169,7 @@ Place a limit order using the order creation endpoint:
 <Tabs>
   <Tab title="cURL">
     ```bash
-    curl -X POST https://api.whitebit.com/api/v4/order/new \
+    curl -X POST https://whitebit.com/api/v4/order/new \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
@@ -468,7 +468,7 @@ import websockets
 # ── Configuration ──────────────────────────────────────────
 API_KEY = "YOUR_API_KEY"
 API_SECRET = "YOUR_API_SECRET"
-BASE_URL = "https://api.whitebit.com"
+BASE_URL = "https://whitebit.com"
 WS_URL = "wss://api.whitebit.com/ws"
 
 MARKET = "BTC_USDT"
