@@ -58,10 +58,12 @@ Colocation provides low-latency API access from AWS infrastructure co-located wi
 
 **Regions:**
 
-| Region | Location | AWS Region |
-|--------|----------|------------|
-| Europe (Primary) | **Frankfurt** | eu-central-1 |
-| Asia | **Tokyo** | ap-northeast-1 |
+| Region | Location |
+|--------|----------|
+| Europe (Primary) | **Frankfurt** |
+| Asia | **Tokyo** |
+
+The account manager provides the specific AWS region, availability zone, and connection endpoints during onboarding.
 
 **Performance:** 3-5 milliseconds latency from colocation infrastructure.
 
@@ -76,15 +78,14 @@ Both REST API and WebSocket connections are available via colocation.
 Contact the designated account manager for connection details including base URLs and availability zone placement.
 
 <Warning>
-  Colocation endpoints are a SUBSET of the full WhiteBIT API. Only the 34 endpoints listed below are available via colocation infrastructure. All other API endpoints must be accessed through the standard public API.
+  Colocation endpoints are a SUBSET of the full WhiteBIT API. Only the 33 endpoints listed below are available via colocation infrastructure. All other API endpoints must be accessed through the standard public API.
 </Warning>
 
 See the [Colocation](/platform/colocation) page for additional infrastructure details.
 
 ## Available colocation endpoints
 
-The colocation infrastructure exposes 34 endpoints organized into three categories.
-{/* 34 is the authoritative count from the engineering team. Enumerated below: 15 spot + 14 collateral + 4 utility = 33 visible endpoints; the remaining endpoint may be an internal variant — verify with engineering. */}
+The colocation infrastructure exposes 33 endpoints organized into three categories: spot trading (15), collateral trading for both Margin and Futures (14), and utility (4).
 
 ### Spot trading (15 endpoints)
 
