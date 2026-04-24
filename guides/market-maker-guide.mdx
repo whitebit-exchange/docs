@@ -272,6 +272,42 @@ Professional quoting on WhiteBIT combines bulk limit orders for position managem
 
 For Go and PHP examples, see [SDKs](/sdks).
 
+## WebSocket workflow for market making
+
+The market-making loop runs on real-time WebSocket data, not REST polling. Quote inputs arrive on `depth` (deep book) or `bookTicker` (top of book); inventory state arrives on `balanceSpot`; fill confirmations arrive on `deals` (executions) and `ordersPending` (state transitions including partial fills and cancels). Wire those four channels together to close the loop: market data drives the quote, REST `order/bulk` or `order/modify` places it, `ordersPending` confirms the state transition, `deals` confirms the fill, `balanceSpot` confirms the inventory delta, and the loop recomputes.
+
+The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff reconnection, and the query-then-subscribe recovery pattern — are covered end-to-end in the [WebSocket Quickstart](/guides/websocket-quickstart). This section maps MM data needs to the right pieces of that material rather than duplicating it.
+
+| Channel | Tells you | Recovery model | Where to learn the protocol |
+|---|---|---|---|
+| `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates with `update_id` for gap detection | [WS Quickstart — Subscribe to orderbook depth](/guides/websocket-quickstart#subscribe-to-orderbook-depth) |
+| `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders, so RPI MMs must rely on private active-orders state instead. |
+| `balanceSpot` | Available + frozen balances per asset | Query-then-subscribe (`balanceSpot_request` then `balanceSpot_subscribe`) | [WS Quickstart — State recovery](/guides/websocket-quickstart#state-recovery-after-reconnect) |
+| `ordersPending` | Active order state transitions: placed, partially filled, canceled | Query first (`ordersPending_request` or REST `POST /api/v4/orders`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
+| `deals` | Trade execution events with price, amount, fee, deal-id | Query first (`deals_request` or REST `POST /api/v4/trade-account/executed-history`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
+
+**Futures additions.** When quoting perpetuals (e.g. `BTC_PERP`), add two more channels:
+
+| Channel | Tells you | Recovery model | Where to learn the protocol |
+|---|---|---|---|
+| `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives within ~1.5s of subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
+| `marginPositionsEvents` | Position-change events (open, update, close, liquidation) | Event-only — pair with `positions` for complete state | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
+
+**Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/guides/websocket-quickstart#authenticate-for-private-channels) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/guides/websocket-quickstart#subscribe-to-orderbook-depth)).
+
+```json
+[
+  {"id": 10, "method": "depth_subscribe",         "params": ["BTC_USDT", 20, "0", true]},
+  {"id": 11, "method": "balanceSpot_subscribe",   "params": ["USDT", "BTC"]},
+  {"id": 12, "method": "ordersPending_subscribe", "params": ["BTC_USDT"]},
+  {"id": 13, "method": "deals_subscribe",         "params": [["BTC_USDT"]]}
+]
+```
+
+Note the asymmetry: `ordersPending_subscribe` takes a flat array of markets, `deals_subscribe` takes a single-element array containing the array of markets. The full schema lives in `asyncapi/private/deals.yaml` (rendered as the [Deals channel](/websocket/account-streams/deals) page).
+
+For the full reconnect-with-fresh-token + auto-resubscribe pattern that wraps these subscriptions in production, see [WS Quickstart — Reconnection and state recovery](/guides/websocket-quickstart#reconnection-and-state-recovery) and the worked grid-bot example in the [Bot Guide](/guides/building-a-trading-bot#auto-resubscription-after-reconnect).
+
 ## Infrastructure best practices
 
 Production market-making systems require careful architecture around account structure, connectivity, and rate management.
