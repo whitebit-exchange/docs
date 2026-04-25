@@ -29,6 +29,8 @@ Automatic skills run after every pipeline without being explicitly asked.
 | Ticket analysis | `ai/skills/ticket-analysis/SKILL.md` | internal — invoked by dev-ticket-pipeline (Phases 1–2) |
 | Ticket impl plan | `ai/skills/ticket-impl-plan/SKILL.md` | internal — invoked by dev-ticket-pipeline (Phases 3–4) |
 | Doc review pipeline | `ai/skills/doc-review-pipeline/SKILL.md` | On demand — reviewing a doc page |
+| Humanize review | `ai/skills/humanize-review/SKILL.md` | **Automatic** — Phase 0.6 of doc-review-pipeline for `guides/**` and `products/**`; AI-voice audit, findings only; skip via `--no-humanize` |
+| Humanize rewrite | `ai/skills/humanize-rewrite/SKILL.md` | On demand — rewrite a guide or product page to remove AI-voice tells while preserving every style-guide rule |
 | Doc style review | `ai/skills/doc-style-review/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 1–2) |
 | Doc review plan | `ai/skills/doc-review-plan/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 3–4) |
 | Integration check | `ai/skills/integration-check/SKILL.md` | internal — invoked by ticket-impl-plan and doc-review-plan |
