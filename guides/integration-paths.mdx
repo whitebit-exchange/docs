@@ -1,6 +1,6 @@
 ---
 title: "Integration Paths"
-description: "Find the recommended integration path for each partner type — market makers, brokers, algo traders, payment providers, and institutional clients."
+description: "Find the recommended integration path for each partner type — market makers, brokers, algo traders, payment providers, prop trading firms, and institutional clients."
 sidebarTitle: "Integration Paths"
 ---
 
@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-WhiteBIT supports multiple partner types, each with distinct integration requirements. Select the relevant category below for a tailored starting point and recommended reading path.
+WhiteBIT supports six partner types: market makers, brokers, algo traders, payment providers, prop trading firms, and institutional clients. Each section lists the program terms, the relevant endpoints, and the next guide to read.
 
 ## Market makers
 
@@ -40,7 +40,7 @@ Start with the [First API Call](/guides/first-api-call) guide to verify connecti
 - Use [sub-accounts](/products/sub-accounts/overview) for strategy separation when running multiple bots
 - Consider [colocation](/platform/colocation) (3-5ms latency) for latency-sensitive strategies
 - Implement the [kill-switch](/api-reference/spot-trading/kill-switch) as a circuit breaker for all production bots
-- Set up [Account Monitoring](/guides/account-monitoring) for balance tracking, deposit/withdrawal alerts, and order activity surveillance
+- Set up [Account Monitoring](/guides/account-monitoring) for balance tracking, deposit/withdrawal alerts, and order activity monitoring
 
 <Note>
   WhiteBIT does not offer a public testnet. Test all trading flows on the live API with minimum order amounts. Use `GET /api/v4/public/markets` to find pairs with the lowest minimum order sizes for testing.
@@ -68,7 +68,7 @@ Start with the [First API Call](/guides/first-api-call) guide for authentication
 
 ## Prop trading firms
 
-Prop trading firms need deep liquidity, low-latency execution, and flexible multi-account structures for managing multiple traders and strategies under one organization.
+Prop trading firms need deep liquidity, low-latency execution, and sub-accounts that isolate balances and API keys for each trader or strategy.
 
 **Recommended products:**
 
@@ -86,7 +86,7 @@ Prop trading firms need deep liquidity, low-latency execution, and flexible mult
 
 ## Institutional clients
 
-Institutional clients — including hedge funds, asset managers, family offices, banks, fintechs, and exchanges — access the full product suite through institutional onboarding. The onboarding process covers KYB verification, fiat access approval, and dedicated account management.
+Institutional clients — hedge funds, asset managers, family offices, banks, fintechs, and exchanges — access the institutional product catalog through institutional onboarding. The onboarding process covers KYB verification, fiat access approval, and dedicated account management.
 
 The institutional product catalog includes OTC Trading, Portfolio Margin (200,000 USDT minimum), Crypto-as-a-Service (CaaS), Wallet-as-a-Service (WaaS), and Custody solutions. See the [Institutional Overview](/institutional/overview) for the full product matrix and the [Institutional Onboarding](/institutional/onboarding) guide for the step-by-step process.
 
