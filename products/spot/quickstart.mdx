@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Place a first spot trade on the WhiteBIT API — check the Trade balance, place a limit order on BTC_USDT, verify the order, and cancel the order — in under 5 minutes.
+Place a limit order on BTC_USDT against the live orderbook with HMAC-SHA512 signing. The four-step block below uses a price far below market, so the order opens but does not fill — safe for testing without risking a fill.
 
 ## Prerequisites
 
@@ -229,15 +229,11 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
   </Step>
 </Steps>
 
-The Trade balance now reflects the returned funds. Explore advanced order types and automation below.
+The Trade balance now reflects the returned funds.
 
-<Accordion title="Signing and balance mechanics">
-  **HMAC-SHA512 signing** — Every private request includes three headers (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE`) proving authenticity without transmitting the API secret. The `nonce` field prevents replay attacks. Full signing details: [Authentication](/api-reference/authentication).
-
-  **Trade balance vs Main balance** — WhiteBIT separates funds into Main balance (deposits, withdrawals) and Trade balance (order placement). An explicit transfer moves funds between balances — the API never draws from Main balance automatically. Details: [Balances & Transfers](/concepts/balances).
-
-  **The freeze field** — When a limit order is accepted, the required funds move from `available` to `freeze` in the Trade balance. After cancellation, `freeze` returns to zero and `available` is restored.
-</Accordion>
+<Note>
+  **Trade balance vs Main balance** — WhiteBIT separates funds into Main balance (deposits, withdrawals) and Trade balance (order placement). An explicit transfer moves funds between balances; the API never draws from Main balance automatically. When a limit order is accepted, the required funds move from `available` to `freeze` in the Trade balance — after cancellation, `freeze` returns to zero and `available` is restored. Details: [Balances & Transfers](/concepts/balances).
+</Note>
 
 ## What's next
 
@@ -249,6 +245,6 @@ The Trade balance now reflects the returned funds. Explore advanced order types 
     Explore all 6 order types including Stop-Limit and Bulk-Limit.
   </Card>
   <Card title="Trading Bot Guide" icon="robot" href="/guides/building-a-trading-bot">
-    Build an automated trading system end-to-end.
+    REST and WebSocket together — order placement, kill-switch heartbeat, fill monitoring, reconnect logic, and a grid-bot worked example.
   </Card>
 </CardGroup>

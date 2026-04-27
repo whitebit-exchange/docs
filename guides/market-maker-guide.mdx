@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-The Market-Making Program provides dedicated infrastructure for professional liquidity providers — including fee rebates, colocation access, and a curated endpoint set optimized for low-latency quoting. The guide covers program enrollment, colocation setup, available endpoints, quoting strategy, and production safety mechanisms.
+The Market-Making Program provides dedicated infrastructure for professional liquidity providers: a maker-fee rebate down to **-0.012%**, colocation in Frankfurt and Tokyo, and a 33-endpoint API subset reachable from inside the matching-engine zone with 3-5 ms latency.
 
 ## Market-Making Program overview
 
@@ -143,7 +143,7 @@ For endpoints not listed above, use the standard WhiteBIT API at `https://whiteb
 
 ## Quoting strategy
 
-Professional quoting on WhiteBIT combines bulk limit orders for position management with real-time market data for price discovery.
+Quoting on WhiteBIT pairs a single REST call — `POST /api/v4/order/bulk`, up to 20 limit orders per request — with the `depth` and `bookTicker` WebSocket channels for price input.
 
 **Bulk limit orders:** `POST /api/v4/order/bulk` — place up to 20 limit orders in a single API call. Each order item can set `rpi: true` to enable **Retail Price Improvement** mode — post-only by design, not visible in public `depth` feeds, and incompatible with `ioc`. See the [API Reference](/api-reference/spot-trading/bulk-limit-order).
 
@@ -151,7 +151,7 @@ Professional quoting on WhiteBIT combines bulk limit orders for position managem
 
 **Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order).
 
-**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — set a timeout after which all active orders are automatically canceled. Essential safety mechanism for market-making operations. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
+**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — sets a timeout; if the endpoint is not called again before it expires, the kill-switch cancels every active order on the account. The deadman trigger for process crashes, lost connectivity, and operator absence. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
 
 - Configuration: set the timeout period; the timer resets on each API call to the kill-switch endpoint
 - Scope: pass the optional `types` array (`"spot"`, `"margin"`, `"futures"`) to restrict the breaker to a subset of order types — useful when running spot market-making alongside futures positions you do not want to kill
@@ -277,7 +277,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 
 The market-making loop runs on real-time WebSocket data, not REST polling. Quote inputs arrive on `depth` (deep book) or `bookTicker` (top of book); inventory state arrives on `balanceSpot`; fill confirmations arrive on `deals` (executions) and `ordersPending` (state transitions including partial fills and cancels). Wire those four channels together to close the loop: market data drives the quote, REST `order/bulk` or `order/modify` places it, `ordersPending` confirms the state transition, `deals` confirms the fill, `balanceSpot` confirms the inventory delta, and the loop recomputes.
 
-The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff reconnection, and the query-then-subscribe recovery pattern — are covered end-to-end in the [WebSocket Quickstart](/guides/websocket-quickstart). This section maps MM data needs to the right pieces of that material rather than duplicating it.
+The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff reconnection, and the query-then-subscribe recovery pattern — are covered end-to-end in the [WebSocket Quickstart](/guides/websocket-quickstart).
 
 | Channel | Tells you | Recovery model | Where to learn the protocol |
 |---|---|---|---|
@@ -311,9 +311,11 @@ For the full reconnect-with-fresh-token + auto-resubscribe pattern that wraps th
 
 ## Infrastructure best practices
 
-Production market-making systems require careful architecture around account structure, connectivity, and rate management.
+Three pieces are load-bearing in production: how the account is partitioned across strategies, how the socket recovers when it drops, and how requests stay under per-endpoint limits.
 
-**Sub-accounts for strategy separation:** Use [sub-accounts](/products/sub-accounts/overview) to isolate different trading strategies or pair groups. Each sub-account has independent balances and can have dedicated API keys. Transfers between sub-accounts are fee-free.
+**Sub-accounts for strategy separation:** Use [sub-accounts](/products/sub-accounts/overview) to isolate different trading strategies or pair groups. Each sub-account has independent balances and can have dedicated API keys; transfers between sub-accounts are fee-free.
+
+Worked example: run the BTC_USDT spot MM book in one sub-account funded with its own USDT balance, and a directional ETH_USDT swing book in a second sub-account with its own balance and leverage limit. A drawdown that wipes the swing book's collateral cannot pull capital from the MM book — the MM bot keeps quoting on its untouched balance, and the swing book's API key has no authority over the MM sub-account.
 
 **WebSocket connection management:**
 
@@ -329,11 +331,11 @@ Production market-making systems require careful architecture around account str
 - Rate limits vary per endpoint — check [Rate Limits](/api-reference/rate-limits) for per-endpoint values
 - Use bulk orders (`/order/bulk`) to reduce request count: 20 orders per call vs. 20 individual calls
 - Use WebSocket for market data instead of polling REST endpoints
-- Implement request queuing with rate awareness
+- Maintain a per-endpoint token bucket sized to the limits in [Rate Limits](/api-reference/rate-limits); back off when the bucket empties rather than retrying after a 429
 
 ## Monitoring and safety
 
-Market-making operations require continuous monitoring and automated safety mechanisms.
+Set the kill-switch first; everything below is the loop that keeps it reset, the manual cancel that overrides it, and the balance and fee surfaces the loop reads from.
 
 **Kill-switch configuration:** Set the kill-switch timeout as the first action after connecting. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timer with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels all orders after the timeout expires.
 
@@ -378,7 +380,7 @@ Market-making operations require continuous monitoring and automated safety mech
 
 <CardGroup cols={3}>
   <Card title="Colocation" icon="server" href="/platform/colocation">
-    Platform colocation page with infrastructure details.
+    AWS regions, EC2 sizing, and availability-zone placement for the Frankfurt and Tokyo zones.
   </Card>
   <Card title="Spot Trading API" icon="square-terminal" href="/api-reference/spot-trading/overview">
     Full endpoint documentation for all spot trading endpoints.

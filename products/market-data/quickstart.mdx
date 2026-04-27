@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Fetch live market data from the WhiteBIT API in under 2 minutes. No API key, no authentication, no account required — all Market Data endpoints are public.
+Fetch live market data from the WhiteBIT API in under 2 minutes. All Market Data endpoints are public — no account, no API key, no signing.
 
 ## Prerequisites
 
@@ -209,14 +209,12 @@ Fetch live market data from the WhiteBIT API in under 2 minutes. No API key, no 
   </Step>
 </Steps>
 
-All five requests completed without authentication. The Market Data API provides the foundation for price monitoring, orderbook analysis, and trade tracking — the building blocks for any trading integration.
+These five public endpoints cover one-shot lookups. For continuous updates, switch to the [WebSocket Quickstart](/guides/websocket-quickstart) — a single connection replaces every poll above.
 
 <Accordion title="What just happened?">
   **No authentication — by design** — Market Data endpoints are intentionally public. No API key, no HMAC signing, no account. WhiteBIT exposes pricing, orderbook, and trade data publicly to support price aggregators, data vendors, and integration testing without requiring account creation. Public endpoints have their own rate limits but no per-key restrictions.
 
   **Polling vs streaming** — The five steps above use REST (request → response). This is appropriate for one-time lookups but expensive for real-time monitoring: polling the ticker endpoint every second across hundreds of pairs exhausts rate limits quickly and adds latency. For continuous price or orderbook updates, use [WebSocket](/guides/websocket-quickstart) instead — a single persistent connection streams updates as they occur, with no polling overhead.
-
-  **Response shape conventions** — `asks` and `bids` arrays in the orderbook are always sorted: asks ascending by price (lowest ask first = best ask), bids descending (highest bid first = best bid). The first entry in each array is the best available price at that moment. `quote_volume` in the ticker is denominated in the quote currency (USDT for BTC_USDT); `base_volume` is denominated in the base currency (BTC).
 </Accordion>
 
 ## What's Next
