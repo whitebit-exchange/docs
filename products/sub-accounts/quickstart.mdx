@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Create a sub-account, transfer funds into the sub-account, generate a dedicated API key, and verify the balance -- all via API.
+Each sub-account holds its own balance and API keys. Funds and signing scopes are isolated from the main account; transfers between them are explicit and fee-free. The four steps below set up that isolation, from creation through balance verification.
 
 ## Prerequisites
 
@@ -80,7 +80,27 @@ Create a sub-account, transfer funds into the sub-account, generate a dedicated 
 
     **Required fields:** `alias` (display name), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required.
 
-    **Expected response:** An object containing the sub-account `id`. Save the `id` for subsequent steps.
+    **Expected response:**
+    ```json
+    {
+      "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+      "alias": "strategy-alpha",
+      "userId": "u-12345",
+      "email": "s***@example.com",
+      "status": "active",
+      "color": "#FF5733",
+      "kyc": {
+        "shareKyc": false,
+        "kycStatus": "verified"
+      },
+      "permissions": {
+        "spotEnabled": true,
+        "collateralEnabled": false
+      }
+    }
+    ```
+
+    Save the `id` value for subsequent steps.
   </Step>
 
   <Step title="Transfer funds to the sub-account">
@@ -197,11 +217,24 @@ Create a sub-account, transfer funds into the sub-account, generate a dedicated 
       </Tab>
     </Tabs>
 
-    **Expected response:** A balance object showing the transferred USDT funds.
+    **Expected response:**
+    ```json
+    {
+      "USDT": [
+        {
+          "main": "100",
+          "spot": "0",
+          "collateral": "0"
+        }
+      ]
+    }
+    ```
+
+    The response keys ticker symbols to an array of balance objects. `main`, `spot`, and `collateral` show available funds in each balance type for the sub-account.
   </Step>
 </Steps>
 
-The sub-account now has an independent balance and API key. The API key can be used independently for trading operations on the sub-account. To manage IP whitelists for the new key, use `POST /api/v4/sub-account/api-key/ip-address/create`.
+The sub-account now has an isolated balance and a dedicated API key. To restrict the key to known IPs, call `POST /api/v4/sub-account/api-key/ip-address/create` with the whitelist.
 
 ## What's Next
 
@@ -210,7 +243,7 @@ The sub-account now has an independent balance and API key. The API key can be u
     Integration patterns for fund managers, brokers, and prop trading firms.
   </Card>
   <Card title="Broker Guide" icon="handshake" href="/guides/broker-guide">
-    End-to-end integration guide for the Broker Program.
+    Fee share model up to 50%, sub-account-per-customer onboarding, KYC URL generation, and per-customer API keys with up to 50 IP addresses.
   </Card>
 </CardGroup>
 

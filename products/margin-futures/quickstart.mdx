@@ -34,7 +34,7 @@ Open a first leveraged position on WhiteBIT. Margin Trading and Futures Trading 
 
 ## Authentication Helper
 
-All Python examples in the steps below use the following signing helper. See [Authentication](/api-reference/authentication) for the full explanation.
+The signing helper signs every Python example in this page. See [Authentication](/api-reference/authentication) for the full HMAC-SHA512 derivation.
 
 ```python
 import base64
@@ -504,21 +504,19 @@ For Go and PHP examples, see [SDKs](/sdks).
   </Tab>
 </Tabs>
 
-Position successfully managed through the collateral trading API. The Margin and Futures tabs demonstrate API symmetry — identical endpoints, identical request structure, differentiated only by pair name (`BTC_USDT` vs. `BTC_PERP`).
+The limit order is canceled and the reserved collateral returns to the available Collateral balance. Margin and Futures share endpoint paths verbatim — only the pair name (`BTC_USDT` vs `BTC_PERP`) routes the order.
 
 <Accordion title="What just happened?">
   **Collateral balance isolation** — Leveraged trading requires funds in the Collateral balance specifically. Depositing to the Main balance is not sufficient — an explicit transfer to Collateral is required before any collateral order can be placed. The Collateral balance is shared between Margin and Futures; there is no separate pool per product.
 
   **How leverage amplifies risk** — At 5x leverage, 1 USDT of collateral controls 5 USDT of market exposure. A 20% adverse price move against a 5x position wipes the allocated margin entirely, triggering partial liquidation. WhiteBIT's partial liquidation mechanism closes 20–30% of the position first to restore margin; full liquidation follows only if that is insufficient. The `liquidationPrice` field in position responses shows exactly where this occurs — monitor it alongside the collateral balance in production.
-
-  **Why the pair name determines the product** — The API has no "margin" or "futures" parameter. The endpoint paths (`/api/v4/order/collateral/limit`, etc.) are identical for both products. Sending `BTC_USDT` routes the order to Margin Trading; sending `BTC_PERP` routes it to Futures Trading. Leverage is also set account-wide — a single call to `/api/v4/collateral-account/leverage` affects all open and future positions across both products.
 </Accordion>
 
 ## What's Next
 
 <CardGroup cols={3}>
   <Card title="Margin Trading Overview" icon="chart-line" href="/products/margin/overview">
-    Capabilities, integration patterns, and risk context for up to 10x leverage.
+    Isolated Margin mode, 6 order types (Limit, Market, Stop-Limit, Trigger-Market, OCO, Bulk-Limit), partial-liquidation flow at 20–30%, and the borrowed-funds fee model.
   </Card>
   <Card title="Futures Trading Overview" icon="chart-candlestick" href="/products/futures/overview">
     Perpetual contracts, Hedge Mode, funding rates, and risk mechanics.
