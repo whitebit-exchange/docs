@@ -251,6 +251,7 @@ paths:
           - `33` - price validation failed
           - `36` - client_order_id validation failed
           - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -329,7 +330,11 @@ paths:
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+
+                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -504,6 +509,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit` (per-order)
+          - `114` - hedge mode position side does not match (per-order; sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
         </Accordion>
       tags:
@@ -585,7 +591,11 @@ paths:
                       positionSide:
                         type: string
                         enum: [LONG, SHORT, BOTH]
-                        description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                        description: |
+                          Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+
+                          - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                          - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the per-order item with error code `114` (`Hedge mode position side does not match`).
                         example: "LONG"
                       reduceOnly:
                         type: boolean
@@ -835,6 +845,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -890,7 +901,11 @@ paths:
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+
+                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -1038,6 +1053,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1103,7 +1119,11 @@ paths:
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+
+                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -1272,6 +1292,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1332,7 +1353,11 @@ paths:
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+
+                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -1839,6 +1864,10 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
+
+        <Note>
+        **Date filter window:** `startDate` and `endDate` are optional and have no defaults. The endpoint enforces no maximum window and no lower-bound floor. The only ordering constraint is `startDate` ≤ `endDate` ≤ `now + 1s` — requests that violate the ordering are rejected with a validation error.
+        </Note>
       tags:
         - Collateral Trading
       security:
@@ -1863,6 +1892,14 @@ paths:
                   type: integer
                   description: "Filter by specific position identifier. If not specified, returns history for all positions."
                   example: 1
+                startDate:
+                  type: integer
+                  description: "Start of the query window as a Unix timestamp in seconds. Optional, no default. Must be ≤ `endDate`."
+                  example: 1650400000
+                endDate:
+                  type: integer
+                  description: "End of the query window as a Unix timestamp in seconds. Optional, no default. Must be ≥ `startDate` and ≤ `now + 1s`; violating values are rejected with a validation error."
+                  example: 1650500000
                 request:
                   type: string
                   example: "{{request}}"
@@ -2682,6 +2719,8 @@ paths:
                           example: "29928.79"
                         activation_condition:
                           type: string
+                          description: |
+                            Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
                           enum: [gte, lte]
                           example: "gte"
                         activated:
@@ -2822,6 +2861,7 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -2880,6 +2920,15 @@ paths:
                   default: false
                   description: "When `true`, both legs of the OCO order can only reduce or close an existing position — neither leg can increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
+                positionSide:
+                  type: string
+                  enum: [LONG, SHORT, BOTH]
+                  description: |
+                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side). Both legs of the OCO inherit the value.
+
+                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` on each leg whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
+                  example: "LONG"
                 request:
                   type: string
                   example: "{{request}}"
@@ -2895,6 +2944,7 @@ paths:
               stop_limit_price: "42000"
               client_order_id: order1987111
               reduceOnly: false
+              positionSide: LONG
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -2988,7 +3038,8 @@ paths:
                         example: "29928.79"
                       activation_condition:
                         type: string
-                        description: Activation condition
+                        description: |
+                          Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
                         enum: [gte, lte]
                         example: "gte"
                       activated:
@@ -3346,7 +3397,8 @@ paths:
                         example: "29928.79"
                       activation_condition:
                         type: string
-                        description: Activation condition
+                        description: |
+                          Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
                         enum: [gte, lte]
                         example: "gte"
                       activated:
@@ -5776,6 +5828,10 @@ paths:
         </Note>
 
         <Note>
+        **Date filter window:** the maximum span between `startDate` and `endDate` is **31 days**, and the earliest reachable date is **6 months ago (00:00 UTC)**. Requests that exceed the 31-day window or fall below the 6-month floor are rejected with a validation error. `endDate` values greater than the current time are silently clamped to `now`.
+        </Note>
+
+        <Note>
         For B2B accounts, canceled order recording is disabled by default. To include canceled orders in the history, contact support to enable canceled order storage.
         </Note>
       tags:
@@ -5795,6 +5851,14 @@ paths:
                   type: string
                   description: "Trading pair to filter by. Format: `BASE_QUOTE` (e.g., `BTC_USDT`). Omit to retrieve orders across all markets."
                   example: "BTC_USDT"
+                startDate:
+                  type: integer
+                  description: "Start of the query window as a Unix timestamp in seconds. Default: `now - 1 month`. The earliest reachable date is 6 months ago (00:00 UTC) — requests with an older `startDate` are rejected with a validation error."
+                  example: 1697000000
+                endDate:
+                  type: integer
+                  description: "End of the query window as a Unix timestamp in seconds. Default: `now`. Values greater than the current time are silently clamped to `now`. The maximum span between `startDate` and `endDate` is 31 days."
+                  example: 1699000000
                 offset:
                   type: integer
                   default: 0
@@ -6785,9 +6849,11 @@ components:
         activationCondition:
           type: string
           enum: [lte, gte]
-          description: "Condition that triggers the stop order. \"lte\" = activate
-            when the market price falls to or below activation_price. \"gte\" =
-            activate when the market price rises to or above activation_price."
+          description: |
+            Trigger condition for the stop order. Response-only — not accepted in the request body, and cannot be overridden. Derived from `side`:
+
+            - `side = buy` → `gte`. The order activates when the market price rises to or above `activation_price`.
+            - `side = sell` → `lte`. The order activates when the market price falls to or below `activation_price`.
           example: "lte"
         activation_price:
           type: string
