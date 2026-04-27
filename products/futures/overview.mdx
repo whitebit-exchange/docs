@@ -62,7 +62,7 @@ Check the current margin configuration via the [collateral account summary endpo
 
 Positions face liquidation when the maintenance margin requirement is breached. Key details:
 
-- **Mark price** is used for liquidation calculations (not last traded price) — reducing the risk of liquidation from temporary price wicks
+- **Mark price** (not last traded price) is used for liquidation calculations. Temporary price wicks do not trigger liquidation.
 - **Partial liquidation** is the primary mechanism: only a portion (e.g., 20–30%) of the position is closed first to restore margin. If partial liquidation is insufficient, full liquidation follows.
 - **Liquidation sequence:** margin positions first (smallest to largest initial margin value) → crypto borrowings → futures positions last
 - **Maintenance Margin Rate (MMR):** 3% for leverage 1x–10x. Per-market leverage limits and collateral brackets: [collateral brackets page](https://whitebit.com/trading-data/collateral-brackets)
@@ -75,7 +75,7 @@ Positions face liquidation when the maintenance margin requirement is breached. 
 
 Perpetual contracts use a funding rate mechanism to keep the contract price aligned with the spot index price:
 
-- **Settlement occurs periodically** — Long holders pay short holders (or vice versa) based on the funding rate
+- **Settlement interval per market** — The `funding_interval_minutes` field on the [futures markets endpoint](/api-reference/market-data/available-futures-markets-list) returns the cadence for each pair. At each settlement, long holders pay short holders or vice versa depending on the funding rate.
 - **Positive rate** = longs pay shorts (contract price above index). **Negative rate** = shorts pay longs.
 - Fetch the current predicted funding rate for any pair via `GET /api/v4/public/futures`
 - Fetch historical funding rates via `GET /api/v4/public/funding-history/{market}`
