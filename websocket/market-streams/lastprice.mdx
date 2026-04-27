@@ -30,6 +30,8 @@ import {
 
 Query or subscribe to real-time last traded price updates for one or more markets. The channel delivers the most recent executed trade price for each subscribed market. Updates arrive every second when the price changes, making this channel suitable for live price tickers and market data dashboards.
 
+<Note>Supports both spot pairs (e.g., `BTC_USDT`) and futures markets (e.g., `BTC_PERP`). Mix spot and futures market names in a single subscribe request.</Note>
+
 <WsAuthBadge required={channelMeta.authRequired} />
 
 <Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
