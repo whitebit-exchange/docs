@@ -331,9 +331,9 @@ paths:
                   type: string
                   enum: [LONG, SHORT, BOTH]
                   description: |
-                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
 
-                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
                     - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
@@ -592,9 +592,9 @@ paths:
                         type: string
                         enum: [LONG, SHORT, BOTH]
                         description: |
-                          Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+                          Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
 
-                          - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                          - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
                           - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the per-order item with error code `114` (`Hedge mode position side does not match`).
                         example: "LONG"
                       reduceOnly:
@@ -902,9 +902,9 @@ paths:
                   type: string
                   enum: [LONG, SHORT, BOTH]
                   description: |
-                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
 
-                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
                     - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
@@ -1120,9 +1120,9 @@ paths:
                   type: string
                   enum: [LONG, SHORT, BOTH]
                   description: |
-                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
 
-                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
                     - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
@@ -1354,9 +1354,9 @@ paths:
                   type: string
                   enum: [LONG, SHORT, BOTH]
                   description: |
-                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side).
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
 
-                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
                     - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
@@ -2924,9 +2924,9 @@ paths:
                   type: string
                   enum: [LONG, SHORT, BOTH]
                   description: |
-                    Position direction. Optional at the request layer but functionally required in [hedge mode](/glossary#position-side). Both legs of the OCO inherit the value.
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side). Both legs of the OCO inherit the value.
 
-                    - **One-way mode** (default for new accounts): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` on each leg whether the field is sent or omitted.
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` on each leg whether the field is sent or omitted.
                     - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 request:
