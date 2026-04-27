@@ -98,7 +98,10 @@ The server returns errors in the `error` field of a response message. The `error
 | `3` | service unavailable |
 | `4` | method not found |
 | `5` | service timeout |
+| `6` | require authentication |
 | `7` | too many requests |
+
+The server returns code `6` when a client invokes a protected method — a private-channel subscription or a balance query, for example — without first calling `authorize` on the connection. Send an `authorize` request before any private-channel subscription. See [WebSocket Authentication](/websocket/authentication) for the authorization flow.
 
 **Error response format:**
 
