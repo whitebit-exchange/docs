@@ -46,6 +46,24 @@ See [Order Types — Reduce-only orders](/concepts/order-types#reduce-only-order
 
 ## Previous Changes
 
+<Update label="April 22, 2026">
+## Auto-Deleveraging (ADL)
+**Futures-market final-stage liquidation mechanism**
+
+WhiteBIT futures markets now apply Auto-Deleveraging as the final stage of liquidation, activated only when standard market liquidity cannot fully cover a liquidated position. ADL closes profitable counterparty positions on the opposite side at a calculated price, ranked by an internal Rating, ensuring no user balance becomes negative.
+
+**Integrator-relevant facts:**
+
+- ADL fills appear in standard order history with `source: "adl"` and `client_order_id: "adl_<order_id>"`. The `reduce_only` flag remains `false` on ADL inserts — use `source` to identify them.
+- Pending reduce-only orders auto-cancel with the existing `AUTO_CANCELED_REDUCE_ONLY` status when ADL closes a counterparty position. No ADL-specific cancel status was introduced.
+- ADL Grade (0–4) indicates a position's place in the per-market ADL ranking, with Grade 4 corresponding to the asymptotic top 5% of ranked positions.
+
+<CardGroup cols={2}>
+  <Card title="Auto-Deleveraging Concept" href="/concepts/auto-deleveraging" icon="scale-balanced" horizontal/>
+  <Card title="Help Center Article" href="https://help.whitebit.com/hc/ru/articles/35218885148445" icon="book-open" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="March 6, 2026">
 ## Mining Pool API
 **Comprehensive mining pool management endpoints**
