@@ -5305,6 +5305,202 @@ paths:
         '503':
           description: Service temporarily unavailable
 
+  /api/v4/order/cancel/bulk:
+    post:
+      summary: Cancel bulk orders
+      operationId: cancelBulkOrders
+      description: |
+        The endpoint cancels up to 100 [orders](/glossary#orders) in a single request. Each item identifies a target order by `market` plus exactly one of `orderId` or `clientOrderId`. The response is an array whose items match the input order one-to-one — `response[i]` corresponds to `request.orders[i]`.
+
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+
+        <Warning>
+        Limit: From 1 to 100 orders per request.
+        </Warning>
+
+        <Note>
+        - Provide exactly one of `orderId` or `clientOrderId` per item. Sending both, or neither, returns a per-item validation error.
+        - The endpoint always processes every item independently. There is no `stopOnFail`-style switch.
+        - When the caller is not authenticated, the API returns the standard authorization error and skips per-item validation.
+        </Note>
+
+        <Accordion title="Error Codes">
+        - `30` — validation failure (per-item)
+        - `404` — order not found (per-item)
+        - `500` — trade service unavailable (per-item)
+        </Accordion>
+
+        <Accordion title="Errors">
+        **Per-item errors (returned inside the response array):**
+
+        Element is not a valid object:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "request": ["Invalid order format"] }
+          }
+        }
+        ```
+
+        `market` field is missing:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "market": ["validation.required"] }
+          }
+        }
+        ```
+
+        Specified market does not exist:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "market": ["validation.market_not_exist"] }
+          }
+        }
+        ```
+
+        Neither `orderId` nor `clientOrderId` provided:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "request": ["validation.required"] }
+          }
+        }
+        ```
+
+        Both `orderId` and `clientOrderId` provided:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "request": ["api.validation.order.chooseOneId"] }
+          }
+        }
+        ```
+
+        Order not found (returned for both `orderId` and `clientOrderId` lookups):
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 404,
+            "message": "Order not found",
+            "errors": {
+              "orderId": ["Order does not exist or already cancelled"]
+            }
+          }
+        }
+        ```
+
+        Trade service unavailable (returned when the trade service is unreachable or returns an unparseable response):
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 500,
+            "message": "Service temporary unavailable",
+            "errors": { "error": ["Service temporary unavailable"] }
+          }
+        }
+        ```
+
+        **Request-level errors (HTTP 422, returned as a standard error envelope, not as an array):**
+
+        `orders` field is missing or is not an array:
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": { "orders": ["validation.required"] }
+        }
+        ```
+
+        `orders` contains more than 100 elements:
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": { "orders": ["validation.between"] }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orders
+                - request
+                - nonce
+              properties:
+                orders:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  description: "Array of orders to cancel. From 1 to 100 items per request."
+                  items:
+                    $ref: '#/components/schemas/BulkCancelOrderItem'
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  example: "{{nonce}}"
+            example:
+              orders:
+                - market: BTC_USDT
+                  orderId: 4326248250
+                - market: ETH_USDT
+                  clientOrderId: my-client-id
+              request: "{{request}}"
+              nonce: "{{nonce}}"
+      responses:
+        '200':
+          description: Bulk cancel result. The response is an array — `response[i]` corresponds to `request.orders[i]`. Each item contains either a `result` (cancellation succeeded) or an `error` (cancellation failed for that item). Partial failures within the array are normal; the request itself returns HTTP 200.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkCancelOrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
   /api/v4/order/cancel/all:
     post:
       summary: Cancel all orders
@@ -6869,6 +7065,56 @@ components:
             type: object
             allOf:
               - $ref: '#/components/schemas/OrderResponse'
+            nullable: true
+          error:
+            type: object
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+            nullable: true
+    BulkCancelOrderItem:
+      type: object
+      description: "A single cancel target. Provide `market` and exactly one of `orderId` or `clientOrderId`. Sending both, or neither, returns a per-item validation error."
+      required:
+        - market
+      properties:
+        market:
+          type: string
+          description: "Available [market](/glossary#market). Example: `BTC_USDT`."
+          example: "BTC_USDT"
+        orderId:
+          type: integer
+          description: "System-assigned order ID. Required if `clientOrderId` is not set; mutually exclusive with `clientOrderId`."
+          example: 4326248250
+        clientOrderId:
+          type: string
+          description: "Client-defined order ID supplied at order creation. Required if `orderId` is not set; mutually exclusive with `orderId`."
+          example: "my-client-id"
+    BulkCancelOrderResult:
+      type: object
+      description: "Acknowledgement that a single item was cancelled. The endpoint echoes the identifiers from the request item; full order state is not returned. Use the single Cancel order endpoint when post-cancel order state is required."
+      properties:
+        orderId:
+          type: integer
+          description: "System-assigned order ID of the cancelled order."
+          example: 4326248250
+        clientOrderId:
+          type: string
+          description: "Client-defined order ID of the cancelled order, if one was set at order creation."
+          example: "my-client-id"
+        market:
+          type: string
+          description: "Trading pair of the cancelled order. Format: `BASE_QUOTE` (e.g. `BTC_USDT`)."
+          example: "BTC_USDT"
+    BulkCancelOrderResponse:
+      type: array
+      description: "Per-item cancel results. `response[i]` corresponds to `request.orders[i]`. Each item contains either `result` (cancellation succeeded) or `error` (cancellation failed for that item) — never both."
+      items:
+        type: object
+        properties:
+          result:
+            type: object
+            allOf:
+              - $ref: '#/components/schemas/BulkCancelOrderResult'
             nullable: true
           error:
             type: object

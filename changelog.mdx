@@ -4,6 +4,15 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="April 28, 2026">
+## Bulk cancel orders endpoint
+**Cancel up to 100 spot orders in a single request**
+
+The new `POST /api/v4/order/cancel/bulk` endpoint cancels up to 100 spot orders in a single request. Each item identifies a target order by `market` plus exactly one of `orderId` or `clientOrderId`. The response array preserves the order of the input — `response[i]` corresponds to `request.orders[i]`.
+
+<Card title="Cancel Bulk Orders" href="/api-reference/spot-trading/cancel-bulk-order" icon="rectangle-xmark" horizontal/>
+</Update>
+
 <Update label="April 22, 2026">
 ## Reduce-only order parameter
 **Position-closing guarantee for collateral orders**
