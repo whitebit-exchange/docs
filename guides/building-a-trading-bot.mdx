@@ -1,6 +1,6 @@
 ---
 title: "Trading Bot"
-description: "End-to-end guide for building an automated trading bot on the WhiteBIT API — from market data ingestion to order execution and risk management."
+description: "Build an automated trading bot in Python against the WhiteBIT v4 API — signed REST orders, WebSocket fill monitoring, kill-switch heartbeat, reconnection, and a grid-bot worked example."
 sidebarTitle: "Trading Bot"
 ---
 
@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Build an automated trading bot on the WhiteBIT API. The guide covers the full loop: market data ingestion, order placement, fill monitoring via WebSocket, error handling, reconnection recovery, and a grid bot example. All code examples use Python with the `requests` and `websockets` libraries.
+Build an automated trading bot on the WhiteBIT API in Python, using `requests` for signed REST calls and `websockets` for streaming market data and fills. The guide assumes Python 3.7+ and a WhiteBIT account with a Trading-permission API key (see Prerequisites below).
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ A trading bot operates as a continuous loop:
 4. **Fill monitoring** — track order fills and state changes via WebSocket
 5. **Position management** — update internal state, replace filled orders, manage risk
 
-Signal generation (step 2) is strategy-specific. The grid bot example at the end of the guide demonstrates one concrete strategy. The remaining sections cover the infrastructure around the trading loop.
+Signal generation (step 2) is strategy-specific. The grid bot example at the end of the guide demonstrates one concrete strategy.
 
 ## Market data ingestion
 
@@ -142,7 +142,7 @@ See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setu
 
 ## Order placement
 
-All private endpoint examples in the guide use the following `send_request` helper for HMAC-SHA512 signing:
+Every private endpoint in this guide is signed with HMAC-SHA512. The `send_request` helper below handles the signing and a thread-safe nonce; the rest of the guide reuses it.
 
 <Note>
   `send_request` uses a millisecond nonce. If multiple threads call the helper
@@ -253,7 +253,7 @@ Place a limit order using the order creation endpoint:
 
 ### Bulk orders
 
-Place up to 20 limit orders in a single request — significantly reducing round trips for multi-order strategies.
+Place up to 20 limit orders in a single request — one round trip instead of up to 20 for multi-order strategies.
 
 **Endpoint:** [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order)
 
@@ -281,7 +281,7 @@ for i, item in enumerate(result):
 
 ## Kill-switch setup
 
-The kill-switch automatically cancels all active orders after a configurable timeout. The kill-switch is a critical safety mechanism for unattended bots — if the bot process crashes or loses connectivity, the kill-switch prevents stale orders from executing.
+The kill-switch cancels every active order on the configured market after a timeout that the bot must refresh. If the bot crashes or loses connectivity to the API, the timer expires and stale orders go away on their own.
 
 **Endpoints:**
 - [`POST /api/v4/order/kill-switch`](/api-reference/spot-trading/sync-kill-switch-timer) — activate or refresh the timer
@@ -395,7 +395,7 @@ async def monitor_fills(ws):
 
 ## Error handling
 
-Robust error handling is critical for unattended bots. Handle the following scenarios:
+Unattended bots must handle three failure modes: HTTP 429 rate limits, transient HTTP 5xx responses, and HTTP 4xx validation errors that should not be retried.
 
 ### Rate limit backoff
 
@@ -490,7 +490,7 @@ async def connect_with_retry(url, max_delay=60):
 
 ### Auto-resubscription after reconnect
 
-After reconnecting, the bot must re-authenticate (for private channels) and re-subscribe to all channels. Resubscription ensures fresh data snapshots replace any state that went stale during the disconnection.
+After reconnecting, the bot must re-authenticate (for private channels) and re-subscribe to all channels.
 
 ```python
 async def run_bot():
@@ -803,14 +803,6 @@ if __name__ == "__main__":
   delay WebSocket message processing. Wrap REST calls in `asyncio.to_thread()`
   for concurrent execution.
 </Note>
-
-**How the grid bot works:**
-
-1. **Initialization** — fetches the current market price, snaps to the nearest grid level, and places buy orders below and sell orders above using the bulk endpoint
-2. **Kill-switch** — a background thread refreshes the kill-switch every 90 seconds with a 120-second timeout, ensuring all orders cancel if the bot stops
-3. **Fill monitoring** — WebSocket `deals_subscribe` and `ordersPending_subscribe` channels detect when a grid order fills
-4. **Order replacement** — each filled buy triggers a sell one grid level above; each filled sell triggers a buy one grid level below
-5. **Reconnection** — the outer loop reconnects automatically if the WebSocket connection drops
 
 <Warning>
   The grid bot is a teaching example. Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), and add proper logging.
