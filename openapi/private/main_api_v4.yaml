@@ -1626,6 +1626,10 @@ paths:
         <Note>
         The API does not cache the response.
         </Note>
+
+        <Note>
+        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters. Traverse the full history with pagination (`limit`, `offset`).
+        </Note>
       operationId: getDepositWithdrawHistory
       requestBody:
         required: true
@@ -2388,9 +2392,13 @@ paths:
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
+        </Note>
+
+        <Note>
+        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters. Results are bounded only by pagination (`limit` ≤ 100, `offset` ≤ 10000).
         </Note>
       operationId: getCodesHistory
       requestBody:
@@ -4458,9 +4466,13 @@ paths:
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
+        </Note>
+
+        <Note>
+        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters. Results are bounded only by pagination (`limit` ≤ 100, `offset` ≤ 10000).
         </Note>
       operationId: getSubAccountTransferHistory
       requestBody:

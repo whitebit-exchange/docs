@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide targets developers building trading bots, live price feeds, or account monitoring dashboards. The walkthrough covers connecting to the WebSocket endpoint, subscribing to public price updates, subscribing to orderbook depth, authenticating for private channels, and receiving balance updates.
+Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide targets developers building trading bots, live price feeds, or account monitoring dashboards.
 
 ## Prerequisites
 
@@ -304,7 +304,7 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide ta
   </Step>
 </Steps>
 
-The walkthrough covered connecting to the WebSocket API, receiving real-time price updates and orderbook depth on public channels, authenticating for private data, and subscribing to balance updates. The WebSocket API provides the real-time data layer for trading bots, price feeds, and account monitoring.
+The six steps above cover a single connection. Production integrations need automatic reconnection and state recovery, covered next.
 
 ## Reconnection and state recovery
 
@@ -385,7 +385,7 @@ Key points:
 - **Fresh token** — obtain a new WebSocket token on every reconnect; tokens may expire during long disconnections
 - **Full resubscription** — re-subscribe to all channels after reconnecting; the server does not remember previous subscriptions
 
-For a production-grade implementation with fill monitoring, grid strategy logic, and error recovery, see [Building a Trading Bot — Auto-resubscription](/guides/building-a-trading-bot#auto-resubscription-after-reconnect).
+For an implementation with fill monitoring, grid strategy logic, and error recovery, see [Building a Trading Bot — Auto-resubscription](/guides/building-a-trading-bot#auto-resubscription-after-reconnect).
 
 ### State recovery after reconnect
 

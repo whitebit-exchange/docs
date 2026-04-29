@@ -10,6 +10,11 @@ description: "Comprehensive glossary of trading terms, cryptocurrency concepts, 
 [Orders](#orders) running for the duration of the trading day.
 </Accordion>
 
+<Accordion title="ADL Grade">
+
+An indicator value from 0 to 4 reflecting a position's place in the per-market [Auto-Deleveraging](#auto-deleveraging-adl) ranking. Higher Grade signals higher likelihood of selection as an ADL counterparty. Grade 4 corresponds to the asymptotic top 5% of the ranked list. See [ADL Grade](/concepts/auto-deleveraging#adl-grade).
+</Accordion>
+
 <Accordion title="Ask">
 
 Sell [order](#orders).
@@ -18,6 +23,11 @@ Sell [order](#orders).
 <Accordion title="Assets">
 
 A digital representation of value transferable, storable, or tradable electronically.
+</Accordion>
+
+<Accordion title="Auto-Deleveraging (ADL)">
+
+Final-stage liquidation mechanism on the futures market. Activates only when standard market liquidity cannot fully cover a liquidated position. Closes profitable counterparty positions on the opposite side at a calculated price, ensuring no user balance becomes negative. See [Auto-Deleveraging](/concepts/auto-deleveraging).
 </Accordion>
 </AccordionGroup>
 
@@ -107,6 +117,11 @@ See [Order book](#order-book).
 ## E
 
 <AccordionGroup>
+<Accordion title="Effective leverage">
+
+A position-level metric used in the [Auto-Deleveraging](#auto-deleveraging-adl) Rating formula. Defined as `|position size in money| / account equity`. Distinct from configured account [leverage](#leverage) — effective leverage scales with position size relative to the account's [collateral balance](#balance-collateral), not with the leverage setting alone. See [Rating formula](/concepts/auto-deleveraging#rating-formula).
+</Accordion>
+
 <Accordion title="European Economic Area (EEA)">
 
 The EEA is an international agreement enabling the extension of the European Union's single market to non-EU member states. The EEA consists of the EU member states and three EFTA states (Iceland, Liechtenstein, and Norway).
@@ -358,7 +373,7 @@ The API returns error code `116` if no open position exists or the order directi
 
 **Auto-cancellation**
 
-If a position closes while a reduce-only [limit order](#limit-order) is still pending, the backend auto-cancels the order with status `AUTO_CANCELED_REDUCE_ONLY`.
+If a position closes while a reduce-only [limit order](#limit-order) is still pending, the backend auto-cancels the order with status `AUTO_CANCELED_REDUCE_ONLY`. [Auto-Deleveraging](#auto-deleveraging-adl)-triggered closure also auto-cancels pending reduce-only orders with the same `AUTO_CANCELED_REDUCE_ONLY` status — no ADL-specific cancel status was introduced.
 
 **Availability**
 

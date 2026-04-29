@@ -249,8 +249,9 @@ paths:
           - `31` - market validation failed
           - `32` - amount validation failed
           - `33` - price validation failed
-          - `36` - client_order_id validation failed
+          - `36` - clientOrderId validation failed
           - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -290,7 +291,7 @@ paths:
                   type: string
                   description: "Limit order price in [money](/glossary#money) currency. Minimum price step is market-dependent — query the [market info](/api-reference/market-data/market-info) endpoint for constraints."
                   example: "40000"
-                client_order_id:
+                clientOrderId:
                   type: string
                   description: "Custom order identifier. Must be unique and contain only letters, numbers, dashes, dots, or underscores."
                   example: "order1987111"
@@ -329,7 +330,11 @@ paths:
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
+
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -349,7 +354,7 @@ paths:
               price: "40000"
               postOnly: false
               ioc: false
-              client_order_id: order1987111
+              clientOrderId: order1987111
               stopLoss: "50000"
               takeProfit: "30000"
               positionSide: LONG
@@ -365,11 +370,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  order_id:
+                  orderId:
                     type: integer
                     description: Unique order identifier
                     example: 4180284841
-                  client_order_id:
+                  clientOrderId:
                     type: string
                     description: Custom client order identifier. Empty string if not specified
                     example: "order1987111"
@@ -390,11 +395,11 @@ paths:
                     type: number
                     description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                     example: 1595792396.165973
-                  deal_money:
+                  dealMoney:
                     type: string
                     description: Amount in money currency that is finished
                     example: "0"
-                  deal_stock:
+                  dealStock:
                     type: string
                     description: Amount in stock currency that is finished
                     example: "0"
@@ -406,7 +411,7 @@ paths:
                     type: string
                     description: Remaining amount that must be finished
                     example: "0.001"
-                  deal_fee:
+                  dealFee:
                     type: string
                     description: Fee in money that is paid when order is finished
                     example: "0"
@@ -459,17 +464,17 @@ paths:
                     description: Reduce-only flag
                     example: false
               example:
-                order_id: 4180284841
-                client_order_id: "order1987111"
+                orderId: 4180284841
+                clientOrderId: "order1987111"
                 market: "BTC_USDT"
                 side: "buy"
                 type: "limit"
                 timestamp: 1595792396.165973
-                deal_money: "0"
-                deal_stock: "0"
+                dealMoney: "0"
+                dealStock: "0"
                 amount: "0.01"
                 left: "0.001"
-                deal_fee: "0"
+                dealFee: "0"
                 price: "40000"
                 postOnly: false
                 ioc: false
@@ -504,6 +509,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit` (per-order)
+          - `114` - hedge mode position side does not match (per-order; sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
         </Accordion>
       tags:
@@ -541,7 +547,7 @@ paths:
                         type: string
                         description: "Limit order price in [money](/glossary#money) currency. Minimum price step is market-dependent."
                         example: "40000"
-                      client_order_id:
+                      clientOrderId:
                         type: string
                         description: "Identifier must be unique and contain letters, numbers, dashes, dots, or underscores."
                         example: ""
@@ -585,7 +591,11 @@ paths:
                       positionSide:
                         type: string
                         enum: [LONG, SHORT, BOTH]
-                        description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                        description: |
+                          Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
+
+                          - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                          - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the per-order item with error code `114` (`Hedge mode position side does not match`).
                         example: "LONG"
                       reduceOnly:
                         type: boolean
@@ -616,7 +626,7 @@ paths:
                   market: BTC_PERP
                   postOnly: false
                   ioc: false
-                  client_order_id: ""
+                  clientOrderId: ""
                   positionSide: LONG
                   rpi: true
                   reduceOnly: false
@@ -626,7 +636,7 @@ paths:
                   market: BTC_USDT
                   postOnly: false
                   ioc: false
-                  client_order_id: ""
+                  clientOrderId: ""
                   positionSide: LONG
                   rpi: true
                   reduceOnly: true
@@ -636,7 +646,7 @@ paths:
                   market: ETH_BTC
                   postOnly: false
                   ioc: false
-                  client_order_id: ""
+                  clientOrderId: ""
                   positionSide: LONG
                   rpi: true
                   reduceOnly: false
@@ -659,11 +669,11 @@ paths:
                       nullable: true
                       description: Order data when successful, null when failed
                       properties:
-                        order_id:
+                        orderId:
                           type: integer
                           description: Unique order identifier
                           example: 4326248250
-                        client_order_id:
+                        clientOrderId:
                           type: string
                           description: Custom client order identifier. Empty string if not specified
                           example: ""
@@ -684,11 +694,11 @@ paths:
                           type: number
                           description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                           example: 1684916268.825564
-                        deal_money:
+                        dealMoney:
                           type: string
                           description: Amount in money currency that is finished
                           example: "641.988"
-                        deal_stock:
+                        dealStock:
                           type: string
                           description: Amount in stock currency that is finished
                           example: "0.02"
@@ -700,7 +710,7 @@ paths:
                           type: string
                           description: Remaining amount that must be finished
                           example: "0"
-                        deal_fee:
+                        dealFee:
                           type: string
                           description: Fee in money that is paid when order is finished
                           example: "1.283976"
@@ -760,17 +770,17 @@ paths:
                             amount: ["Given amount is less than min amount 0.001."]
               example:
                 - result:
-                    order_id: 4326248250
-                    client_order_id: ""
+                    orderId: 4326248250
+                    clientOrderId: ""
                     market: "BTC_USDT"
                     side: "buy"
                     type: "limit"
                     timestamp: 1684916268.825564
-                    deal_money: "641.988"
-                    deal_stock: "0.02"
+                    dealMoney: "641.988"
+                    dealStock: "0.02"
                     amount: "0.02"
                     left: "0"
-                    deal_fee: "1.283976"
+                    dealFee: "1.283976"
                     ioc: false
                     postOnly: false
                     price: "40000"
@@ -787,17 +797,17 @@ paths:
                     errors:
                       amount: ["Given amount is less than min amount 0.001."]
                 - result:
-                    order_id: 4326248250
-                    client_order_id: ""
+                    orderId: 4326248250
+                    clientOrderId: ""
                     market: "BTC_USDT"
                     side: "sell"
                     type: "limit"
                     timestamp: 1684916268.825564
-                    deal_money: "641.988"
-                    deal_stock: "0.02"
+                    dealMoney: "641.988"
+                    dealStock: "0.02"
                     amount: "0.02"
                     left: "0"
-                    deal_fee: "1.283976"
+                    dealFee: "1.283976"
                     ioc: false
                     postOnly: false
                     price: "41000"
@@ -835,6 +845,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -869,7 +880,7 @@ paths:
                   type: string
                   description: "Amount of [stock](/glossary#stock) currency to buy or sell. Minimum and step values are market-dependent — query the [market info](/api-reference/market-data/market-info) endpoint for constraints."
                   example: "0.01"
-                client_order_id:
+                clientOrderId:
                   type: string
                   description: "Custom order identifier. Must be unique and contain only letters, numbers, dashes, dots, or underscores."
                   example: "order1987111"
@@ -890,7 +901,11 @@ paths:
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
+
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -907,7 +922,7 @@ paths:
               market: BTC_USDT
               side: buy
               amount: "0.01"
-              client_order_id: order1987111
+              clientOrderId: order1987111
               reduceOnly: false
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -919,11 +934,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  order_id:
+                  orderId:
                     type: integer
                     description: Unique order identifier
                     example: 4180284841
-                  client_order_id:
+                  clientOrderId:
                     type: string
                     description: Custom client order identifier. Empty string if not specified
                     example: "order1987111"
@@ -944,11 +959,11 @@ paths:
                     type: number
                     description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                     example: 1595792396.165973
-                  deal_money:
+                  dealMoney:
                     type: string
                     description: Amount in money currency that is finished
                     example: "0"
-                  deal_stock:
+                  dealStock:
                     type: string
                     description: Amount in stock currency that is finished
                     example: "0"
@@ -960,7 +975,7 @@ paths:
                     type: string
                     description: Remaining amount that must be finished
                     example: "0.001"
-                  deal_fee:
+                  dealFee:
                     type: string
                     description: Fee in money that is paid when order is finished
                     example: "0"
@@ -997,17 +1012,17 @@ paths:
                     description: Reduce-only flag
                     example: false
               example:
-                order_id: 4180284841
-                client_order_id: "order1987111"
+                orderId: 4180284841
+                clientOrderId: "order1987111"
                 market: "BTC_USDT"
                 side: "sell"
                 type: "market"
                 timestamp: 1595792396.165973
-                deal_money: "0"
-                deal_stock: "0"
+                dealMoney: "0"
+                dealStock: "0"
                 amount: "0.001"
                 left: "0.001"
-                deal_fee: "0"
+                dealFee: "0"
                 status: "FILLED"
                 stp: "no"
                 oto:
@@ -1038,6 +1053,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1096,14 +1112,18 @@ paths:
 
                     When provided, the system creates an [OTO](/glossary#one-triggers-the-other-oto) order with a take profit condition.
                   example: "50000"
-                client_order_id:
+                clientOrderId:
                   type: string
                   description: "Custom order identifier. Must be unique and contain only letters, numbers, dashes, dots, or underscores."
                   example: "order1987111"
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
+
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -1124,7 +1144,7 @@ paths:
               activation_price: "40000"
               stopLoss: "30000"
               takeProfit: "50000"
-              client_order_id: order1987111
+              clientOrderId: order1987111
               positionSide: LONG
               reduceOnly: false
               request: "{{request}}"
@@ -1137,11 +1157,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  order_id:
+                  orderId:
                     type: integer
                     description: Unique order identifier
                     example: 4180284841
-                  client_order_id:
+                  clientOrderId:
                     type: string
                     description: Custom client order identifier. Empty string if not specified
                     example: "order1987111"
@@ -1162,11 +1182,11 @@ paths:
                     type: number
                     description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                     example: 1595792396.165973
-                  deal_money:
+                  dealMoney:
                     type: string
                     description: Amount in money currency that is finished
                     example: "0"
-                  deal_stock:
+                  dealStock:
                     type: string
                     description: Amount in stock currency that is finished
                     example: "0"
@@ -1178,7 +1198,7 @@ paths:
                     type: string
                     description: Remaining amount that must be finished
                     example: "0.001"
-                  deal_fee:
+                  dealFee:
                     type: string
                     description: Fee in money that is paid when order is finished
                     example: "0"
@@ -1223,17 +1243,17 @@ paths:
                     description: Reduce-only flag
                     example: false
               example:
-                order_id: 4180284841
-                client_order_id: "order1987111"
+                orderId: 4180284841
+                clientOrderId: "order1987111"
                 market: "BTC_USDT"
                 side: "buy"
                 type: "stop limit"
                 timestamp: 1595792396.165973
-                deal_money: "0"
-                deal_stock: "0"
+                dealMoney: "0"
+                dealStock: "0"
                 amount: "0.001"
                 left: "0.001"
-                deal_fee: "0"
+                dealFee: "0"
                 price: "40000"
                 activation_price: "40000"
                 status: "FILLED"
@@ -1272,6 +1292,7 @@ paths:
 
         <Accordion title="Error Codes">
           - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1311,7 +1332,7 @@ paths:
                   type: string
                   description: "Trigger price in [money](/glossary#money) currency. The trigger market order activates when the market price reaches the specified value."
                   example: "40000"
-                client_order_id:
+                clientOrderId:
                   type: string
                   description: "Custom order identifier. Must be unique and contain only letters, numbers, dashes, dots, or underscores."
                   example: "order1987111"
@@ -1332,7 +1353,11 @@ paths:
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
-                  description: "Defines the position direction when hedge mode is enabled. See [positionSide](/glossary#position-side)"
+                  description: |
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side).
+
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
                 reduceOnly:
                   type: boolean
@@ -1350,7 +1375,7 @@ paths:
               side: buy
               amount: "0.01"
               activation_price: "40000"
-              client_order_id: order1987111
+              clientOrderId: order1987111
               reduceOnly: false
               request: "{{request}}"
               nonce: "{{nonce}}"
@@ -1362,11 +1387,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  order_id:
+                  orderId:
                     type: integer
                     description: Unique order identifier
                     example: 4180284841
-                  client_order_id:
+                  clientOrderId:
                     type: string
                     description: Custom client order identifier. Empty string if not specified
                     example: "order1987111"
@@ -1387,11 +1412,11 @@ paths:
                     type: number
                     description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                     example: 1595792396.165973
-                  deal_money:
+                  dealMoney:
                     type: string
                     description: Amount in money currency that is finished
                     example: "0"
-                  deal_stock:
+                  dealStock:
                     type: string
                     description: Amount in stock currency that is finished
                     example: "0"
@@ -1403,7 +1428,7 @@ paths:
                     type: string
                     description: Remaining amount that must be finished
                     example: "0.001"
-                  deal_fee:
+                  dealFee:
                     type: string
                     description: Fee in money that is paid when order is finished
                     example: "0"
@@ -1444,17 +1469,17 @@ paths:
                     description: Reduce-only flag
                     example: false
               example:
-                order_id: 4180284841
-                client_order_id: "order1987111"
+                orderId: 4180284841
+                clientOrderId: "order1987111"
                 market: "BTC_USDT"
                 side: "sell"
                 type: "stop market"
                 timestamp: 1595792396.165973
-                deal_money: "0"
-                deal_stock: "0"
+                dealMoney: "0"
+                dealStock: "0"
                 amount: "0.001"
                 left: "0.001"
-                deal_fee: "0"
+                dealFee: "0"
                 activation_price: "40000"
                 status: "FILLED"
                 stp: "no"
@@ -1839,6 +1864,14 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
+
+        <Note>
+        **Date filter window:** `startDate` and `endDate` are optional and have no defaults. The endpoint enforces no maximum window and no lower-bound floor. The only ordering constraint is `startDate` ≤ `endDate` ≤ `now + 1s` — requests that violate the ordering are rejected with a validation error.
+        </Note>
+
+        <Warning>
+        **Breaking change — April 29, 2026.** The `positionSide` field is no longer returned in the Position History response. Use `side` (same enum: `LONG`, `SHORT`, `BOTH`) plus `isHedge` (boolean) instead. Integrations reading `positionSide` from `/api/v4/collateral-account/positions/history` must migrate before consuming the new response.
+        </Warning>
       tags:
         - Collateral Trading
       security:
@@ -1863,6 +1896,14 @@ paths:
                   type: integer
                   description: "Filter by specific position identifier. If not specified, returns history for all positions."
                   example: 1
+                startDate:
+                  type: integer
+                  description: "Start of the query window as a Unix timestamp in seconds. Optional, no default. Must be ≤ `endDate`."
+                  example: 1650400000
+                endDate:
+                  type: integer
+                  description: "End of the query window as a Unix timestamp in seconds. Optional, no default. Must be ≥ `startDate` and ≤ `now + 1s`; violating values are rejected with a validation error."
+                  example: 1650500000
                 request:
                   type: string
                   example: "{{request}}"
@@ -1954,11 +1995,15 @@ paths:
                           description: Realized profit and loss
                           nullable: true
                           example: null
-                    positionSide:
+                    side:
                       type: string
-                      description: Position side
                       enum: [LONG, SHORT, BOTH]
+                      description: "Position direction. `BOTH` indicates a one-way mode position; `LONG` or `SHORT` indicates a hedge mode position. See [position side](/glossary#position-side)."
                       example: "LONG"
+                    isHedge:
+                      type: boolean
+                      description: "Indicates whether [hedge mode](/glossary#hedge-mode) was active when the position was opened. Hedge-mode toggling requires zero open positions, so the value also reflects the account mode at every event in the position's lifetime."
+                      example: false
               example:
                 - positionId: 111
                   market: "BTC_USDT"
@@ -1976,7 +2021,8 @@ paths:
                     tradeFee: "415.07"
                     fundingFee: null
                     realizedPnl: null
-                  positionSide: "LONG"
+                  side: "LONG"
+                  isHedge: false
         '400':
           description: Inner validation failed
           content:
@@ -2410,20 +2456,20 @@ paths:
                               type: boolean
                               description: Reduce-only flag
                               example: false
-                            stop_loss:
+                            stopLoss:
                               type: object
                               properties:
-                                order_id:
+                                orderId:
                                   type: integer
                                   example: 117703764514
                                 positionSide:
                                   type: string
                                   enum: [LONG, SHORT, BOTH]
                                   example: "LONG"
-                            take_profit:
+                            takeProfit:
                               type: object
                               properties:
-                                order_id:
+                                orderId:
                                   type: integer
                                   example: 117703764515
                                 positionSide:
@@ -2453,10 +2499,10 @@ paths:
                             conditionalOrder:
                               type: object
                               properties:
-                                order_id:
+                                orderId:
                                   type: integer
                                   example: 3686033640
-                                client_order_id:
+                                clientOrderId:
                                   type: string
                                   example: "customId11"
                                 market:
@@ -2474,44 +2520,44 @@ paths:
                   - id: 117703764513
                     type: "oco"
                     reduceOnly: false
-                    stop_loss:
-                      order_id: 117703764514
-                      client_order_id: ""
+                    stopLoss:
+                      orderId: 117703764514
+                      clientOrderId: ""
                       market: "BTC_USDT"
                       side: "buy"
                       type: "stop limit"
                       timestamp: 1594605801.49815
-                      deal_money: "0"
-                      deal_stock: "0"
+                      dealMoney: "0"
+                      dealStock: "0"
                       amount: "2.241379"
                       takerFee: "0.001"
                       makerFee: "0.001"
                       left: "2.241379"
-                      deal_fee: "0"
-                      post_only: false
+                      dealFee: "0"
+                      postOnly: false
                       mtime: 1662478154.941582
                       price: "19928.79"
-                      activation_price: "29928.79"
-                      activation_condition: "gte"
+                      activationPrice: "29928.79"
+                      activationCondition: "gte"
                       activated: 0
                       status: "FILLED"
                       stp: "no"
                       positionSide: "LONG"
-                    take_profit:
-                      order_id: 117703764515
-                      client_order_id: ""
+                    takeProfit:
+                      orderId: 117703764515
+                      clientOrderId: ""
                       market: "BTC_USDT"
                       side: "buy"
                       type: "limit"
                       timestamp: 1662478154.941582
-                      deal_money: "0"
-                      deal_stock: "0"
+                      dealMoney: "0"
+                      dealStock: "0"
                       amount: "0.635709"
                       takerFee: "0.001"
                       makerFee: "0.001"
                       left: "0.635709"
-                      deal_fee: "0"
-                      post_only: false
+                      dealFee: "0"
+                      postOnly: false
                       mtime: 1662478154.941582
                       price: "9928.79"
                       status: "FILLED"
@@ -2523,19 +2569,19 @@ paths:
                     stopLossPrice: "30000"
                     takeProfitPrice: "50000"
                     conditionalOrder:
-                      order_id: 3686033640
-                      client_order_id: "customId11"
+                      orderId: 3686033640
+                      clientOrderId: "customId11"
                       market: "BTC_USDT"
                       side: "buy"
                       type: "limit"
                       timestamp: 1594605801.49815
-                      deal_money: "0"
-                      deal_stock: "0"
+                      dealMoney: "0"
+                      dealStock: "0"
                       amount: "2.241379"
                       takerFee: "0.001"
                       makerFee: "0.001"
                       left: "2.241379"
-                      deal_fee: "0"
+                      dealFee: "0"
                       price: "40000"
                       status: "FILLED"
                       stp: "no"
@@ -2628,10 +2674,10 @@ paths:
                       type: object
                       description: Stop loss order details
                       properties:
-                        order_id:
+                        orderId:
                           type: integer
                           example: 117703764514
-                        client_order_id:
+                        clientOrderId:
                           type: string
                           example: ""
                         market:
@@ -2647,10 +2693,10 @@ paths:
                         timestamp:
                           type: number
                           example: 1594605801.49815
-                        deal_money:
+                        dealMoney:
                           type: string
                           example: "0"
-                        deal_stock:
+                        dealStock:
                           type: string
                           example: "0"
                         amount:
@@ -2665,7 +2711,7 @@ paths:
                         left:
                           type: string
                           example: "2.241379"
-                        deal_fee:
+                        dealFee:
                           type: string
                           example: "0"
                         post_only:
@@ -2682,6 +2728,8 @@ paths:
                           example: "29928.79"
                         activation_condition:
                           type: string
+                          description: |
+                            Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
                           enum: [gte, lte]
                           example: "gte"
                         activated:
@@ -2697,10 +2745,10 @@ paths:
                       type: object
                       description: Take profit order details
                       properties:
-                        order_id:
+                        orderId:
                           type: integer
                           example: 117703764515
-                        client_order_id:
+                        clientOrderId:
                           type: string
                           example: ""
                         market:
@@ -2716,10 +2764,10 @@ paths:
                         timestamp:
                           type: number
                           example: 1662478154.941582
-                        deal_money:
+                        dealMoney:
                           type: string
                           example: "0"
-                        deal_stock:
+                        dealStock:
                           type: string
                           example: "0"
                         amount:
@@ -2734,7 +2782,7 @@ paths:
                         left:
                           type: string
                           example: "0.635709"
-                        deal_fee:
+                        dealFee:
                           type: string
                           example: "0"
                         post_only:
@@ -2755,19 +2803,19 @@ paths:
               example:
                 - id: 117703764513
                   stop_loss:
-                    order_id: 117703764514
-                    client_order_id: ""
+                    orderId: 117703764514
+                    clientOrderId: ""
                     market: "BTC_USDT"
                     side: "buy"
                     type: "stop limit"
                     timestamp: 1594605801.49815
-                    deal_money: "0"
-                    deal_stock: "0"
+                    dealMoney: "0"
+                    dealStock: "0"
                     amount: "2.241379"
                     takerFee: "0.001"
                     makerFee: "0.001"
                     left: "2.241379"
-                    deal_fee: "0"
+                    dealFee: "0"
                     post_only: false
                     mtime: 1662478154.941582
                     price: "19928.79"
@@ -2777,19 +2825,19 @@ paths:
                     status: "FILLED"
                     stp: "no"
                   take_profit:
-                    order_id: 117703764515
-                    client_order_id: ""
+                    orderId: 117703764515
+                    clientOrderId: ""
                     market: "BTC_USDT"
                     side: "buy"
                     type: "limit"
                     timestamp: 1662478154.941582
-                    deal_money: "0"
-                    deal_stock: "0"
+                    dealMoney: "0"
+                    dealStock: "0"
                     amount: "0.635709"
                     takerFee: "0.001"
                     makerFee: "0.001"
                     left: "0.635709"
-                    deal_fee: "0"
+                    dealFee: "0"
                     post_only: false
                     mtime: 1662478154.941582
                     price: "9928.79"
@@ -2822,6 +2870,7 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
+          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -2871,7 +2920,7 @@ paths:
                   type: string
                   description: "Execution price in [money](/glossary#money) currency for the stop-loss leg. After activation, the stop-loss leg places a limit order at the specified price."
                   example: "42000"
-                client_order_id:
+                clientOrderId:
                   type: string
                   description: "Custom order identifier. Must be unique and contain only letters, numbers, dashes, dots, or underscores."
                   example: "order1987111"
@@ -2880,6 +2929,15 @@ paths:
                   default: false
                   description: "When `true`, both legs of the OCO order can only reduce or close an existing position — neither leg can increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
+                positionSide:
+                  type: string
+                  enum: [LONG, SHORT, BOTH]
+                  description: |
+                    Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See [positionSide](/glossary#position-side). Both legs of the OCO inherit the value.
+
+                    - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` on each leg whether the field is sent or omitted.
+                    - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
+                  example: "LONG"
                 request:
                   type: string
                   example: "{{request}}"
@@ -2893,8 +2951,9 @@ paths:
               price: "40000"
               activation_price: "41000"
               stop_limit_price: "42000"
-              client_order_id: order1987111
+              clientOrderId: order1987111
               reduceOnly: false
+              positionSide: LONG
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -2917,11 +2976,11 @@ paths:
                     type: object
                     description: Stop loss order details
                     properties:
-                      order_id:
+                      orderId:
                         type: integer
                         description: Order identifier
                         example: 117703764514
-                      client_order_id:
+                      clientOrderId:
                         type: string
                         description: Custom order identifier. Empty string if not specified
                         example: ""
@@ -2942,11 +3001,11 @@ paths:
                         type: number
                         description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                         example: 1594605801.49815
-                      deal_money:
+                      dealMoney:
                         type: string
                         description: Executed amount in money
                         example: "0"
-                      deal_stock:
+                      dealStock:
                         type: string
                         description: Executed amount in stock
                         example: "0"
@@ -2966,7 +3025,7 @@ paths:
                         type: string
                         description: Unexecuted amount in stock
                         example: "2.241379"
-                      deal_fee:
+                      dealFee:
                         type: string
                         description: Executed fee by deal
                         example: "0"
@@ -2988,7 +3047,8 @@ paths:
                         example: "29928.79"
                       activation_condition:
                         type: string
-                        description: Activation condition
+                        description: |
+                          Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
                         enum: [gte, lte]
                         example: "gte"
                       activated:
@@ -3011,11 +3071,11 @@ paths:
                     type: object
                     description: Take profit order details
                     properties:
-                      order_id:
+                      orderId:
                         type: integer
                         description: Order identifier
                         example: 117703764515
-                      client_order_id:
+                      clientOrderId:
                         type: string
                         description: Custom order identifier. Empty string if not specified
                         example: ""
@@ -3036,11 +3096,11 @@ paths:
                         type: number
                         description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                         example: 1662478154.941582
-                      deal_money:
+                      dealMoney:
                         type: string
                         description: Executed amount in money
                         example: "0"
-                      deal_stock:
+                      dealStock:
                         type: string
                         description: Executed amount in stock
                         example: "0"
@@ -3060,7 +3120,7 @@ paths:
                         type: string
                         description: Unexecuted amount in stock
                         example: "0.635709"
-                      deal_fee:
+                      dealFee:
                         type: string
                         description: Executed fee by deal
                         example: "0"
@@ -3092,19 +3152,19 @@ paths:
                 id: 117703764513
                 reduceOnly: false
                 stop_loss:
-                  order_id: 117703764514
-                  client_order_id: ""
+                  orderId: 117703764514
+                  clientOrderId: ""
                   market: "BTC_USDT"
                   side: "buy"
                   type: "stop limit"
                   timestamp: 1594605801.49815
-                  deal_money: "0"
-                  deal_stock: "0"
+                  dealMoney: "0"
+                  dealStock: "0"
                   amount: "2.241379"
                   takerFee: "0.001"
                   makerFee: "0.001"
                   left: "2.241379"
-                  deal_fee: "0"
+                  dealFee: "0"
                   post_only: false
                   mtime: 1662478154.941582
                   price: "19928.79"
@@ -3115,19 +3175,19 @@ paths:
                   stp: "no"
                   positionSide: "LONG"
                 take_profit:
-                  order_id: 117703764515
-                  client_order_id: ""
+                  orderId: 117703764515
+                  clientOrderId: ""
                   market: "BTC_USDT"
                   side: "buy"
                   type: "limit"
                   timestamp: 1662478154.941582
-                  deal_money: "0"
-                  deal_stock: "0"
+                  dealMoney: "0"
+                  dealStock: "0"
                   amount: "0.635709"
                   takerFee: "0.001"
                   makerFee: "0.001"
                   left: "0.635709"
-                  deal_fee: "0"
+                  dealFee: "0"
                   post_only: false
                   mtime: 1662478154.941582
                   price: "9928.79"
@@ -3238,14 +3298,14 @@ paths:
               type: object
               required:
                 - market
-                - order_id
+                - orderId
                 - request
                 - nonce
               properties:
                 market:
                   type: string
                   example: "BTC_USDT"
-                order_id:
+                orderId:
                   type: integer
                   example: 117703764514
                 request:
@@ -3256,7 +3316,7 @@ paths:
                   example: "{{nonce}}"
             example:
               market: BTC_USDT
-              order_id: 117703764514
+              orderId: 117703764514
               request: "{{request}}"
               nonce: "{{nonce}}"
       responses:
@@ -3275,11 +3335,11 @@ paths:
                     type: object
                     description: Cancelled stop loss order details
                     properties:
-                      order_id:
+                      orderId:
                         type: integer
                         description: Order identifier
                         example: 117703764514
-                      client_order_id:
+                      clientOrderId:
                         type: string
                         description: Custom order identifier. Empty string if not specified
                         example: ""
@@ -3300,11 +3360,11 @@ paths:
                         type: number
                         description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                         example: 1594605801.49815
-                      deal_money:
+                      dealMoney:
                         type: string
                         description: Executed amount in money
                         example: "0"
-                      deal_stock:
+                      dealStock:
                         type: string
                         description: Executed amount in stock
                         example: "0"
@@ -3324,7 +3384,7 @@ paths:
                         type: string
                         description: Unexecuted amount in stock
                         example: "2.241379"
-                      deal_fee:
+                      dealFee:
                         type: string
                         description: Executed fee by deal
                         example: "0"
@@ -3346,7 +3406,8 @@ paths:
                         example: "29928.79"
                       activation_condition:
                         type: string
-                        description: Activation condition
+                        description: |
+                          Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
                         enum: [gte, lte]
                         example: "gte"
                       activated:
@@ -3364,11 +3425,11 @@ paths:
                     type: object
                     description: Cancelled take profit order details
                     properties:
-                      order_id:
+                      orderId:
                         type: integer
                         description: Order identifier
                         example: 117703764515
-                      client_order_id:
+                      clientOrderId:
                         type: string
                         description: Custom order identifier. Empty string if not specified
                         example: ""
@@ -3389,11 +3450,11 @@ paths:
                         type: number
                         description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                         example: 1662478154.941582
-                      deal_money:
+                      dealMoney:
                         type: string
                         description: Executed amount in money
                         example: "0"
-                      deal_stock:
+                      dealStock:
                         type: string
                         description: Executed amount in stock
                         example: "0"
@@ -3405,7 +3466,7 @@ paths:
                         type: string
                         description: Unexecuted amount in stock
                         example: "0.635709"
-                      deal_fee:
+                      dealFee:
                         type: string
                         description: Executed fee by deal
                         example: "0"
@@ -3431,19 +3492,19 @@ paths:
               example:
                 id: 117703764513
                 stop_loss:
-                  order_id: 117703764514
-                  client_order_id: ""
+                  orderId: 117703764514
+                  clientOrderId: ""
                   market: "BTC_USDT"
                   side: "buy"
                   type: "stop limit"
                   timestamp: 1594605801.49815
-                  deal_money: "0"
-                  deal_stock: "0"
+                  dealMoney: "0"
+                  dealStock: "0"
                   amount: "2.241379"
                   takerFee: "0.001"
                   makerFee: "0.001"
                   left: "2.241379"
-                  deal_fee: "0"
+                  dealFee: "0"
                   post_only: false
                   mtime: 1662478154.941582
                   price: "19928.79"
@@ -3453,17 +3514,17 @@ paths:
                   status: "CANCELED"
                   stp: "no"
                 take_profit:
-                  order_id: 117703764515
-                  client_order_id: ""
+                  orderId: 117703764515
+                  clientOrderId: ""
                   market: "BTC_USDT"
                   side: "buy"
                   type: "limit"
                   timestamp: 1662478154.941582
-                  deal_money: "0"
-                  deal_stock: "0"
+                  dealMoney: "0"
+                  dealStock: "0"
                   amount: "0.635709"
                   left: "0.635709"
-                  deal_fee: "0"
+                  dealFee: "0"
                   post_only: false
                   mtime: 1662478154.941582
                   price: "9928.79"
@@ -4110,7 +4171,7 @@ paths:
           - `31` - market validation failed
           - `32` - amount validation failed
           - `33` - price validation failed
-          - `36` - client_order_id validation failed
+          - `36` - clientOrderId validation failed
           - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
         </Accordion>
         
@@ -4196,7 +4257,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": ["ClientOrderId field should be a string."]
+            "clientOrderId": ["ClientOrderId field should be a string."]
           }
         }
         ```
@@ -4206,7 +4267,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": [
+            "clientOrderId": [
               "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
@@ -4218,7 +4279,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": [
+            "clientOrderId": [
               "This client order id is already used by the current account."
             ]
           }
@@ -4343,7 +4404,7 @@ paths:
           - `31` - market validation failed
           - `32` - amount validation failed
           - `33` - price validation failed
-          - `36` - client_order_id validation failed
+          - `36` - clientOrderId validation failed
           - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
         </Accordion>
         
@@ -4445,7 +4506,7 @@ paths:
                   market: BTC_USDT
                   postOnly: false
                   ioc: false
-                  client_order_id: ""
+                  clientOrderId: ""
                   rpi: true
                 - side: sell
                   amount: "0.0001"
@@ -4453,7 +4514,7 @@ paths:
                   market: BTC_USDT
                   postOnly: false
                   ioc: false
-                  client_order_id: ""
+                  clientOrderId: ""
                   rpi: true
                 - side: sell
                   amount: "0.02"
@@ -4461,7 +4522,7 @@ paths:
                   market: BTC_USDT
                   postOnly: false
                   ioc: false
-                  client_order_id: ""
+                  clientOrderId: ""
                   rpi: true
       responses:
         '200':
@@ -4496,7 +4557,7 @@ paths:
         - `30` - default validation error code
         - `31` - market validation failed
         - `32` - amount validation failed
-        - `36` - client_order_id validation failed
+        - `36` - clientOrderId validation failed
         </Accordion>
         
         <Accordion title="Errors">
@@ -4580,7 +4641,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": ["ClientOrderId field should be a string."]
+            "clientOrderId": ["ClientOrderId field should be a string."]
           }
         }
         ```
@@ -4590,7 +4651,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": [
+            "clientOrderId": [
               "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
@@ -4646,7 +4707,7 @@ paths:
         - `30` - default validation error code
         - `31` - market validation failed
         - `32` - amount validation failed
-        - `36` - client_order_id validation failed
+        - `36` - clientOrderId validation failed
         </Accordion>
 
         <Accordion title="Errors">
@@ -4730,7 +4791,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": ["ClientOrderId field should be a string."]
+            "clientOrderId": ["ClientOrderId field should be a string."]
           }
         }
         ```
@@ -4785,7 +4846,7 @@ paths:
         - `31` - market validation failed
         - `32` - amount validation failed
         - `33` - price validation failed
-        - `36` - client_order_id validation failed
+        - `36` - clientOrderId validation failed
         </Accordion>
         
         <Accordion title="Errors">
@@ -4891,7 +4952,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": ["ClientOrderId field should be a string."]
+            "clientOrderId": ["ClientOrderId field should be a string."]
           }
         }
         ```
@@ -4901,7 +4962,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": [
+            "clientOrderId": [
               "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
@@ -4957,7 +5018,7 @@ paths:
         - `30` - default validation error code
         - `31` - market validation failed
         - `32` - amount validation failed
-        - `36` - client_order_id validation failed
+        - `36` - clientOrderId validation failed
         </Accordion>
         
         <Accordion title="Errors">
@@ -5042,7 +5103,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": ["ClientOrderId field should be a string."]
+            "clientOrderId": ["ClientOrderId field should be a string."]
           }
         }
         ```
@@ -5052,7 +5113,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": [
+            "clientOrderId": [
               "ClientOrderId field should contain only latin letters, numbers and dashes."
             ]
           }
@@ -5064,7 +5125,7 @@ paths:
           "code": 36,
           "message": "Validation failed",
           "errors": {
-            "client_order_id": [
+            "clientOrderId": [
               "This client order id is already used by the current account."
             ]
           }
@@ -5114,15 +5175,15 @@ paths:
       summary: Cancel order
       operationId: cancelOrder
       description: |
-        The endpoint cancels an existing [order](/glossary#orders). Provide either `order_id` or `client_order_id` to identify the target order. The response returns the final state of the cancelled order.
+        The endpoint cancels an existing [order](/glossary#orders). Provide either `orderId` or `clientOrderId` to identify the target order. The response returns the final state of the cancelled order.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
 
         <Note>
-        - Cancellation by client_order_id takes priority over order_id.
-        - The request supports working only with order_id or only with client_order_id.
+        - Cancellation by clientOrderId takes priority over orderId.
+        - The request supports working only with orderId or only with clientOrderId.
         - Do not pass both values at the same time.
         </Note>
         
@@ -5138,7 +5199,7 @@ paths:
           "message": "Validation failed",
           "errors": {
             "market": ["Market field is required."],
-            "order_id": ["OrderId field is required."]
+            "orderId": ["OrderId field is required."]
           }
         }
         ```
@@ -5168,7 +5229,7 @@ paths:
           "code": 30,
           "message": "Validation failed",
           "errors": {
-            "order_id": ["OrderId field should be an integer."]
+            "orderId": ["OrderId field should be an integer."]
           }
         }
         ```
@@ -5191,7 +5252,7 @@ paths:
           "code": 2,
           "message": "Inner validation failed",
           "errors": {
-            "order_id": ["Unexecuted order was not found."]
+            "orderId": ["Unexecuted order was not found."]
           }
         }
         ```
@@ -5217,13 +5278,13 @@ paths:
                   type: string
                   description: "Available [market](/glossary#market). Example: BTC_USDT"
                   example: BTC_USDT
-                order_id:
+                orderId:
                   type: integer
-                  description: "Order Id. Example: 4180284841. Required if client_order_id is not set."
+                  description: "Order Id. Example: 4180284841. Required if clientOrderId is not set."
                   example: 123456
-                client_order_id:
+                clientOrderId:
                   type: string
-                  description: "Custom client order id. Example: 'customId11'. Required if order_id is not set."
+                  description: "Custom client order id. Example: 'customId11'. Required if orderId is not set."
                   example: "customId11"
                 request:
                   type: string
@@ -5246,6 +5307,202 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/order/cancel/bulk:
+    post:
+      summary: Cancel bulk orders
+      operationId: cancelBulkOrders
+      description: |
+        The endpoint cancels up to 100 [orders](/glossary#orders) in a single request. Each item identifies a target order by `market` plus exactly one of `orderId` or `clientOrderId`. The response is an array whose items match the input order one-to-one — `response[i]` corresponds to `request.orders[i]`.
+
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+
+        <Warning>
+        Limit: From 1 to 100 orders per request.
+        </Warning>
+
+        <Note>
+        - Provide exactly one of `orderId` or `clientOrderId` per item. Sending both, or neither, returns a per-item validation error.
+        - The endpoint always processes every item independently. There is no `stopOnFail`-style switch.
+        - When the caller is not authenticated, the API returns the standard authorization error and skips per-item validation.
+        </Note>
+
+        <Accordion title="Error Codes">
+        - `30` — validation failure (per-item)
+        - `404` — order not found (per-item)
+        - `500` — trade service unavailable (per-item)
+        </Accordion>
+
+        <Accordion title="Errors">
+        **Per-item errors (returned inside the response array):**
+
+        Element is not a valid object:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "request": ["Invalid order format"] }
+          }
+        }
+        ```
+
+        `market` field is missing:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "market": ["validation.required"] }
+          }
+        }
+        ```
+
+        Specified market does not exist:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "market": ["validation.market_not_exist"] }
+          }
+        }
+        ```
+
+        Neither `orderId` nor `clientOrderId` provided:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "request": ["validation.required"] }
+          }
+        }
+        ```
+
+        Both `orderId` and `clientOrderId` provided:
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 30,
+            "message": "Validation failed",
+            "errors": { "request": ["api.validation.order.chooseOneId"] }
+          }
+        }
+        ```
+
+        Order not found (returned for both `orderId` and `clientOrderId` lookups):
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 404,
+            "message": "Order not found",
+            "errors": {
+              "orderId": ["Order does not exist or already cancelled"]
+            }
+          }
+        }
+        ```
+
+        Trade service unavailable (returned when the trade service is unreachable or returns an unparseable response):
+        ```json
+        {
+          "result": null,
+          "error": {
+            "code": 500,
+            "message": "Service temporary unavailable",
+            "errors": { "error": ["Service temporary unavailable"] }
+          }
+        }
+        ```
+
+        **Request-level errors (HTTP 422, returned as a standard error envelope, not as an array):**
+
+        `orders` field is missing or is not an array:
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": { "orders": ["validation.required"] }
+        }
+        ```
+
+        `orders` contains more than 100 elements:
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": { "orders": ["validation.between"] }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orders
+                - request
+                - nonce
+              properties:
+                orders:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  description: "Array of orders to cancel. From 1 to 100 items per request."
+                  items:
+                    $ref: '#/components/schemas/BulkCancelOrderItem'
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  example: "{{nonce}}"
+            example:
+              orders:
+                - market: BTC_USDT
+                  orderId: 4326248250
+                - market: ETH_USDT
+                  clientOrderId: my-client-id
+              request: "{{request}}"
+              nonce: "{{nonce}}"
+      responses:
+        '200':
+          description: Bulk cancel result. The response is an array — `response[i]` corresponds to `request.orders[i]`. Each item contains either a `result` (cancellation succeeded) or an `error` (cancellation failed for that item). Partial failures within the array are normal; the request itself returns HTTP 200.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkCancelOrderResponse'
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
           content:
             application/json:
               schema:
@@ -5375,7 +5632,7 @@ paths:
         </Warning>
 
         <Note>
-        Search across all markets is available only if client_order_id and order_id are not provided.
+        Search across all markets is available only if clientOrderId and orderId are not provided.
         </Note>
 
         <Note>
@@ -5421,11 +5678,11 @@ paths:
                   type: string
                   description: "Trading pair to filter by. Format: `BASE_QUOTE` (e.g., `BTC_USDT`). Omit to retrieve orders across all markets."
                   example: BTC_USDT
-                order_id:
+                orderId:
                   type: integer
                   description: "Filter by a specific order identifier. Returns only the matching active order."
                   example: 3134995325
-                client_order_id:
+                clientOrderId:
                   type: string
                   description: "Filter by custom client order identifier. Returns only the matching active order."
                   example: "customId11"
@@ -5539,7 +5796,7 @@ paths:
                   type: string
                   description: "Requested [market](/glossary#market). Example: BTC_USDT"
                   example: "BTC_USDT"
-                client_order_id:
+                clientOrderId:
                   type: string
                   description: "Filter by custom order identifier"
                   example: "customId11"
@@ -5633,11 +5890,11 @@ paths:
             schema:
               type: object
               required:
-                - order_id
+                - orderId
                 - request
                 - nonce
               properties:
-                order_id:
+                orderId:
                   type: integer
                   description: "Identifier of the order to retrieve deals for."
                   example: 3134995325
@@ -5697,7 +5954,7 @@ paths:
                           type: integer
                           description: "Identifier of the counterparty order that matched against the queried order."
                           example: 3134995325
-                        client_order_id:
+                        clientOrderId:
                           type: string
                           description: "Custom order identifier supplied in the original order request. Returns an empty string when not specified."
                           example: "customId11"
@@ -5734,7 +5991,7 @@ paths:
                     amount: "598"
                     id: 149156519
                     dealOrderId: 3134995325
-                    client_order_id: "customId11"
+                    clientOrderId: "customId11"
                     role: 2
                     deal: "0.00419198"
                     feeAsset: "USDT"
@@ -5776,6 +6033,10 @@ paths:
         </Note>
 
         <Note>
+        **Date filter window:** the maximum span between `startDate` and `endDate` is **31 days**, and the earliest reachable date is **6 months ago (00:00 UTC)**. Requests that exceed the 31-day window or fall below the 6-month floor are rejected with a validation error. `endDate` values greater than the current time are silently clamped to `now`.
+        </Note>
+
+        <Note>
         For B2B accounts, canceled order recording is disabled by default. To include canceled orders in the history, contact support to enable canceled order storage.
         </Note>
       tags:
@@ -5795,6 +6056,14 @@ paths:
                   type: string
                   description: "Trading pair to filter by. Format: `BASE_QUOTE` (e.g., `BTC_USDT`). Omit to retrieve orders across all markets."
                   example: "BTC_USDT"
+                startDate:
+                  type: integer
+                  description: "Start of the query window as a Unix timestamp in seconds. Default: `now - 1 month`. The earliest reachable date is 6 months ago (00:00 UTC) — requests with an older `startDate` are rejected with a validation error."
+                  example: 1697000000
+                endDate:
+                  type: integer
+                  description: "End of the query window as a Unix timestamp in seconds. Default: `now`. Values greater than the current time are silently clamped to `now`. The maximum span between `startDate` and `endDate` is 31 days."
+                  example: 1699000000
                 offset:
                   type: integer
                   default: 0
@@ -5843,7 +6112,7 @@ paths:
                         type: integer
                         description: "Unique order identifier assigned by the matching engine."
                         example: 4986126152
-                      client_order_id:
+                      clientOrderId:
                         type: string
                         description: "Custom client order identifier supplied in the request. Returns an empty string when not specified."
                         example: "customId11"
@@ -5870,15 +6139,15 @@ paths:
                         type: string
                         description: "Maker fee ratio applied to the order. Values below `0.0001` are rounded to zero."
                         example: "0.001"
-                      deal_fee:
+                      dealFee:
                         type: string
                         description: "Cumulative trading fee charged for filled portions, denominated in the fee asset."
                         example: "0.041258268"
-                      deal_stock:
+                      dealStock:
                         type: string
                         description: "Filled amount in base (stock) currency."
                         example: "0.0009"
-                      deal_money:
+                      dealMoney:
                         type: string
                         description: "Filled amount in quote (money) currency."
                         example: "41.258268"
@@ -5914,15 +6183,15 @@ paths:
                     price: "40000"
                     type: "limit"
                     id: 4986126152
-                    client_order_id: "customId11"
+                    clientOrderId: "customId11"
                     side: "sell"
                     ctime: 1597486960.311311
                     takerFee: "0.001"
                     ftime: 1597486960.311332
                     makerFee: "0.001"
-                    deal_fee: "0.041258268"
-                    deal_stock: "0.0009"
-                    deal_money: "41.258268"
+                    dealFee: "0.041258268"
+                    dealStock: "0.0009"
+                    dealMoney: "41.258268"
                     postOnly: false
                     ioc: false
                     status: "CANCELED"
@@ -5962,20 +6231,20 @@ paths:
         
         <Note>
         - Use total parameter instead of amount for modify buy stop market order.
-        - Modification by client_order_id takes priority.
-        - The request supports working only with order_id or only with client_order_id.
+        - Modification by clientOrderId takes priority.
+        - The request supports working only with orderId or only with clientOrderId.
         - Do not pass both values at the same time.
         </Note>
 
         <Note>
         **WebSocket impact:** Each call to the endpoint cancels the original order and
-        creates a replacement with a **new `order_id`**. Clients subscribed to the
+        creates a replacement with a **new `orderId`**. Clients subscribed to the
         `ordersPending_update` WebSocket channel will receive:
         - `event_id=3` (cancel) for the old order
         - `event_id=1` (new) for the replacement
 
-        Update any `order_id` references after a successful modify response.
-        Use `client_order_id` for stable order tracking across modifications.
+        Update any `orderId` references after a successful modify response.
+        Use `clientOrderId` for stable order tracking across modifications.
         </Note>
 
         <Accordion title="Error Codes">
@@ -6000,7 +6269,7 @@ paths:
           "code": 2,
           "message": "Inner validation failed",
           "errors": {
-            "order_id": ["Unexecuted order was not found."]
+            "orderId": ["Unexecuted order was not found."]
           }
         }
         ```
@@ -6032,13 +6301,13 @@ paths:
                 - request
                 - nonce
               properties:
-                order_id:
+                orderId:
                   type: integer
-                  description: "Active order id. Required if client_order_id is not set."
+                  description: "Active order id. Required if clientOrderId is not set."
                   example: 4180284841
-                client_order_id:
+                clientOrderId:
                   type: string
-                  description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. Required if order_id is not set."
+                  description: "Identifier should be unique and contain letters, dashes, numbers, dots or underscores. Required if orderId is not set."
                   example: "order1987111"
                 market:
                   type: string
@@ -6367,7 +6636,7 @@ components:
         id:
           type: integer
           description: "Unique deal identifier assigned by the matching engine."
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom order identifier supplied in the original order request. Returns an empty string when not specified."
         time:
@@ -6392,7 +6661,7 @@ components:
         fee:
           type: string
           description: "Fee charged for the deal, denominated in the asset specified by `feeAsset`."
-        order_id:
+        orderId:
           type: integer
           description: "Identifier of the parent order that produced the deal."
         feeAsset:
@@ -6426,7 +6695,7 @@ components:
           type: string
           description: "Limit price per unit in quote (money) currency. Minimum and maximum values are market-dependent. Precision: `moneyPrec`."
           example: "9800"
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
@@ -6498,7 +6767,7 @@ components:
           type: string
           description: "For buy orders: total in quote (money) currency to spend. For sell orders: quantity in base (stock) currency to sell. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, `maxTotal`."
           example: "100"
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
@@ -6547,7 +6816,7 @@ components:
           type: string
           description: "Trigger price in quote (money) currency. For buy orders, the stop triggers when the market price rises to or above the specified price. For sell orders, the stop triggers when the market price falls to or below the specified price. Precision: `moneyPrec`."
           example: "10000"
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
@@ -6590,7 +6859,7 @@ components:
           type: string
           description: "Order quantity in base (stock) currency for both buy and sell sides. To place a market order specifying the quote (money) currency amount instead, use `POST /api/v4/order/market`. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, `maxTotal`."
           example: "0.001"
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
@@ -6634,7 +6903,7 @@ components:
           type: string
           description: "Trigger price in quote (money) currency. For buy orders, the stop triggers when the market price rises to or above the specified price. For sell orders, the stop triggers when the market price falls to or below the specified price. Precision: `moneyPrec`."
           example: "10000"
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
@@ -6685,7 +6954,7 @@ components:
             IOC does not support `rpi=true` because RPI uses post-only behavior by design.
             The API returns error code `37` when an order item sets both `ioc=true` and `rpi=true`.
           example: false
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
           example: ""
@@ -6702,11 +6971,11 @@ components:
     OrderResponse:
       type: object
       properties:
-        order_id:
+        orderId:
           type: integer
           description: "Unique identifier assigned to the order by the matching engine."
           example: 4180284841
-        client_order_id:
+        clientOrderId:
           type: string
           description: "Custom client order identifier supplied in the request. Returns an empty string when not specified."
           example: "order1987111"
@@ -6726,11 +6995,11 @@ components:
           type: number
           description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
           example: 1595792396.165973
-        deal_money:
+        dealMoney:
           type: string
           description: "Filled amount in quote currency. Returns `\"0\"` while the order remains unfilled."
           example: "0"
-        deal_stock:
+        dealStock:
           type: string
           description: "Filled amount in base currency. Returns `\"0\"` while the order remains unfilled."
           example: "0"
@@ -6742,7 +7011,7 @@ components:
           type: string
           description: "Remaining unfilled quantity. Equals `amount` for new orders and `\"0\"` for fully filled orders."
           example: "0.001"
-        deal_fee:
+        dealFee:
           type: string
           description: "Cumulative trading fee charged for filled portions, denominated in the fee asset."
           example: "0"
@@ -6785,9 +7054,11 @@ components:
         activationCondition:
           type: string
           enum: [lte, gte]
-          description: "Condition that triggers the stop order. \"lte\" = activate
-            when the market price falls to or below activation_price. \"gte\" =
-            activate when the market price rises to or above activation_price."
+          description: |
+            Trigger condition for the stop order. Response-only — not accepted in the request body, and cannot be overridden. Derived from `side`:
+
+            - `side = buy` → `gte`. The order activates when the market price rises to or above `activation_price`.
+            - `side = sell` → `lte`. The order activates when the market price falls to or below `activation_price`.
           example: "lte"
         activation_price:
           type: string
@@ -6803,6 +7074,56 @@ components:
             type: object
             allOf:
               - $ref: '#/components/schemas/OrderResponse'
+            nullable: true
+          error:
+            type: object
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+            nullable: true
+    BulkCancelOrderItem:
+      type: object
+      description: "A single cancel target. Provide `market` and exactly one of `orderId` or `clientOrderId`. Sending both, or neither, returns a per-item validation error."
+      required:
+        - market
+      properties:
+        market:
+          type: string
+          description: "Available [market](/glossary#market). Example: `BTC_USDT`."
+          example: "BTC_USDT"
+        orderId:
+          type: integer
+          description: "System-assigned order ID. Required if `clientOrderId` is not set; mutually exclusive with `clientOrderId`."
+          example: 4326248250
+        clientOrderId:
+          type: string
+          description: "Client-defined order ID supplied at order creation. Required if `orderId` is not set; mutually exclusive with `orderId`."
+          example: "my-client-id"
+    BulkCancelOrderResult:
+      type: object
+      description: "Acknowledgement that a single item was cancelled. The endpoint echoes the identifiers from the request item; full order state is not returned. Use the single Cancel order endpoint when post-cancel order state is required."
+      properties:
+        orderId:
+          type: integer
+          description: "System-assigned order ID of the cancelled order."
+          example: 4326248250
+        clientOrderId:
+          type: string
+          description: "Client-defined order ID of the cancelled order, if one was set at order creation."
+          example: "my-client-id"
+        market:
+          type: string
+          description: "Trading pair of the cancelled order. Format: `BASE_QUOTE` (e.g. `BTC_USDT`)."
+          example: "BTC_USDT"
+    BulkCancelOrderResponse:
+      type: array
+      description: "Per-item cancel results. `response[i]` corresponds to `request.orders[i]`. Each item contains either `result` (cancellation succeeded) or `error` (cancellation failed for that item) — never both."
+      items:
+        type: object
+        properties:
+          result:
+            type: object
+            allOf:
+              - $ref: '#/components/schemas/BulkCancelOrderResult'
             nullable: true
           error:
             type: object
