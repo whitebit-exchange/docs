@@ -1,0 +1,13 @@
+---
+title: "Create address check"
+description: "Initiate a new cryptocurrency address screening request. Returns a check identifier to poll for the result. Successful checks are billed 2 USDT from the main balance."
+openapi: "/openapi/private/aml.yaml POST /api/v4/aml/checks/create"
+---
+
+import { RelatedResources } from '/components/RelatedResources.jsx';
+
+<RelatedResources>
+- [Get check result](/api-reference/aml/get-check-result) — poll for the screening result using the returned `id`
+- [List supported assets](/api-reference/aml/list-supported-assets) — discover valid `asset` and `network` values
+- [Address Checker overview](/api-reference/aml/overview) — process, billing, and risk gradation
+</RelatedResources>
