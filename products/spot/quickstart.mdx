@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Place a first spot trade on the WhiteBIT API — check the Trade balance, place a limit order on BTC_USDT, verify the order, and cancel the order — in under 5 minutes.
+Place a limit order on BTC_USDT against the live orderbook with HMAC-SHA512 signing. The four-step block below uses a price far below market, so the order opens but does not fill — safe for testing without risking a fill.
 
 ## Prerequisites
 
@@ -121,8 +121,8 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
             "price": "30000"       # Well below market — adjust if needed
         })
         print(order)
-        order_id = order.get("order_id")
-        print(f"Order ID: {order_id}")
+        orderId = order.get("orderId")
+        print(f"Order ID: {orderId}")
         ```
       </Tab>
     </Tabs>
@@ -130,8 +130,8 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
     **Expected response:**
     ```json
     {
-      "order_id": 12345678,
-      "client_order_id": "",
+      "orderId": 12345678,
+      "clientOrderId": "",
       "market": "BTC_USDT",
       "side": "buy",
       "type": "limit",
@@ -142,7 +142,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
     }
     ```
 
-    Request fields: `market` (trading pair), `side` ("buy" or "sell"), `amount` (quantity in the base asset), `price` (limit price in the quote asset). Optional: `client_order_id` (custom identifier), `stp` (self-trade prevention mode).
+    Request fields: `market` (trading pair), `side` ("buy" or "sell"), `amount` (quantity in the base asset), `price` (limit price in the quote asset). Optional: `clientOrderId` (custom identifier), `stp` (self-trade prevention mode).
   </Step>
 
   <Step title="Check active orders">
@@ -164,7 +164,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
         active_orders = send_request("/api/v4/orders", {"market": "BTC_USDT"})
         print(f"Active orders: {len(active_orders)}")
         for o in active_orders:
-            print(f"  Order {o['order_id']}: {o['side']} {o['amount']} @ {o['price']}")
+            print(f"  Order {o['orderId']}: {o['side']} {o['amount']} @ {o['price']}")
         ```
       </Tab>
     </Tabs>
@@ -173,7 +173,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
     ```json
     [
       {
-        "order_id": 12345678,
+        "orderId": 12345678,
         "market": "BTC_USDT",
         "side": "buy",
         "amount": "0.0001",
@@ -185,7 +185,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
   </Step>
 
   <Step title="Cancel the order">
-    Cancel the limit order using the `order_id` returned in Step 2.
+    Cancel the limit order using the `orderId` returned in Step 2.
 
     <Tabs>
       <Tab title="cURL">
@@ -195,14 +195,14 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"market":"BTC_USDT","order_id":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+          -d '{"market":"BTC_USDT","orderId":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
         ```
       </Tab>
       <Tab title="Python">
         ```python
         cancel = send_request("/api/v4/order/cancel", {
             "market": "BTC_USDT",
-            "order_id": order_id
+            "orderId": orderId
         })
         print(cancel)
         ```
@@ -212,7 +212,7 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
     **Expected response:**
     ```json
     {
-      "order_id": 12345678,
+      "orderId": 12345678,
       "market": "BTC_USDT",
       "side": "buy",
       "amount": "0.0001",
@@ -229,15 +229,11 @@ Place a first spot trade on the WhiteBIT API — check the Trade balance, place 
   </Step>
 </Steps>
 
-The Trade balance now reflects the returned funds. Explore advanced order types and automation below.
+The Trade balance now reflects the returned funds.
 
-<Accordion title="Signing and balance mechanics">
-  **HMAC-SHA512 signing** — Every private request includes three headers (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE`) proving authenticity without transmitting the API secret. The `nonce` field prevents replay attacks. Full signing details: [Authentication](/api-reference/authentication).
-
-  **Trade balance vs Main balance** — WhiteBIT separates funds into Main balance (deposits, withdrawals) and Trade balance (order placement). An explicit transfer moves funds between balances — the API never draws from Main balance automatically. Details: [Balances & Transfers](/concepts/balances).
-
-  **The freeze field** — When a limit order is accepted, the required funds move from `available` to `freeze` in the Trade balance. After cancellation, `freeze` returns to zero and `available` is restored.
-</Accordion>
+<Note>
+  **Trade balance vs Main balance** — WhiteBIT separates funds into Main balance (deposits, withdrawals) and Trade balance (order placement). An explicit transfer moves funds between balances; the API never draws from Main balance automatically. When a limit order is accepted, the required funds move from `available` to `freeze` in the Trade balance — after cancellation, `freeze` returns to zero and `available` is restored. Details: [Balances & Transfers](/concepts/balances).
+</Note>
 
 ## What's next
 
@@ -249,6 +245,6 @@ The Trade balance now reflects the returned funds. Explore advanced order types 
     Explore all 6 order types including Stop-Limit and Bulk-Limit.
   </Card>
   <Card title="Trading Bot Guide" icon="robot" href="/guides/building-a-trading-bot">
-    Build an automated trading system end-to-end.
+    REST and WebSocket together — order placement, kill-switch heartbeat, fill monitoring, reconnect logic, and a grid-bot worked example.
   </Card>
 </CardGroup>

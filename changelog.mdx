@@ -4,6 +4,35 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="April 29, 2026">
+## Position History API update
+**Breaking change: `positionSide` field removed from Position History response**
+
+The `POST /api/v4/collateral-account/positions/history` endpoint no longer returns the `positionSide` field. Two new fields replace it: `side` (same enum as the removed field — `LONG`, `SHORT`, `BOTH`) and `isHedge` (a boolean indicating whether the position was opened in hedge mode). The combination lets you attribute closed-position records to a specific direction and account mode for P&L tracking, compliance reporting, and strategy reconstruction.
+
+**Migration guide:**
+- Replace any reader of `positionSide` from `/positions/history` with `side`. The enum is unchanged: `LONG`, `SHORT`, `BOTH`.
+- Read `isHedge` to determine whether the record was produced under hedge mode (`true`) or one-way mode (`false`).
+- Other endpoints that return `positionSide` (`/positions/open`, `/conditional-orders`, order-create requests) are unchanged.
+
+**Sunset date:** April 29, 2026.
+
+**Replacement:** Use `side` and `isHedge` on the same endpoint. See [v4 - Positions history](/api-reference/collateral-trading/positions-history).
+
+**Impact:** Integrations parsing the response of `POST /api/v4/collateral-account/positions/history` and reading `positionSide` must migrate to `side` and `isHedge`. Other endpoint integrations are not affected.
+
+<Card title="v4 - Positions History" href="/api-reference/collateral-trading/positions-history" icon="chart-bar" horizontal/>
+</Update>
+
+<Update label="April 28, 2026">
+## Bulk cancel orders endpoint
+**Cancel up to 100 spot orders in a single request**
+
+The new `POST /api/v4/order/cancel/bulk` endpoint cancels up to 100 spot orders in a single request. Each item identifies a target order by `market` plus exactly one of `orderId` or `clientOrderId`. The response array preserves the order of the input — `response[i]` corresponds to `request.orders[i]`.
+
+<Card title="Cancel Bulk Orders" href="/api-reference/spot-trading/cancel-bulk-order" icon="rectangle-xmark" horizontal/>
+</Update>
+
 <Update label="April 22, 2026">
 ## Reduce-only order parameter
 **Position-closing guarantee for collateral orders**
@@ -36,6 +65,24 @@ See [Order Types — Reduce-only orders](/concepts/order-types#reduce-only-order
 </Update>
 
 ## Previous Changes
+
+<Update label="April 22, 2026">
+## Auto-Deleveraging (ADL)
+**Futures-market final-stage liquidation mechanism**
+
+WhiteBIT futures markets now apply Auto-Deleveraging as the final stage of liquidation, activated only when standard market liquidity cannot fully cover a liquidated position. ADL closes profitable counterparty positions on the opposite side at a calculated price, ranked by an internal Rating, ensuring no user balance becomes negative.
+
+**Integrator-relevant facts:**
+
+- ADL fills appear in standard order history with `source: "adl"` and `client_order_id: "adl_<order_id>"`. The `reduce_only` flag remains `false` on ADL inserts — use `source` to identify them.
+- Pending reduce-only orders auto-cancel with the existing `AUTO_CANCELED_REDUCE_ONLY` status when ADL closes a counterparty position. No ADL-specific cancel status was introduced.
+- ADL Grade (0–4) indicates a position's place in the per-market ADL ranking, with Grade 4 corresponding to the asymptotic top 5% of ranked positions.
+
+<CardGroup cols={2}>
+  <Card title="Auto-Deleveraging Concept" href="/concepts/auto-deleveraging" icon="scale-balanced" horizontal/>
+  <Card title="Help Center Article" href="https://help.whitebit.com/hc/ru/articles/35218885148445" icon="book-open" horizontal/>
+</CardGroup>
+</Update>
 
 <Update label="March 6, 2026">
 ## Mining Pool API

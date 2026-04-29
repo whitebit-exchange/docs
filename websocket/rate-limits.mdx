@@ -27,6 +27,30 @@ Limit JSON-RPC requests to `200` requests per minute per connection.
 
 Reuse a single WebSocket connection for multiple subscriptions. Opening a new connection per channel consumes the connection limit and increases latency.
 
+## Subscription limits
+
+| Scope | Limit |
+|-------|-------|
+| Active subscriptions per connection | None |
+| Markets per subscription request | None |
+| Per-channel-type limits | None — the same `200` requests per minute limit applies uniformly across all public and private channels |
+
+A single connection comfortably maintains subscriptions across `200` or more markets. Distributing markets across multiple connections is not required for high-market-count workloads.
+
+```json
+{
+  "id": 1,
+  "method": "lastprice_subscribe",
+  "params": ["BTC_USDT", "ETH_USDT", "SOL_USDT", "XRP_USDT"]
+}
+```
+
+The request above counts as one message regardless of the number of markets in `params`.
+
+<Note>
+Repeating a subscription replaces the previous one for the same channel. To track additional markets on an active channel, send a new subscribe request with the full target list — the server does not merge incremental subscribes.
+</Note>
+
 ## Rate limit handling
 
 Implement request throttling on the client side.
@@ -98,7 +122,10 @@ The server returns errors in the `error` field of a response message. The `error
 | `3` | service unavailable |
 | `4` | method not found |
 | `5` | service timeout |
+| `6` | require authentication |
 | `7` | too many requests |
+
+The server returns code `6` when a client invokes a protected method — a private-channel subscription or a balance query, for example — without first calling `authorize` on the connection. Send an `authorize` request before any private-channel subscription. See [WebSocket Authentication](/websocket/authentication) for the authorization flow.
 
 **Error response format:**
 

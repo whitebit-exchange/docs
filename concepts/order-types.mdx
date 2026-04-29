@@ -104,7 +104,7 @@ The API returns error code `116` synchronously if:
 
 **Auto-cancellation**
 
-If a position closes while a reduce-only limit order is still pending, the backend auto-cancels the order with status `AUTO_CANCELED_REDUCE_ONLY`.
+If a position closes while a reduce-only limit order is still pending, the backend auto-cancels the order with status `AUTO_CANCELED_REDUCE_ONLY`. The same status applies whether the position closes through a standard close path or through [Auto-Deleveraging](/concepts/auto-deleveraging) — no ADL-specific cancel status was introduced.
 
 **Supported endpoints**
 
