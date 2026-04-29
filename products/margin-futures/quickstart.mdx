@@ -166,8 +166,8 @@ For Go and PHP examples, see [SDKs](/sdks).
                 "price": "30000"  # Price far below market — order will not fill
             })
             print(order)
-            order_id = order.get("order_id")
-            print(f"Order ID: {order_id}")
+            orderId = order.get("orderId")
+            print(f"Order ID: {orderId}")
             ```
           </Tab>
         </Tabs>
@@ -175,7 +175,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         **Expected response:**
         ```json
         {
-          "order_id": 12345678,
+          "orderId": 12345678,
           "market": "BTC_USDT",
           "side": "buy",
           "type": "limit",
@@ -246,14 +246,14 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_USDT","order_id":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+              -d '{"market":"BTC_USDT","orderId":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
             ```
           </Tab>
           <Tab title="Python">
             ```python
             cancel = send_request("/api/v4/order/cancel", {
                 "market": "BTC_USDT",
-                "order_id": order_id
+                "orderId": orderId
             })
             print(cancel)
             ```
@@ -396,8 +396,8 @@ For Go and PHP examples, see [SDKs](/sdks).
                 "price": "30000"  # Price far below market — order will not fill
             })
             print(order)
-            order_id = order.get("order_id")
-            print(f"Order ID: {order_id}")
+            orderId = order.get("orderId")
+            print(f"Order ID: {orderId}")
             ```
           </Tab>
         </Tabs>
@@ -405,7 +405,7 @@ For Go and PHP examples, see [SDKs](/sdks).
         **Expected response:**
         ```json
         {
-          "order_id": 12345678,
+          "orderId": 12345678,
           "market": "BTC_PERP",
           "side": "buy",
           "type": "limit",
@@ -476,14 +476,14 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_PERP","order_id":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+              -d '{"market":"BTC_PERP","orderId":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
             ```
           </Tab>
           <Tab title="Python">
             ```python
             cancel = send_request("/api/v4/order/cancel", {
                 "market": "BTC_PERP",
-                "order_id": order_id
+                "orderId": orderId
             })
             print(cancel)
             ```
