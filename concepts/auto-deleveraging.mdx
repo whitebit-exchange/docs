@@ -1,0 +1,162 @@
+---
+title: "Auto-Deleveraging (ADL)"
+description: "Final-stage liquidation mechanism on WhiteBIT futures markets — closes profitable counterparty positions when standard market liquidity cannot cover a liquidated position."
+sidebarTitle: "Auto-Deleveraging"
+---
+
+Auto-Deleveraging (ADL) is the final stage of the WhiteBIT futures liquidation flow. Activation occurs only when standard market liquidity cannot fully absorb a liquidated position. ADL closes a portion of profitable counterparty positions on the opposite side of the market at a calculated price, ensuring no user balance becomes negative.
+
+## How liquidation reaches ADL
+
+WhiteBIT futures liquidation runs in two stages:
+
+- **Stage 1 — Market liquidity.** The liquidation order matches against existing order-book depth, primarily liquidity-provider depth. Under normal market conditions Stage 1 absorbs the order, and the position closes without engaging counterparty user positions.
+- **Stage 2 — ADL.** When Stage 1 cannot fully absorb the liquidation order, ADL activates to close the residual portion. ADL never runs before Stage 1 is exhausted.
+
+## How ADL closes the residual position
+
+ADL places post-only limit orders in the order book at the bankruptcy price — the level at which the liquidated user's collateral approaches zero without crossing into negative.
+
+Order properties:
+
+- **Owner.** Each ADL order is owned by the selected counterparty's user account, not by the platform, an insurance fund, or the liquidated user.
+- **Type.** Post-only limit orders. Public order-book visibility applies while the orders are unfilled, although the small price offset usually results in fast fills.
+- **Volume per order.** Every ADL order matches the full counterparty position size, except the last selected order, which may be smaller to match the exact required volume.
+
+ADL fills appear in standard order history and are identifiable by:
+
+- `source`: `"adl"`
+- `clientOrderId`: `"adl_<orderId>"`
+- Terminal status: `FILLED`
+- `reduceOnly`: `false` — even though the order reduces the counterparty's position
+
+<Note>
+Integrators identifying ADL fills in a counterparty account must use the `source` field. The `reduceOnly` flag remains `false` on ADL-inserted orders despite the position-reducing effect.
+</Note>
+
+## How counterparties are selected
+
+Selection runs on per-market lists, separately for the long and short sides:
+
+- A **Short liquidation** draws counterparties from the **Long** list.
+- A **Long liquidation** draws counterparties from the **Short** list.
+
+Selection rules:
+
+- **Hedge Mode.** A user holding both long and short positions on the same perpetual market receives a Grade computed independently for each side. Selection on one side never considers the other.
+- **Positive Rating only.** Only positions with a positive Rating are selected as counterparties. Losing positions are filtered out at selection time.
+- **Highest first.** Selection walks the list from highest Rating downward until cumulative volume covers the liquidated position.
+
+## Rating formula
+
+Each candidate position receives a Rating value. Higher Rating means earlier selection.
+
+```
+Rating = % profit × effective leverage
+
+% profit            = unrealized PnL / |position size in money|
+effective leverage  = |position size in money| / account equity
+```
+
+Account equity refers to the user's collateral-account equity figure as defined in [Balances](/concepts/balances).
+
+Negative-Rating positions are still ranked and receive a Grade for the indicator (see [ADL Grade](#adl-grade)), but selection filters them out — only positive-Rating positions become ADL counterparties.
+
+## Execution price
+
+ADL fills execute at a price derived from **Last Price** (not Mark Price). The formula:
+
+```
+d = Margin Fraction − 2 × taker_fee_rate
+
+Long  position : Price_ADL = LastPrice × (1 − d)
+Short position : Price_ADL = LastPrice × (1 + d)
+```
+
+Where:
+
+- `LastPrice` — the current last-traded price at the time of liquidation.
+- `Margin Fraction` — the system parameter from the published execution-price formula. The canonical publication is the [WhiteBIT help-center article on ADL](https://help.whitebit.com/hc/ru/articles/35218885148445).
+- `taker_fee_rate` — the **liquidated user's** taker fee rate.
+
+## Worked example
+
+A 10 BTC short position on a perpetual market is liquidated at `LastPrice = $42,000`. The system computes Ratings for the long-side candidates:
+
+| Trader | Rating | Position | PnL | Selection result |
+|--------|--------|----------|-----|------------------|
+| A | 0.26 | 5 BTC | +$35,000 | Full position closed (5 BTC) |
+| B | 0.167 | 8 BTC | +$8,000 | Partial close (5 BTC) — 3 BTC remain open |
+| C | −0.05 | 6 BTC | −$3,000 | Not selected — losing position |
+
+Price calculation for the Short liquidation:
+
+- Margin Fraction (of liquidated position) ≈ 0.02
+- `taker_fee_rate` = 0.0005 (0.05%)
+- `d` = 0.02 − 2 × 0.0005 = 0.019
+- `Price_ADL` = 42,000 × (1 + 0.019) = **$42,798**
+
+Source: WhiteBIT help-center article.
+
+## ADL Grade
+
+ADL Grade is an indicator value from 0 to 4 reflecting a position's place in the per-market ranking. Higher Grade signals higher likelihood of selection as an ADL counterparty.
+
+Computation:
+
+- Position lists are ordered ascending by Rating.
+- Each position's index converts to `k = i / n`, where `i` is the 1-based position in the list and `n` is the list size.
+- Grade is assigned by the threshold table below.
+
+| Range of k | Grade | Risk |
+|------------|-------|------|
+| k < 0.5 | 0 | Minimal |
+| k < 0.73 | 1 | Low |
+| k < 0.87 | 2 | Medium |
+| k < 0.95 | 3 | Elevated |
+| k ≥ 0.95 | 4 | Highest priority |
+
+Grade depends on Rating and on the number of other traders on the same market. As prices and unrealized PnL change, Grade values update accordingly.
+
+### Grade 4 in thin markets
+
+Grade 4 corresponds to the asymptotic top 5% of ranked positions on the market. For thin markets, the actual Grade 4 fraction is `(n − ⌈0.95n⌉ + 1) / n`:
+
+| List size n | Grade 4 count | % of list |
+|-------------|---------------|-----------|
+| 10 | 1 | 10% |
+| 100 | 6 | 6% |
+| 1000 | 51 | 5.1% |
+
+Integrators modeling ADL base rates numerically should account for thin-market discretization rather than assuming a flat 5%.
+
+## What happens when ADL closes a position
+
+Effects on the selected counterparty:
+
+- The position closes at `Price_ADL`.
+- A notification is delivered with the closure details (volume and price).
+- All open orders on the affected market are cancelled.
+- Pending [reduce-only](/concepts/order-types#reduce-only-orders) orders auto-cancel with the existing `AUTO_CANCELED_REDUCE_ONLY` status. No ADL-specific cancel status was introduced.
+
+## Reducing ADL exposure
+
+Three approaches lower a position's ADL exposure:
+
+- **Reduce leverage.** Lower configured leverage reduces effective leverage, which reduces Rating and therefore Grade.
+- **Use stop-loss.** Losing positions are excluded from selection. Setting a stop-loss to convert a profitable position into a losing one before potential ADL selection removes the position from the queue.
+- **Maintain margin.** Adequate collateral reduces the user's own liquidation risk, which limits exposure to the market conditions under which ADL activates.
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Futures Trading" icon="chart-candlestick" href="/products/futures/overview">
+    Perpetual contracts up to 100x, Hedge Mode, funding rates.
+  </Card>
+  <Card title="Order Types" icon="layer-group" href="/concepts/order-types">
+    All order types and execution flags, including reduce-only.
+  </Card>
+  <Card title="Glossary" icon="book" href="/glossary">
+    Definitions for ADL, ADL Grade, and effective leverage.
+  </Card>
+</CardGroup>
