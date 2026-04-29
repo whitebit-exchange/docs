@@ -1868,6 +1868,10 @@ paths:
         <Note>
         **Date filter window:** `startDate` and `endDate` are optional and have no defaults. The endpoint enforces no maximum window and no lower-bound floor. The only ordering constraint is `startDate` ≤ `endDate` ≤ `now + 1s` — requests that violate the ordering are rejected with a validation error.
         </Note>
+
+        <Warning>
+        **Breaking change — April 29, 2026.** The `positionSide` field is no longer returned in the Position History response. Use `side` (same enum: `LONG`, `SHORT`, `BOTH`) plus `isHedge` (boolean) instead. Integrations reading `positionSide` from `/api/v4/collateral-account/positions/history` must migrate before consuming the new response.
+        </Warning>
       tags:
         - Collateral Trading
       security:
@@ -1991,11 +1995,15 @@ paths:
                           description: Realized profit and loss
                           nullable: true
                           example: null
-                    positionSide:
+                    side:
                       type: string
-                      description: Position side
                       enum: [LONG, SHORT, BOTH]
+                      description: "Position direction. `BOTH` indicates a one-way mode position; `LONG` or `SHORT` indicates a hedge mode position. See [position side](/glossary#position-side)."
                       example: "LONG"
+                    isHedge:
+                      type: boolean
+                      description: "Indicates whether [hedge mode](/glossary#hedge-mode) was active when the position was opened. Hedge-mode toggling requires zero open positions, so the value also reflects the account mode at every event in the position's lifetime."
+                      example: false
               example:
                 - positionId: 111
                   market: "BTC_USDT"
@@ -2013,7 +2021,8 @@ paths:
                     tradeFee: "415.07"
                     fundingFee: null
                     realizedPnl: null
-                  positionSide: "LONG"
+                  side: "LONG"
+                  isHedge: false
         '400':
           description: Inner validation failed
           content:

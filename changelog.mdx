@@ -4,6 +4,26 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="April 29, 2026">
+## Position History API update
+**Breaking change: `positionSide` field removed from Position History response**
+
+The `POST /api/v4/collateral-account/positions/history` endpoint no longer returns the `positionSide` field. Two new fields replace it: `side` (same enum as the removed field — `LONG`, `SHORT`, `BOTH`) and `isHedge` (a boolean indicating whether the position was opened in hedge mode). The combination lets you attribute closed-position records to a specific direction and account mode for P&L tracking, compliance reporting, and strategy reconstruction.
+
+**Migration guide:**
+- Replace any reader of `positionSide` from `/positions/history` with `side`. The enum is unchanged: `LONG`, `SHORT`, `BOTH`.
+- Read `isHedge` to determine whether the record was produced under hedge mode (`true`) or one-way mode (`false`).
+- Other endpoints that return `positionSide` (`/positions/open`, `/conditional-orders`, order-create requests) are unchanged.
+
+**Sunset date:** April 29, 2026.
+
+**Replacement:** Use `side` and `isHedge` on the same endpoint. See [v4 - Positions history](/api-reference/collateral-trading/positions-history).
+
+**Impact:** Integrations parsing the response of `POST /api/v4/collateral-account/positions/history` and reading `positionSide` must migrate to `side` and `isHedge`. Other endpoint integrations are not affected.
+
+<Card title="v4 - Positions History" href="/api-reference/collateral-trading/positions-history" icon="chart-bar" horizontal/>
+</Update>
+
 <Update label="April 28, 2026">
 ## Bulk cancel orders endpoint
 **Cancel up to 100 spot orders in a single request**
