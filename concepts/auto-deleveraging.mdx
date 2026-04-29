@@ -26,12 +26,12 @@ Order properties:
 ADL fills appear in standard order history and are identifiable by:
 
 - `source`: `"adl"`
-- `client_order_id`: `"adl_<order_id>"`
+- `clientOrderId`: `"adl_<orderId>"`
 - Terminal status: `FILLED`
-- `reduce_only`: `false` — even though the order reduces the counterparty's position
+- `reduceOnly`: `false` — even though the order reduces the counterparty's position
 
 <Note>
-Integrators identifying ADL fills in a counterparty account must use the `source` field. The `reduce_only` flag remains `false` on ADL-inserted orders despite the position-reducing effect.
+Integrators identifying ADL fills in a counterparty account must use the `source` field. The `reduceOnly` flag remains `false` on ADL-inserted orders despite the position-reducing effect.
 </Note>
 
 ## How counterparties are selected
