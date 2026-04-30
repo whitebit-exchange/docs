@@ -1,0 +1,124 @@
+---
+title: "Address Checker"
+sidebarTitle: "Overview"
+description: "Address Checker API integration guide. Programmatic access to WhiteBIT cryptocurrency address screening for B2B accounts."
+---
+
+## Overview
+
+The Address Checker API enables automated cryptocurrency address screening for B2B accounts.
+
+The API provides programmatic access to WhiteBIT address screening functionality. Integrate the API to perform address screening before processing blockchain transactions.
+
+## Screening process
+
+1. Initiate check: Submit a screening request with supported `asset`, optional `network`, and `address`.
+2. Receive the `check_id`: Receive a unique screening identifier `id`.
+3. Poll for results: Query the result endpoint using the `check_id`. Processing time typically does not exceed 60 seconds. Maximum processing time is 3 minutes.
+4. Get assessment: Receive the final screening result with level (Low/Medium/High) and description.
+
+   Alternatively, use webhooks to receive results instead of polling — or combine both approaches.
+
+5. Receive webhook notifications: Receive webhook notifications for completed and failed address checks.
+
+## Billing and authorization notice
+
+<Warning>
+**Important**
+
+Enabling the Address Checker endpoints explicitly authorizes WhiteBIT to automatically charge 2 USDT for each successful address check request.
+
+The system deducts the amount from the main balance when a check returns status `Success`.
+
+The system does not charge failed or invalid requests.
+
+Ensure sufficient main balance before initiating address checks.
+
+In the event of a price change, WhiteBIT notifies the account in advance before the updated pricing takes effect.
+
+To maintain uninterrupted API access, the account must review and accept the updated pricing terms after receiving the notification.
+
+If the account does not accept the updated terms, the system suspends access to the Address Checker API until the account provides confirmation.
+</Warning>
+
+## Risk gradation
+
+The following descriptions are returned by the API and are not modified.
+
+| Risk level | Description |
+|------------|-------------|
+| Low | The address is verified as secure and suitable for fund transfers. |
+| Medium | The address reflects certain factors that warrant additional attention. It is recommended to proceed with some caution. |
+| High | The address displays significant risk indicators, and the transaction will not be processed. Sending funds from this address is prohibited. |
+
+## Check statuses
+
+| Status | Description |
+|--------|-------------|
+| In progress | The system processes the check. Processing may take up to 3 minutes. |
+| Success | The system completes the check successfully and provides the address screening result. |
+| Failed | The system fails to complete the address evaluation and does not charge the account. Retry later or contact Support. |
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="List supported assets" icon="list" href="/api-reference/address-checker/list-supported-assets">
+    Discover the asset and network combinations supported for screening.
+  </Card>
+  <Card title="Create address check" icon="play" href="/api-reference/address-checker/create-address-check">
+    Initiate a screening request and receive a check `id`.
+  </Card>
+  <Card title="Get check result" icon="magnifying-glass" href="/api-reference/address-checker/get-check-result">
+    Retrieve the result of a previously created check.
+  </Card>
+  <Card title="Get check history" icon="clock-rotate-left" href="/api-reference/address-checker/get-check-history">
+    Retrieve historical address screening data with filtering options.
+  </Card>
+</CardGroup>
+
+## Webhook notifications
+
+The system sends webhook notifications for address check results.
+
+### addresscheck.completed
+
+Performed when address check was accepted. Request example:
+
+```json
+{
+  "method": "addresscheck.completed",
+  "params": {
+    "id": "0xabc123...",
+    "status": "completed",
+    "address": "0xcd20ed8939a7b314c2e787d5b232fb3534078819",
+    "asset": "BTC",
+    "network": "Bitcoin",
+    "riskLevel": "medium",
+    "riskDescription": "The address reflects certain factors that warrant additional attention. It is recommended to proceed with some caution.",
+    "checkedAt": 1706270440,
+    "nonce": 0
+  },
+  "id": "uuid"
+}
+```
+
+### addresscheck.failed
+
+Performed when address check was accepted. Request example:
+
+```json
+{
+  "method": "addresscheck.failed",
+  "params": {
+    "id": "0xabc123...",
+    "status": "failed",
+    "address": "0xcd20ed8939a7b314c2e787d5b232fb3534078819",
+    "asset": "BTC",
+    "network": "Bitcoin",
+    "reason": "Unfortunately, address evaluation failed at the moment. You were not charged for this address verification attempt. Please try again later or contact our Support Team.",
+    "checkedAt": 1706270440,
+    "nonce": 0
+  },
+  "id": "uuid"
+}
+```

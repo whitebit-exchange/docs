@@ -1,0 +1,458 @@
+openapi: 3.0.3
+info:
+  title: Private HTTP API V4 - Address Checker
+  description: |
+    The Address Checker API enables automated cryptocurrency address screening for B2B accounts.
+
+    The API provides programmatic access to WhiteBIT address screening functionality. Integrate the API to perform address screening before processing blockchain transactions.
+
+    Base URL: https://whitebit.com
+
+    Authentication required for all endpoints. Enable the Address Checker permission in API key settings. Refer to [Private HTTP API Authentication](/api-reference/authentication) for authentication details.
+  version: 4.0.0
+  license:
+    name: WhiteBIT Terms of Service
+    url: https://whitebit.com/terms
+servers:
+  - url: https://whitebit.com
+    description: WhiteBIT Global Server
+  - url: https://whitebit.eu
+    description: WhiteBIT EU Server
+
+security:
+  - ApiKeyAuth: []
+    PayloadAuth: []
+    SignatureAuth: []
+
+paths:
+  /api/v4/aml/checks/assets:
+    post:
+      summary: List supported assets
+      operationId: addressCheckerListSupportedAssets
+      description: |
+        Return the list of assets and networks supported by the Address Checker.
+
+        **Authentication.** API Key. Enable the Address Checker permission in API key settings. Refer to [Private HTTP API Authentication](/api-reference/authentication) for authentication details.
+      tags:
+        - Address Checker
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The endpoint requires an empty JSON body.
+              example: {}
+      responses:
+        '200':
+          description: List of supported assets and networks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SupportedAsset'
+              example:
+                - asset: "string"
+                  network: "string"
+                - asset: "string"
+                  network: null
+        '401':
+          description: |
+            The system returns this error when the API key does not have permission to access Address Checker endpoints. Enable the Address Checker permission in API key settings and retry the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndpointAuthError'
+              example:
+                code: 4
+                message: "This API Key is not authorized to perform this action."
+        '404':
+          description: |
+            The account does not include access to the Address Screening API. Contact Support to request information about access options.
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+
+  /api/v4/aml/checks/create:
+    post:
+      summary: Create address check
+      operationId: addressCheckerCreateCheck
+      description: |
+        Create and initiate a new address screening request.
+
+        **Authentication.** API Key. Enable the Address Checker permission in API key settings. Refer to [Private HTTP API Authentication](/api-reference/authentication) for authentication details.
+      tags:
+        - Address Checker
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                asset:
+                  type: string
+                  description: Asset symbol supported by the Address Checker.
+                  example: "string"
+                address:
+                  type: string
+                  description: Cryptocurrency address to screen.
+                  example: "string"
+                network:
+                  type: string
+                  nullable: true
+                  description: Network identifier. May be `null` when not required.
+                  example: "string"
+              required:
+                - asset
+                - address
+      responses:
+        '200':
+          description: |
+            On success, the endpoint returns the `id` of the created check.
+
+            The endpoint returns a `200` response with an `errors` object when the main balance is insufficient to perform the address check. Top up the main balance and retry the request.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CreateCheckResponse'
+                  - $ref: '#/components/schemas/CreateCheckBalanceError'
+              examples:
+                created:
+                  summary: Check created
+                  value:
+                    id: "string"
+                insufficientBalance:
+                  summary: Insufficient balance
+                  value:
+                    errors:
+                      - "balance": "Insufficient balance"
+        '401':
+          description: |
+            The system returns this error when the API key does not have permission to access Address Checker endpoints. Enable the Address Checker permission in API key settings and retry the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndpointAuthError'
+              example:
+                code: 4
+                message: "This API Key is not authorized to perform this action."
+        '404':
+          description: |
+            The account does not include access to the Address Screening API. Contact Support to request information about access options.
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+
+  /api/v4/aml/checks/result:
+    post:
+      summary: Get check result
+      operationId: addressCheckerGetCheckResult
+      description: |
+        Return the result of a previously created address screening request.
+
+        **Authentication.** API Key. Enable the Address Checker permission in API key settings. Refer to [Private HTTP API Authentication](/api-reference/authentication) for authentication details.
+      tags:
+        - Address Checker
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Unique identifier of the created check.
+                  example: "string"
+              required:
+                - id
+      responses:
+        '200':
+          description: Result of the address screening request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResultResponse'
+              example:
+                id: "string"
+                checkedAt: 1700000000
+                status: "Success"
+                riskLevel: "low"
+                riskDescription: "string"
+        '401':
+          description: |
+            The system returns this error when the API key does not include permission to access Address Checker endpoints. Enable the Address Checker permission in API key settings and retry the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndpointAuthError'
+              example:
+                code: 4
+                message: "This API Key is not authorized to perform this action."
+        '404':
+          description: |
+            The account does not include access to the Address Screening API. Contact Support to request information about access options.
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+
+  /api/v4/aml/checks/history:
+    post:
+      summary: Get check history
+      operationId: addressCheckerGetCheckHistory
+      description: |
+        Return historical address screening data with filtering options.
+
+        **Authentication.** API Key. Enable the Address Checker permission in API key settings. Refer to [Private HTTP API Authentication](/api-reference/authentication) for authentication details.
+      tags:
+        - Address Checker
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  description: "Default: 100."
+                  example: 50
+                offset:
+                  type: integer
+                  description: "Default: 0."
+                  example: 0
+                from:
+                  type: integer
+                  description: Start timestamp (Unix).
+                  example: 1704067200
+                to:
+                  type: integer
+                  description: End timestamp (Unix).
+                  example: 1706745599
+                status:
+                  type: array
+                  items:
+                    type: string
+                    enum: [in_progress, success, failed]
+                  description: "`in_progress`, `success`, `failed`."
+                  example: ["success", "in_progress"]
+                address:
+                  type: string
+                  description: Address filter.
+                  example: "0x28C6c06298d514Db089934071355E5743bf21d60"
+                asset:
+                  type: array
+                  items:
+                    type: string
+                  description: Asset filter.
+                  example: ["USDT", "USDC"]
+                network:
+                  type: array
+                  items:
+                    type: string
+                  description: Applied only when `asset` is provided.
+                  example: ["ERC20", "TRC20"]
+                riskLevel:
+                  type: array
+                  items:
+                    type: string
+                    enum: [low, medium, high]
+                  description: "`low`, `medium`, `high`."
+                  example: ["medium", "high"]
+      responses:
+        '200':
+          description: Historical address screening data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckHistoryResponse'
+              example:
+                data:
+                  - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    asset: "ETH"
+                    network: "ERC20"
+                    address: "0x7e4F2a9B3D6cE1A0F8b5C2D9E4a6F0b7c8D1e2Af"
+                    riskLevel: "low"
+                    riskDescription: "The address is verified as secure and suitable for fund transfers."
+                    status: "success"
+                    checkedAt: 1704067200
+                limit: 100
+                offset: 0
+        '401':
+          description: |
+            The system returns this error when the API key does not have permission to access Address Checker endpoints. Enable the Address Checker permission in API key settings and retry the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndpointAuthError'
+              example:
+                code: 4
+                message: "This API Key is not authorized to perform this action."
+        '404':
+          description: |
+            The account does not include access to the Address Screening API. Contact Support to request information about access options.
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-TXC-APIKEY
+      description: The public WhiteBIT API key. The key must include the Address Checker permission.
+    PayloadAuth:
+      type: apiKey
+      in: header
+      name: X-TXC-PAYLOAD
+      description: Base64-encoded JSON request body.
+    SignatureAuth:
+      type: apiKey
+      in: header
+      name: X-TXC-SIGNATURE
+      description: HMAC-SHA512 signature of the payload, hex-encoded. Computed as hex(HMAC-SHA512(payload, api_secret)).
+  schemas:
+    SupportedAsset:
+      type: object
+      properties:
+        asset:
+          type: string
+          description: Asset symbol supported for screening.
+          example: "string"
+        network:
+          type: string
+          nullable: true
+          description: Network identifier. Returns `null` when not applicable.
+          example: "string"
+    CreateCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the created check.
+          example: "string"
+    CreateCheckBalanceError:
+      type: object
+      description: Returned with HTTP 200 when the main balance is insufficient to perform the address check. The account is not charged.
+      properties:
+        errors:
+          type: array
+          description: Validation errors.
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          example:
+            - "balance": "Insufficient balance"
+    CheckResultResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Check identifier.
+          example: "string"
+        checkedAt:
+          type: integer
+          nullable: true
+          description: UNIX timestamp when status is `Failed` or `Success`. Returns `null` when status is `In progress`.
+          example: 1700000000
+        status:
+          type: string
+          enum: ["In progress", "Failed", "Success"]
+          description: "Possible values: `In progress`, `Failed`, `Success`."
+          example: "Success"
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+          nullable: true
+          description: "Possible values: `low`, `medium`, `high`. Returns `null` when status is `In progress` or `Failed`."
+          example: "low"
+        riskDescription:
+          type: string
+          nullable: true
+          description: Risk explanation. Returns `null` when status is `In progress` or `Failed`.
+          example: "string"
+    CheckHistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        asset:
+          type: string
+          example: "ETH"
+        network:
+          type: string
+          example: "ERC20"
+        address:
+          type: string
+          example: "0x7e4F2a9B3D6cE1A0F8b5C2D9E4a6F0b7c8D1e2Af"
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+          example: "low"
+        riskDescription:
+          type: string
+          example: "The address is verified as secure and suitable for fund transfers."
+        status:
+          type: string
+          enum: [in_progress, success, failed]
+          example: "success"
+        checkedAt:
+          type: integer
+          example: 1704067200
+    CheckHistoryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckHistoryItem'
+        limit:
+          type: integer
+          example: 100
+        offset:
+          type: integer
+          example: 0
+    EndpointAuthError:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: WhiteBIT internal error code. `4` is `API_KEY_ENDPOINT_RESTRICT`.
+          example: 4
+        message:
+          type: string
+          description: Human-readable error message.
+          example: "This API Key is not authorized to perform this action."
+tags:
+  - name: Address Checker
+    description: Address Checker endpoints for B2B address screening
