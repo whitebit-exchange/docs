@@ -53,7 +53,7 @@ Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT ac
 | Recommended for | Production payment flows | Fallback during outages > 50 minutes |
 
 <Note>
-  There is no webhook replay mechanism. If the consumer server is unreachable for more than 50 minutes (5 retries x 10-minute intervals), those events are lost. Implement polling of the [deposit history](/api-reference/account-wallet/get-deposit-history) and [withdrawal history](/api-reference/account-wallet/get-withdrawal-history) endpoints as a fallback.
+  There is no webhook replay mechanism. If the consumer server is unreachable for more than 50 minutes (5 retries x 10-minute intervals), those events are lost. Implement polling of the [deposit and withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history) endpoint as a fallback.
 </Note>
 
 **Common use cases:**
