@@ -1,0 +1,32 @@
+---
+title: "ADL quantile"
+description: "Retrieve Auto-Deleveraging (ADL) quantile values per perpetual market for the authenticated collateral account on the V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/adl-quantile"
+---
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
+import { RelatedResources } from '/components/RelatedResources.jsx';
+
+## Authentication
+
+**Signed (HMAC SHA256).** Provide an API key, payload, and request signature on every call. See [Authentication](/api-reference/authentication).
+
+## Rate limit
+
+<RestRateLimit requests={12000} period="10 seconds" scope="/api/v4/collateral-account/adl-quantile" />
+
+## Cache
+
+No caching.
+
+## Notes
+
+The endpoint returns entries for perpetual markets only — markets with the `_PERP` suffix. Spot and margin markets are excluded from the response.
+
+The response is `[]` when the account has no open perpetual positions. See [ADL Grade](/concepts/auto-deleveraging#adl-grade) for the meaning of the `0`–`4` quantile values and the underlying selection mechanics.
+
+<RelatedResources>
+- [Open positions](/api-reference/collateral-trading/open-positions) — List current open perpetual positions
+- [Auto-Deleveraging concept](/concepts/auto-deleveraging) — Mechanism, rating formula, and grade thresholds
+- [Close position](/api-reference/collateral-trading/close-position) — Close an open perpetual position
+- [Collateral account summary](/api-reference/collateral-trading/collateral-account-summary) — Account-level margin and equity
+</RelatedResources>
