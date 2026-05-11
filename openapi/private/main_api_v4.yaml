@@ -6927,7 +6927,15 @@ components:
           type: integer
           description: "Reward date timestamp"
           example: 1641081600
-
+        status:
+          type: string
+          enum: [pending, successful, canceled]
+          example: "pending"
+          description: |
+            Current status of the mining reward. Possible values:
+              - `pending` — the reward is not finalized yet. May mean either "waiting for block confirmations / batch accumulation" or "ready for payout, but the onchain transaction hasn't gone through". No user action needed — just wait.
+              - `successful` — the reward is finalized. For `main_balance` payout, funds are credited to the main balance. For `external_address` payout, the onchain transaction is confirmed.
+              - `canceled` — the reward was canceled.
     CreditLine:
       type: object
       properties:
