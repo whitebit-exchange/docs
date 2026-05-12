@@ -31,7 +31,7 @@ Start with the [First API Call](/guides/first-api-call) guide to verify connecti
 **Key technical considerations:**
 
 - [Rate limits](/api-reference/rate-limits): polling frequency must stay within per-endpoint limits; WebSocket streaming is recommended for real-time data to reduce REST polling
-- [Kill-switch](/api-reference/spot-trading/kill-switch): emergency mechanism to cancel all open orders after a configurable timeout — critical safety feature for unattended bots
+- [Kill-switch](/api-reference/spot-trading/sync-kill-switch-timer): emergency mechanism to cancel all open orders after a configurable timeout — critical safety feature for unattended bots
 - [Order Types](/concepts/order-types): Market, Limit, Stop-Limit, Stop-Market, Stock-Market, and Bulk-Limit — availability varies by market type
 - [Client Order ID](/guides/client-order-id): attach custom identifiers to orders for tracking across systems
 
@@ -39,7 +39,7 @@ Start with the [First API Call](/guides/first-api-call) guide to verify connecti
 
 - Use [sub-accounts](/products/sub-accounts/overview) for strategy separation when running multiple bots
 - Consider [colocation](/platform/colocation) (3-5ms latency) for latency-sensitive strategies
-- Implement the [kill-switch](/api-reference/spot-trading/kill-switch) as a circuit breaker for all production bots
+- Implement the [kill-switch](/api-reference/spot-trading/sync-kill-switch-timer) as a circuit breaker for all production bots
 - Set up [Account Monitoring](/guides/account-monitoring) for balance tracking, deposit/withdrawal alerts, and order activity monitoring
 
 <Note>
