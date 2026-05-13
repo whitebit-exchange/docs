@@ -5778,6 +5778,17 @@ paths:
           }
         }
         ```
+
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "orderHistory": ["OrderHistory was not found."]
+          }
+        }
+        ```
+        Returned when `clientOrderId` is supplied but no order matches it on the calling account.
         </Accordion>
       tags:
         - Spot Trading
@@ -5798,7 +5809,7 @@ paths:
                   example: "BTC_USDT"
                 clientOrderId:
                   type: string
-                  description: "Filter by custom order identifier"
+                  description: "Look up by custom client order identifier. When supplied, the endpoint switches to single-order lookup mode and returns the matching order's deal history. Returns `422` with `\"OrderHistory was not found.\"` if no order matches on the calling account."
                   example: "customId11"
                 startDate:
                   type: integer
@@ -6039,6 +6050,19 @@ paths:
         <Note>
         For B2B accounts, canceled order recording is disabled by default. To include canceled orders in the history, contact support to enable canceled order storage.
         </Note>
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "orderHistory": ["OrderHistory was not found."]
+          }
+        }
+        ```
+        Returned when `clientOrderId` is supplied but no order matches it on the calling account.
+        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6056,6 +6080,20 @@ paths:
                   type: string
                   description: "Trading pair to filter by. Format: `BASE_QUOTE` (e.g., `BTC_USDT`). Omit to retrieve orders across all markets."
                   example: "BTC_USDT"
+                clientOrderId:
+                  type: string
+                  description: "Look up a specific order by its custom client identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns `422` with `\"OrderHistory was not found.\"` if no order matches. Ignored when `orderId` is also provided."
+                  example: "customId11"
+                orderId:
+                  type: integer
+                  description: "Look up a specific order by its exchange-assigned identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns an empty result on no match (no `422`). Takes precedence over `clientOrderId` when both are supplied."
+                  example: 4986126152
+                status:
+                  type: string
+                  enum: [ALL, FILLED, CANCELED, PARTIALLY_FILLED]
+                  default: ALL
+                  description: "Filter list-mode results by order status. Ignored when `orderId` or `clientOrderId` is supplied."
+                  example: "FILLED"
                 startDate:
                   type: integer
                   description: "Start of the query window as a Unix timestamp in seconds. Default: `now - 1 month`. The earliest reachable date is 6 months ago (00:00 UTC) — requests with an older `startDate` are rejected with a validation error."
@@ -6125,20 +6163,12 @@ paths:
                         type: number
                         description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
                         example: 1597486960.311311
-                      takerFee:
-                        type: string
-                        description: "Taker fee ratio applied to the order. Values below `0.0001` are rounded to zero."
-                        example: "0.001"
                       ftime:
                         type: number
                         description: "Unix timestamp when the order reached its final status
                           (FILLED or CANCELLED). For partially-filled orders that are subsequently
                           cancelled, the timestamp reflects the cancellation time, not the last fill time."
                         example: 1597486960.311332
-                      makerFee:
-                        type: string
-                        description: "Maker fee ratio applied to the order. Values below `0.0001` are rounded to zero."
-                        example: "0.001"
                       dealFee:
                         type: string
                         description: "Cumulative trading fee charged for filled portions, denominated in the fee asset."
@@ -6159,16 +6189,28 @@ paths:
                         type: boolean
                         description: "Immediate-or-cancel flag. When `true`, the order executed available quantity immediately and cancelled the rest."
                         example: false
+                      activated:
+                        type: integer
+                        description: "Stop/conditional orders only — Unix timestamp at which the trigger price was reached and the order was activated. Absent for unconditional orders."
+                        example: 1597486960
+                      activationPrice:
+                        type: string
+                        description: "Stop/conditional orders only — the trigger price that, when reached, activates the order. Absent for unconditional orders."
+                        example: "39500"
+                      activationCondition:
+                        type: string
+                        description: "Stop/conditional orders only — comparison operator that decides when `activationPrice` is met. Absent for unconditional orders."
+                        example: "<="
                       status:
                         $ref: '#/components/schemas/OrderStatus'
                       feeAsset:
                         type: string
                         description: "Currency ticker of the asset used to pay the trading fee."
                         example: "USDT"
-                      stp:
+                      positionSide:
                         type: string
-                        description: "Self-trade prevention mode. Possible values: `no`, `cancel_both`, `cancel_new`, `cancel_old`."
-                        example: "no"
+                        description: "Position side for futures/margin orders. Omitted for spot orders that don't carry position context."
+                        example: "BOTH"
                       rpi:
                         type: boolean
                         description: "Retail Price Improvement flag. `true` when the order used RPI pricing."
@@ -6186,9 +6228,7 @@ paths:
                     clientOrderId: "customId11"
                     side: "sell"
                     ctime: 1597486960.311311
-                    takerFee: "0.001"
                     ftime: 1597486960.311332
-                    makerFee: "0.001"
                     dealFee: "0.041258268"
                     dealStock: "0.0009"
                     dealMoney: "41.258268"
@@ -6196,7 +6236,7 @@ paths:
                     ioc: false
                     status: "CANCELED"
                     feeAsset: "USDT"
-                    stp: "no"
+                    positionSide: "BOTH"
                     rpi: false
                     reduceOnly: false
         '400':
@@ -6697,7 +6737,7 @@ components:
           example: "9800"
         clientOrderId:
           type: string
-          description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
+          description: "Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same identifier can be reused, including on the same market. Contains only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
         postOnly:
           type: boolean
@@ -6769,7 +6809,7 @@ components:
           example: "100"
         clientOrderId:
           type: string
-          description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
+          description: "Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same identifier can be reused, including on the same market. Contains only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
         stp:
           type: string
@@ -6818,7 +6858,7 @@ components:
           example: "10000"
         clientOrderId:
           type: string
-          description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
+          description: "Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same identifier can be reused, including on the same market. Contains only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
         bboRole:
           type: integer
@@ -6861,7 +6901,7 @@ components:
           example: "0.001"
         clientOrderId:
           type: string
-          description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
+          description: "Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same identifier can be reused, including on the same market. Contains only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
         stp:
           type: string
@@ -6905,7 +6945,7 @@ components:
           example: "10000"
         clientOrderId:
           type: string
-          description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
+          description: "Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same identifier can be reused, including on the same market. Contains only letters, numbers, dashes, dots, or underscores."
           example: "order1987111"
         stp:
           type: string
@@ -6956,7 +6996,7 @@ components:
           example: false
         clientOrderId:
           type: string
-          description: "Custom client order identifier. The identifier must be unique per account and contain only letters, numbers, dashes, dots, or underscores."
+          description: "Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same identifier can be reused, including on the same market. Contains only letters, numbers, dashes, dots, or underscores."
           example: ""
         rpi:
           type: boolean
