@@ -12,7 +12,7 @@ The `clientOrderId` is an optional identifier for tracking and managing orders w
 <Card title="Type & Requirements">
 - Type: String
 - Mandatory: No
-- Uniqueness: Must be unique per account
+- Uniqueness: enforced only among open (pending) orders on the same market — the identifier can be reused once the previous order fills or cancels
 </Card>
 <Card title="Allowed Characters">
 - Latin letters
@@ -281,7 +281,7 @@ const cancelOrderRequest = {
 
 <CardGroup>
   <Card title="Duplicate ID">
-    The <code>clientOrderId</code> must be unique per account.
+    The <code>clientOrderId</code> only has to be unique among the account's open (pending) orders on the same market. Once a previous order is filled or canceled, the same identifier can be reused on the same market. The same identifier can also be used in parallel on different markets.
   </Card>
 
   <Card title="Invalid Format">
