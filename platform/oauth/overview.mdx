@@ -32,6 +32,9 @@ When the access token expires, the application can use a refresh token to obtain
 </Steps>
 ## Use Cases
 
+#### Partner API key issuance
+Partner platforms issue WhiteBIT API keys on behalf of end users through the OAuth API key flow. The flow replaces manual key creation with a consent-driven bootstrap: the user authorizes the partner once, and the WhiteBIT platform issues a partner-scoped API key with a secret that the partner retrieves through a dedicated endpoint. See the [Fast API Key integration guide](/guides/fast-api-key-via-oauth).
+
 #### Trading Bots & Algorithmic Trading
 Enable automated trading strategies without storing WhiteBIT credentials in third-party systems. Trading bots can place, modify, and cancel orders while only having the specific permissions they need.
 
@@ -53,6 +56,7 @@ WhiteBIT OAuth 2.0 implementation supports a wide range of permission scopes ava
 - Order management (read, create, delete)
 - Market data access
 - Trading history
+- OAuth API key management (`apikeys.create`, `apikeys.read`, `apikeys.delete`)
 - And more specialized permissions
 
 For a complete list of available scopes and detailed implementation instructions, please visit the [Usage](/platform/oauth/usage/overview#scopes) page.
@@ -78,7 +82,7 @@ The [Usage](/platform/oauth/usage/overview) page provides comprehensive document
 - Step-by-step implementation guides for common scenarios
 - Troubleshooting tips and best practices
 
-The usage documentation guides through the entire implementation process from initial setup to making the first authenticated API calls.
+The usage documentation guides through the entire implementation process from initial setup to making the first authenticated API calls. For partner integrations that need to issue API keys on behalf of users, the [Fast API Key integration guide](/guides/fast-api-key-via-oauth) covers the end-to-end consent and key-management flow. The [OAuth endpoint overview](/api-reference/oauth/usage/overview) lists every OAuth endpoint in the API Reference.
 
 ## Support
 

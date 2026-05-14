@@ -4,6 +4,29 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="May 14, 2026">
+## Fast API Key via OAuth
+**New OAuth flow for partner-issued API keys**
+
+Partner platforms can now issue a WhiteBIT API key on behalf of a WhiteBIT user through the OAuth API key consent flow. The flow uses Authorization Code with PKCE (S256), a 4-hour access token without refresh, and partner-scoped IP restrictions on the resulting key. Three new OAuth2 endpoints support the flow.
+
+**New endpoints (global server only — `https://whitebit.com`):**
+
+- `GET /oauth2/api-key/info` — Check whether a partner-issued API key already exists for the authenticated user and OAuth2 client pair.
+- `GET /oauth2/api-key/{externalId}/secret` — Retrieve the API secret once. Subsequent calls return `409`.
+- `DELETE /oauth2/api-key/{externalId}` — Delete a partner-owned API key. Sends an email notification to the user.
+
+**New OAuth scopes:** `apikeys.create`, `apikeys.read`, `apikeys.delete`.
+
+<CardGroup cols={2}>
+  <Card title="Fast API Key integration guide" href="/guides/fast-api-key-via-oauth" icon="key" horizontal/>
+  <Card title="Check key existence" href="/api-reference/oauth/usage/api-key-info" icon="magnifying-glass" horizontal/>
+  <Card title="Retrieve key secret" href="/api-reference/oauth/usage/api-key-secret" icon="lock" horizontal/>
+  <Card title="Delete key" href="/api-reference/oauth/usage/api-key-delete" icon="trash" horizontal/>
+</CardGroup>
+</Update>
+
+
 <Update label="April 29, 2026">
 ## Position History API update
 **Breaking change: `positionSide` field removed from Position History response**
