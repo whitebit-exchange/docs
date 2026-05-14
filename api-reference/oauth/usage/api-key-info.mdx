@@ -1,0 +1,28 @@
+---
+title: "Check OAuth API key existence"
+sidebarTitle: "Check key existence"
+description: "Check whether an OAuth-issued API key already exists for the authenticated user and OAuth2 client pair."
+openapi: "/openapi/oauth2.yaml GET /oauth2/api-key/info"
+---
+
+## Authentication
+
+OAuth 2.0 Bearer token. Required scope: `apikeys.read`. See [Authentication](/api-reference/authentication). The endpoint is available on `https://whitebit.com` only.
+
+## Cache
+
+No caching.
+
+## Notes
+
+Use the decision matrix below to interpret the `(exists, isEnabled)` response and choose the next action.
+
+| `exists` | `isEnabled` | Meaning | Recommended action |
+|----------|-------------|---------|--------------------|
+| `false` | `false` | No partner-issued API key exists for this `(user, OAuth2 client)` pair. | Start the OAuth API key flow. |
+| `true` | `true` | An active partner-issued API key already exists. | Skip the OAuth API key flow. Surface "an active API key for this partner already exists" to the user. |
+| `true` | `false` | A disabled partner-issued API key exists (post-inactivity, awaiting user-side deletion). | Skip the OAuth API key flow. Ask the user to delete the disabled key from the WhiteBIT dashboard, then retry. |
+
+- Call the endpoint before redirecting the user to the OAuth authorization screen. Skipping the redirect when a key already exists avoids a flow the platform rejects.
+- Disabled keys are not deletable through the OAuth2 partner endpoint. Disabled keys are removed by the user from the WhiteBIT dashboard.
+- See [Retrieve OAuth API key secret](/api-reference/oauth/usage/api-key-secret) for the secret-fetch step and [Delete OAuth API key](/api-reference/oauth/usage/api-key-delete) for partner-initiated revocation.
