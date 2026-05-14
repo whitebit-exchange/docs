@@ -1,0 +1,23 @@
+---
+title: "Delete OAuth API key"
+sidebarTitle: "Delete key"
+description: "Delete a partner-issued OAuth API key owned by the authenticated OAuth2 client."
+openapi: "/openapi/oauth2.yaml DELETE /oauth2/api-key/{externalId}"
+---
+
+## Authentication
+
+OAuth 2.0 Bearer token. Required scope: `apikeys.delete`. See [Authentication](/api-reference/authentication). The endpoint is available on `https://whitebit.com` only.
+
+## Cache
+
+No caching.
+
+## Notes
+
+The endpoint deletes only OAuth-issued API keys owned by the authenticated OAuth2 client. Keys belonging to other OAuth2 clients return `403`. Manually-created API keys are not deletable through this endpoint. Disabled keys (post-inactivity, awaiting user-side deletion) require user-initiated deletion from the WhiteBIT dashboard.
+
+Partner-initiated deletion through the endpoint triggers an email to the user. User-initiated dashboard deletion does not send an email.
+
+- Obtain the `externalId` path parameter from [Check OAuth API key existence](/api-reference/oauth/usage/api-key-info).
+- Automatic deletion triggers (14-day inactivity, account password change, account block, account freeze) also send an email to the user.
