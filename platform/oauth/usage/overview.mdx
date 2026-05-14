@@ -12,6 +12,8 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 WhiteBIT OAuth 2.0 implementation uses the standard **Authorization Code Grant** flow. This flow is suitable for server-side applications where the client secret can be securely stored.
 
+The OAuth 2.0 endpoints documented on this page cover the Authorization Code Grant flow for read access to account data. For partner-issued API keys, a separate OAuth API key flow uses Authorization Code with PKCE (S256), a 4-hour access token, and no refresh token. See the [Fast API Key integration guide](/guides/fast-api-key-via-oauth) for the full integration.
+
 <CodeGroup>
 ```go Go
 package main
@@ -977,3 +979,6 @@ Available Scopes (requested during client setup):
 - `users.balances.read`: Read user account balances
 - `users.orders.read`: Read user orders
 - `users.deals.read`: Read user deals
+- `apikeys.create`: Issue an OAuth-bound API key during the consent flow
+- `apikeys.read`: Read OAuth-issued API key state and retrieve its secret once
+- `apikeys.delete`: Delete an OAuth-issued API key owned by the OAuth2 client

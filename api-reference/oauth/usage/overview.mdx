@@ -1,0 +1,46 @@
+---
+title: "Overview"
+sidebarTitle: "Overview"
+description: "Overview of the WhiteBIT OAuth 2.0 endpoints, including the recommended OAuth API key flow for partner integrations."
+---
+
+The OAuth 2.0 endpoints documented in this section cover three integration surfaces: authorization and token exchange, OAuth-issued API keys, and account read endpoints. Partner platforms that need to issue WhiteBIT API keys on behalf of users SHOULD use the OAuth API key flow — the flow replaces manual key creation and copy-paste with a consent-driven bootstrap that issues a partner-scoped key, restricts the key to the partner's registered IP ranges, and exposes the secret to the partner exactly once.
+
+## Endpoint groups
+
+<CardGroup cols={3}>
+  <Card title="OAuth API keys" icon="key" href="/guides/fast-api-key-via-oauth">
+    Recommended partner integration. Issue, retrieve, and delete API keys on behalf of WhiteBIT users.
+  </Card>
+  <Card title="Authorization and tokens" icon="lock" href="/api-reference/oauth/usage/authorize">
+    OAuth 2.0 authorization code flow: authorize, exchange code for access token, refresh.
+  </Card>
+  <Card title="Account read endpoints" icon="chart-bar" href="/api-reference/oauth/usage/account-transactions">
+    Read account transactions, balances, orders, deals, and conversions on behalf of the authenticated user.
+  </Card>
+</CardGroup>
+
+## OAuth API key flow
+
+The OAuth API key flow uses Authorization Code with PKCE (S256) and a 4-hour access token without refresh. The partner redirects the user to the WhiteBIT consent screen; on consent and MFA approval, the WhiteBIT platform issues a partner-issued API key for the authenticated `(user, OAuth2 client)` pair. The partner detects key creation through `GET /oauth2/api-key/info`, retrieves the secret exactly once through `GET /oauth2/api-key/{externalId}/secret`, and deletes the key when no longer needed through `DELETE /oauth2/api-key/{externalId}`. See the [Fast API Key integration guide](/guides/fast-api-key-via-oauth) for the full integration walkthrough.
+
+## Required scopes
+
+| Scope | Endpoint | Purpose |
+|-------|----------|---------|
+| `apikeys.read` | `GET /oauth2/api-key/info` | Check whether a partner-issued API key already exists for this `(user, client)` pair |
+| `apikeys.read` | `GET /oauth2/api-key/{externalId}/secret` | Retrieve the API secret once |
+| `apikeys.delete` | `DELETE /oauth2/api-key/{externalId}` | Delete a partner-owned API key |
+
+## Region availability
+
+The OAuth API key endpoints (`/oauth2/api-key/*`) are available on the global server (`https://whitebit.com`) only. The EU server (`https://whitebit.eu`) does not expose these endpoints in this release.
+
+## Related resources
+
+<CardGroup cols={2}>
+  <Card title="Fast API Key integration guide" icon="book-open" href="/guides/fast-api-key-via-oauth" horizontal/>
+  <Card title="OAuth 2.0 (conceptual)" icon="circle-info" href="/platform/oauth/overview" horizontal/>
+  <Card title="Private HTTP API authentication" icon="signature" href="/api-reference/authentication" horizontal/>
+  <Card title="Fast API Key (glossary)" icon="book" href="/glossary#fast-api-key" horizontal/>
+</CardGroup>

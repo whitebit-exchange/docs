@@ -404,6 +404,272 @@ paths:
         description: View complete documentation
         url: /private/http-trade-v4#trading-balance
 
+  /oauth2/api-key/info:
+    get:
+      summary: Check OAuth API key existence
+      description: |
+        The endpoint returns whether a partner-issued API key already exists for the authenticated user and OAuth2 client pair. Use the endpoint before redirecting the user to the OAuth API key flow — when a key already exists, skip the redirect and surface the appropriate message to the user.
+
+        **Required scope:** `apikeys.read`.
+
+        **Region availability:** The endpoint is available on the global server (`https://whitebit.com`) only.
+      tags:
+        - OAuth API Keys
+      security:
+        - BearerAuth: []
+      servers:
+        - url: https://whitebit.com
+          description: WhiteBIT Global Server
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      exists:
+                        type: boolean
+                        description: A partner-issued API key exists for the authenticated user and OAuth2 client pair.
+                        example: true
+                      isEnabled:
+                        type: boolean
+                        description: The existing key is active. `false` when no key exists or when a key exists but is disabled (post-inactivity, awaiting user deletion from the dashboard).
+                        example: true
+                      externalId:
+                        type: string
+                        format: uuid
+                        nullable: true
+                        description: External UUID of the existing key. `null` when `exists` is `false`.
+                        example: 550e8400-e29b-41d4-a716-446655440000
+        "401":
+          description: Missing or invalid Bearer token, or token does not carry the `apikeys.read` scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Unauthorized."]
+
+  /oauth2/api-key/{externalId}/secret:
+    get:
+      summary: Retrieve OAuth API key secret
+      description: |
+        The endpoint retrieves the API secret for a partner-issued API key. The endpoint returns the secret exactly once per key — a subsequent call returns `409 Conflict`.
+
+        **Required scope:** `apikeys.read`.
+
+        **Region availability:** The endpoint is available on the global server (`https://whitebit.com`) only.
+
+        <Warning>
+        Store the API secret in encrypted backend storage on first retrieval. The secret is not recoverable after this call returns.
+        </Warning>
+      tags:
+        - OAuth API Keys
+      security:
+        - BearerAuth: []
+      servers:
+        - url: https://whitebit.com
+          description: WhiteBIT Global Server
+      parameters:
+        - name: externalId
+          in: path
+          required: true
+          description: External UUID of the API key. Obtain the value from `GET /oauth2/api-key/info`.
+          schema:
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        "200":
+          description: Successful response. The secret is returned exactly once.
+          headers:
+            Cache-Control:
+              description: Always `no-store` to prevent the secret from being cached.
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      apiSecret:
+                        type: string
+                        description: The API secret. Persist immediately in encrypted backend storage — the secret is not recoverable.
+                        example: YOUR_API_SECRET
+        "401":
+          description: Missing or invalid Bearer token, or token does not carry the `apikeys.read` scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Unauthorized."]
+        "403":
+          description: The key does not belong to the authenticated OAuth2 client, or the key is not a partner-issued key.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Forbidden."]
+        "404":
+          description: Key not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Key not found."]
+        "409":
+          description: The secret has already been retrieved for this key. Recovery requires deleting the key and restarting the OAuth API key flow.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Secret already retrieved."]
+        "423":
+          description: A concurrent secret-retrieval attempt holds the lock. Retry after a short delay.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Temporary lock, retry shortly."]
+
+  /oauth2/api-key/{externalId}:
+    delete:
+      summary: Delete OAuth API key
+      description: |
+        The endpoint deletes a partner-issued API key owned by the authenticated OAuth2 client. The deletion triggers an email notification to the user. The endpoint applies to active keys — disabled keys must be removed by the user from the WhiteBIT dashboard.
+
+        **Required scope:** `apikeys.delete`.
+
+        **Region availability:** The endpoint is available on the global server (`https://whitebit.com`) only.
+      tags:
+        - OAuth API Keys
+      security:
+        - BearerAuth: []
+      servers:
+        - url: https://whitebit.com
+          description: WhiteBIT Global Server
+      parameters:
+        - name: externalId
+          in: path
+          required: true
+          description: External UUID of the API key.
+          schema:
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        "200":
+          description: Successful deletion.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: {}
+                    example: []
+        "401":
+          description: Missing or invalid Bearer token, or token does not carry the `apikeys.delete` scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Unauthorized."]
+        "403":
+          description: The key does not belong to the authenticated OAuth2 client.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Forbidden."]
+        "404":
+          description: Key not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Key not found."]
+
 components:
   securitySchemes:
     BearerAuth:
@@ -438,5 +704,17 @@ tags:
       - users.balances.read: Read user account balances
       - users.orders.read: Read user orders
       - users.deals.read: Read user deals
+      - apikeys.create: Issue an OAuth-bound API key during the consent flow
+      - apikeys.read: Read OAuth-issued API key state and retrieve its secret once
+      - apikeys.delete: Delete an OAuth-issued API key linked to the partner
   - name: Account Endpoints
     description: Endpoints for retrieving account information, balances, and transaction history
+  - name: OAuth API Keys
+    description: |
+      Partner-facing endpoints for managing API keys created via the OAuth API key flow.
+
+      Available on the global server (`https://whitebit.com`) only. The EU server (`https://whitebit.eu`) does not expose these endpoints in this release.
+
+      Required scopes:
+      - `apikeys.read` for `GET /oauth2/api-key/info` and `GET /oauth2/api-key/{externalId}/secret`
+      - `apikeys.delete` for `DELETE /oauth2/api-key/{externalId}`
