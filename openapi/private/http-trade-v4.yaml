@@ -6082,11 +6082,11 @@ paths:
                   example: "BTC_USDT"
                 clientOrderId:
                   type: string
-                  description: "Look up a specific order by its custom client identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns `422` with `\"OrderHistory was not found.\"` if no order matches. Ignored when `orderId` is also provided."
+                  description: "Look up a specific order by the custom client identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns `422` with `\"OrderHistory was not found.\"` if no order matches. Ignored when `orderId` is also provided."
                   example: "customId11"
                 orderId:
                   type: integer
-                  description: "Look up a specific order by its exchange-assigned identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns an empty result on no match (no `422`). Takes precedence over `clientOrderId` when both are supplied."
+                  description: "Look up a specific order by the exchange-assigned identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns an empty result on no match (no `422`). Takes precedence over `clientOrderId` when both are supplied."
                   example: 4986126152
                 status:
                   type: string
@@ -6209,7 +6209,7 @@ paths:
                         example: "USDT"
                       positionSide:
                         type: string
-                        description: "Position side for futures/margin orders. Omitted for spot orders that don't carry position context."
+                        description: "Position side for futures/margin orders. Omitted for spot orders without position context."
                         example: "BOTH"
                       rpi:
                         type: boolean
