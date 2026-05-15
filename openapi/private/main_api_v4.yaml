@@ -1608,7 +1608,7 @@ paths:
         ⚠️ Due to regulatory requirements in Turkey and [EU](/glossary#european-economic-area-eea), the system places every inbound crypto deposit on hold (frozen) until confirming the transaction's origin. The sender must provide certain details if the transaction is from another Virtual Asset Service Provider (VASP) or verify the address if from a self-hosted wallet. The system credits deposited funds to the account only after successful verification.
 
         **Withdraw status codes:**
-        - `Pending` (1, 2, 6, 10–17): Withdrawal is in progress. No further semantic distinction is available via the API — all codes in this range indicate an active pending state.
+        - `Pending` - 1, 2, 6, 10–17 (withdrawal in progress).
         - `Successful` - 3, 7
         - `Canceled` - 4
         - `Unconfirmed by user` - 5
@@ -5197,11 +5197,18 @@ paths:
       summary: Get Rewards
       description: |
         The endpoint returns rewards received from mining.
+        Results are ordered by reward date, newest first.
+
+        The response does not include a `total` field. Detect the last page when
+        `data.length < limit`.
+
+        The `offset` parameter is capped at 10000. To paginate reward histories
+        beyond that, window the request by `from` and `to` (Unix timestamps).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -5586,6 +5593,10 @@ paths:
       summary: Worker Names
       description: |
         Returns a paginated list of online worker names for a specific mining account.
+        Results are ordered by worker name ascending (alphabetical).
+
+        The response does not include a `total` field. Detect the last page when
+        `data.workers.length < limit`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6026,6 +6037,10 @@ paths:
       summary: Get Mining Accounts
       description: |
         Returns a list of mining accounts for the authenticated user. Supports filtering by account name.
+        Results are ordered by account creation time, newest first.
+
+        The response does not include a `total` field. Detect the last page when
+        `data.length < limit`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
