@@ -101,6 +101,16 @@ Clients tracking orders by `order_id` must update the stored value after each mo
   The private stream returns active orders, including orders using Retail Price Improvement (RPI) mode.
 </div>
 
+## Stop order activation
+
+When a stop order ([types](/websocket/account-streams/overview#order-types) `3`, `4`, `9`, `10`) triggers, the server emits an `event_id=1` (New) event for the now-active order **without** a preceding `event_id=3` (Finish) for the stop record. The `order_id` is preserved across activation — the same id appears on both the original stop and the activated order.
+
+The `type` and `status` fields do not change on activation: the type integer stays (`3` → `3`, and so on), and `status` remains `OPEN` (or transitions to `PARTIALLY_FILLED` only once the activated order begins filling). The arrival of a second `event_id=1` for an `order_id` already present in local state is the only activation signal.
+
+Clients tracking orders by `order_id` must **upsert** on `order_id` rather than append, otherwise the resting stop and the activated order will appear as two entries for the same logical order.
+
+This applies to all stop types: spot stop-limit (`3`), spot stop-market (`4`), margin stop-limit (`9`), and margin stop-market (`10`). Types `3` and `4` are spot-only; margin and futures markets use types `9` and `10`.
+
 ## Order object
 
 Fields present in both the query response (`records[]`) and the pushed `ordersPending_update` payload.
