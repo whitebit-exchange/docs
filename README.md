@@ -79,7 +79,7 @@ asyncapi --version # AsyncAPI CLI
 With Prerequisites installed, start the dev server:
 
 ```bash
-mint dev
+mintlify dev
 
 # Open http://localhost:3000
 ```
@@ -104,7 +104,7 @@ docker build -t whitebit-docs .
 docker run -p 3000:3000 whitebit-docs
 ```
 
-> **Note:** On first start, `npx mint dev` downloads the Mintlify client from `releases.mintlify.com`. Network access is required.
+> **Note:** On first start, `npx mintlify dev` downloads the Mintlify client from `releases.mintlify.com`. Network access is required.
 
 ## Validation
 
@@ -118,7 +118,7 @@ npx @redocly/cli lint openapi/**/*.yaml
 find asyncapi -name "*.yaml" -exec asyncapi validate {} \;
 
 # Local preview
-mint dev
+mintlify dev
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md#validation) for the full review process.
