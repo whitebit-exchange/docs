@@ -60,7 +60,7 @@ Before you begin, make sure the following tools are installed on your machine:
 |------|----------------|--------------|
 | [Node.js](https://nodejs.org/) | v18+ | [Download](https://nodejs.org/en/download/) or use [nvm](https://github.com/nvm-sh/nvm) |
 | npm | v9+ (ships with Node.js) | Included with Node.js |
-| [Mintlify CLI](https://mintlify.com/docs/installation) | latest | `npm install -g mintlify@latest` |
+| [Mintlify CLI](https://mintlify.com/docs/cli) | latest | `npm install -g mintlify@latest` |
 | [Redocly CLI](https://redocly.com/docs/cli/) | latest | `npm install -g @redocly/cli@latest` |
 | [AsyncAPI CLI](https://www.asyncapi.com/tools/cli) | latest | `npm install -g @asyncapi/cli` |
 
