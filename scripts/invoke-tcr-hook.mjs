@@ -7,6 +7,20 @@ if (!diff) {
   process.exit(0);
 }
 
+// Skip TCR for commits that touch no documentation content. TCR reviews docs;
+// lock files, scripts, husky config, CI, package.json, etc. have nothing for it
+// to review and would just burn ~40 s and ~$0.13 per commit.
+const stagedFiles = execSync("git diff --staged --name-only", { encoding: "utf-8" })
+  .trim()
+  .split("\n")
+  .filter(Boolean);
+const DOC_FILE_RE = /\.(md|mdx)$|^(openapi|asyncapi|data)\/.*\.ya?ml$|^docs\.json$/i;
+
+if (!stagedFiles.some((f) => DOC_FILE_RE.test(f))) {
+  console.log("No doc-content changes in staged set — skipping TCR.");
+  process.exit(0);
+}
+
 console.log("Running /task-completion-review via Claude Code (Sonnet 4.6, $1.00 cap)…");
 console.log("This may take 1–3 minutes. To bypass: git commit --no-verify\n");
 
