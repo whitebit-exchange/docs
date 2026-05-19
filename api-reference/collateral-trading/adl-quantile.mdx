@@ -8,7 +8,7 @@ import { RelatedResources } from '/components/RelatedResources.jsx';
 
 ## Authentication
 
-**Signed (HMAC SHA256).** Provide an API key, payload, and request signature on every call. See [Authentication](/api-reference/authentication).
+**Signed (HMAC-SHA512).** Provide an API key, payload, and request signature on every call. See [Authentication](/api-reference/authentication).
 
 ## Rate limit
 
@@ -25,7 +25,7 @@ The endpoint returns entries for perpetual markets only — markets with the `_P
 The response is `[]` when the account has no open perpetual positions. See [ADL Grade](/concepts/auto-deleveraging#adl-grade) for the meaning of the `0`–`4` quantile values and the underlying selection mechanics.
 
 <RelatedResources>
-- [Open positions](/api-reference/collateral-trading/open-positions) — List current open perpetual positions
+- [Open positions](/api-reference/collateral-trading/open-positions) — List all currently open collateral trading positions
 - [Auto-Deleveraging concept](/concepts/auto-deleveraging) — Mechanism, rating formula, and grade thresholds
 - [Close position](/api-reference/collateral-trading/close-position) — Close an open perpetual position
 - [Collateral account summary](/api-reference/collateral-trading/collateral-account-summary) — Account-level margin and equity
