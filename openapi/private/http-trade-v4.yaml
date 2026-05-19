@@ -2374,6 +2374,10 @@ paths:
       description: |
         The endpoint returns the [Auto-Deleveraging (ADL)](/glossary#auto-deleveraging-adl) quantile for each perpetual market in which the authenticated account holds an open position. Each entry exposes the deleveraging-priority value for the long and short sides of the position, where `0` indicates the lowest deleveraging priority and `4` indicates the highest. The endpoint returns an empty array when the account has no perpetual positions.
 
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+
         <Note>
         Only perpetual markets (markets with the `_PERP` suffix) are returned. Spot and margin markets are not included.
         </Note>
@@ -2395,11 +2399,9 @@ paths:
               properties:
                 request:
                   type: string
-                  description: Request signature
                   example: "{{request}}"
                 nonce:
                   type: string
-                  description: Unique request identifier
                   example: "{{nonce}}"
             example:
               request: "{{request}}"
