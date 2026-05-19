@@ -1,0 +1,118 @@
+---
+title: "Fast API Key via OAuth"
+sidebarTitle: "Fast API Key via OAuth"
+description: "Integration guide for partner platforms that issue WhiteBIT API keys on behalf of users through the OAuth API key flow."
+---
+
+The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an authenticated WhiteBIT user without the user manually copying credentials between sites. The user authorizes the partner on the WhiteBIT consent screen, the WhiteBIT platform issues a partner-scoped API key, and the partner backend reads the API secret once through a Bearer-authenticated endpoint and persists it. The flow uses Authorization Code with PKCE (S256), a 4-hour access token without refresh, and partner-registered IP restrictions on the resulting key. See the [Fast API Key](/glossary#fast-api-key) glossary entry for the short definition.
+
+## Prerequisites
+
+- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `support@whitebit.com` to enroll a client and to register or update the IP ranges that the WhiteBIT platform attaches to the issued API key.
+- End user with a WhiteBIT account, 2FA enabled, KYC passed, and operating in a region where the feature is available. The OAuth API key endpoints are available on the global server (`https://whitebit.com`) only.
+- Partner backend that supports HTTPS, server-side secret storage, and OAuth 2.0 Authorization Code with PKCE (S256).
+
+## Endpoint surface
+
+| Method | Path | Auth | Required scope | Purpose |
+|--------|------|------|----------------|---------|
+| `GET` | [`/oauth2/api-key/info`](/api-reference/oauth/usage/api-key-info) | Bearer | `apikeys.read` | Check whether a key exists for the `(user, OAuth2 client)` pair |
+| `GET` | [`/oauth2/api-key/{externalId}/secret`](/api-reference/oauth/usage/api-key-secret) | Bearer | `apikeys.read` | Retrieve the API secret once |
+| `DELETE` | [`/oauth2/api-key/{externalId}`](/api-reference/oauth/usage/api-key-delete) | Bearer | `apikeys.delete` | Delete a partner-owned key |
+
+## Integration flow
+
+<Steps>
+  <Step title="Pre-check">
+    Call `GET /oauth2/api-key/info` before redirecting the user. Interpret the `(exists, isEnabled)` response using the decision matrix on the endpoint page: `(false, false)` proceeds to Step 2; `(true, true)` skips the flow and surfaces "an active API key already exists" to the user; `(true, false)` asks the user to delete the disabled key from the WhiteBIT dashboard first.
+  </Step>
+  <Step title="Build the authorization URL">
+    Generate a cryptographically secure `code_verifier` (43–128 characters, unreserved alphabet) and derive `code_challenge = BASE64URL(SHA256(code_verifier))`. Build the authorization URL using `/auth/login` with query parameters `clientId`, `redirect_uri`, `state`, `code_challenge`, and `code_challenge_method=S256`. Store `code_verifier` and `state` in a server-side session keyed by a short-lived cookie.
+  </Step>
+  <Step title="Handle the callback">
+    On the redirect back to the registered `redirect_uri`, validate the returned `state` matches the stored value (anti-CSRF). Capture the `code` query parameter. Reject the callback when `state` is missing, mismatched, or expired.
+  </Step>
+  <Step title="Exchange the code for an access token">
+    POST to `/oauth2/token` with `client_id`, `client_secret`, `code`, and `code_verifier`. Receive a 4-hour OAuth access token. A refresh token is not issued — obtain a fresh authorization through a new consent flow when the access token expires.
+  </Step>
+  <Step title="Receive the public api key">
+    The WhiteBIT frontend delivers the public `apiKey` string to the partner at consent completion. [PENDING: confirm with the WhiteBIT frontend team the exact delivery mechanism (callback parameter name and URL location). Update this step with the wire-level details once confirmed.] Persist the value in the same session that holds the OAuth access token.
+  </Step>
+  <Step title="Detect key creation and fetch externalId">
+    Call `GET /oauth2/api-key/info` with the OAuth access token. Wait until `exists=true` and `isEnabled=true`. Capture `externalId`. Poll with a short backoff (1–2 second intervals, total budget under 30 seconds) — the WhiteBIT frontend creates the key as part of the consent flow, so the value appears shortly after Step 5.
+  </Step>
+  <Step title="Retrieve the secret">
+    Call `GET /oauth2/api-key/{externalId}/secret`. Persist `(apiKey, apiSecret)` in encrypted server-side storage immediately. On `423 Locked`, retry with exponential backoff starting at 5–10 seconds, doubling per attempt, capped at 60 seconds, total budget 3–5 minutes. On `409 Conflict`, the secret has already been retrieved for this key — delete the key via `DELETE /oauth2/api-key/{externalId}` and restart the OAuth API key flow from Step 1.
+  </Step>
+  <Step title="Use the key">
+    Sign V4 trade API requests with HMAC using the `(apiKey, apiSecret)` pair. The OAuth-issued key follows the same signing rules as a manually-created key. See [Private HTTP API authentication](/api-reference/authentication) for the canonical signing process.
+  </Step>
+  <Step title="Delete when no longer needed">
+    Call `DELETE /oauth2/api-key/{externalId}` to revoke the key. The platform sends a notification email to the user. The endpoint applies to active keys — disabled keys (post-inactivity) require user-initiated deletion from the WhiteBIT dashboard.
+  </Step>
+</Steps>
+
+## Lifecycle and revocation
+
+OAuth-issued API keys are revoked or deleted by any of the following events:
+
+- The user changes the account password.
+- The user account is blocked (AML / fraud / compliance) or frozen.
+- The key has no API activity for 14 days (cron-driven auto-deactivation).
+- The partner calls `DELETE /oauth2/api-key/{externalId}`.
+- The user removes the key from the WhiteBIT dashboard.
+
+All revocation events except user-initiated dashboard deletion send an email notification to the user.
+
+## Error handling
+
+| Status | Endpoint | Cause | Recommended action |
+|--------|----------|-------|--------------------|
+| `401` | All three | Missing or invalid Bearer token, or token lacks the required `apikeys.*` scope. | Restart the OAuth authorization flow to obtain a fresh access token with the correct scopes. |
+| `403` | `secret`, `delete` | The key does not belong to the authenticated OAuth2 client, or the key is not a partner-issued key. | Verify `externalId` came from `GET /info` issued by the same OAuth2 client. |
+| `404` | `secret`, `delete` | Key not found. | Re-query `GET /info` to confirm the current state of the `(user, client)` pair. |
+| `409` | `secret` | Secret already retrieved. | Delete the key via `DELETE /oauth2/api-key/{externalId}` and restart the OAuth API key flow. |
+| `423` | `secret` | Concurrent secret-retrieval attempt holds the lock. | Retry with exponential backoff (5–10s start, cap 60s, budget 3–5 minutes). |
+
+Two application-level error codes can surface during key creation on the WhiteBIT consent screen. Each code is observable to the partner only indirectly — when one of the codes fires, the consent flow terminates and the partner detects the failure as the absence of a created key on the subsequent `GET /info` poll:
+
+- `partner_key_active_exists` — An active partner-issued key already exists for the `(user, OAuth2 client)` pair. The partner SHOULD re-run `GET /info` before starting the flow.
+- `partner_key_expired_exists` — A disabled (post-inactivity) partner-issued key exists. The user must remove the disabled key from the WhiteBIT dashboard before a new key can be issued.
+
+## Security checklist
+
+- Store `client_secret` and `apiSecret` server-side only. Never embed in mobile, desktop, single-page, or browser-side code.
+- Validate the `state` parameter on every callback to prevent CSRF.
+- Use the exact registered `redirect_uri` — wildcards and open redirects are rejected.
+- Use Authorization Code with PKCE (S256) on every authorization request.
+- Rotate `apiSecret` by deleting and re-issuing keys. The secret cannot be retrieved a second time for an existing key.
+- The partner IP allowlist that the user cannot modify is set at enrollment via support. Coordinate IP updates with `support@whitebit.com` before rotating partner infrastructure.
+
+## Limits
+
+- One active OAuth-issued API key per `(user, partner)` pair. A second creation attempt returns an error and the consent flow terminates.
+- The global per-user API key limit (50 keys) includes both manually-created and OAuth-issued keys.
+- A user can have OAuth-issued keys from an unlimited number of partners.
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="OAuth endpoint overview" icon="key" href="/api-reference/oauth/usage/overview">
+    Full list of OAuth endpoints in the API Reference, with required scopes per endpoint.
+  </Card>
+  <Card title="Private HTTP API authentication" icon="signature" href="/api-reference/authentication">
+    HMAC signing process for the V4 trade API once the partner holds the api key and secret pair.
+  </Card>
+  <Card title="First API Call" icon="play" href="/guides/first-api-call">
+    Sign a `POST /api/v4/main-account/balance` request with HMAC-SHA512 and read the response.
+  </Card>
+</CardGroup>
+
+## Related resources
+
+<CardGroup cols={2}>
+  <Card title="OAuth 2.0 (conceptual)" icon="circle-info" href="/platform/oauth/overview" horizontal/>
+  <Card title="Check key existence" icon="magnifying-glass" href="/api-reference/oauth/usage/api-key-info" horizontal/>
+  <Card title="Retrieve key secret" icon="lock" href="/api-reference/oauth/usage/api-key-secret" horizontal/>
+  <Card title="Delete key" icon="trash" href="/api-reference/oauth/usage/api-key-delete" horizontal/>
+</CardGroup>
