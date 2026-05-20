@@ -22,7 +22,7 @@ if (!stagedFiles.some((f) => DOC_FILE_RE.test(f))) {
 }
 
 console.log("Running /task-completion-review via Claude Code…");
-console.log("This may take 1–3 minutes. To bypass: git commit --no-verify\n");
+console.log("This may take 1–5 minutes. To bypass: git commit --no-verify\n");
 
 const result = spawnSync(
   "claude",
