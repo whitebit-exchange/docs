@@ -8,20 +8,20 @@ if (!diff) {
 }
 
 // Skip TCR for commits that touch no documentation content. TCR reviews docs;
-// lock files, scripts, husky config, CI, package.json, etc. have nothing for it
-// to review and would just burn ~40 s and ~$0.13 per commit.
+// scripts, husky config, CI, lock files, package.json, etc. have nothing for
+// it to review.
 const stagedFiles = execSync("git diff --staged --name-only", { encoding: "utf-8" })
   .trim()
   .split("\n")
   .filter(Boolean);
-const DOC_FILE_RE = /\.(md|mdx)$|^(openapi|asyncapi|data)\/.*\.ya?ml$|^docs\.json$/i;
+const DOC_FILE_RE = /\.(md|mdx|ya?ml)$/i;
 
 if (!stagedFiles.some((f) => DOC_FILE_RE.test(f))) {
   console.log("No doc-content changes in staged set — skipping TCR.");
   process.exit(0);
 }
 
-console.log("Running /task-completion-review via Claude Code (Sonnet 4.6, $1.00 cap)…");
+console.log("Running /task-completion-review via Claude Code…");
 console.log("This may take 1–3 minutes. To bypass: git commit --no-verify\n");
 
 const result = spawnSync(
@@ -29,8 +29,6 @@ const result = spawnSync(
   [
     "-p", "/task-completion-review",
     "--output-format", "json",
-    "--model", "sonnet",
-    "--max-budget-usd", "1.00",
     "--no-session-persistence",
   ],
   { encoding: "utf-8", stdio: ["ignore", "pipe", "pipe"] },
@@ -67,10 +65,7 @@ if (parsed.is_error) {
 const report = parsed.result || "";
 console.log(report);
 console.log("");
-console.log(
-  `[TCR finished — cost: $${(parsed.total_cost_usd ?? 0).toFixed(4)}, ` +
-    `duration: ${((parsed.duration_ms ?? 0) / 1000).toFixed(1)}s]`,
-);
+console.log(`[TCR finished in ${((parsed.duration_ms ?? 0) / 1000).toFixed(1)}s]`);
 
 if (/VERDICT:\s*FAIL/i.test(report)) {
   console.error("\n✗ TCR returned VERDICT: FAIL — commit blocked.");
