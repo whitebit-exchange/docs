@@ -2367,6 +2367,89 @@ paths:
         '503':
           description: Service temporarily unavailable
 
+  /api/v4/collateral-account/adl-quantile:
+    post:
+      summary: ADL Quantile
+      operationId: getCollateralAccountAdlQuantile
+      description: |
+        The endpoint returns the [Auto-Deleveraging (ADL)](/glossary#auto-deleveraging-adl) quantile for each perpetual market in which the authenticated account holds an open position. Each entry exposes the deleveraging-priority value for the long and short sides of the position, where `0` indicates the lowest deleveraging priority and `4` indicates the highest. The endpoint returns an empty array when the account has no perpetual positions.
+
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        Only perpetual markets (markets with the `_PERP` suffix) are returned. Spot and margin markets are not included.
+        </Note>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: string
+                  example: "{{nonce}}"
+            example:
+              request: "{{request}}"
+              nonce: "{{nonce}}"
+      responses:
+        '200':
+          description: Successful response — returns array of per-market ADL quantile entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    market:
+                      type: string
+                      description: "Perpetual market name. Format: `BASE_PERP`."
+                      example: "BTC_PERP"
+                    long:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 4
+                      description: "ADL quantile for the long side of the position. Values range from `0` to `4`: `0` indicates the lowest deleveraging priority (safest position in the ADL queue); `4` indicates the highest probability of being selected as the ADL counterparty. The value is `null` when the account has no exposure on the long side."
+                      example: 0
+                    short:
+                      type: integer
+                      nullable: true
+                      minimum: 0
+                      maximum: 4
+                      description: "ADL quantile for the short side of the position. Values range from `0` to `4`: `0` indicates the lowest deleveraging priority; `4` indicates the highest probability of being selected as the ADL counterparty. The value is `null` when the account has no exposure on the short side."
+                      example: null
+              example:
+                - market: "BTC_PERP"
+                  long: 0
+                  short: null
+                - market: "ETH_PERP"
+                  long: 2
+                  short: 1
+        '422':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
   /api/v4/conditional-orders:
     post:
       summary: Query unexecuted(active) conditional orders
@@ -6082,11 +6165,11 @@ paths:
                   example: "BTC_USDT"
                 clientOrderId:
                   type: string
-                  description: "Look up a specific order by its custom client identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns `422` with `\"OrderHistory was not found.\"` if no order matches. Ignored when `orderId` is also provided."
+                  description: "Look up a specific order by the custom client identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns `422` with `\"OrderHistory was not found.\"` if no order matches. Ignored when `orderId` is also provided."
                   example: "customId11"
                 orderId:
                   type: integer
-                  description: "Look up a specific order by its exchange-assigned identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns an empty result on no match (no `422`). Takes precedence over `clientOrderId` when both are supplied."
+                  description: "Look up a specific order by the exchange-assigned identifier. When supplied, the endpoint switches to single-order lookup mode and the `startDate`, `endDate`, and `status` filters are ignored. Returns an empty result on no match (no `422`). Takes precedence over `clientOrderId` when both are supplied."
                   example: 4986126152
                 status:
                   type: string
@@ -6209,7 +6292,7 @@ paths:
                         example: "USDT"
                       positionSide:
                         type: string
-                        description: "Position side for futures/margin orders. Omitted for spot orders that don't carry position context."
+                        description: "Position side for futures/margin orders. Omitted for spot orders without position context."
                         example: "BOTH"
                       rpi:
                         type: boolean

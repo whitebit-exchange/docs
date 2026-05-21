@@ -33,6 +33,26 @@ info:
 
     Events arrive in sequence (event_id=3 before event_id=1) in practice. Handle
     out-of-order delivery defensively.
+
+    ## Stop Order Activation
+
+    When a stop order (types 3, 4, 9, 10) triggers, the server emits an `event_id=1` (New)
+    event for the now-active order **without** a preceding `event_id=3` (Finish) for the
+    stop record. The `order_id` is preserved across activation — the same id appears on
+    both the original stop and the activated order.
+
+    The `type` and `status` fields do not change on activation: the type integer stays
+    (3 → 3, and so on), and `status` remains `OPEN` (or transitions to `PARTIALLY_FILLED`
+    only once the activated order begins filling). The arrival of a second `event_id=1`
+    for an `order_id` already present in local state is the only activation signal.
+
+    **Implication:** Clients tracking orders by `order_id` must **upsert** on `order_id`
+    rather than append, otherwise the resting stop and the activated order will appear as
+    two entries for the same logical order.
+
+    Applies to spot stop-limit (3), spot stop-market (4), margin stop-limit (9), and
+    margin stop-market (10). Types 3 and 4 are spot-only; margin and futures markets use
+    types 9 and 10.
   x-auth-required: true
   x-rate-limits:
     connections-per-minute: 1000
@@ -482,7 +502,7 @@ components:
           description: "STP flag: no=No Prevention, co=Cancel Oldest, cn=Cancel Newest, cb=Cancel Both"
         status:
           type: string
-          description: "Order status (e.g., OPEN, FILLED, CANCELED)"
+          description: "Order status (e.g., OPEN, PARTIALLY_FILLED, FILLED, CANCELED)"
         position_side:
           type: string
           enum: ["LONG", "SHORT", "BOTH"]

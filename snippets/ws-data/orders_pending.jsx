@@ -56,7 +56,7 @@ export const orderObject = [
   { name: "deal_fee", type: "string", description: "Charged fee amount in money" },
   { name: "client_order_id", type: "string", description: "Custom client order id" },
   { name: "stp", type: "string", enum: ["no","co","cn","cb"], description: "STP flag: no=No Prevention, co=Cancel Oldest, cn=Cancel Newest, cb=Cancel Both" },
-  { name: "status", type: "string", description: "Order status (e.g., OPEN, FILLED, CANCELED)" },
+  { name: "status", type: "string", description: "Order status (e.g., OPEN, PARTIALLY_FILLED, FILLED, CANCELED)" },
   { name: "position_side", type: "string", enum: ["LONG","SHORT","BOTH"], description: "Position side - LONG or SHORT or BOTH" },
   { name: "rpi", type: "boolean", description: "Indicates Retail Price Improvement (RPI) mode for the order." },
   { name: "reduce_only", type: "boolean", description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. See reduce-only." },
