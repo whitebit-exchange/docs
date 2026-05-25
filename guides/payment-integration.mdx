@@ -19,7 +19,7 @@ The Payment Integration guide covers every step required to move funds into and 
 
 ## Deposit address generation
 
-Generate a deposit address by calling `POST /api/v4/main-account/address`. See the [API Reference](/api-reference/deposits/get-deposit-address) for the full endpoint specification.
+Generate a deposit address by calling `POST /api/v4/main-account/address`. See the [API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address) for the full endpoint specification.
 
 **Required parameters:**
 
@@ -210,7 +210,7 @@ Confirmation requirements vary by currency and network. Do not hardcode specific
 | `POST /api/v4/main-account/fee` | Available currencies, networks, and deposit limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
 <Note>
-  For integrations that use a single persistent deposit address instead of unique addresses per user, substitute `POST /api/v4/main-account/address` ([API Reference](/api-reference/deposits/get-deposit-address)) for the `/create-new-address` endpoint.
+  For integrations that use a single persistent deposit address instead of unique addresses per user, substitute `POST /api/v4/main-account/address` ([API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address)) for the `/create-new-address` endpoint.
 </Note>
 
 ## Travel Rule (EEA and Turkey)
@@ -231,7 +231,7 @@ See [Regulatory Compliance](/institutional/compliance) for the full Travel Rule 
 
 ## Create a withdrawal
 
-Submit a crypto withdrawal by calling `POST /api/v4/main-account/withdraw`. See the [API Reference](/api-reference/withdrawals/create-withdraw) for the full endpoint specification.
+Submit a crypto withdrawal by calling `POST /api/v4/main-account/withdraw`. See the [API Reference](/api-reference/account-wallet/create-withdraw-request) for the full endpoint specification.
 
 Two withdrawal endpoints are available:
 
@@ -419,7 +419,7 @@ Using /withdraw-pay:  Sender pays  0.5004 BTC,  receiver gets 0.5 BTC
 
 When a deposit is canceled (status 4 or 9), a refund may be available.
 
-**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/deposits/refund-deposit) for the full specification.
+**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/account-wallet/refund-deposit) for the full specification.
 
 **Prerequisites:**
 
@@ -471,7 +471,7 @@ When a deposit is canceled (status 4 or 9), a refund may be available.
 | Endpoint | Purpose | API Reference |
 |----------|---------|---------------|
 | `POST /api/v4/main-account/balance` | Check Main balance before withdrawal | [Main Balance](/api-reference/account-wallet/main-balance) |
-| `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a withdrawal request | [Create Withdraw](/api-reference/withdrawals/create-withdraw) |
+| `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | Webhooks (`withdraw.unconfirmed`, `withdraw.pending`, `withdraw.successful`, `withdraw.canceled`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/fee` | Available currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
@@ -495,7 +495,7 @@ The onboarding process has two phases: Phase 1 (crypto access via KYB) and Phase
 
 ## Fiat deposit (SEPA)
 
-Generate a fiat deposit invoice by calling `POST /api/v4/main-account/fiat-deposit-url`. See the [API Reference](/api-reference/deposits/fiat-deposit-url) for the full specification.
+Generate a fiat deposit invoice by calling `POST /api/v4/main-account/fiat-deposit-url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-address) for the full specification.
 
 <Note>
   The fiat deposit endpoint works on demand. Contact WhiteBIT support and provide the API key to get access.
@@ -669,7 +669,7 @@ When the currency held in Main balance differs from the currency the end user ne
   <Step title="Create withdrawal request">
     Submit a withdrawal to the end user's external address.
 
-    **Endpoint:** `POST /api/v4/main-account/withdraw` or `POST /api/v4/main-account/withdraw-pay` — [API Reference](/api-reference/withdrawals/create-withdraw)
+    **Endpoint:** `POST /api/v4/main-account/withdraw` or `POST /api/v4/main-account/withdraw-pay` — [API Reference](/api-reference/account-wallet/create-withdraw-request)
   </Step>
   <Step title="Receive webhook confirmation">
     The `withdraw.successful` webhook fires when the withdrawal completes. See [Webhooks](/platform/webhook) for setup and signature verification.
@@ -827,7 +827,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 | `POST /api/v4/convert/estimate` | Request a conversion quote | [Convert Estimate](/api-reference/convert/convert-estimate) |
 | `POST /api/v4/convert/confirm` | Confirm and execute a conversion | [Convert Confirm](/api-reference/convert/convert-confirm) |
 | `GET /api/v4/public/markets` | Available markets and trading limits | [Market Info](/api-reference/market-data/market-info) |
-| `POST /api/v4/main-account/withdraw` | Create a withdrawal request | [Create Withdraw](/api-reference/withdrawals/create-withdraw) |
+| `POST /api/v4/main-account/withdraw` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | Webhooks (`withdraw.successful`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/fee` | Currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
