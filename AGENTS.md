@@ -36,6 +36,7 @@ Automatic skills run after every pipeline without being explicitly asked.
 | Integration check | `ai/skills/integration-check/SKILL.md` | internal — invoked by ticket-impl-plan and doc-review-plan |
 | Task execution | `ai/skills/task-execution/SKILL.md` | internal — invoked by dev-ticket-pipeline and doc-review-pipeline (Phase 5) |
 | Task completion review | `ai/skills/task-completion-review/SKILL.md` | On demand — before committing; invoked by pipelines at Phase 6 |
+| Close-out session | `ai/skills/close-out-session/SKILL.md` | On demand — composite end-of-session ritual: TCR → autonomous `git add` → commit message. Never runs `git commit` (RULES §2.2) |
 | Generate docs from spec | `ai/skills/generate-docs-from-spec/SKILL.md` | On demand — new MDX from spec |
 | Write commit message | `ai/skills/write-commit-message/SKILL.md` | On demand — before committing |
 | Create initiative spec | `ai/skills/create-initiative-spec/SKILL.md` | On demand — multi-phase work |
@@ -49,6 +50,7 @@ Automatic skills run after every pipeline without being explicitly asked.
 | Task learnings | `ai/skills/task-learnings/SKILL.md` | **Automatic** — called by self-improvement for extraction |
 | Learning consolidator | `ai/skills/learning-consolidator/SKILL.md` | On demand — ~weekly cleanup of ai/LESSONS.md |
 | Answer partner questions | `ai/skills/answer-partner-questions/SKILL.md` | On demand — researching API capabilities for partner/client questions |
+| CR adversarial review | `ai/skills/cr-adversarial-review/SKILL.md` | On demand — adversarial review of a CR with on-disk evidence; bakes in the 2026-05-12 LESSONS cluster; consolidates Open Questions back into the host CR per owner |
 | Session retrospective | `ai/skills/session-retrospective/SKILL.md` | On demand — cross-session pattern analysis; use after a period of work |
 | AI changelog | `ai/skills/ai-changelog/SKILL.md` | internal — called after AI infrastructure changes by skill-creator, task-learnings, learning-consolidator |
 | AI improvement tracker | `ai/skills/ai-improvement-tracker/SKILL.md` | internal — called after ai-changelog to record testable improvement hypotheses |
