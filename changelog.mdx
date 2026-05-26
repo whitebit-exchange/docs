@@ -4,6 +4,26 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="May 26, 2026">
+## Retail flag on Create Limit Order and Bulk Limit Order
+**New `retail` request parameter enables API clients to take RPI-maker liquidity**
+
+A new optional `retail` boolean parameter on `POST /api/v4/order/new` and `POST /api/v4/order/bulk` marks an order as a retail-source taker. A retail taker is eligible to match against orders submitted by RPI makers and may receive price improvement at execution. The retail designation was previously available only on non-API sources (web, mobile, TV); approved WaaS/CaaS clients can now take RPI orders via API.
+
+**Validation:**
+- `retail=true` requires the Retail flag enabled on the account; the API returns error code `42` otherwise.
+- `retail=true` cannot be combined with `rpi=true`; the API returns error code `41` otherwise.
+- The flag has no effect on `postOnly=true` orders, because post-only orders are makers and cannot be retail takers.
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" href="/api-reference/spot-trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Bulk Limit Order" href="/api-reference/spot-trading/bulk-limit-order" icon="layer-group" horizontal/>
+  <Card title="Order Parameter Rules" href="/guides/order-parameter-rules" icon="book" horizontal/>
+  <Card title="Glossary — Retail flag" href="/glossary#retail-flag" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
+
 <Update label="May 14, 2026">
 ## Fast API Key via OAuth
 **New OAuth flow for partner-issued API keys**
