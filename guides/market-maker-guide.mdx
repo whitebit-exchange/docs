@@ -143,9 +143,11 @@ For endpoints not listed above, use the standard WhiteBIT API at `https://whiteb
 
 ## Quoting strategy
 
-Quoting on WhiteBIT pairs a single REST call — `POST /api/v4/order/bulk`, up to 20 limit orders per request — with the `depth` and `bookTicker` WebSocket channels for price input.
+Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input.
 
-**Bulk limit orders:** `POST /api/v4/order/bulk` — place up to 20 limit orders in a single API call. Each order item can set `rpi: true` to enable **Retail Price Improvement** mode — post-only by design, not visible in public `depth` feeds, and incompatible with `ioc`. See the [API Reference](/api-reference/spot-trading/bulk-limit-order).
+**Bulk vs individual:** bulk reduces wire and auth overhead and gives atomic same-timestamp placement of a quote ladder. The bulk response only returns once every leg in the batch is processed. Pipelined individual orders give faster per-leg acknowledgment for clients optimized for that pattern. Use bulk for atomic quote refreshes and less-optimized clients; use individual orders when lowest per-leg ack latency matters most.
+
+**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. They remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/spot-trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
@@ -282,7 +284,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 | Channel | Tells you | Recovery model | Where to learn the protocol |
 |---|---|---|---|
 | `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates with `update_id` for gap detection | [WS Quickstart — Subscribe to orderbook depth](/guides/websocket-quickstart#subscribe-to-orderbook-depth) |
-| `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders, so RPI MMs must rely on private active-orders state instead. |
+| `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders. Track RPI quotes via the private active-orders state. |
 | `balanceSpot` | Available + frozen balances per asset | Query-then-subscribe (`balanceSpot_request` then `balanceSpot_subscribe`) | [WS Quickstart — State recovery](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `ordersPending` | Active order state transitions: placed, partially filled, canceled | Query first (`ordersPending_request` or REST `POST /api/v4/orders`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
 | `deals` | Trade execution events with price, amount, fee, deal-id | Query first (`deals_request` or REST `POST /api/v4/trade-account/executed-history`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
