@@ -349,7 +349,7 @@ Refund returns funds for a canceled [deposit](#whitebit-deposit-to-main-balance)
 
 <Accordion title="Retail Price Improvement (RPI)">
 
-Retail Price Improvement (RPI) defines a [limit order](#limit-order) mode improving execution for retail users and keeping the order out of public market data feeds.
+Retail Price Improvement (RPI) defines a [limit order](#limit-order) mode improving execution for retail users and keeping the order out of public market data feeds. RPI is a two-sided feature: makers submit RPI orders with `rpi=true`, and takers eligible to match against those orders set [`retail=true`](#retail-flag).
 
 **Visibility**
 
@@ -357,11 +357,28 @@ Public `depth` and `bookTicker` feeds exclude RPI orders in both WebSocket and R
 
 **IOC compatibility**
 
-RPI orders use post-only behavior by design. An RPI order does not support the IOC flag. The API returns error code `37` when a request sets both `rpi=true` and `ioc=true`.
+RPI orders use post-only behavior by design. An RPI order does not support the IOC flag. The API returns error code `40` when a request sets both `rpi=true` and `ioc=true`.
 
 **Fees**
 
 RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use the `Query Market Fee` or `Query All Market Fees` endpoints to retrieve effective fees.
+</Accordion>
+
+<Accordion title="Retail flag">
+
+The `retail` request parameter on the [Create Limit Order](/api-reference/spot-trading/create-limit-order) and [Bulk Limit Order](/api-reference/spot-trading/bulk-limit-order) endpoints marks a [limit order](#limit-order) as a retail-source taker eligible to match against orders submitted by [Retail Price Improvement (RPI)](#retail-price-improvement-rpi) makers. The Retail flag is the taker-side counterpart to the `rpi` flag, which marks the maker side of the same feature.
+
+**Eligibility**
+
+The Retail flag must be enabled on the account before `retail=true` can be sent from a private-API source. Contact the account manager to enable the Retail flag.
+
+**Behavior**
+
+A retail taker is eligible to match against RPI-maker liquidity and may receive price improvement at execution. The flag has no effect when combined with `postOnly=true` — post-only orders are makers, never takers.
+
+**Mutual exclusivity**
+
+The Retail flag cannot be combined with the `rpi` flag. The API returns error code `41` when a request sets both `retail=true` and `rpi=true`. See [Order Parameter Rules](/guides/order-parameter-rules) for the complete list of unsupported parameter combinations.
 </Accordion>
 
 <Accordion title="Reduce-only">

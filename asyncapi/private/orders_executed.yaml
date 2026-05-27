@@ -157,6 +157,7 @@ components:
                   status: "FILLED"
                   fee_asset: "USDT"
                   rpi: false
+                  retail: false
                   reduce_only: false
             error: null
 
@@ -229,6 +230,7 @@ components:
                 status: "FILLED"
                 position_side: "LONG"
                 rpi: true
+                retail: false
                 reduce_only: false
 
     ordersExecutedUnsubscribe:
@@ -487,6 +489,10 @@ components:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
           example: true
+        retail:
+          type: boolean
+          description: "Retail-source taker flag. Present when the order was placed with `retail=true`. See [Retail flag](/glossary#retail-flag)."
+          example: false
         reduce_only:
           type: boolean
           description: "Reduce-only flag. When `true`, the order could only reduce or close an existing position. See [reduce-only](/glossary#reduce-only)."
