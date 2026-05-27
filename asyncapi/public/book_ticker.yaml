@@ -147,11 +147,15 @@ components:
         $ref: '#/components/schemas/UnsubscribeRequest'
       examples:
         - name: unsubscribeBookTicker
-          summary: Unsubscribe from book ticker
+          summary: |
+            Unsubscribe from a specific market:
+            - params[0]: Market name (BTC_USDT)
+            Optional: empty array unsubscribes from all markets
           payload:
             id: 2
             method: bookTicker_unsubscribe
-            params: []
+            params:
+              - BTC_USDT
 
   schemas:
     BookTickerSubscribe:
@@ -273,5 +277,9 @@ components:
           description: "Method name. Fixed value: `bookTicker_unsubscribe`."
         params:
           type: array
-          items: {}
-          maxItems: 0
+          minItems: 0
+          maxItems: 1
+          description: "Empty array unsubscribes from all markets; a single [market](/glossary#market) name unsubscribes from that market only."
+          items:
+            type: string
+            description: "[Market](/glossary#market) name"

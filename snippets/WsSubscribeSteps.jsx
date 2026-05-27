@@ -8,6 +8,7 @@ export const WsSubscribeSteps = ({
   subscribeNote,
   updateNote,
   updateExtra,
+  unsubscribeNote,
 }) => {
   const [isDark, setIsDark] = useState(
     typeof document !== 'undefined'
@@ -167,6 +168,7 @@ export const WsSubscribeSteps = ({
       </WsStep>
 
       <WsStep number={4} title="Unsubscribe" isLast>
+        {unsubscribeNote && <p style={{ margin: '0 0 0.75rem 0' }}>{unsubscribeNote}</p>}
         <JsonBlock data={unsubscribe} />
       </WsStep>
     </div>

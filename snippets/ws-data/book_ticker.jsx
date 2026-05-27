@@ -30,7 +30,7 @@ export const bookTickerUpdate = [
 export const unsubscribeRequest = [
   { name: "id", type: "integer", required: true, description: "Unique request identifier" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `bookTicker_unsubscribe`." },
-  { name: "params", type: "array", required: true, description: "" },
+  { name: "params", type: "array", required: true, description: "Empty array unsubscribes from all markets; a single market name unsubscribes from that market only." },
 ];
 
 // ── Tuple field arrays ──────────────────────────────────────────────────────
@@ -108,5 +108,7 @@ export const exBookTickerUpdate = {
 export const exBookTickerUnsubscribe = {
   "id": 2,
   "method": "bookTicker_unsubscribe",
-  "params": []
+  "params": [
+    "BTC_USDT"
+  ]
 };

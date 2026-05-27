@@ -57,7 +57,7 @@ export const depthUpdate = [
 export const unsubscribeRequest = [
   { name: "id", type: "integer", required: true, description: "" },
   { name: "method", type: "string", required: true, description: "Method name. Fixed value: `depth_unsubscribe`." },
-  { name: "params", type: "array", required: true, description: "" },
+  { name: "params", type: "array", required: true, description: "Empty array unsubscribes from all markets; a single market name unsubscribes from that market only." },
 ];
 
 // ── Tuple field arrays ──────────────────────────────────────────────────────
@@ -227,5 +227,13 @@ export const exDepthPartialUpdate = {
       "event_time": 1749026542.817343
     },
     "ETH_BTC"
+  ]
+};
+
+export const exDepthUnsubscribe = {
+  "id": 13,
+  "method": "depth_unsubscribe",
+  "params": [
+    "BTC_USDT"
   ]
 };
