@@ -63,6 +63,22 @@ paths:
       description: |
         The endpoint retrieves the [main balance](/glossary#balance-main) by currency [ticker](/glossary#ticker) or all balances.
 
+        An unknown or non-existent `ticker` is not an error: the endpoint returns a zero balance (`{"main_balance": "0"}`) for it. Omitting `ticker` returns balances for every currency.
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "ticker": ["validation.string"]
+          }
+        }
+        ```
+        </Accordion>
+
+        Beyond the validation error above, this endpoint can return only the [common authentication errors](/api-reference/authentication).
+
         <Warning>
           Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -117,7 +133,7 @@ paths:
                   main_balance: "0"
                 XLM:
                   main_balance: "36.48"
-        "400":
+        "422":
           description: Validation failed
           content:
             application/json:
@@ -366,8 +382,78 @@ paths:
           "code": 0,
           "message": "Validation failed",
           "errors": {
-            "successLink": ["Uri domain must have only https scheme"],
-            "failureLink": ["Uri domain must have only https scheme"]
+            "successLink": ["Your domain scheme incorrect. Use https only"],
+            "failureLink": ["Your domain scheme incorrect. Use https only"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "ticker": ["Currency is not depositable via API"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "user": ["User not verified"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Amount is too big for deposit"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Daily limit reached"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "amount": ["Expiration date cannot be used for this provider"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "customer.birthDate": ["You must be at least 18 years old"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "address": ["Invalid credit card number"]
           }
         }
         ```
@@ -655,7 +741,21 @@ paths:
       description: |
         The V4 endpoint can be used to retrieve the WebSocket token for user.
         The token is required to authorize WebSocket connections for private API access.
-        
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "user": ["user not found"]
+          }
+        }
+        ```
+        </Accordion>
+
+        Beyond the error above, this endpoint can return only the [common authentication errors](/api-reference/authentication).
+
         <Warning>
         Rate limit: 10 requests/60 sec.
         </Warning>
@@ -1170,18 +1270,8 @@ paths:
               example: []
         "400":
           description: |
-            Request validation failed
-
-            Response error codes:
-            - 1 - currency is not withdrawable
-            - 2 - specified address is invalid
-            - 3 - amount is too small
-            - 4 - amount is too small for the payment system
-            - 5 - not enough balance
-            - 6 - amount is less than or equals [fee](/glossary#fee)
-            - 7 - amount should be integer (can happen for currencies with zero [precision](/glossary#precision) like Neo)
-            - 8 - target withdraw amount without [fee](/glossary#fee) equals zero
-            - 9 - address is unavailable (occurs for withdraws to own address)
+            Request validation failed. Request-shape errors always carry `code: 0`; the
+            business-rule codes 1–9 are returned with HTTP 422 (see below), not 400.
           content:
             application/json:
               schema:
@@ -1255,9 +1345,9 @@ paths:
                     code: 0
         "422":
           description: |
-            Inner validation failed
+            Inner validation failed.
 
-            Response error codes:
+            Business-rule codes (returned with HTTP 422):
             - 1 - currency is not withdrawable
             - 2 - specified address is invalid
             - 3 - amount is too small
@@ -1267,6 +1357,15 @@ paths:
             - 7 - amount should be integer (can happen for currencies with zero [precision](/glossary#precision) like Neo)
             - 8 - target withdraw amount without [fee](/glossary#fee) equals zero
             - 9 - address is unavailable (occurs for withdraws to own address)
+
+            Additional account-state outcomes are also returned here with `code: 0`
+            (the message is localized, so match on the condition rather than the exact string):
+            - **Daily / monthly withdrawal limit reached** — on field `amount`.
+            - **Withdrawals temporarily restricted** — after a security event (e.g. password
+              change); on field `error`, e.g. `Withdrawals restricted until {time}`.
+            - **Address blocked by compliance** — the request is accepted but the withdrawal
+              transitions to an `AML_FROZEN` state (no distinct error body); check the request
+              status by `unique_id` in deposit/withdraw history.
           content:
             application/json:
               schema:
@@ -1286,6 +1385,18 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       amount: ["Not enough money, Ethereum balance = 1"]
+        "412":
+          description: |
+            Two-Factor Authentication (2FA) is required for this action but is not enabled on
+            the account. Enable 2FA in account security settings, then retry. The HTTP 412
+            status distinguishes this precondition failure from the business-rule codes at 422.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInner"
+              example:
+                code: 1
+                message: "This action is unauthorized. Please, enable Two-Factor authentication."
 
   /api/v4/main-account/withdraw-pay:
     post:
@@ -1332,18 +1443,8 @@ paths:
               example: []
         "400":
           description: |
-            Request validation failed
-
-            Response error codes:
-            - 1 - currency is not withdrawable
-            - 2 - specified address is invalid
-            - 3 - amount is too small
-            - 4 - amount is too small for the payment system
-            - 5 - not enough balance
-            - 6 - amount is less than or equals [fee](/glossary#fee)
-            - 7 - amount should be integer (can happen for currencies with zero [precision](/glossary#precision) like Neo)
-            - 8 - target withdraw amount without [fee](/glossary#fee) equals zero
-            - 9 - address is unavailable (occurs for withdraws to own address)
+            Request validation failed. Request-shape errors always carry `code: 0`; the
+            business-rule codes 1–9 are returned with HTTP 422 (see below), not 400.
           content:
             application/json:
               schema:
@@ -1377,9 +1478,11 @@ paths:
                         - "Current limit exceeded"
         "422":
           description: |
-            Inner validation failed
+            Inner validation failed. This endpoint shares the validation pipeline of
+            /main-account/withdraw, so the error contract is identical — the same
+            business-rule codes and the same `code: 0` account-state outcomes apply.
 
-            Response error codes:
+            Business-rule codes (returned with HTTP 422):
             - 1 - currency is not withdrawable
             - 2 - specified address is invalid
             - 3 - amount is too small
@@ -1393,6 +1496,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
+              examples:
+                invalidAddress:
+                  summary: Invalid address
+                  value:
+                    code: 2
+                    message: "Inner validation failed"
+                    errors:
+                      address: ["The address is invalid"]
+                notEnoughBalance:
+                  summary: Not enough balance
+                  value:
+                    code: 5
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Not enough money, Ethereum balance = 1"]
+        "412":
+          description: |
+            Two-Factor Authentication (2FA) is required for this action but is not enabled on
+            the account. Enable 2FA in account security settings, then retry. The HTTP 412
+            status distinguishes this precondition failure from the business-rule codes at 422.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInner"
+              example:
+                code: 1
+                message: "This action is unauthorized. Please, enable Two-Factor authentication."
 
   /api/v4/main-account/transfer:
     post:
@@ -1545,6 +1675,21 @@ paths:
                     message: "Validation failed"
                     errors:
                       method: ["The selected method is invalid."]
+                invalidFromTo:
+                  summary: Invalid from/to balance type
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      from: ["The selected from is invalid."]
+                      to: ["The selected to is invalid."]
+                sameFromTo:
+                  summary: Source and destination balance are the same
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      to: ["The to and from must be different."]
                 amountTooSmall:
                   summary: Amount too small
                   value:
@@ -1569,9 +1714,19 @@ paths:
             Inner validation failed
 
             Response error codes:
-            - 1 - transfers from [trade](/glossary#balance-spotbalance-trade) to [main](/glossary#balance-main) are disabled
-            - 2 - transfers from [main](/glossary#balance-main) to [trade](/glossary#balance-spotbalance-trade) are disabled
+            - 1 - transfers from [trade](/glossary#balance-spotbalance-trade) to [main](/glossary#balance-main) are disabled, or withdraw of this currency is disabled
+            - 2 - transfers from [main](/glossary#balance-main) to [trade](/glossary#balance-spotbalance-trade) are disabled, or deposit of this currency is disabled
             - 3 - not enough balance
+
+            Additional account-state outcomes are returned here with `code: 0` (the message is
+            localized — match on the condition, not the exact string):
+            - **Collateral transfer unavailable** — the [collateral](/glossary#balance-collateral)
+              (margin) feature is not available to this account; on field `error`, e.g.
+              `Unavailable for legal reasons`.
+            - **Operation not permitted for a sub-account** — on field `error`, e.g.
+              `Not permitted for sub-account`.
+            - **Maximum collateral balance exceeded** — the transfer would push the
+              [collateral balance](/glossary#balance-collateral) past its cap; on field `form`.
           content:
             application/json:
               schema:
@@ -1584,6 +1739,20 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       amount: ["You don't have such amount for transfer (available 34.68, in amount: 1000000)"]
+                currencyWithdrawDisabled:
+                  summary: Withdraw of this currency is disabled
+                  value:
+                    code: 1
+                    message: "Inner validation failed"
+                    errors:
+                      currency: ["Withdraw from this currency is disabled"]
+                currencyDepositDisabled:
+                  summary: Deposit to this currency is disabled
+                  value:
+                    code: 2
+                    message: "Inner validation failed"
+                    errors:
+                      currency: ["Deposit to this currency is disabled"]
 
   /api/v4/main-account/history:
     post:
@@ -1628,7 +1797,11 @@ paths:
         </Note>
 
         <Note>
-        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters. Traverse the full history with pagination (`limit`, `offset`).
+        Results are sorted newest first (descending by timestamp).
+        </Note>
+
+        <Note>
+        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters, and pagination is capped at `offset + limit ≤ 10000` (requests beyond the cap return `Offset is too big. Please use offset + limit less than 10000.`). To read more than 10,000 records, narrow the result set with the available filters (`transactionMethod`, `ticker`, `status`) and paginate within each subset; for a complete history export beyond the cap, use the Report on the History page.
         </Note>
       operationId: getDepositWithdrawHistory
       requestBody:
@@ -1983,6 +2156,20 @@ paths:
                     message: "Validation failed"
                     errors:
                       network: ["Unsupported network"]
+                noDefaultNetwork:
+                  summary: Network omitted and the currency has no default network
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      network: ["Cannot extract default network"]
+                currencyNetworkMismatch:
+                  summary: Currency/network combination is invalid
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      network: ["Cannot find currency for specified network"]
                 invalidTypes:
                   summary: Invalid data types
                   value:
@@ -1992,11 +2179,59 @@ paths:
                       network: ["The network must be a string."]
                       ticker: ["The ticker must be a string."]
         "422":
-          description: Inner validation failed
+          description: |
+            Inner validation failed. Returned with `code: 0`; the `errors` field carries the
+            condition (the message is localized — match on the condition, not the exact string).
+
+            By default a fresh address is generated even when a previous address exists for the
+            currency/network. The cases below are the exceptions:
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
+              examples:
+                notDepositable:
+                  summary: Currency does not support deposits
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      ticker: ["Currency is not depositable"]
+                fiatUnavailable:
+                  summary: Fiat currency — address creation not allowed
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      ticker: ["Fiat currencies are unavailable for this action"]
+                currencyUnavailable:
+                  summary: Currency not available to this account (region / verification)
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      message: ["Currency is not available"]
+                kycRequired:
+                  summary: KYC verification required
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      error: ["KYC required"]
+                addressInProgress:
+                  summary: Address generation already in progress
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      message: ["Create address in process"]
+                addressLimitReached:
+                  summary: Per-currency address limit reached
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      message: ["Address limit reached"]
 
   /api/v4/main-account/codes:
     post:
@@ -2133,6 +2368,10 @@ paths:
             - 4 - amount is too small for the payment system
             - 5 - not enough balance
             - 6 - amount is less than or equals [fee](/glossary#fee)
+
+            Code creation reserves funds through the shared withdraw processor, so insufficient
+            balance surfaces as code 5. The minimum amount is configured **per currency** (there
+            is no fixed global value) and a below-minimum amount surfaces as code 3.
           content:
             application/json:
               schema:
@@ -2163,6 +2402,13 @@ paths:
                     message: "Validation failed"
                     errors:
                       passphrase: ["The passphrase format is invalid."]
+                codesDisabled:
+                  summary: WhiteBIT codes are disabled for this currency
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: ["Codes are disabled for this currency"]
 
   /api/v4/main-account/codes/apply:
     post:
@@ -2175,9 +2421,16 @@ paths:
         <Warning>
         Rate limit: 60 requests/1 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
+        </Note>
+
+        <Note>
+        To avoid leaking whether a code exists, most failure modes — invalid format, expired,
+        non-existent, or wrong passphrase — collapse to one generic rejection on field `code`.
+        Only two cases are distinguishable at the API surface: a code that has already been
+        applied, and a code created by the same account.
         </Note>
       operationId: applyCode
       requestBody:
@@ -2255,12 +2508,50 @@ paths:
                     message: "Validation failed"
                     errors:
                       code: ["Incorrect code or passphrase"]
+                codeNotApplied:
+                  summary: Generic rejection (invalid format / expired / non-existent / wrong passphrase)
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      code: ["Code not applied"]
+                codeAlreadyApplied:
+                  summary: Code has already been applied
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      code: ["Code already applied"]
+                ownCode:
+                  summary: Applying a code created by the same account
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      code: ["This code was created by you"]
         "422":
-          description: Inner validation failed
+          description: |
+            Inner validation failed. Returned with `code: 0`; the message is localized, so
+            match on the condition rather than the exact string.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
+              examples:
+                kycRequired:
+                  summary: KYC verification required to redeem
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      error: ["KYC required"]
+                codesDisabled:
+                  summary: WhiteBIT codes are disabled for this currency
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      code: ["Codes are disabled for this currency"]
 
   /api/v4/main-account/codes/my:
     post:
@@ -2273,9 +2564,13 @@ paths:
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
+        </Note>
+
+        <Note>
+        Results are sorted by creation date, newest first. Pagination is capped at `offset + limit ≤ 10000`; for a complete history export beyond the cap, use the Report on the History page.
         </Note>
       operationId: getMyCodes
       requestBody:
@@ -2398,7 +2693,11 @@ paths:
         </Note>
 
         <Note>
-        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters. Results are bounded only by pagination (`limit` ≤ 100, `offset` ≤ 10000).
+        Results are sorted by date, newest first.
+        </Note>
+
+        <Note>
+        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters, and pagination is capped at `offset + limit ≤ 10000` (`limit` ≤ 100). For a complete history export beyond the cap, use the Report on the History page.
         </Note>
       operationId: getCodesHistory
       requestBody:
@@ -2673,7 +2972,7 @@ paths:
                     message: "Validation failed"
                     errors:
                       planId: ["The selected planId is invalid."]
-                      amount: ["The amount must be a number.", "Invalid number"]
+                      amount: ["The amount field must be a valid number"]
                 amountTooSmall:
                   summary: Amount below minimum
                   value:
@@ -2719,6 +3018,20 @@ paths:
                     message: "Validation failed"
                     errors:
                       planId: ["Plan is paused"]
+                specialOffer:
+                  summary: Special-offer plan not available via API
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      planId: ["Special offers are not available via API"]
+                invalidDecimal:
+                  summary: Decimal precision exceeded
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["Invalid decimal amount"]
         "422":
           description: |
             Inner validation failed
@@ -2740,7 +3053,7 @@ paths:
                     code: 1
                     message: "Inner validation failed"
                     errors:
-                      planId:
+                      amount:
                         [
                           "The investment in this investment plan already exists",
                         ]
@@ -2750,37 +3063,28 @@ paths:
                     code: 2
                     message: "Inner validation failed"
                     errors:
-                      amount:
-                        [
-                          "The amount you're trying to invest is lower than the minimum amount in this investment plan.",
-                        ]
+                      amount: ["Amount is less than min investment"]
                 amountTooHigh:
                   summary: Amount exceeds plan maximum
                   value:
                     code: 3
                     message: "Inner validation failed"
                     errors:
-                      amount:
-                        [
-                          "The amount you're trying to invest exceeds the maximum amount in this investment plan.",
-                        ]
+                      amount: ["Amount is more than max investment"]
                 insufficientBalance:
                   summary: Insufficient balance
                   value:
                     code: 4
                     message: "Inner validation failed"
                     errors:
-                      amount:
-                        [
-                          "Insufficient coins on your balance. 9 available, you're trying to invest 10",
-                        ]
+                      amount: ["Available 9 < 10"]
                 insufficientFunds:
-                  summary: Insufficient funds for payment
+                  summary: Insufficient funds for interest payment
                   value:
                     code: 5
                     message: "Inner validation failed"
                     errors:
-                      amount: ["Insufficient funds for the payment."]
+                      amount: ["Not enough money to pay interest"]
 
   /api/v4/main-account/smart/investment/close:
     post:
@@ -2790,10 +3094,12 @@ paths:
       description: |
         The endpoint closes active investment.
 
+        Early closure is allowed and carries no penalty — the request either succeeds or returns one of the documented errors.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -2847,6 +3153,27 @@ paths:
                     message: "Validation failed"
                     errors:
                       id: ["Investment not found"]
+                idRequired:
+                  summary: Missing or invalid id
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      id: ["The id field is required."]
+        "422":
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                alreadyClosed:
+                  summary: Investment already closed
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      error: ["Investment is already closed"]
 
   /api/v4/main-account/smart/investments:
     post:
@@ -3618,34 +3945,96 @@ paths:
                 data:
                   transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
         "400":
-          description: Validation failed
+          description: Request validation failed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                code: 0
-                message: "Validation failed"
-                errors:
-                  plan: ["validation.required"]
-                  amount: ["validation.numeric"]
+              examples:
+                invalidPlan:
+                  summary: Plan not found or inactive
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      plan: ["The selected plan is invalid."]
+                invalidAmount:
+                  summary: Invalid amount format
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["The amount field must be a valid number"]
         "422":
-          description: Business logic error
+          description: |
+            Inner validation failed
+
+            Response error codes:
+            - 0 - Validation failed (plan unavailable/paused, amount too small, private plan, investment cap exceeded)
+            - 2 - Amount is less than min investment amount
+            - 3 - Amount is greater than max investment amount
+            - 4 - Not enough balance to create investment
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
-              example:
-                code: 2
-                message: "Inner validation failed"
-                errors:
-                  amount:
-                    [
-                      "Amount is greater than maximum investment",
-                      "Amount is less than minimum investment",
-                    ]
-                  balance: ["User must have sufficient balance"]
-                  plan: ["Plan must be active and accessible to user's region"]
+              examples:
+                planUnavailable:
+                  summary: Plan unavailable
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      plan: ["Plan is unavailable"]
+                planPaused:
+                  summary: Plan is paused
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      plan: ["Plan is paused"]
+                amountTooLow:
+                  summary: Amount below plan minimum
+                  value:
+                    code: 2
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Amount is less than min investment"]
+                amountTooHigh:
+                  summary: Amount exceeds plan maximum
+                  value:
+                    code: 3
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Amount is more than max investment"]
+                insufficientBalance:
+                  summary: Insufficient balance
+                  value:
+                    code: 4
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Available 9 < 10"]
+                amountTooSmall:
+                  summary: Amount zero or negative
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Amount is too small"]
+                privatePlan:
+                  summary: Private plan not available for user
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      plan: ["Private plan not available for this user"]
+                investmentLimit:
+                  summary: Cumulative investment cap exceeded
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Investment limit is exceeded"]
 
   /api/v4/main-account/smart-flex/investments/withdraw:
     post:
@@ -3716,29 +4105,68 @@ paths:
                 data:
                   transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
         "400":
-          description: Validation failed
+          description: Request validation failed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                code: 0
-                message: "Validation failed"
-                errors:
-                  plan: ["validation.required"]
-                  amount: ["validation.required", "validation.numeric"]
+              examples:
+                invalidPlan:
+                  summary: Plan not found
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      plan: ["The selected plan is invalid."]
         "422":
-          description: Business logic error
+          description: Inner validation failed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
-              example:
-                code: 2
-                message: "Inner validation failed"
-                errors:
-                  amount: ["Withdrawal amount must not exceed invested amount"]
-                  plan: ["User must have active investment in specified plan"]
+              examples:
+                investmentNotFound:
+                  summary: Investment not found or not owned
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Investment does not exist"]
+                investmentClosed:
+                  summary: Investment is closed
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      investment: ["Cannot withdraw from closed investment"]
+                amountTooSmall:
+                  summary: Withdraw amount zero or negative
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Withdraw amount is too small"]
+                exceedsInvested:
+                  summary: Withdraw exceeds total invested
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Withdraw amount exceeds total invested"]
+                belowMinLeft:
+                  summary: Remaining balance would drop below minimum
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      minAmountLeft: ["Amount left < min investment"]
+                belowMinPossible:
+                  summary: Withdrawal below minimum threshold
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Cannot withdraw amount < min possible"]
 
   /api/v4/main-account/smart-flex/investments/close:
     post:
@@ -3805,31 +4233,40 @@ paths:
                 data:
                   transaction_id: "tx_9f3e0d4c-2b5c-4d3e-8f6g-7a8b9c0d1e2f"
         "400":
-          description: Validation failed
+          description: Request validation failed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                code: 0
-                message: "Validation failed"
-                errors:
-                  plan: ["validation.required"]
+              examples:
+                invalidPlan:
+                  summary: Plan not found
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      plan: ["The selected plan is invalid."]
         "422":
-          description: Business logic error
+          description: Inner validation failed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
-              example:
-                code: 2
-                message: "Inner validation failed"
-                errors:
-                  investment:
-                    [
-                      "Investment must be in ACTIVE status",
-                      "Investment amount must be > 0",
-                    ]
+              examples:
+                investmentNotFound:
+                  summary: Investment not found or not owned
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Investment does not exist"]
+                alreadyClosed:
+                  summary: Investment already closed
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      investment: ["Cannot withdraw from closed investment"]
 
   /api/v4/main-account/smart-flex/investments/auto-invest:
     post:
@@ -3894,7 +4331,7 @@ paths:
               example:
                 data: []
         "400":
-          description: Validation failed
+          description: Request validation failed
           content:
             application/json:
               schema:
@@ -3903,20 +4340,19 @@ paths:
                 code: 0
                 message: "Validation failed"
                 errors:
-                  plan: ["validation.required"]
-                  enabled: ["validation.boolean"]
+                  plan: ["The plan field is required."]
+                  enabled: ["The enabled field must be true or false."]
         "422":
-          description: Business logic error
+          description: Inner validation failed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               example:
-                code: 2
+                code: 0
                 message: "Inner validation failed"
                 errors:
-                  investment:
-                    ["User must have active investment in specified plan"]
+                  plan: ["No existing investments for this plan"]
 
   /api/v4/main-account/fee:
     post:
@@ -3926,6 +4362,8 @@ paths:
       description: |
         Returns an array of objects containing deposit/withdrawal [fees](/glossary#fee) for the corresponding currencies.
         Zero value in amount fields means that the setting is disabled.
+
+        The endpoint takes no input beyond the signed request envelope and returns the full per-currency fee schedule on success. It can return only the [common authentication errors](/api-reference/authentication).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -4472,7 +4910,11 @@ paths:
         </Note>
 
         <Note>
-        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters. Results are bounded only by pagination (`limit` ≤ 100, `offset` ≤ 10000).
+        Results are sorted by transaction id descending (newest transfer first). The response is a plain array with no `total`, `has_more`, or cursor — a returned count below `limit` marks the last page (an empty array means no further records).
+        </Note>
+
+        <Note>
+        **No date filtering:** the endpoint does not accept `startDate` / `endDate` parameters, and pagination is capped at `offset + limit ≤ 10000` (`limit` ≤ 100). The required `id` parameter already scopes results to a single sub-account; for a complete history export beyond the cap, use the Report on the History page.
         </Note>
       operationId: getSubAccountTransferHistory
       requestBody:
@@ -4497,8 +4939,8 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100
-                  default: 30
-                  example: 30
+                  default: 100
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
@@ -4834,9 +5276,13 @@ paths:
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
+        </Note>
+
+        <Note>
+        Results are sorted by api-key id descending (newest key first). The response is a plain array with no `total`, `has_more`, or cursor — a returned count below `limit` marks the last page (an empty array means no further records).
         </Note>
       operationId: listSubAccountApiKeys
       requestBody:
@@ -4854,8 +5300,8 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100
-                  default: 30
-                  example: 30
+                  default: 100
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
@@ -5205,6 +5651,15 @@ paths:
         The `offset` parameter is capped at 10000. To paginate reward histories
         beyond that, window the request by `from` and `to` (Unix timestamps).
 
+        <Note>
+        The `account` filter is not validated at the request layer. An unknown or
+        not-owned account name is treated as an empty filter and returns HTTP `200`
+        with an empty `data` array — the same response as a valid account with no
+        rewards in the requested window. An account without mining access also
+        returns empty data, so an empty response does not distinguish "no mining
+        access" from "no rewards in range."
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -5260,6 +5715,43 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/MiningReward"
+        "400":
+          description: |
+            Pagination validation failed. The `errors` values are translation keys
+            that may render as localized strings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              examples:
+                limitOutOfRange:
+                  summary: limit above 100 (below 1 returns validation.min)
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      limit: ["validation.max.integer"]
+                offsetTooLarge:
+                  summary: offset above 10000
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      offset: ["validation.max"]
+                nonInteger:
+                  summary: non-integer limit or offset
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      limit: ["validation.integer"]
         "422":
           description: Request validation failed
           content:
@@ -5283,10 +5775,16 @@ paths:
       description: |
         The endpoint returns hashrate of mining pool account.
 
+        <Note>
+        There is no dedicated "mining not enabled" error. An account that is
+        administratively disabled for mining returns HTTP `200` with empty data
+        rather than an error.
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -5343,6 +5841,24 @@ paths:
                             rejectRate:
                               type: number
                               description: Share reject rate (e.g. `0.01` means 1%)
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  account: ["Account not found"]
         "422":
           description: Request validation failed
           content:
@@ -5475,7 +5991,10 @@ paths:
                 payoutDestination: "external_address"
                 externalAddress: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
         "400":
-          description: Validation failed
+          description: |
+            Validation failed. The `address` must match the standard BTC address
+            regex (legacy `1…`, `3…`, and bech32 `bc1…`). Some `errors` values are
+            translation keys that may render as localized strings.
           content:
             application/json:
               schema:
@@ -5487,11 +6006,35 @@ paths:
                     type: string
                   errors:
                     type: object
-              example:
-                code: 0
-                message: "Validation failed"
-                errors:
-                  user: ["Mining account not found."]
+              examples:
+                accountNotFound:
+                  summary: Mining account not found
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      user: ["Mining account not found."]
+                invalidBtcAddress:
+                  summary: address fails BTC format validation
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      address: ["miningPool.validation.payoutDestination.invalidBtcAddress"]
+                btcAddressRequired:
+                  summary: destination is external_address but address is missing or empty
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      address: ["miningPool.validation.payoutDestination.btcAddressRequired"]
+                customCurrencyConflict:
+                  summary: destination / currency mismatch
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      destination: ["miningPool.validation.payoutDestination.customCurrencyConflict"]
 
   /api/v4/mining/miners/info:
     post:
@@ -5774,6 +6317,12 @@ paths:
       description: |
         Creates a new watcher link for one or more mining accounts, granting specific permissions with a configurable expiration.
 
+        <Note>
+        The number of active watcher links per mining account is capped (configurable
+        server-side; currently 3 by default). Exceeding the cap returns a `400` with
+        `Limit exceeded`.
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -5957,6 +6506,12 @@ paths:
       description: |
         Creates a new mining account for the authenticated user. The account name must be unique within the user's accounts.
 
+        <Note>
+        The number of mining accounts per user is capped (configurable server-side).
+        Creating an account beyond the cap returns a `400` with
+        `miningPool.validation.maxAccounts`.
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6012,7 +6567,9 @@ paths:
                   name: "my_miner_01"
                   createdAt: 1709340000
         "400":
-          description: Validation failed
+          description: |
+            Validation failed. The `maxAccounts` value is a translation key that may
+            render as a localized string.
           content:
             application/json:
               schema:
@@ -6024,11 +6581,21 @@ paths:
                     type: string
                   errors:
                     type: object
-              example:
-                code: 0
-                message: "Validation failed"
-                errors:
-                  name: ["The name has already been taken."]
+              examples:
+                nameTaken:
+                  summary: Account name already exists
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      name: ["The name has already been taken."]
+                maxAccounts:
+                  summary: Maximum number of mining accounts reached
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      error: ["miningPool.validation.maxAccounts"]
 
   /api/v4/mining/accounts:
     post:

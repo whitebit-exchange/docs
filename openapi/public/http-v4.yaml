@@ -12,6 +12,32 @@ info:
     <Warning>
     Rate limit: 2000 requests/10 sec for most endpoints (specific limits noted per endpoint).
     </Warning>
+
+    ## Caching and data freshness
+
+    Most public endpoints serve cached data. The cache is **shared across all callers** — values are keyed by the resource (market, currency), never by account — and invalidates on a **time basis only**: an upstream change becomes visible after the next refresh, not immediately.
+
+    Two refresh tiers apply:
+
+    - **Reference data** (`markets`, `assets`, `fee`, `collateral/markets`, `futures`) refreshes from the database on a fixed interval, ranging from about 10 seconds to about 1 minute depending on the endpoint.
+    - **Market data** (`trades`, `orderbook`, `orderbook/depth`, `ticker`) uses a short-lived cache, about 1 second by default.
+
+    `time` and `ping` are computed per request and are not cached. Each endpoint states its own refresh interval. Polling faster than that interval returns identical data and consumes rate-limit budget without producing fresher results.
+
+    ## Error responses
+
+    Public V4 endpoints do not share a single error schema. Depending on the endpoint, an error arrives in one of three shapes (there is no `params` field on any public error):
+
+    - **Flat validation bag (HTTP 422)** — `{ "<field>": ["<message>"] }`. No envelope. Used by the market endpoints (`orderbook`, `orderbook/depth`, `trades`). Example: `{ "market": ["Market is not available."] }`. On `funding-history` the values are single strings rather than arrays.
+    - **Wrapped, HTTP 200 even on validation errors** — `{ "success": false, "message": { "<field>": ["<message>"] }, "result": null }`. Used by the V4 `kline` endpoint (not part of this portal — the documented Kline endpoint is V1).
+    - **Wrapped string message (HTTP 4xx)** — `{ "success": false, "message": "<string>", "errors": [] }`. Used by the margin/futures collateral subset of endpoints. Parameterless endpoints (`markets`, `ticker`, `assets`, `fee`) take no input and so produce no validation errors — they fail only at the infrastructure level below.
+
+    Common failures are produced at the infrastructure layer, not by the application, and do not follow these shapes:
+
+    - **Maintenance** — every endpoint returns **HTTP 503** with a non-JSON body served by the gateway.
+    - **Rate limit exceeded** — **HTTP 429** with a non-JSON body served by the gateway/CDN.
+    - **Internal server error** — **HTTP 500** with a flat body `{ "error": ["Internal server error."] }`.
+    - **Unknown route** — **HTTP 404** with an empty body.
   version: 4.0.0
 servers:
   - url: https://whitebit.com
@@ -51,7 +77,7 @@ paths:
         The endpoint retrieves configuration and trading rules for all available spot and futures markets. Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee ratios, and order-size constraints for the market.
 
         <Note>
-        The API caches the response for 1 second
+        Market configuration is reference data, re-synced from the database approximately every 10 seconds. Polling more frequently returns identical data. The cache is shared across all callers.
         </Note>
 
         <Warning>
@@ -226,7 +252,7 @@ paths:
         The endpoint retrieves the deposit and withdrawal status for every supported asset. Use the response to check whether deposits and withdrawals are enabled, read per-network fee and limit details, and determine required blockchain confirmation counts. The response includes crypto assets, fiat currencies, and fiat payment methods.
 
         <Note>
-        The API caches the response for 1 second
+        Asset status is reference data, re-synced approximately once per minute. Polling more frequently returns identical data. The cache is shared across all callers.
         </Note>
 
         <Warning>
@@ -367,12 +393,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrderbookResponse'
-        'default':
-          description: Error response
+        '422':
+          description: "Validation error. Returned when the `market` path parameter is unknown or not enabled for trading."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorV4'
+                $ref: '#/components/schemas/PublicValidationError'
+              example:
+                market: ["Market is not available."]
 
   /api/v4/public/orderbook/depth/{market}:
     get:
@@ -404,12 +432,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrderbookResponse'
-        'default':
-          description: Error response
+        '422':
+          description: "Validation error. Returned when the `market` path parameter is unknown, not enabled for trading, or not enabled for the Coingecko feed that backs this endpoint."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorV4'
+                $ref: '#/components/schemas/PublicValidationError'
+              example:
+                market: ["Market is not available."]
 
   /api/v4/public/trades/{market}:
     get:
@@ -514,12 +544,14 @@ paths:
                   trade_timestamp: 1594391746
                   type: "sell"
                   rpi: false
-        'default':
-          description: Error response
+        '422':
+          description: "Validation error. Returned when the `market` path parameter is unknown or not enabled for trading."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorV4'
+                $ref: '#/components/schemas/PublicValidationError'
+              example:
+                market: ["Market is not available."]
 
   /api/v4/public/fee:
     get:
@@ -528,7 +560,7 @@ paths:
         The endpoint retrieves the [fee](/glossary#fee) schedule and deposit/withdrawal limits for every supported asset. Use the response to display fee estimates before a user initiates a deposit or withdrawal. The response is keyed by currency ticker; each entry contains deposit and withdrawal fee amounts and min/max transfer limits.
 
         <Note>
-        The API caches the response for 1 second
+        The fee schedule is reference data, re-synced approximately once per minute. Polling more frequently returns identical data. The cache is shared across all callers.
         </Note>
 
         <Warning>
@@ -647,10 +679,10 @@ paths:
     get:
       summary: Server Time
       description: |
-        The endpoint retrieves the current server time as a Unix timestamp. Use the response to synchronize local clocks before generating HMAC signatures for authenticated requests.
+        The endpoint retrieves the current server time as a Unix timestamp. Use the response to synchronize local clocks before generating HMAC signatures for authenticated requests. The endpoint takes no parameters and has no request-validation errors; it returns HTTP 200 on success and fails only at the infrastructure level (see the API description).
 
         <Note>
-        The API caches the response for 1 second
+        The server time is computed per request and is not cached.
         </Note>
 
         <Warning>
@@ -676,10 +708,10 @@ paths:
     get:
       summary: Server Status
       description: |
-        The endpoint checks API availability by returning a simple health-check response. Use the endpoint to verify network connectivity and confirm the API server is reachable. A successful response contains the string `"pong"`.
+        The endpoint checks API availability by returning a simple health-check response. Use the endpoint to verify network connectivity and confirm the API server is reachable. A successful response contains the string `"pong"`. The endpoint takes no parameters and has no request-validation errors; it returns HTTP 200 on success and fails only at the infrastructure level (see the API description).
 
         <Note>
-        The API caches the response for 1 second
+        The health-check response is generated per request and is not cached.
         </Note>
 
         <Warning>
@@ -707,7 +739,7 @@ paths:
         The endpoint returns the list of [market](/glossary#market) pair names available for [collateral](/glossary#collateral) trading. Use the response to determine which markets support margin positions. Each item in the result array is a market pair name in `BASE_QUOTE` format (e.g., `BTC_USDT`).
 
         <Note>
-        The API caches the response for 1 second
+        The collateral market list is reference data, re-synced approximately every 10 seconds. Polling more frequently returns identical data. The cache is shared across all callers.
         </Note>
 
         <Warning>
@@ -814,7 +846,15 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 100, max: 1000) and `offset` (default: 0) to page through results.
+        This endpoint supports pagination. Use `limit` (default: 100, max: 100) and `offset` (default: 0, max: 1000000) to page through results.
+        </Note>
+
+        <Note>
+        The response is a plain array with no `total`, `has_more`, or cursor — a returned count below `limit` marks the last page (an empty array means no further records).
+        </Note>
+
+        <Note>
+        Funding history is served per request at the API layer, with no application-level cache.
         </Note>
       tags:
         - Public API V4
@@ -843,20 +883,21 @@ paths:
         - name: limit
           in: query
           required: false
-          description: "Number of records to return. Default: 100, Maximum: 1000"
+          description: "Number of records to return. Default: 100, Maximum: 100"
           schema:
             type: integer
             minimum: 1
-            maximum: 1000
+            maximum: 100
             default: 100
             example: 100
         - name: offset
           in: query
           required: false
-          description: Number of records to skip
+          description: "Number of records to skip. Maximum: 1000000"
           schema:
             type: integer
             minimum: 0
+            maximum: 1000000
             default: 0
             example: 0
       responses:
@@ -897,6 +938,30 @@ paths:
                       description: "Unix timestamp in seconds when the funding rate was calculated.
                         The rate is computed before the actual settlement."
                       example: "1752508800"
+        '422':
+          description: "Validation or upstream error. Field-keyed like the other public market endpoints, but on this endpoint each validation value is a single message string (not an array). The upstream-failure case uses an `error` key with an array value."
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                description: "Flat field-keyed error. Validation messages (market, limit, offset, dates) are single strings; the upstream-failure `error` value is an array of strings."
+              examples:
+                invalidMarket:
+                  summary: Unknown or missing market
+                  value: { "market": "market is required" }
+                invalidLimit:
+                  summary: limit out of range
+                  value: { "limit": "limit must be less than or equal to 100" }
+                invalidOffset:
+                  summary: offset out of range
+                  value: { "offset": "offset must be less than or equal to 1000000" }
+                invalidDateRange:
+                  summary: invalid date range
+                  value: { "endDate": "endDate must be greater than to startDate" }
+                upstreamFailure:
+                  summary: Upstream funding-history service failure
+                  value: { "error": ["unable to get funding history"] }
 
   /api/v4/public/mining-pool:
     get:
@@ -974,6 +1039,7 @@ components:
   schemas:
     ErrorV4:
       type: object
+      description: "Generic wrapped error envelope (fallback). Market-data validation errors use the flat PublicValidationError shape (HTTP 422) instead, and infrastructure-level failures (maintenance, rate limit, internal error, unknown route) are non-JSON or flat. See the API description for the full set of public error shapes."
       properties:
         success:
           type: boolean
@@ -981,12 +1047,22 @@ components:
         message:
           type: string
           description: Error message
-          example: ERROR MESSAGE
-        params:
+          example: "Internal server error."
+        errors:
           type: array
           items:
             type: string
           example: []
+
+    PublicValidationError:
+      type: object
+      description: "Flat field-keyed validation error (HTTP 422) returned by the market-data endpoints. Each key is the offending request field and the value is an array of human-readable messages. There is no success/message envelope and no `params` field."
+      additionalProperties:
+        type: array
+        items:
+          type: string
+      example:
+        market: ["Market is not available."]
 
     Asset:
       type: object
