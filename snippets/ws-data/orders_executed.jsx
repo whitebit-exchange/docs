@@ -61,6 +61,7 @@ export const executedOrderObject = [
   { name: "status", type: "string", description: "Order status (e.g., FILLED, CANCELED)" },
   { name: "position_side", type: "string", enum: ["LONG","SHORT","BOTH"], description: "Position side - LONG or SHORT or BOTH" },
   { name: "rpi", type: "boolean", description: "Indicates Retail Price Improvement (RPI) mode for the order." },
+  { name: "retail", type: "boolean", description: "Retail-source taker flag. Present when the order was placed with `retail=true`. See Retail flag." },
   { name: "reduce_only", type: "boolean", description: "Reduce-only flag. When `true`, the order could only reduce or close an existing position. See reduce-only." },
   { name: "fee_asset", type: "string", description: "Fee asset type" },
 ];
@@ -146,6 +147,7 @@ export const exOrdersExecutedResponse = {
         "status": "FILLED",
         "fee_asset": "USDT",
         "rpi": false,
+        "retail": false,
         "reduce_only": false
       }
     ]
@@ -197,6 +199,7 @@ export const exOrdersExecutedUpdate = {
       "status": "FILLED",
       "position_side": "LONG",
       "rpi": true,
+      "retail": false,
       "reduce_only": false
     }
   ]

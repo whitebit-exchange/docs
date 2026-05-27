@@ -59,6 +59,7 @@ export const orderObject = [
   { name: "status", type: "string", description: "Order status (e.g., OPEN, PARTIALLY_FILLED, FILLED, CANCELED)" },
   { name: "position_side", type: "string", enum: ["LONG","SHORT","BOTH"], description: "Position side - LONG or SHORT or BOTH" },
   { name: "rpi", type: "boolean", description: "Indicates Retail Price Improvement (RPI) mode for the order." },
+  { name: "retail", type: "boolean", description: "Retail-source taker flag. Present when the order was placed with `retail=true`. See Retail flag." },
   { name: "reduce_only", type: "boolean", description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. See reduce-only." },
 ];
 
@@ -139,6 +140,7 @@ export const exOrdersPendingResponse = {
         "status": "OPEN",
         "position_side": "LONG",
         "rpi": true,
+        "retail": false,
         "reduce_only": false
       }
     ]
@@ -188,6 +190,7 @@ export const exOrdersPendingUpdate = {
       "status": "OPEN",
       "position_side": "LONG",
       "rpi": true,
+      "retail": false,
       "reduce_only": false
     }
   ]
