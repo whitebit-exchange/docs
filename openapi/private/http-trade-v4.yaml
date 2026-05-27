@@ -240,7 +240,7 @@ paths:
         </Note>
 
         <Note>
-          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
         </Note>
         
         
@@ -250,7 +250,9 @@ paths:
           - `32` - amount validation failed
           - `33` - price validation failed
           - `36` - clientOrderId validation failed
-          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+          - `37` - `ioc=true` cannot be combined with `postOnly=true`
+          - `40` - `ioc=true` cannot be combined with `rpi=true`
+          - `43` - `rpi=true` is not allowed for the account
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
@@ -325,7 +327,7 @@ paths:
                   description: |
                     Enables Retail Price Improvement (RPI) mode.
 
-                    RPI orders are post-only by design and cannot be used with `ioc=true`. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+                    RPI orders are post-only by design and cannot be used with `ioc=true`. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
                   example: true
                 positionSide:
                   type: string
@@ -577,7 +579,7 @@ paths:
                           Immediate-or-cancel (IOC) executes all or part of an order immediately and cancels any unfilled portion. Default: `false`.
 
                           IOC does not support `rpi=true` because RPI uses post-only behavior by design.
-                          The API returns error code `37` when an order item sets both `ioc=true` and `rpi=true`.
+                          The API returns error code `40` when an order item sets both `ioc=true` and `rpi=true`.
                         example: false
                       rpi:
                         type: boolean
@@ -586,7 +588,7 @@ paths:
                           Enables Retail Price Improvement (RPI) mode. Default: `false`.
 
                           RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
-                          The API returns error code `37` when an order item sets both `rpi=true` and `ioc=true`.
+                          The API returns error code `40` when an order item sets both `rpi=true` and `ioc=true`.
                         example: true
                       positionSide:
                         type: string
@@ -4246,18 +4248,25 @@ paths:
 
         <Note>
           - RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
-          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
+          - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
+          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set.
+          - `retail=true` has no effect on a `postOnly=true` order. Post-only orders are makers and cannot be retail takers.
         </Note>
-        
+
         <Accordion title="Error Codes">
           - `30` - default validation error code
           - `31` - market validation failed
           - `32` - amount validation failed
           - `33` - price validation failed
           - `36` - clientOrderId validation failed
-          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+          - `37` - `ioc=true` cannot be combined with `postOnly=true`
+          - `40` - `ioc=true` cannot be combined with `rpi=true`
+          - `41` - `retail=true` cannot be combined with `rpi=true`
+          - `42` - `retail=true` is not allowed for the account
+          - `43` - `rpi=true` is not allowed for the account
         </Accordion>
-        
+
         <Accordion title="Errors">
         ```json
         {
@@ -4430,6 +4439,26 @@ paths:
           }
         }
         ```
+
+        ```json
+        {
+          "code": 41,
+          "message": "Validation failed",
+          "errors": {
+            "retail": ["api.tradeErrors.flagsCantBeCombined.rpiRetail"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 42,
+          "message": "Validation failed",
+          "errors": {
+            "retail": ["api.validation.retail.not_allowed"]
+          }
+        }
+        ```
         </Accordion>
       tags:
         - Spot Trading
@@ -4478,19 +4507,26 @@ paths:
 
         <Note>
           - RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
-          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `37` when both `rpi=true` and `ioc=true` are used.
+          - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
+          - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
+          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set on an item.
+          - `retail=true` has no effect on a `postOnly=true` item. Post-only orders are makers and cannot be retail takers.
         </Note>
-        
-        
+
+
         <Accordion title="Error Codes">
           - `30` - default validation error code
           - `31` - market validation failed
           - `32` - amount validation failed
           - `33` - price validation failed
           - `36` - clientOrderId validation failed
-          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+          - `37` - `ioc=true` cannot be combined with `postOnly=true`
+          - `40` - `ioc=true` cannot be combined with `rpi=true`
+          - `41` - `retail=true` cannot be combined with `rpi=true`
+          - `42` - `retail=true` is not allowed for the account
+          - `43` - `rpi=true` is not allowed for the account
         </Accordion>
-        
+
         <Accordion title="Errors">
         ```json
         {
@@ -4546,6 +4582,26 @@ paths:
           }
         }
         ```
+
+        ```json
+        {
+          "code": 41,
+          "message": "Validation failed",
+          "errors": {
+            "retail": ["api.tradeErrors.flagsCantBeCombined.rpiRetail"]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 42,
+          "message": "Validation failed",
+          "errors": {
+            "retail": ["api.validation.retail.not_allowed"]
+          }
+        }
+        ```
         </Accordion>
       tags:
         - Spot Trading
@@ -4591,6 +4647,7 @@ paths:
                   ioc: false
                   clientOrderId: ""
                   rpi: true
+                  retail: false
                 - side: sell
                   amount: "0.0001"
                   price: "41000"
@@ -4598,7 +4655,8 @@ paths:
                   postOnly: false
                   ioc: false
                   clientOrderId: ""
-                  rpi: true
+                  rpi: false
+                  retail: true
                 - side: sell
                   amount: "0.02"
                   price: "41000"
@@ -4606,7 +4664,8 @@ paths:
                   postOnly: false
                   ioc: false
                   clientOrderId: ""
-                  rpi: true
+                  rpi: false
+                  retail: false
       responses:
         '200':
           $ref: '#/components/responses/BulkLimitOrderResponse'
@@ -6834,7 +6893,7 @@ components:
             Immediate-or-cancel (IOC) flag. When `true`, the matching engine executes all or part of the order immediately and cancels any unfilled portion. Default: `false`.
 
             IOC does not support `rpi=true` because RPI uses post-only behavior by design.
-            The API returns error code `37` when a request sets both `ioc=true` and `rpi=true`.
+            The API returns error code `40` when a request sets both `ioc=true` and `rpi=true`.
 
             Refer to [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
@@ -6855,12 +6914,26 @@ components:
             Enables Retail Price Improvement (RPI) mode. Default: `false`.
 
             RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
-            The API returns error code `37` when a request sets both `rpi=true` and `ioc=true`.
+            The API returns error code `40` when a request sets both `rpi=true` and `ioc=true`.
             RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
             RPI executions may apply custom fees or rebates, especially when trading via sub-accounts. Use Query Market Fee / Query All Market Fees to verify effective fees.
 
             Refer to [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: true
+        retail:
+          type: boolean
+          default: false
+          description: |
+            Retail-source taker flag. When `true`, the order is eligible to match against orders submitted by RPI makers and may receive price improvement at execution. Default: `false`.
+
+            The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
+
+            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when a request sets both `retail=true` and `rpi=true`.
+
+            The flag has no effect on a `postOnly=true` order. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+
+            Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
+          example: false
         request:
           type: string
           example: "{{request}}"
@@ -7075,7 +7148,7 @@ components:
             Immediate-or-cancel (IOC) executes all or part of an order immediately and cancels any unfilled portion. Default: `false`.
 
             IOC does not support `rpi=true` because RPI uses post-only behavior by design.
-            The API returns error code `37` when an order item sets both `ioc=true` and `rpi=true`.
+            The API returns error code `40` when an order item sets both `ioc=true` and `rpi=true`.
           example: false
         clientOrderId:
           type: string
@@ -7088,8 +7161,22 @@ components:
             Enables Retail Price Improvement (RPI) mode. Default: `false`.
 
             RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
-            The API returns error code `37` when an order item sets both `rpi=true` and `ioc=true`.
+            The API returns error code `40` when an order item sets both `rpi=true` and `ioc=true`.
           example: true
+        retail:
+          type: boolean
+          default: false
+          description: |
+            Retail-source taker flag for the bulk-order item. When `true`, the item is eligible to match against orders submitted by RPI makers and may receive price improvement at execution. Default: `false`.
+
+            The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
+
+            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when an item sets both `retail=true` and `rpi=true`.
+
+            The flag has no effect on a `postOnly=true` item. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+
+            Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
+          example: false
 
     OrderResponse:
       type: object
@@ -7163,6 +7250,10 @@ components:
         rpi:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
+          example: true
+        retail:
+          type: boolean
+          description: "Retail-source taker flag. The field is present only when the order was placed with `retail=true`. See [Retail flag](/glossary#retail-flag)."
           example: true
         reduceOnly:
           type: boolean
