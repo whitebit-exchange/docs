@@ -19,7 +19,7 @@ The Payment Integration guide covers every step required to move funds into and 
 
 ## Deposit address generation
 
-Generate a deposit address by calling `POST /api/v4/main-account/address`. See the [API Reference](/api-reference/deposits/get-deposit-address) for the full endpoint specification.
+Generate a deposit address by calling `POST /api/v4/main-account/address`. See the [API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address) for the full endpoint specification.
 
 **Required parameters:**
 
@@ -210,7 +210,7 @@ Confirmation requirements vary by currency and network. Do not hardcode specific
 | `POST /api/v4/main-account/fee` | Available currencies, networks, and deposit limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
 <Note>
-  For integrations that use a single persistent deposit address instead of unique addresses per user, substitute `POST /api/v4/main-account/address` ([API Reference](/api-reference/deposits/get-deposit-address)) for the `/create-new-address` endpoint.
+  For integrations that use a single persistent deposit address instead of unique addresses per user, substitute `POST /api/v4/main-account/address` ([API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address)) for the `/create-new-address` endpoint.
 </Note>
 
 ## Travel Rule (EEA and Turkey)
@@ -419,7 +419,7 @@ Using /withdraw-pay:  Sender pays  0.5004 BTC,  receiver gets 0.5 BTC
 
 When a deposit is canceled (status 4 or 9), a refund may be available.
 
-**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/deposits/refund-deposit) for the full specification.
+**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/account-wallet/refund-deposit) for the full specification.
 
 **Prerequisites:**
 
@@ -495,7 +495,7 @@ The onboarding process has two phases: Phase 1 (crypto access via KYB) and Phase
 
 ## Fiat deposit (SEPA)
 
-Generate a fiat deposit invoice by calling `POST /api/v4/main-account/fiat-deposit-url`. See the [API Reference](/api-reference/deposits/fiat-deposit-url) for the full specification.
+Generate a fiat deposit invoice by calling `POST /api/v4/main-account/fiat-deposit-url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-address) for the full specification.
 
 <Note>
   The fiat deposit endpoint works on demand. Contact WhiteBIT support and provide the API key to get access.
