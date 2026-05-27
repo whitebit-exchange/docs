@@ -28,6 +28,8 @@ A market order executes at the best available price immediately. No price parame
 - Spot stock market endpoint: `POST /api/v4/order/stock_market` — always denominated in the base (stock) currency
 - Collateral endpoint: `POST /api/v4/order/collateral/market`
 
+**Slippage protection (taker band).** The matching engine caps how far a market order can sweep the book. If the order would execute beyond the taker band, it is partially filled up to the band and the remainder is canceled, and the order returns the status `CANCELED_TAKER_BAND`. This protects against excessive slippage during thin liquidity or volatility spikes — handle this status as a partial fill plus a canceled remainder rather than a failure.
+
 ## Limit orders
 
 A limit order specifies an exact price. The order rests on the orderbook until filled or canceled. Maker fees apply when the order provides liquidity rather than consuming it. Limit orders are the most common order type for automated trading.
