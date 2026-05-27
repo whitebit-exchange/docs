@@ -1,0 +1,37 @@
+---
+title: "Matching engine"
+description: "How the WhiteBIT matching engine sequences and executes orders — price-time priority, participant fairness, and the factors that determine execution latency."
+sidebarTitle: "Matching engine"
+---
+
+The matching engine is the core system that pairs buy and sell orders across WhiteBIT spot, margin, and futures markets. A single engine serves every market: every order — regardless of account, product, or order type — enters the same order book and follows the same matching rules. Understanding how the engine sequences orders helps integrators reason about fill probability and execution timing.
+
+## Order matching
+
+The engine runs continuous matching — each incoming order is evaluated for a match on arrival, with no batch-auction window, speed bump, or arrival-time randomization. Resting orders match on **[price-time priority](/glossary#price-time-priority)**: better-priced orders fill first, and orders at the same price fill in arrival sequence.
+
+Time priority is determined by **matching-engine arrival**, not by arrival at the API gateway. Order modification does not preserve queue position — the engine cancels the original order and creates a replacement with a new `orderId` at the back of the price level's queue. See [order modification in the Market Maker Guide](/guides/market-maker-guide) and the [modify order endpoint](/api-reference/spot-trading/modify-order).
+
+## Participant fairness
+
+All participants are subject to identical matching logic and the same latency rules. No account type, VIP tier, or market-making agreement grants matching priority, a separate venue, or a preferential queue. Internal liquidity follows the same rules as external order flow — no priority lane and no separate aggregation layer.
+
+The engine applies no prioritization by request type (submit, cancel, modify, bulk), order type (limit, market, IOC, post-only), or product (spot versus margin). [Self-Trade Prevention](/platform/self-trade-prevention) and [order type](/concepts/order-types) flags change how an individual order behaves, not where the order sits in the matching sequence.
+
+## Latency factors
+
+Execution latency depends on two factors: the connection point and the endpoint called. Account type and fee tier do not affect latency. The lowest latency is **3–5 ms** via [colocation](/platform/colocation) in Frankfurt, where trading servers connect inside the matching-engine zone. Connections from outside colocation add network transit time proportional to physical distance.
+
+## What's Next
+
+<CardGroup cols={3}>
+  <Card title="Order Types" icon="layer-group" href="/concepts/order-types">
+    Execution flags — IOC, post-only, reduce-only — and how each behaves.
+  </Card>
+  <Card title="Market Maker Guide" icon="chart-line" href="/guides/market-maker-guide">
+    Colocation, quoting strategy, and the matching-engine-zone endpoint subset.
+  </Card>
+  <Card title="Self-Trade Prevention" icon="shield" href="/platform/self-trade-prevention">
+    STP modes for accounts running two-sided quotes.
+  </Card>
+</CardGroup>
