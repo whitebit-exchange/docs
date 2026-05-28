@@ -24,14 +24,7 @@ The engine applies no prioritization by request type (submit, cancel, modify, bu
 
 ## Latency factors
 
-Execution latency depends on three factors: the connection point, the endpoint called, and — on collateral products — account state. Fee tier has no effect on matching latency. The lowest latency is **3–5 ms** via [colocation](/platform/colocation) in Frankfurt, where trading servers connect inside the matching-engine zone. Connections from outside colocation add network transit time proportional to physical distance.
-
-On margin and futures (collateral trading), every order placement runs a free-margin validation that scales with account complexity. Two contributors dominate:
-
-- **Collateral asset count.** The validator recomputes free margin against the full collateral set on each placement — accounts holding more assets as collateral pay proportionally more compute per order.
-- **Open position count.** Each additional open position adds to the per-order calculation: the validator factors every position's unrealized P&L and collateral allocation into the free-margin total.
-
-Spot orders skip the collateral-side validation, so collateral count and open-position count do not affect spot order latency.
+Execution latency depends on the connection point and the endpoint called. Fee tier has no effect on matching latency. The lowest latency is **3–5 ms** via [colocation](/platform/colocation), where trading servers connect inside the matching-engine zone. Connections from outside colocation add network transit time proportional to physical distance.
 
 ## What's Next
 
