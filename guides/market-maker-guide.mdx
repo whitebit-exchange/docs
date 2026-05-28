@@ -8,39 +8,13 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-The Market-Making Program provides dedicated infrastructure for professional liquidity providers: a maker-fee rebate down to **-0.012%**, colocation in Frankfurt and Tokyo, and a 33-endpoint API subset reachable from inside the matching-engine zone with 3-5 ms latency.
+The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, colocation in Frankfurt and Tokyo, and a 33-endpoint API subset reachable from inside the matching-engine zone with 3-5 ms latency.
 
 ## Market-Making Program overview
 
-The Market-Making Program offers tiered fee rebates based on 30-day rolling trading volume.
+The Market-Making Program offers tiered maker-fee rebates based on 30-day rolling trading volume, with separate tiers for spot and futures. Negative maker fees are rebates — the exchange pays the market maker for each maker order filled.
 
-**Fee tier structure:**
-
-| Tier | Maker Fee | Taker Fee | Requirement |
-|------|-----------|-----------|-------------|
-| Base rate | 0.1% | 0.1% | Default for all users |
-| VIP best tier | -0.001% | 0.03% | Volume-based VIP progression |
-| MM Program best tier | **-0.012%** | 0.020% | $100M+ spot volume per 30 days |
-
-Negative maker fees represent rebates — the exchange pays the market maker for each maker order filled.
-
-**Futures market making** has separate entry requirements and rebate tiers:
-
-| Tier | Maker Fee | Taker Fee | Requirement |
-|------|-----------|-----------|-------------|
-| Futures MM best tier | **-0.020%** | 0.032% | ≥2% of total WhiteBIT Futures maker volume per 30 days (min $30M) |
-
-For current tier breakpoints across all volume levels, see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program).
-
-**Worked example — MM Program best tier (-0.012% maker):**
-
-```
-Maker fill of $100,000 on BTC_USDT:
-Rebate = $100,000 × 0.00012 = $12.00 received per fill
-At $100M monthly maker volume: ~$12,000/month in rebates
-```
-
-For the complete fee tier table with all volume breakpoints, see the [trading fees page](https://whitebit.com/trading-data/trading-fees), the [VIP program](https://whitebit.com/vip-program), or the [Market-Making Program page](https://institutional.whitebit.com/market-making-program).
+Rates and volume breakpoints change over time and are not duplicated here. For current fees and tier requirements, see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program), the [trading fees page](https://whitebit.com/trading-data/trading-fees), or the [VIP program](https://whitebit.com/vip-program).
 
 **How to apply:** Contact **institutional@whitebit.com** with trading volume history and target markets.
 
