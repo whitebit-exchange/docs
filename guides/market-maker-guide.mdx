@@ -8,39 +8,13 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-The Market-Making Program provides dedicated infrastructure for professional liquidity providers: a maker-fee rebate down to **-0.012%**, colocation in Frankfurt and Tokyo, and a 33-endpoint API subset reachable from inside the matching-engine zone with 3-5 ms latency.
+The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, colocation in Frankfurt and Tokyo, and a 33-endpoint API subset reachable from inside the matching-engine zone with 3-5 ms latency.
 
 ## Market-Making Program overview
 
-The Market-Making Program offers tiered fee rebates based on 30-day rolling trading volume.
+The Market-Making Program offers tiered maker-fee rebates based on 30-day rolling trading volume, with separate tiers for spot and futures. Negative maker fees are rebates — the exchange pays the market maker for each maker order filled.
 
-**Fee tier structure:**
-
-| Tier | Maker Fee | Taker Fee | Requirement |
-|------|-----------|-----------|-------------|
-| Base rate | 0.1% | 0.1% | Default for all users |
-| VIP best tier | -0.001% | 0.03% | Volume-based VIP progression |
-| MM Program best tier | **-0.012%** | 0.020% | $100M+ spot volume per 30 days |
-
-Negative maker fees represent rebates — the exchange pays the market maker for each maker order filled.
-
-**Futures market making** has separate entry requirements and rebate tiers:
-
-| Tier | Maker Fee | Taker Fee | Requirement |
-|------|-----------|-----------|-------------|
-| Futures MM best tier | **-0.020%** | 0.032% | ≥2% of total WhiteBIT Futures maker volume per 30 days (min $30M) |
-
-For current tier breakpoints across all volume levels, see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program).
-
-**Worked example — MM Program best tier (-0.012% maker):**
-
-```
-Maker fill of $100,000 on BTC_USDT:
-Rebate = $100,000 × 0.00012 = $12.00 received per fill
-At $100M monthly maker volume: ~$12,000/month in rebates
-```
-
-For the complete fee tier table with all volume breakpoints, see the [trading fees page](https://whitebit.com/trading-data/trading-fees), the [VIP program](https://whitebit.com/vip-program), or the [Market-Making Program page](https://institutional.whitebit.com/market-making-program).
+Rates and volume breakpoints change over time and are not duplicated here. For current fees and tier requirements, see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program), the [trading fees page](https://whitebit.com/trading-data/trading-fees), or the [VIP program](https://whitebit.com/vip-program).
 
 **How to apply:** Contact **institutional@whitebit.com** with trading volume history and target markets.
 
@@ -143,9 +117,11 @@ For endpoints not listed above, use the standard WhiteBIT API at `https://whiteb
 
 ## Quoting strategy
 
-Quoting on WhiteBIT pairs a single REST call — `POST /api/v4/order/bulk`, up to 20 limit orders per request — with the `depth` and `bookTicker` WebSocket channels for price input.
+Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input.
 
-**Bulk limit orders:** `POST /api/v4/order/bulk` — place up to 20 limit orders in a single API call. Each order item can set `rpi: true` to enable **Retail Price Improvement** mode — post-only by design, not visible in public `depth` feeds, and incompatible with `ioc`. See the [API Reference](/api-reference/spot-trading/bulk-limit-order).
+**Bulk vs individual:** bulk reduces wire and auth overhead and gives atomic same-timestamp placement of a quote ladder. The bulk response only returns once every leg in the batch is processed. Pipelined individual orders give faster per-leg acknowledgment for clients optimized for that pattern. Use bulk for atomic quote refreshes and less-optimized clients; use individual orders when lowest per-leg ack latency matters most.
+
+**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. They remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/spot-trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
@@ -282,7 +258,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 | Channel | Tells you | Recovery model | Where to learn the protocol |
 |---|---|---|---|
 | `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates with `update_id` for gap detection | [WS Quickstart — Subscribe to orderbook depth](/guides/websocket-quickstart#subscribe-to-orderbook-depth) |
-| `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders, so RPI MMs must rely on private active-orders state instead. |
+| `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders. Track RPI quotes via the private active-orders state. |
 | `balanceSpot` | Available + frozen balances per asset | Query-then-subscribe (`balanceSpot_request` then `balanceSpot_subscribe`) | [WS Quickstart — State recovery](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `ordersPending` | Active order state transitions: placed, partially filled, canceled | Query first (`ordersPending_request` or REST `POST /api/v4/orders`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
 | `deals` | Trade execution events with price, amount, fee, deal-id | Query first (`deals_request` or REST `POST /api/v4/trade-account/executed-history`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
@@ -294,7 +270,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 | `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives within ~1.5s of subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `marginPositionsEvents` | Position-change events (open, update, close, liquidation) | Event-only — pair with `positions` for complete state | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 
-**Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/guides/websocket-quickstart#authenticate-for-private-channels) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/guides/websocket-quickstart#subscribe-to-orderbook-depth)).
+**Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/guides/websocket-quickstart#authenticate-for-private-channels) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/guides/websocket-quickstart#subscribe-to-orderbook-depth)). To stop quoting on one pair without disrupting the others, send `depth_unsubscribe` or `bookTicker_unsubscribe` with that market name in `params` — only that market's feed drops; an empty array unsubscribes from all markets on the stream.
 
 ```json
 [

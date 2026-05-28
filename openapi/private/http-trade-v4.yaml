@@ -253,7 +253,12 @@ paths:
           - `37` - `ioc=true` cannot be combined with `postOnly=true`
           - `40` - `ioc=true` cannot be combined with `rpi=true`
           - `43` - `rpi=true` is not allowed for the account
+          - `10` - insufficient balance to place the order
+          - `111` - resulting position would exceed the market maximum
+          - `112` - pending orders value would exceed the allowed maximum
+          - `113` - position side cannot be changed while open positions or orders exist
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+          - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -510,8 +515,18 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
-          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit` (per-order)
+          - `30` - default validation error code (per-order). Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `33` - price validation failed
+          - `36` - clientOrderId validation failed
+          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+          - `10` - insufficient balance to place the order
+          - `111` - resulting position would exceed the market maximum
+          - `112` - pending orders value would exceed the allowed maximum
+          - `113` - position side cannot be changed while open positions or orders exist
           - `114` - hedge mode position side does not match (per-order; sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+          - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
         </Accordion>
       tags:
@@ -846,8 +861,16 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
-          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `36` - clientOrderId validation failed
+          - `10` - insufficient balance to place the order
+          - `111` - resulting position would exceed the market maximum
+          - `112` - pending orders value would exceed the allowed maximum
+          - `113` - position side cannot be changed while open positions or orders exist
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+          - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1054,8 +1077,17 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
-          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `33` - price validation failed
+          - `36` - clientOrderId validation failed
+          - `10` - insufficient balance to place the order
+          - `111` - resulting position would exceed the market maximum
+          - `112` - pending orders value would exceed the allowed maximum
+          - `113` - position side cannot be changed while open positions or orders exist
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+          - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1293,8 +1325,16 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
-          - `30` - `reduceOnly=true` cannot be combined with `stopLoss` or `takeProfit`
+          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `36` - clientOrderId validation failed
+          - `10` - insufficient balance to place the order
+          - `111` - resulting position would exceed the market maximum
+          - `112` - pending orders value would exceed the allowed maximum
+          - `113` - position side cannot be changed while open positions or orders exist
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+          - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -1595,6 +1635,10 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (returned when the optional `market` filter is malformed)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1793,6 +1837,12 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (for example, a missing or malformed `positionId` or `market`)
+          - `104` - position not found. Returned whether the `positionId` does not exist, the position is already closed, or it is not owned by the account — these cases are not distinguished
+          - `10` - insufficient balance to fund the closing market order
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1866,6 +1916,10 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset` — or a date filter that violates `startDate` ≤ `endDate` ≤ `now + 1s`)
+        </Accordion>
 
         <Note>
         **Date filter window:** `startDate` and `endDate` are optional and have no defaults. The endpoint enforces no maximum window and no lower-bound floor. The only ordering constraint is `startDate` ≤ `endDate` ≤ `now + 1s` — requests that violate the ordering are rejected with a validation error.
@@ -2047,15 +2101,20 @@ paths:
       summary: Funding History
       operationId: getFundingHistory
       description: |
-        The endpoint returns the funding rate payment history for [collateral](/glossary#balance-collateral) positions. Each record includes the funding rate, settlement price, position amount, and the resulting funding payment. Use the optional `market` parameter to filter results to a single trading pair. The response supports pagination via `limit` and `offset` parameters.
+        The endpoint returns the funding rate payment history for [collateral](/glossary#balance-collateral) positions. Each record includes the funding rate, settlement price, position amount, and the resulting funding payment. Use the optional `market` parameter to filter results to a single trading pair. The response supports pagination via `limit` and `offset` parameters. Results are ordered by funding time (`fundingTime`), newest first.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 100) and `offset` (default: 0) to page through results.
+        This endpoint supports pagination. Use `limit` (default: 100) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
+          - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2197,6 +2256,12 @@ paths:
         <Warning>
         Changing leverage affects **all open positions** across margin and futures trading. Decreasing leverage increases margin requirements — if available funds are insufficient to support the new level, the request returns an error.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - invalid `leverage` value (out of range, non-integer, or wrong type). Setting leverage above a market's `max_leverage` also surfaces here as an out-of-range value
+          - `17` - the requested leverage is valid but available balance is insufficient to support it
+          - `113` - leverage cannot be changed while open positions or orders exist
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2324,6 +2389,11 @@ paths:
         <Warning>
         Switching between one-way mode and hedge mode requires **no open positions**. Close all futures positions before toggling the mode. If the switch does not take effect immediately after closing positions, wait approximately 15 seconds and retry.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (for example, a missing or non-boolean `hedgeMode` value)
+          - `113` - hedge mode cannot be changed while open positions or orders exist
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2462,6 +2532,11 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
+          - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2698,8 +2773,13 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results.
+        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` OCO orders are returned. An empty array means you have paged past the end; receiving exactly `limit` orders does not guarantee that another page exists.
         </Note>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
+          - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2955,7 +3035,17 @@ paths:
         </Warning>
 
         <Accordion title="Error Codes">
+          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+          - `31` - market validation failed
+          - `32` - amount validation failed
+          - `33` - price validation failed
+          - `36` - clientOrderId validation failed
+          - `10` - insufficient balance to place the order
+          - `111` - resulting position would exceed the market maximum
+          - `112` - pending orders value would exceed the allowed maximum
+          - `113` - position side cannot be changed while open positions or orders exist
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+          - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
         </Accordion>
       tags:
@@ -3304,6 +3394,24 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code
+          - `31` - market validation failed
+          - `2` - conditional order not found. Returned whether the `id` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
+        </Accordion>
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 2,
+          "message": "Inner validation failed",
+          "errors": {
+            "id": ["Unexecuted order was not found."]
+          }
+        }
+        ```
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3365,10 +3473,28 @@ paths:
       operationId: cancelOcoOrder
       description: |
         The endpoint cancels an OCO order.
-        
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code
+          - `31` - market validation failed
+          - `2` - OCO order not found. Returned whether the `orderId` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
+        </Accordion>
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 2,
+          "message": "Inner validation failed",
+          "errors": {
+            "orderId": ["Unexecuted order was not found."]
+          }
+        }
+        ```
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3636,10 +3762,28 @@ paths:
       operationId: cancelOtoOrder
       description: |
         The endpoint cancels an OTO order.
-        
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code
+          - `31` - market validation failed
+          - `2` - OTO order not found. Returned whether the `otoId` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
+        </Accordion>
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 2,
+          "message": "Inner validation failed",
+          "errors": {
+            "otoId": ["Unexecuted order was not found."]
+          }
+        }
+        ```
+        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3699,8 +3843,14 @@ paths:
       description: |
         The endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
 
+        The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. Account balance is pre-checked at estimate time and re-checked at confirm time, because balance can change within the 10-second quote window. There is an absolute server-side maximum on the conversion amount.
+
         <Note>
         The endpoint can be used to obtain a pre-execution price estimate for a market order. Call the endpoint with the desired amount before placing a market order to see the approximate execution price.
+        </Note>
+
+        <Note>
+        Error `message` values may be returned as translation keys (for example `validation.required`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
         </Note>
 
         <Warning>
@@ -3738,7 +3888,7 @@ paths:
                   example: "to"
                 amount:
                   type: string
-                  description: "Amount to convert or receive."
+                  description: "Amount to convert or receive. The value is silently truncated to 8 decimal places before evaluation; excess decimals do not raise an error."
                   example: "35,103.1"
                 nonce:
                   type: integer
@@ -3808,6 +3958,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                amountTooBig:
+                  summary: "Amount Above Maximum"
+                  value:
+                    code: 32
+                    message: "Validation failed"
+                    errors:
+                      amount: ["frontendServerSide.converter.amountIsTooBig"]
+                insufficientBalance:
+                  summary: "Insufficient Balance"
+                  value:
+                    code: 37
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.balance"]
         '422':
           description: Validation failed
           content:
@@ -3836,13 +4001,37 @@ paths:
                     message: "Validation failed"
                     errors:
                       from: ["Conversion markets not available"]
+                amountTooSmall:
+                  summary: "Amount Below Minimum"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.amount_too_small"]
+                missingRequiredField:
+                  summary: "Missing Required Field"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.required"]
 
   /api/v4/convert/confirm:
     post:
       summary: Convert Confirm
       description: |
         The endpoint confirms an estimated quote.
-        
+
+        An expired quote returns code `20` (`api.converter.quoteExpired`), which is distinct from a quote that could not be found (code `0`). Balance is re-checked at confirm time and can fail with code `37` even when the estimate succeeded, because balance may change within the 10-second quote window.
+
+        <Note>
+        A re-confirmed (already used) quote and a quote that never existed both return code `0` with the `quoteId` field key `frontendServerSide.converter.quoteInvalid`. The response alone does not distinguish "already used" from "never existed".
+        </Note>
+
+        <Note>
+        Error `message` values may be returned as translation keys (for example `api.converter.quoteExpired`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        </Note>
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -3896,6 +4085,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                quoteExpired:
+                  summary: "Quote Expired"
+                  value:
+                    code: 20
+                    message: "Validation failed"
+                    errors:
+                      quoteId: ["api.converter.quoteExpired"]
+                insufficientBalance:
+                  summary: "Insufficient Balance At Confirm"
+                  value:
+                    code: 37
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.balance"]
         '422':
           description: Validation failed
           content:
@@ -3910,16 +4114,44 @@ paths:
                     message: "Validation failed"
                     errors:
                       quoteId: ["Quote could not be found"]
+                quoteAlreadyUsed:
+                  summary: "Quote Already Confirmed"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      quoteId: ["frontendServerSide.converter.quoteInvalid"]
+                quoteIdNonNumeric:
+                  summary: "Quote ID Not Numeric"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      quoteId: ["validation.numeric_integer"]
+                quoteIdTooLong:
+                  summary: "Quote ID Exceeds Max Length"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      quoteId: ["validation.numeric_field_length"]
 
   /api/v4/convert/history:
     post:
       summary: Convert History
       description: |
-        The endpoint returns convert history.
-        
+        The endpoint returns convert history, sorted by `id` descending (newest first).
+
+        The `from`–`to` window is capped at 30 days per request, even though data is retained for 6 months. A wider range is rejected with code `30` (`api.validation.dateTime.maxRange`).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
+
+        <Note>
+        Error `message` values may be returned as translation keys (for example `api.validation.dateTime.maxRange`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        </Note>
+
         **Note:** The endpoint can retrieve data not older than 6 months from the current month. For older data, use the Report on the History page.
       operationId: convertHistory
       security:
@@ -3943,24 +4175,27 @@ paths:
                   example: "USDT"
                 from:
                   type: string
-                  description: "From time filter. Example: 1699260637. Default: now()"
+                  description: "From time filter (Unix seconds). Must be no more than 30 days before `to` and no older than 6 months. Example: 1699260637. Default: now()"
                   example: "1699260637"
                 to:
                   type: string
-                  description: "To time filter. Example: 1699260637. Default: now() +"
+                  description: "To time filter (Unix seconds). Must be no more than 30 days after `from`. Example: 1699260637. Default: now()"
                   example: "1699260637"
                 quoteId:
                   type: string
                   description: "Quote Id. Example: 4050"
                   example: "4050"
                 limit:
-                  type: string
-                  description: "How many records to receive. Default: 100"
-                  example: "100"
+                  type: integer
+                  description: "How many records to receive. Allowed range: 1–100. Default: 100"
+                  minimum: 1
+                  maximum: 100
+                  example: 100
                 offset:
-                  type: string
-                  description: "Amount to convert or receive. Default 0"
-                  example: "0"
+                  type: integer
+                  description: "Number of records to skip for pagination. Minimum: 0. Default: 0"
+                  minimum: 0
+                  example: 0
                 nonce:
                   type: integer
                   description: "Nonce for request"
@@ -4057,6 +4292,42 @@ paths:
                     message: "Validation failed"
                     errors:
                       toTicker: ["toTicker is invalid."]
+                dateRangeExceeded:
+                  summary: "Date Range Exceeds 30 Days"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      from: ["api.validation.dateTime.maxRange"]
+                      to: ["api.validation.dateTime.maxRange"]
+                dateNonInteger:
+                  summary: "Date Not An Integer Timestamp"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      from: ["validation.numeric_integer"]
+                dateOutOfRange:
+                  summary: "Date Outside Allowed Range"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      from: ["validation.numeric_field_length"]
+                limitOutOfRange:
+                  summary: "Limit Out Of Range"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      limit: ["validation.numeric_field_length"]
+                offsetNegative:
+                  summary: "Offset Below Minimum"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      offset: ["validation.length_min"]
 
   /api/v4/market/fee:
     post:
@@ -5778,7 +6049,7 @@ paths:
         </Note>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50, max: 100) and `offset` (default: 0, max: 10000) to page through results.
+        This endpoint supports pagination. Use `limit` (default: 50, max: 100) and `offset` (default: 0, max: 4294967295) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` orders are returned. An empty array means you have paged past the end; receiving exactly `limit` orders does not guarantee that another page exists.
         </Note>
         
         <Accordion title="Errors">
@@ -5798,7 +6069,7 @@ paths:
           "message": "Validation failed",
           "errors": {
             "limit": ["The limit may not be greater than 100."],
-            "offset": ["The offset may not be greater than 10000."]
+            "offset": ["The offset may not be greater than 4294967295."]
           }
         }
         ```
@@ -5832,8 +6103,8 @@ paths:
                   type: integer
                   default: 0
                   minimum: 0
-                  maximum: 10000
-                  description: "Number of records to skip. Default: `0`. Maximum: `10000`."
+                  maximum: 4294967295
+                  description: "Number of records to skip. Default: `0`. Maximum: `4294967295`."
                   example: 0
                 limit:
                   type: integer
@@ -5877,7 +6148,7 @@ paths:
       summary: Query executed order history
       operationId: getExecutedOrderHistory
       description: |
-        The endpoint retrieves executed order history for all trading types — spot, margin, and futures — across all markets. Can be filtered by a single market if needed.
+        The endpoint retrieves executed order history for all trading types — spot, margin, and futures — across all markets. Can be filtered by a single market if needed. Results are ordered by trade time, newest first.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -5892,7 +6163,7 @@ paths:
         </Note>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results.
+        This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6028,8 +6299,16 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results.
+        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
+
+        <Note>
+        An unknown or not-owned `orderId` is **not** an error. The endpoint always returns HTTP 200 with the paged-list envelope; a non-matching `orderId` simply filters down to an empty `records` array.
+        </Note>
+
+        <Accordion title="Error Codes">
+          - `30` - default validation error code (for example, a missing or malformed `orderId`, or invalid pagination)
+        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6171,7 +6450,7 @@ paths:
       summary: Query executed orders
       operationId: getOrderHistory
       description: |
-        The endpoint retrieves the history of executed and cancelled orders. The response groups orders by market name. Use the `market` parameter to filter by a single trading pair, or omit the parameter to retrieve orders across all markets. The endpoint supports pagination with `limit` (default 50, max 500) and `offset` parameters.
+        The endpoint retrieves the history of executed and cancelled orders. The response groups orders by market name. Use the `market` parameter to filter by a single trading pair, or omit the parameter to retrieve orders across all markets. The endpoint supports pagination with `limit` (default 50, max 500) and `offset` parameters. Results are ordered by time, newest first.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -6182,7 +6461,7 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results.
+        This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6810,7 +7089,7 @@ components:
       example: "FILLED"
     OrderStatus:
       type: string
-      description: "Order lifecycle status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `CANCELED` — canceled before execution. `PARTIAL_FILLED` — partially executed, remainder still active. `PARTIAL_CANCELED` — partially filled, remainder canceled. `CANCELED_TAKER_BAND` — partially filled up to the taker band limit, remainder canceled to protect against excessive order book slippage. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed."
+      description: "Order lifecycle status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `CANCELED` — canceled before execution. `PARTIAL_FILLED` — partially executed, remainder still active. `PARTIAL_CANCELED` — partially filled, remainder canceled. `CANCELED_TAKER_BAND` — partially filled up to the taker band limit, remainder canceled to protect against excessive order book slippage. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `AUTO_CANCELED_LIQUIDATION` — pending order auto-canceled because the associated position was force-liquidated. `CANCELED_STP` — order canceled by [Self-Trade Prevention](/platform/self-trade-prevention)."
       example: "FILLED"
     ExecutedDeal:
       type: object

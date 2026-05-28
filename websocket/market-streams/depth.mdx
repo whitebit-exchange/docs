@@ -76,12 +76,27 @@ Fetch a single order book snapshot without subscribing to updates.
       </div>
     </div>
   }
-  unsubscribe={{id: 13, method: "depth_unsubscribe", params: []}}
+  unsubscribe={{id: 13, method: "depth_unsubscribe", params: ["BTC_USDT"]}}
+  unsubscribeNote="Pass a market name in params to unsubscribe from that market only (`params[0]`: market name, e.g. `&quot;BTC_USDT&quot;`), or pass an empty array to unsubscribe from all markets."
 />
 
 <Note>
 Public `depth` updates exclude Retail Price Improvement (RPI) orders. The stream includes only regular order book liquidity.
 </Note>
+
+## Including RPI orders in a local order book
+
+Public `depth` excludes RPI orders by design, so they never appear in this stream. RPI resting liquidity is not published on any market-data feed — it is visible only in private active orders and in the exchange UI order book.
+
+To display an account's own RPI orders alongside the public book, overlay its private active orders onto the local depth book. Subscribe to [`ordersPending`](/websocket/account-streams/orders-pending) (private) alongside `depth_subscribe`, then merge:
+
+1. **Overlay only orders with `rpi: true`.** Non-RPI orders already appear in the public `depth` aggregate — overlaying every order double-counts them.
+2. **Aggregate by price before merging.** Public `depth` levels are price-aggregated `[price, total amount]`, while the private stream is per-order. Sum the RPI orders by price level, and use each order's `left` (remaining amount), not `amount` (original size).
+3. **Map the side.** Order `side` `1` (sell) → ask; `2` (buy) → bid.
+4. **Upsert by `order_id`.** Add or update on `event_id` `1` (new) and `2` (update); remove on `3` (finish). `order_id` changes on modify — correlate with `client_order_id`. Stop-order activation emits a second `event_id=1` for the same `order_id`, so upsert rather than append.
+5. **Filter by `market`** to match the depth subscription.
+
+This overlay reflects only the account's own RPI orders. No feed exposes other participants' RPI liquidity.
 
 ## Update frequency
 
