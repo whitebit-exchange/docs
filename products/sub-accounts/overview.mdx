@@ -16,7 +16,7 @@ The Sub-Accounts API provides full programmatic control over multi-account archi
 
 - **Account CRUD** -- create, edit, delete, and list sub-accounts. Each sub-account gets a unique identifier and independent settings.
 - **Fee-free instant transfers** -- move assets between the main account and any sub-account without fees or delays via `POST /api/v4/sub-account/transfer`
-- **Per-sub-account API keys** -- generate dedicated API keys for each sub-account with independent IP whitelists (up to 50 IPs per key). Supports create, edit, delete, reset, and IP management.
+- **Per-sub-account API keys** -- generate dedicated API keys for each sub-account with independent IP whitelists (up to 50 IPs per key). The 50-key limit applies per sub-account, independent from the main account and from other sub-accounts. Supports create, edit, delete, reset, and IP management.
 - **KYC URL generation** -- generate temporary KYC verification links for sub-account users via `POST /api/v4/sub-account/kyc-url`. Requirements: sub-account must be activated, active, and not using shared KYC.
 - **Withdrawal approval flow** -- review and approve pending withdrawals from sub-accounts via `POST /api/v4/sub-account/withdraw/unconfirmed-list`. Only applies to sub-accounts of type "general" with the sub-account crypto service permission.
 

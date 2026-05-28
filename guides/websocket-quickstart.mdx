@@ -136,7 +136,7 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide ta
       </Tab>
     </Tabs>
 
-    **Parameters:** market name, depth limit (`1`/`5`/`10`/`20`/`30`/`50`/`100`), price aggregation interval (`"0"` = no aggregation), and multiple subscription flag. Set the flag to `true` to add a subscription alongside existing depth subscriptions. Setting the flag to `false` unsubscribes from all active depth subscriptions. Full parameter details: [Depth channel](/websocket/market-streams/depth).
+    **Parameters:** market name, depth limit (`1`/`5`/`10`/`20`/`30`/`50`/`100`), price aggregation interval (`"0"` = no aggregation), and multiple subscription flag. Set the flag to `true` to add a subscription alongside existing depth subscriptions. Setting the flag to `false` unsubscribes from all active depth subscriptions. To drop a single market while keeping the others, send `depth_unsubscribe` with that market name in `params` instead. Full parameter details: [Depth channel](/websocket/market-streams/depth).
 
     **Update message:**
     ```json

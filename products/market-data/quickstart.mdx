@@ -211,7 +211,7 @@ Fetch live market data from the WhiteBIT API in under 2 minutes. All Market Data
 
 These five public endpoints cover one-shot lookups. For continuous updates, switch to the [WebSocket Quickstart](/guides/websocket-quickstart) — a single connection replaces every poll above.
 
-<Accordion title="What just happened?">
+<Accordion title="Why this works">
   **No authentication — by design** — Market Data endpoints are intentionally public. No API key, no HMAC signing, no account. WhiteBIT exposes pricing, orderbook, and trade data publicly to support price aggregators, data vendors, and integration testing without requiring account creation. Public endpoints have their own rate limits but no per-key restrictions.
 
   **Polling vs streaming** — The five steps above use REST (request → response). This is appropriate for one-time lookups but expensive for real-time monitoring: polling the ticker endpoint every second across hundreds of pairs exhausts rate limits quickly and adds latency. For continuous price or orderbook updates, use [WebSocket](/guides/websocket-quickstart) instead — a single persistent connection streams updates as they occur, with no polling overhead.

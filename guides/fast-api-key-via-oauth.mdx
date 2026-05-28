@@ -8,7 +8,7 @@ The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an a
 
 ## Prerequisites
 
-- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `support@whitebit.com` to enroll a client and to register or update the IP ranges that the WhiteBIT platform attaches to the issued API key.
+- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `support@whitebit.com` to enroll a client; IP allowlist registration is coordinated on the same ticket once the OAuth API key feature is approved for your platform. The same channel applies to subsequent IP changes — there is no self-service endpoint today.
 - End user with a WhiteBIT account, 2FA enabled, KYC passed, and operating in a region where the feature is available. The OAuth API key endpoints are available on the global server (`https://whitebit.com`) only.
 - Partner backend that supports HTTPS, server-side secret storage, and OAuth 2.0 Authorization Code with PKCE (S256).
 
@@ -52,6 +52,14 @@ The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an a
   </Step>
 </Steps>
 
+## Key permissions
+
+The user picks API key permissions on the WhiteBIT consent screen from the same list shown when creating a manual API key in the dashboard — read, spot, collateral, withdrawal, and the other granular scopes. The partner does not pass the permission set in the authorization request and cannot influence the user's choice. The issued key carries those permissions for its lifetime; changing the permission set requires deleting the key and re-running the OAuth API key flow.
+
+If the user selects withdrawal permission, the consent modal adds a warning block and a confirmation checkbox before the user can accept. Step-up MFA is enforced after consent for every Fast API Key creation, regardless of which permissions were selected.
+
+After issuance the key behaves the same as a manually-created key with matching permissions. Trade and withdrawal endpoints are authorized by the HMAC signature on each request — see [Private HTTP API authentication](/api-reference/authentication). KYC for fiat withdrawals, the partner IP allowlist, AML and fraud monitoring, and withdrawal limits apply on every call.
+
 ## Lifecycle and revocation
 
 OAuth-issued API keys are revoked or deleted by any of the following events:
@@ -91,7 +99,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 ## Limits
 
 - One active OAuth-issued API key per `(user, partner)` pair. A second creation attempt returns an error and the consent flow terminates.
-- The global per-user API key limit (50 keys) includes both manually-created and OAuth-issued keys.
+- The 50-key limit applies per account context — the main account and each sub-account each have an independent 50-key allowance, and the count includes both manually-created and OAuth-issued keys.
 - A user can have OAuth-issued keys from an unlimited number of partners.
 
 ## What's Next

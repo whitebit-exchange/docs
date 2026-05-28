@@ -8,7 +8,7 @@ WhiteBIT uses three account types to separate funds by purpose: Main, Trade, and
 
 ## Account types
 
-**Main balance** — The primary holding account. Deposits arrive here. Withdrawals leave from here. Lending (U EARN) investments are held in Main. Main balance is not used for direct trading.
+**Main balance** — The primary holding account. Deposits arrive here. Withdrawals leave from here. Creating a U EARN (lending) investment debits funds from Main and moves the assets into a separate investment account; the platform UI surfaces the investment as a virtual Earn balance. Main balance is not used for direct trading.
 
 - Endpoint: `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/overview)
 
@@ -37,7 +37,7 @@ Main ↔ Trade          (for spot trading)
 Main ↔ Collateral     (for margin and futures trading)
 ```
 
-Direct transfers between Trade and Collateral are not supported. Route funds through Main when moving between the two.
+The `/api/v4/main-account/transfer` endpoint supports only Main ↔ Trade and Main ↔ Collateral — to move funds between Trade and Collateral via the API, route through Main (two transfers). The platform UI exposes a direct Trade ↔ Collateral transfer, but the same Main-routed transfers happen under the hood.
 
 - Transfer endpoint: `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
 
@@ -64,7 +64,7 @@ USDTB is a bonus collateral token used for futures trading. USDTB cannot be depo
 
 ## Deposit flow
 
-1. Generate a deposit address. Use `POST /api/v4/main-account/create-new-address` ([API Reference](/api-reference/account-wallet/create-new-address-for-deposit)) to generate a unique address per request, or `POST /api/v4/main-account/address` ([API Reference](/api-reference/deposits/get-deposit-address)) to retrieve a persistent reusable address. Alternatively, create an address through the platform UI.
+1. Generate a deposit address. Use `POST /api/v4/main-account/create-new-address` ([API Reference](/api-reference/account-wallet/create-new-address-for-deposit)) to generate a unique address per request, or `POST /api/v4/main-account/address` ([API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address)) to retrieve a persistent reusable address. Alternatively, create an address through the platform UI.
 2. Send crypto to the generated address.
 3. Funds arrive in Main balance after blockchain confirmations. Confirmation requirements vary by asset.
 4. Transfer from Main to Trade (for spot orders) or to Collateral (for margin/futures positions).
