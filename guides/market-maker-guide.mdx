@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, colocation in Frankfurt and Tokyo, and a 33-endpoint API subset reachable from inside the matching-engine zone with 3-5 ms latency.
+The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, [colocation](/platform/colocation), and a 33-endpoint API subset reachable from inside the matching-engine zone.
 
 ## Market-Making Program overview
 
@@ -20,7 +20,7 @@ Rates and volume breakpoints change over time and are not duplicated here. For c
 
 **Program benefits beyond fees:**
 
-- Colocation access (Frankfurt and Tokyo regions)
+- [Colocation](/platform/colocation) access
 - Dedicated account manager
 - Cross-marketing support
 - [Sub-accounts](/products/sub-accounts/overview) for strategy separation
@@ -30,16 +30,7 @@ Rates and volume breakpoints change over time and are not duplicated here. For c
 
 Colocation provides low-latency API access from AWS infrastructure co-located with the WhiteBIT matching engine.
 
-**Regions:**
-
-| Region | Location |
-|--------|----------|
-| Europe (Primary) | **Frankfurt** |
-| Asia | **Tokyo** |
-
 The account manager provides the specific AWS region, availability zone, and connection endpoints during onboarding.
-
-**Performance:** 3-5 milliseconds latency from colocation infrastructure.
 
 **EC2 sizing recommendations:**
 
@@ -125,7 +116,7 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
-**Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order).
+**Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order). For how the engine sequences orders — price-time priority, participant fairness, and latency factors — see [Matching engine](/concepts/matching-engine).
 
 **Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — sets a timeout; if the endpoint is not called again before it expires, the kill-switch cancels every active order on the account. The deadman trigger for process crashes, lost connectivity, and operator absence. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
 
@@ -356,7 +347,7 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 <CardGroup cols={3}>
   <Card title="Colocation" icon="server" href="/platform/colocation">
-    AWS regions, EC2 sizing, and availability-zone placement for the Frankfurt and Tokyo zones.
+    AWS regions, EC2 sizing, and availability-zone placement for colocation onboarding.
   </Card>
   <Card title="Spot Trading API" icon="square-terminal" href="/api-reference/spot-trading/overview">
     Full endpoint documentation for all spot trading endpoints.
