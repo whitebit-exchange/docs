@@ -10,17 +10,28 @@ The matching engine is the core system that pairs buy and sell orders across Whi
 
 The engine runs continuous matching — each incoming order is evaluated for a match on arrival, with no batch-auction window, speed bump, or arrival-time randomization. Resting orders match on **[price-time priority](/glossary#price-time-priority)**: better-priced orders fill first, and orders at the same price fill in arrival sequence.
 
+At a given price level, non-RPI orders form a priority queue ahead of [RPI](/glossary#retail-price-improvement-rpi) orders. FIFO holds within each segment, but the entire non-RPI queue at that price drains before any RPI order at the same price executes — even if the RPI order arrived first.
+
+Each fill triggers re-evaluation of resting [stop and trigger orders](/concepts/order-types#stop-market-orders). Any stop or trigger whose condition is met by the new trade price enters the matching pipeline immediately, in the same engine cycle as the originating fill.
+
 Time priority is determined by **matching-engine arrival**, not by arrival at the API gateway. Order modification does not preserve queue position — the engine cancels the original order and creates a replacement with a new `orderId` at the back of the price level's queue. See [order modification in the Market Maker Guide](/guides/market-maker-guide) and the [modify order endpoint](/api-reference/spot-trading/modify-order).
 
 ## Participant fairness
 
 All participants are subject to identical matching logic and the same latency rules. No account type, VIP tier, or market-making agreement grants matching priority, a separate venue, or a preferential queue. Internal liquidity follows the same rules as external order flow — no priority lane and no separate aggregation layer.
 
-The engine applies no prioritization by request type (submit, cancel, modify, bulk), order type (limit, market, IOC, post-only), or product (spot versus margin). [Self-Trade Prevention](/platform/self-trade-prevention) and [order type](/concepts/order-types) flags change how an individual order behaves, not where the order sits in the matching sequence.
+The engine applies no prioritization by request type (submit, cancel, modify, bulk), order type (limit, market, IOC, post-only), or product (spot versus margin). The unified-path design is deliberate: a single prioritization model across every flow sustains the engine's throughput at high request rates. [Self-Trade Prevention](/platform/self-trade-prevention) and [order type](/concepts/order-types) flags change how an individual order behaves, not where the order sits in the matching sequence.
 
 ## Latency factors
 
-Execution latency depends on two factors: the connection point and the endpoint called. Account type and fee tier do not affect latency. The lowest latency is **3–5 ms** via [colocation](/platform/colocation) in Frankfurt, where trading servers connect inside the matching-engine zone. Connections from outside colocation add network transit time proportional to physical distance.
+Execution latency depends on three factors: the connection point, the endpoint called, and — on collateral products — account state. Fee tier has no effect on matching latency. The lowest latency is **3–5 ms** via [colocation](/platform/colocation) in Frankfurt, where trading servers connect inside the matching-engine zone. Connections from outside colocation add network transit time proportional to physical distance.
+
+On margin and futures (collateral trading), every order placement runs a free-margin validation that scales with account complexity. Two contributors dominate:
+
+- **Collateral asset count.** The validator recomputes free margin against the full collateral set on each placement — accounts holding more assets as collateral pay proportionally more compute per order.
+- **Open position count.** Each additional open position adds to the per-order calculation: the validator factors every position's unrealized P&L and collateral allocation into the free-margin total.
+
+Spot orders skip the collateral-side validation, so collateral count and open-position count do not affect spot order latency.
 
 ## What's Next
 
