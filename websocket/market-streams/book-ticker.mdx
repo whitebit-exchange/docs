@@ -48,6 +48,7 @@ Real-time best bid and best ask price updates for a market. The server sends an 
   updateNote="The server pushes bookTicker_update on every best bid/ask change. The update is a positional array — fields are identified by index."
   updateExtra={<WsTupleTable fields={bookTickerUpdateDataTupleFields} />}
   unsubscribe={exBookTickerUnsubscribe}
+  unsubscribeNote="Pass a market name in params to unsubscribe from that market only (`params[0]`: market name, e.g. `&quot;BTC_USDT&quot;`), or pass an empty array to unsubscribe from all markets."
 />
 
 ## Update frequency
