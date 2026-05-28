@@ -1,6 +1,6 @@
 ---
 title: "Matching engine"
-description: "How the WhiteBIT matching engine sequences and executes orders — price-time priority, participant fairness, and the factors that determine execution latency."
+description: "How the WhiteBIT matching engine sequences and executes orders — price-time priority and participant fairness across spot, margin, and futures markets."
 sidebarTitle: "Matching engine"
 ---
 
@@ -21,10 +21,6 @@ Time priority is determined by **matching-engine arrival**, not by arrival at th
 All participants are subject to identical matching logic and the same latency rules. No account type, VIP tier, or market-making agreement grants matching priority, a separate venue, or a preferential queue. Internal liquidity follows the same rules as external order flow — no priority lane and no separate aggregation layer.
 
 The engine applies no prioritization by request type (submit, cancel, modify, bulk), order type (limit, market, IOC, post-only), or product (spot versus margin). The unified-path design is deliberate: a single prioritization model across every flow sustains the engine's throughput at high request rates. [Self-Trade Prevention](/platform/self-trade-prevention) and [order type](/concepts/order-types) flags change how an individual order behaves, not where the order sits in the matching sequence.
-
-## Latency factors
-
-Execution latency depends on the connection point and the endpoint called. Fee tier has no effect on matching latency. The lowest latency is **3–5 ms** via [colocation](/platform/colocation), where trading servers connect inside the matching-engine zone. Connections from outside colocation add network transit time proportional to physical distance.
 
 ## What's Next
 
