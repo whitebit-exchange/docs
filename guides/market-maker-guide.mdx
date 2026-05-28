@@ -125,7 +125,7 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
-**Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order).
+**Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order). For how the engine sequences orders — price-time priority, participant fairness, and latency factors — see [Matching engine](/concepts/matching-engine).
 
 **Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — sets a timeout; if the endpoint is not called again before it expires, the kill-switch cancels every active order on the account. The deadman trigger for process crashes, lost connectivity, and operator absence. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
 
