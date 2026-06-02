@@ -231,7 +231,7 @@ See [Regulatory Compliance](/institutional/compliance) for the full Travel Rule 
 
 ## Create a withdrawal
 
-Submit a crypto withdrawal by calling `POST /api/v4/main-account/withdraw`. See the [API Reference](/api-reference/withdrawals/create-withdraw) for the full endpoint specification.
+Submit a crypto withdrawal by calling `POST /api/v4/main-account/withdraw`. See the [API Reference](/api-reference/account-wallet/create-withdraw-request) for the full endpoint specification.
 
 Two withdrawal endpoints are available:
 
@@ -471,7 +471,7 @@ When a deposit is canceled (status 4 or 9), a refund may be available.
 | Endpoint | Purpose | API Reference |
 |----------|---------|---------------|
 | `POST /api/v4/main-account/balance` | Check Main balance before withdrawal | [Main Balance](/api-reference/account-wallet/main-balance) |
-| `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a withdrawal request | [Create Withdraw](/api-reference/withdrawals/create-withdraw) |
+| `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | Webhooks (`withdraw.unconfirmed`, `withdraw.pending`, `withdraw.successful`, `withdraw.canceled`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/fee` | Available currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
@@ -669,7 +669,7 @@ When the currency held in Main balance differs from the currency the end user ne
   <Step title="Create withdrawal request">
     Submit a withdrawal to the end user's external address.
 
-    **Endpoint:** `POST /api/v4/main-account/withdraw` or `POST /api/v4/main-account/withdraw-pay` — [API Reference](/api-reference/withdrawals/create-withdraw)
+    **Endpoint:** `POST /api/v4/main-account/withdraw` or `POST /api/v4/main-account/withdraw-pay` — [API Reference](/api-reference/account-wallet/create-withdraw-request)
   </Step>
   <Step title="Receive webhook confirmation">
     The `withdraw.successful` webhook fires when the withdrawal completes. See [Webhooks](/platform/webhook) for setup and signature verification.
@@ -827,7 +827,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 | `POST /api/v4/convert/estimate` | Request a conversion quote | [Convert Estimate](/api-reference/convert/convert-estimate) |
 | `POST /api/v4/convert/confirm` | Confirm and execute a conversion | [Convert Confirm](/api-reference/convert/convert-confirm) |
 | `GET /api/v4/public/markets` | Available markets and trading limits | [Market Info](/api-reference/market-data/market-info) |
-| `POST /api/v4/main-account/withdraw` | Create a withdrawal request | [Create Withdraw](/api-reference/withdrawals/create-withdraw) |
+| `POST /api/v4/main-account/withdraw` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | Webhooks (`withdraw.successful`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/fee` | Currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
