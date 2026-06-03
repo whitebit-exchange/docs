@@ -393,7 +393,7 @@ Different channels use different update models. The recovery strategy depends on
 
 | Update model | Channels | Recovery strategy |
 |---|---|---|
-| Snapshot on subscribe | [Depth](/websocket/market-streams/depth) | First message after subscribe is a full snapshot — local state auto-recovers. Apply incremental updates from subsequent messages. Detect gaps via `update_id` sequencing. |
+| Snapshot on subscribe | [Depth](/websocket/market-streams/depth) | First message after subscribe is a full snapshot — local state auto-recovers. Apply incremental updates from subsequent messages. Detect gaps via the `past_update_id` chain on incremental deltas; keepalive snapshots (`params[0]` is `true`) are full resets, not gaps. |
 | Periodic full snapshot | [Positions](/websocket/account-streams/positions), [Borrows](/websocket/account-streams/borrows), [Market](/websocket/market-streams/market), [Market Today](/websocket/market-streams/market-today) | Full state arrives within 1–1.5s of subscribing — no gap to fill. |
 | Incremental delta | [Balance Spot](/websocket/account-streams/balance-spot), [Balance Margin](/websocket/account-streams/balance-margin) | **Query first, then subscribe.** Send a one-time query (`balanceSpot_request` / `balanceMargin_request`) to get full state, then subscribe for incremental changes. |
 | Event stream | [Orders Pending](/websocket/account-streams/orders-pending), [Orders Executed](/websocket/account-streams/orders-executed), [Deals](/websocket/account-streams/deals) | **Query first, then subscribe.** Events during disconnection are lost. Use the one-time query operation or the REST equivalent to backfill, then subscribe. |
