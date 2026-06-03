@@ -134,8 +134,11 @@ async def stream_market_data():
 See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setup and authentication.
 
 <Note>
-  `depth_update` messages carry an `update_id`. Non-contiguous IDs indicate
-  a missed message — resnapshot by unsubscribing and re-subscribing. See
+  Incremental `depth_update` deltas chain via `past_update_id`. If a delta's
+  `past_update_id` does not match the last-seen `update_id` for this subscription,
+  a message was missed — resnapshot by unsubscribing and re-subscribing.
+  Keepalive snapshots (`params[0]` is `true`, `past_update_id` absent) are full
+  resets, not gap signals — their `update_id` may exceed the last delta's. See
   [WS Quickstart — State recovery after reconnect](/guides/websocket-quickstart#state-recovery-after-reconnect)
   for the full pattern.
 </Note>
