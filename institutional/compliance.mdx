@@ -98,7 +98,7 @@ The `travelRule` object is required on `POST /api/v4/main-account/withdraw` for 
           "address": "Doe"
         },
         "request": "/api/v4/main-account/withdraw",
-        "nonce": "1709340000000"
+        "nonce": 1709340000000
       }'
     ```
   </Tab>
@@ -111,7 +111,7 @@ The `travelRule` object is required on `POST /api/v4/main-account/withdraw` for 
     BASE_URL = "https://whitebit.com"
 
     def make_request(endpoint, body):
-        nonce = str(int(time.time() * 1000))
+        nonce = int(time.time() * 1000)
         body["request"] = endpoint
         body["nonce"] = nonce
         data_json = json.dumps(body)

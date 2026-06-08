@@ -35,7 +35,7 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"request": "/api/v4/main-account/smart-flex/plans", "nonce": "1709340000000"}'
+          -d '{"request": "/api/v4/main-account/smart-flex/plans", "nonce": 1709340000000}'
         ```
       </Tab>
       <Tab title="Python">
@@ -47,7 +47,7 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
         BASE_URL = "https://whitebit.com"
 
         def make_request(endpoint, body):
-            nonce = str(int(time.time() * 1000))
+            nonce = int(time.time() * 1000)
             body["request"] = endpoint
             body["nonce"] = nonce
             data_json = json.dumps(body)
@@ -106,7 +106,7 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
             "amount": "100.00",
             "withReinvest": true,
             "request": "/api/v4/main-account/smart-flex/investments/invest",
-            "nonce": "1709340000001"
+            "nonce": 1709340000001
           }'
         ```
       </Tab>
@@ -146,7 +146,7 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"request": "/api/v4/main-account/smart-flex/investments", "nonce": "1709340000002"}'
+          -d '{"request": "/api/v4/main-account/smart-flex/investments", "nonce": 1709340000002}'
         ```
       </Tab>
       <Tab title="Python">
@@ -193,7 +193,7 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
             "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
             "amount": "50.00",
             "request": "/api/v4/main-account/smart-flex/investments/withdraw",
-            "nonce": "1709340000003"
+            "nonce": 1709340000003
           }'
         ```
       </Tab>

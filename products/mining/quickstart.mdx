@@ -38,7 +38,7 @@ Mining account creation is API-only — no UI flow exists. The four steps below 
           -d '{
             "name": "my_miner_01",
             "request": "/api/v4/mining/accounts/create",
-            "nonce": "1709340000000"
+            "nonce": 1709340000000
           }'
         ```
       </Tab>
@@ -51,7 +51,7 @@ Mining account creation is API-only — no UI flow exists. The four steps below 
         BASE_URL = "https://whitebit.com"
 
         def make_request(endpoint, body):
-            nonce = str(int(time.time() * 1000))
+            nonce = int(time.time() * 1000)
             body["request"] = endpoint
             body["nonce"] = nonce
             data_json = json.dumps(body)
@@ -105,7 +105,7 @@ Mining account creation is API-only — no UI flow exists. The four steps below 
           -d '{
             "account": "my_miner_01",
             "request": "/api/v4/mining/miners/info",
-            "nonce": "1709340000001"
+            "nonce": 1709340000001
           }'
         ```
       </Tab>
@@ -156,7 +156,7 @@ Mining account creation is API-only — no UI flow exists. The four steps below 
             "account": "my_miner_01",
             "interval": "1h",
             "request": "/api/v4/mining/hashrate",
-            "nonce": "1709340000002"
+            "nonce": 1709340000002
           }'
         ```
       </Tab>
@@ -203,7 +203,7 @@ Mining account creation is API-only — no UI flow exists. The four steps below 
             "accountName": "my_miner_01",
             "destination": "main_balance",
             "request": "/api/v4/mining/payout-destination/edit",
-            "nonce": "1709340000003"
+            "nonce": 1709340000003
           }'
 
         # Option B: Payout to external BTC address
@@ -217,7 +217,7 @@ Mining account creation is API-only — no UI flow exists. The four steps below 
             "destination": "external_address",
             "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
             "request": "/api/v4/mining/payout-destination/edit",
-            "nonce": "1709340000004"
+            "nonce": 1709340000004
           }'
         ```
       </Tab>

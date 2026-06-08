@@ -139,7 +139,7 @@ Each end customer is onboarded as a sub-account under the broker's master accoun
       -d '{
         "alias": "customer-001",
         "request": "/api/v4/sub-account/create",
-        "nonce": "YOUR_NONCE"
+        "nonce": 1594297865000
       }'
 
     # Generate a KYC URL for the sub-account
@@ -151,7 +151,7 @@ Each end customer is onboarded as a sub-account under the broker's master accoun
       -d '{
         "id": "SUB_ACCOUNT_ID",
         "request": "/api/v4/sub-account/kyc-url",
-        "nonce": "YOUR_NONCE"
+        "nonce": 1594297865000
       }'
     ```
   </Tab>
@@ -170,7 +170,7 @@ Each end customer is onboarded as a sub-account under the broker's master accoun
 
     def send_request(endpoint, payload):
         payload["request"] = endpoint
-        payload["nonce"] = str(int(time.time() * 1000))
+        payload["nonce"] = int(time.time() * 1000)
         body = json.dumps(payload)
         encoded = base64.b64encode(body.encode()).decode()
         signature = hmac.new(

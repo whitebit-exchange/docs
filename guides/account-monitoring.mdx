@@ -35,7 +35,7 @@ For an explanation of account types and how funds move between them, see [Balanc
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
       -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-      -d '{"request":"/api/v4/trade-account/balance","nonce":"1700000000000"}'
+      -d '{"request":"/api/v4/trade-account/balance","nonce":1700000000000}'
     ```
   </Tab>
   <Tab title="Python">
@@ -50,7 +50,7 @@ For an explanation of account types and how funds move between them, see [Balanc
         if data is None:
             data = {}
         data["request"] = path
-        data["nonce"] = str(int(time.time() * 1000))
+        data["nonce"] = int(time.time() * 1000)
         data_json = json.dumps(data)
         payload_b64 = base64.b64encode(data_json.encode()).decode()
         signature = hmac.new(
@@ -140,7 +140,7 @@ Query deposit and withdrawal history using the main account history endpoint:
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
       -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-      -d '{"transactionMethod":1,"request":"/api/v4/main-account/history","nonce":"1700000000000"}'
+      -d '{"transactionMethod":1,"request":"/api/v4/main-account/history","nonce":1700000000000}'
     ```
   </Tab>
   <Tab title="Python">
@@ -183,7 +183,7 @@ Query active orders across all markets or filter by a specific market:
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
       -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-      -d '{"market":"BTC_USDT","request":"/api/v4/orders","nonce":"1700000000000"}'
+      -d '{"market":"BTC_USDT","request":"/api/v4/orders","nonce":1700000000000}'
     ```
   </Tab>
   <Tab title="Python">
@@ -211,7 +211,7 @@ Query trade history for filled and canceled orders:
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
       -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
       -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-      -d '{"market":"BTC_USDT","request":"/api/v4/trade-account/order/history","nonce":"1700000000000"}'
+      -d '{"market":"BTC_USDT","request":"/api/v4/trade-account/order/history","nonce":1700000000000}'
     ```
   </Tab>
   <Tab title="Python">

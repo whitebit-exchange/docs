@@ -183,7 +183,7 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide ta
 
         # Part A — Get WebSocket token via REST API
         path = "/api/v4/profile/websocket_token"
-        data = {"request": path, "nonce": str(int(time.time() * 1000))}
+        data = {"request": path, "nonce": int(time.time() * 1000)}
         data_json = json.dumps(data)
         payload_b64 = base64.b64encode(data_json.encode()).decode()
         signature = hmac.new(
@@ -332,7 +332,7 @@ PRIVATE_SUBS = [
 def get_ws_token():
     """Fetch a fresh WebSocket token via the REST API."""
     path = "/api/v4/profile/websocket_token"
-    data = json.dumps({"request": path, "nonce": str(int(time.time() * 1000))})
+    data = json.dumps({"request": path, "nonce": int(time.time() * 1000)})
     payload = base64.b64encode(data.encode()).decode()
     sig = hmac.new(API_SECRET.encode(), payload.encode(), hashlib.sha512).hexdigest()
     headers = {

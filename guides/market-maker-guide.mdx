@@ -144,7 +144,7 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
           {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60300", "clientOrderId": "quote-ask-2"}
         ],
         "request": "/api/v4/order/bulk",
-        "nonce": "YOUR_NONCE"
+        "nonce": 1594297865000
       }'
 
     # Requote the top bid by clientOrderId. The response carries a new orderId;
@@ -159,7 +159,7 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
         "clientOrderId": "quote-bid-1",
         "price": "60050",
         "request": "/api/v4/order/modify",
-        "nonce": "YOUR_NONCE"
+        "nonce": 1594297865000
       }'
 
     # Set a kill-switch with 60-second timeout. The timeout field is a string.
@@ -172,7 +172,7 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
         "market": "BTC_USDT",
         "timeout": "60",
         "request": "/api/v4/order/kill-switch",
-        "nonce": "YOUR_NONCE"
+        "nonce": 1594297865000
       }'
     ```
   </Tab>
@@ -191,7 +191,7 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
 
     def send_request(endpoint, payload):
         payload["request"] = endpoint
-        payload["nonce"] = str(int(time.time() * 1000))
+        payload["nonce"] = int(time.time() * 1000)
         body = json.dumps(payload)
         encoded = base64.b64encode(body.encode()).decode()
         signature = hmac.new(
@@ -321,7 +321,7 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
         "market": "BTC_USDT",
         "type": ["spot"],
         "request": "/api/v4/order/cancel/all",
-        "nonce": "YOUR_NONCE"
+        "nonce": 1594297865000
       }'
     ```
   </Tab>

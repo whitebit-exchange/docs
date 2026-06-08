@@ -106,9 +106,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -215,9 +215,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -586,9 +586,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             examples:
               basic:
                 summary: Basic request
@@ -598,7 +598,7 @@ paths:
                   amount: "100"
                   unique_id: "{{generateID}}"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               withCustomer:
                 summary: Request with customer fields
                 value:
@@ -616,7 +616,7 @@ paths:
                       zipCode: "28010"
                       countryCode: "ES"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -671,13 +671,13 @@ paths:
                   description: Nonce window setting
                   example: false
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               request: "{{request}}"
               nonceWindow: false
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Validation succeeded and JWT token is returned
@@ -779,12 +779,12 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: WebSocket token retrieved successfully
@@ -946,15 +946,15 @@ paths:
                     Base64-encoded request body. See the [authentication guide](/private/http-auth) for signature generation details.
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: |
                     A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               transaction_id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
               address: "0x1234567890abcdef1234567890abcdef12345678"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: System accepts refund request
@@ -1158,9 +1158,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             examples:
               crypto:
                 summary: Crypto withdrawal
@@ -1170,7 +1170,7 @@ paths:
                   address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
                   unique_id: "24529041"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               multiNetwork:
                 summary: Multinetwork currency (USDT)
                 value:
@@ -1180,7 +1180,7 @@ paths:
                   unique_id: "24529042"
                   network: "ERC20"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               fiat:
                 summary: Fiat withdrawal
                 value:
@@ -1189,7 +1189,7 @@ paths:
                   provider: "VISAMASTER"
                   unique_id: "24529043"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               fiatPartial:
                 summary: Fiat with partial enable
                 value:
@@ -1200,7 +1200,7 @@ paths:
                   partialEnable: true
                   unique_id: "24529045"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               fiatIban:
                 summary: Fiat IBAN currency
                 value:
@@ -1214,7 +1214,7 @@ paths:
                   provider: "UAH_IBAN"
                   unique_id: "24529045"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               fiatVisamaster:
                 summary: Fiat USD/EUR VISAMASTER
                 value:
@@ -1229,7 +1229,7 @@ paths:
                   provider: "USD_VISAMASTER"
                   unique_id: "24529045"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               travelRuleIndividual:
                 summary: Travel rule (individual)
                 value:
@@ -1243,7 +1243,7 @@ paths:
                     name: "John"
                     address: "123 Business Street, London, UK"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               travelRuleEntity:
                 summary: Travel rule (entity)
                 value:
@@ -1257,7 +1257,7 @@ paths:
                     name: "Acme Corp"
                     address: "123 Business Street, London, UK"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
       responses:
         "201":
           description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
@@ -1430,7 +1430,7 @@ paths:
               address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
               unique_id: "24529041"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
@@ -1598,9 +1598,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             examples:
               usingMethod:
                 summary: Using method field (deprecated)
@@ -1609,7 +1609,7 @@ paths:
                   amount: "0.9"
                   method: "deposit"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               usingFromTo:
                 summary: Using from/to fields (recommended)
                 value:
@@ -1618,7 +1618,7 @@ paths:
                   from: "main"
                   to: "spot"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
       responses:
         "201":
           description: All validations succeeded and creating transaction is started
@@ -1871,9 +1871,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               transactionMethod: 1
               ticker: "BTC"
@@ -1881,7 +1881,7 @@ paths:
               limit: 100
               status: [3, 7]
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: All validations succeeded and creating transaction is started
@@ -2050,30 +2050,30 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             examples:
               basic:
                 summary: Basic request
                 value:
                   ticker: "XLM"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               multinetwork:
                 summary: Multinetwork currency
                 value:
                   ticker: "USDT"
                   network: "ERC20"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
               withAddressType:
                 summary: BTC with specific address type
                 value:
                   ticker: "BTC"
                   type: "bech32"
                   request: "{{request}}"
-                  nonce: "{{nonce}}"
+                  nonce: 1594297865000
       responses:
         "201":
           description: All validations succeeded and creating transaction is started
@@ -2284,16 +2284,16 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               ticker: "ETH"
               amount: "0.002"
               passphrase: "some passphrase"
               description: "some description"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: All validations succeeded and creating transaction is started
@@ -2458,14 +2458,14 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               code: "WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH"
               passphrase: "some passphrase"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: All validations succeeded and creating transaction is started
@@ -2602,12 +2602,12 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: All validations succeeded and creating transaction is started
@@ -2729,12 +2729,12 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: All validations succeeded and creating transaction is started
@@ -2854,13 +2854,13 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               ticker: "USDT"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -2937,14 +2937,14 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               planId: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
               amount: "100"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: Investment created successfully
@@ -3124,13 +3124,13 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               id: "0d7b66ff-1909-4938-ab7a-d16d9a64dcd5"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Investment closed successfully
@@ -3233,15 +3233,15 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               id: "0d7b66ff-1909-4938-ab7a-d16d9a64dcd5"
               ticker: "USDT"
               status: 1
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -3350,14 +3350,14 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               planId: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
               ticker: "USDT"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -3448,15 +3448,15 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               limit: 50
               offset: 0
               ticker: "USDT"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -3560,9 +3560,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               limit: 100
               offset: 0
@@ -3571,7 +3571,7 @@ paths:
               investment: "invest_id_123"
               investmentStatus: 1
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -3694,9 +3694,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               limit: 50
               offset: 0
@@ -3707,7 +3707,7 @@ paths:
               dateTo: 1641081600
               actionTypes: [1, 2, 4]
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -3816,9 +3816,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               limit: 50
               offset: 0
@@ -3828,7 +3828,7 @@ paths:
               dateFrom: 1640995200
               dateTo: 1641081600
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -3918,15 +3918,15 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               amount: "1000.500000"
               withReinvest: true
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: Investment created successfully
@@ -4079,14 +4079,14 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               amount: "500.250000"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: Withdrawal successful
@@ -4208,13 +4208,13 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "201":
           description: Investment closed successfully
@@ -4309,14 +4309,14 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               plan: "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f"
               enabled: true
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         "200":
           description: Auto-reinvestment updated successfully
@@ -4388,9 +4388,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -6542,9 +6542,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -6633,9 +6633,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -6718,9 +6718,9 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
       responses:
         "200":
           description: Successful response
@@ -6866,9 +6866,9 @@ components:
           description: "Request signature"
           example: "{{request}}"
         nonce:
-          type: string
+          type: integer
           description: "Unique request identifier"
-          example: "{{nonce}}"
+          example: 1594297865000
 
     TransactionHistory:
       type: object
