@@ -4,6 +4,56 @@ description: "Integration guide for the WhiteBIT Broker Program. Earn up to 40% 
 sidebarTitle: "Broker Guide"
 ---
 
+{/*
+HIDDEN FROM NAVIGATION — 2026-06-08
+
+This page is removed from `docs.json` pending Compliance and Product team review
+of open architectural and content questions on the Broker Program. The page
+remains URL-accessible (Mintlify renders any `.mdx` file by URL even when
+absent from nav), and several in-portal links still target this URL — see the
+inbound-link list at the bottom of this comment.
+
+Pending answers (full context in `ai/inputs/`):
+
+- Compliance: licensing eligibility, screening cadence, due-diligence document
+  set, restricted jurisdictions, acceptance thresholds. Question batch in
+  `ai/inputs/broker-guide-sme-escalation.md` (block 1).
+- Product: sub-account fiat scope and roadmap, broker-tag mechanism existence,
+  Fast API Key fee-share wiring, API-key inactivity rules, new-vs-existing
+  user attribution, settlement cadence. Question batch in
+  `ai/inputs/broker-guide-sme-escalation.md` (block 2).
+
+Known content issues blocking re-enable (full detail in
+`ai/inputs/broker-guide-improvement-list.md`):
+
+- B1 — Eligibility section needs Compliance-confirmed wording.
+- B2 — Fiat-for-end-users section contradicts the documented platform model;
+  sub-accounts do not handle fiat per `ai/outputs/partner-questions/2026-05-18-platform-architecture-and-ops.md:593`.
+- B3 — `<RegionBaseUrl />` substring rewrite produces broken
+  `institutional.whitebit.eu` and `help.whitebit.eu` URLs on EU toggle;
+  component-level fix tracked in `ai/specs/regional-base-urls/`.
+- B4 — Customer onboarding flow is missing the sub-account activation step;
+  returns `400 "Account is not confirmed"` when followed verbatim.
+- M1–M6 — code-example drift, two broken `/api-reference/sub-accounts/` slug
+  links, CRUD table omissions, missing 50-keys-per-sub-account limit,
+  unverified permission UI labels, fee-share math not decomposed.
+
+Inbound links that still resolve to this page (worth neutralizing if the page
+stays hidden longer than a sprint):
+
+- `index.mdx:100` — home-page Card
+- `guides/integration-paths.mdx:25`
+- `guides/client-order-id.mdx:320`
+- `institutional/overview.mdx:26, 63`
+- `products/spot/overview.mdx:26`
+- `products/sub-accounts/overview.mdx:62`
+- `products/sub-accounts/quickstart.mdx:245`
+
+To re-enable: restore `"guides/broker-guide"` to the `Integration Guides` group
+in `docs.json` (slot between `guides/market-maker-guide` and the `Quick Start`
+sub-group), then remove this comment block.
+*/}
+
 import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
