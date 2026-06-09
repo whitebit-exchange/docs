@@ -30,9 +30,9 @@ channels:
       After successful subscription, the server immediately sends a full snapshot of the current order book as the first `depth_update` message. Subsequent messages are incremental updates containing only changes.
       </Note>
 
-      <Info>
-      If 10 seconds have elapsed without a change in the depth subscription, a snapshot message will be pushed again (keepalive).
-      </Info>
+      <Note>
+      If 10 seconds pass without an emitted `depth_update` on this subscription, a full snapshot is pushed as a keepalive. `update_id` reflects changes to the full order book and may advance during this window; the keepalive snapshot carries the current value.
+      </Note>
 
     messages:
       depthRequest:
@@ -309,7 +309,7 @@ components:
           description: Timestamp from matchengine
         update_id:
           type: integer
-          description: Update ID
+          description: "Per-market sequence counter. Increments on any change to the full order book for this market, including changes that do not produce a `depth_update` on this subscription. On a keepalive snapshot the value may exceed the last incremental delta's `update_id`."
         past_update_id:
           type: integer
           description: "Previous update ID (present in incremental updates only, not in first snapshot)"

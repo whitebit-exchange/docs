@@ -52,7 +52,7 @@ def send_request(path, data=None):
     if data is None:
         data = {}
     data["request"] = path
-    data["nonce"] = str(int(time.time() * 1000))
+    data["nonce"] = int(time.time() * 1000)
     data_json = json.dumps(data)
     payload_b64 = base64.b64encode(data_json.encode()).decode()
     signature = hmac.new(
@@ -87,7 +87,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"request":"/api/v4/collateral-account/balance","nonce":"1700000000000"}'
+              -d '{"request":"/api/v4/collateral-account/balance","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -120,7 +120,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"leverage":5,"request":"/api/v4/collateral-account/leverage","nonce":"1700000000000"}'
+              -d '{"leverage":5,"request":"/api/v4/collateral-account/leverage","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -154,7 +154,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_USDT","side":"buy","amount":"0.001","price":"30000","request":"/api/v4/order/collateral/limit","nonce":"1700000000000"}'
+              -d '{"market":"BTC_USDT","side":"buy","amount":"0.001","price":"30000","request":"/api/v4/order/collateral/limit","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -199,7 +199,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_USDT","request":"/api/v4/collateral-account/positions/open","nonce":"1700000000000"}'
+              -d '{"market":"BTC_USDT","request":"/api/v4/collateral-account/positions/open","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -246,7 +246,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_USDT","orderId":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+              -d '{"market":"BTC_USDT","orderId":12345678,"request":"/api/v4/order/cancel","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -288,7 +288,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"request":"/api/v4/collateral-account/balance","nonce":"1700000000000"}'
+              -d '{"request":"/api/v4/collateral-account/balance","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -319,7 +319,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"leverage":5,"request":"/api/v4/collateral-account/leverage","nonce":"1700000000000"}'
+              -d '{"leverage":5,"request":"/api/v4/collateral-account/leverage","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -353,7 +353,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"hedgeMode":true,"request":"/api/v4/collateral-account/hedge-mode/update","nonce":"1700000000000"}'
+              -d '{"hedgeMode":true,"request":"/api/v4/collateral-account/hedge-mode/update","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -384,7 +384,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_PERP","side":"buy","amount":"0.001","price":"30000","request":"/api/v4/order/collateral/limit","nonce":"1700000000000"}'
+              -d '{"market":"BTC_PERP","side":"buy","amount":"0.001","price":"30000","request":"/api/v4/order/collateral/limit","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -429,7 +429,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_PERP","request":"/api/v4/collateral-account/positions/open","nonce":"1700000000000"}'
+              -d '{"market":"BTC_PERP","request":"/api/v4/collateral-account/positions/open","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">
@@ -476,7 +476,7 @@ For Go and PHP examples, see [SDKs](/sdks).
               -H "X-TXC-APIKEY: YOUR_API_KEY" \
               -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
               -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-              -d '{"market":"BTC_PERP","orderId":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+              -d '{"market":"BTC_PERP","orderId":12345678,"request":"/api/v4/order/cancel","nonce":1700000000000}'
             ```
           </Tab>
           <Tab title="Python">

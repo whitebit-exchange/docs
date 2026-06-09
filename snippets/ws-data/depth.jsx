@@ -17,7 +17,7 @@ export const orderBook = [
 
 export const depthUpdateData = [
   { name: "timestamp", type: "number", required: true, description: "Timestamp from matchengine" },
-  { name: "update_id", type: "integer", description: "Update ID" },
+  { name: "update_id", type: "integer", description: "Per-market sequence counter. Increments on any change to the full order book for this market, including changes that do not produce a `depth_update` on this subscription. On a keepalive snapshot the value may exceed the last incremental delta's `update_id`." },
   { name: "past_update_id", type: "integer", description: "Previous update ID (present in incremental updates only, not in first snapshot)" },
   { name: "asks", type: "array", required: true, description: "" },
   { name: "bids", type: "array", required: true, description: "" },

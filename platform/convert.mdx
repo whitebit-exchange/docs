@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Convert provides instant currency conversion at a quoted rate. Unlike [spot trading](/products/spot/overview), Convert requires no orderbook interaction — request a quote, confirm within 10 seconds, and the conversion executes immediately.
+Convert provides instant currency conversion at a quoted rate. Unlike [spot trading](/products/spot/overview), Convert requires no orderbook interaction — request a quote, confirm before the quote expires, and the conversion executes immediately.
 
 ## When to use Convert
 
@@ -37,7 +37,7 @@ The conversion flow has two steps: estimate and confirm.
 </Steps>
 
 <Note>
-  Conversion quotes expire after 10 seconds. If the quote expires before confirmation, request a new estimate.
+  Each estimate response includes an `expireAt` timestamp — confirm before that moment. Honour the value returned per quote rather than hard-coding a fixed window. If the quote expires before confirmation, request a new estimate.
 </Note>
 
 ## API endpoints
@@ -173,7 +173,7 @@ The [history endpoint](/api-reference/convert/convert-history) supports filterin
 
 ## Convert in payment flows
 
-Convert is commonly used as part of the withdrawal flow when the currency held in Main balance differs from the currency an end user needs to withdraw. The pattern is: transfer Main → Trade, convert, transfer Trade → Main, then withdraw.
+Convert is commonly used as part of the withdrawal flow when the currency held in Main balance differs from the currency an end user needs to withdraw. The pattern is: request an estimate, confirm the quote, then submit the withdrawal in the destination currency — balance routing is handled internally by the convert service.
 
 For the full step-by-step withdrawal-with-conversion flow including code examples, see [Payment Integration](/guides/payment-integration).
 
