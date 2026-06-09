@@ -153,7 +153,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
         url = "https://whitebit.com/api/v4/trade-account/balance"
         payload = {
             "request": "/api/v4/trade-account/balance",
-            "nonce": str(int(time.time() * 1000))
+            "nonce": int(time.time() * 1000)
         }
         # Use compact separators: the server validates the body against a
         # canonical (no-whitespace) serialization and rejects spaced JSON
@@ -187,7 +187,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: BASE64_PAYLOAD" \
           -H "X-TXC-SIGNATURE: HMAC_SIGNATURE" \
-          -d '{"request":"/api/v4/trade-account/balance","nonce":"1700000000000"}'
+          -d '{"request":"/api/v4/trade-account/balance","nonce":1700000000000}'
         ```
       </Tab>
     </Tabs>
@@ -236,7 +236,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
     If the API key has IP whitelisting enabled, the request must come from a whitelisted IP address. Add the current IP at [whitebit.com/settings/api](https://whitebit.com/settings/api).
   </Accordion>
   <Accordion title="Nonce is too small">
-    The `nonce` must be greater than the previous request's nonce for the same API key. Use `str(int(time.time() * 1000))` to generate a millisecond-precision Unix timestamp. Avoid reusing nonces across requests.
+    The `nonce` must be greater than the previous request's nonce for the same API key. Use `int(time.time() * 1000)` to generate a millisecond-precision Unix timestamp. Avoid reusing nonces across requests.
   </Accordion>
 </AccordionGroup>
 

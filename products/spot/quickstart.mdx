@@ -37,7 +37,7 @@ Place a limit order on BTC_USDT against the live orderbook with HMAC-SHA512 sign
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"ticker":"USDT","request":"/api/v4/trade-account/balance","nonce":"1700000000000"}'
+          -d '{"ticker":"USDT","request":"/api/v4/trade-account/balance","nonce":1700000000000}'
         ```
       </Tab>
       <Tab title="Python">
@@ -57,7 +57,7 @@ Place a limit order on BTC_USDT against the live orderbook with HMAC-SHA512 sign
             if data is None:
                 data = {}
             data["request"] = path
-            data["nonce"] = str(int(time.time() * 1000))
+            data["nonce"] = int(time.time() * 1000)
             data_json = json.dumps(data)
             payload_b64 = base64.b64encode(data_json.encode()).decode()
             signature = hmac.new(
@@ -109,7 +109,7 @@ Place a limit order on BTC_USDT against the live orderbook with HMAC-SHA512 sign
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"market":"BTC_USDT","side":"buy","amount":"0.0001","price":"30000","request":"/api/v4/order/new","nonce":"1700000000000"}'
+          -d '{"market":"BTC_USDT","side":"buy","amount":"0.0001","price":"30000","request":"/api/v4/order/new","nonce":1700000000000}'
         ```
       </Tab>
       <Tab title="Python">
@@ -156,7 +156,7 @@ Place a limit order on BTC_USDT against the live orderbook with HMAC-SHA512 sign
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"market":"BTC_USDT","request":"/api/v4/orders","nonce":"1700000000000"}'
+          -d '{"market":"BTC_USDT","request":"/api/v4/orders","nonce":1700000000000}'
         ```
       </Tab>
       <Tab title="Python">
@@ -195,7 +195,7 @@ Place a limit order on BTC_USDT against the live orderbook with HMAC-SHA512 sign
           -H "X-TXC-APIKEY: YOUR_API_KEY" \
           -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"market":"BTC_USDT","orderId":12345678,"request":"/api/v4/order/cancel","nonce":"1700000000000"}'
+          -d '{"market":"BTC_USDT","orderId":12345678,"request":"/api/v4/order/cancel","nonce":1700000000000}'
         ```
       </Tab>
       <Tab title="Python">

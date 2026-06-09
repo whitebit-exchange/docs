@@ -49,11 +49,11 @@ Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT ac
 |---|---|---|
 | Latency | Real-time (seconds) | Depends on polling interval |
 | Server load | Event-driven — no wasted requests | Constant requests, mostly empty |
-| Reliability | 5 retries at 10-minute intervals (50-minute coverage) | As reliable as the polling loop |
-| Recommended for | Production payment flows | Fallback during outages > 50 minutes |
+| Reliability | ~3 delivery attempts spaced roughly hourly over a ~1-day window | As reliable as the polling loop |
+| Recommended for | Production payment flows | Fallback for outages exceeding the delivery window |
 
 <Note>
-  There is no webhook replay mechanism. If the consumer server is unreachable for more than 50 minutes (5 retries x 10-minute intervals), those events are lost. Implement polling of the [deposit history](/api-reference/account-wallet/get-deposit-history) and [withdrawal history](/api-reference/account-wallet/get-withdrawal-history) endpoints as a fallback.
+  There is no webhook replay mechanism. If every delivery attempt fails, the event is dropped. Implement polling of the [deposit / withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history) endpoint as a fallback so events can be reconciled after extended consumer downtime.
 </Note>
 
 **Common use cases:**
@@ -88,7 +88,7 @@ Passing one of these checks enables the webhook.
 
 ### For processing web-hook requests
 
-All web hook requests are performing using POST method and with application/json content type. Consumer server should respond with 200 HTTP status code. If consumer was unable to handle web-hook, the request will be retry every 10 minutes but not more than 5 times.
+All web hook requests are performing using POST method and with application/json content type. Consumer server should respond with 200 HTTP status code. If the consumer cannot handle the webhook, the platform retries delivery a small number of times spaced roughly an hour apart, over a window of about one day. Treat the exact cadence as best-effort, not a contract, and pair webhook consumption with periodic history polling for reconciliation.
 
 #### Body data
 

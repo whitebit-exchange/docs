@@ -78,13 +78,13 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               ticker: BTC
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns collateral balances by asset
@@ -160,13 +160,13 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               ticker: BTC
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns detailed balance information per asset
@@ -352,8 +352,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               side: buy
@@ -368,7 +368,7 @@ paths:
               rpi: true
               reduceOnly: false
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - order created
@@ -633,8 +633,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               orders:
                 - side: buy
@@ -669,7 +669,7 @@ paths:
                   reduceOnly: false
               stopOnFail: true
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns array of order results
@@ -941,8 +941,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               side: buy
@@ -950,7 +950,7 @@ paths:
               clientOrderId: order1987111
               reduceOnly: false
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - market order created
@@ -1168,8 +1168,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               side: buy
@@ -1182,7 +1182,7 @@ paths:
               positionSide: LONG
               reduceOnly: false
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - stop-limit order created
@@ -1410,8 +1410,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               side: buy
@@ -1420,7 +1420,7 @@ paths:
               clientOrderId: order1987111
               reduceOnly: false
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - trigger market order created
@@ -1567,11 +1567,11 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns collateral account summary
@@ -1664,13 +1664,13 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               market: "BTC_USDT"
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns array of open positions
@@ -1878,14 +1878,14 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               positionId: 123
               positionSide: LONG
               market: BTC_USDT
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Position closed
@@ -1964,13 +1964,13 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               positionId: 1
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns array of position history
@@ -2150,15 +2150,15 @@ paths:
                   description: Request signature
                   example: "{{request}}"
                 nonce:
-                  type: string
+                  type: integer
                   description: Unique request identifier
-                  example: "{{nonce}}"
+                  example: 1594297865000
             example:
               market: "BTC_PERP"
               limit: 100
               offset: 0
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns paginated funding history
@@ -2289,12 +2289,12 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               leverage: 5
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - leverage changed
@@ -2345,11 +2345,11 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - returns hedge mode status
@@ -2419,12 +2419,12 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               hedgeMode: true
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - hedge mode updated
@@ -2473,11 +2473,11 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response — returns array of per-market ADL quantile entries
@@ -2571,8 +2571,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               offset: 0
@@ -2814,8 +2814,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               offset: 0
@@ -3117,8 +3117,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               side: buy
@@ -3130,7 +3130,7 @@ paths:
               reduceOnly: false
               positionSide: LONG
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - OCO order created
@@ -3442,13 +3442,13 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               id: 117703764514
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Order cancelled
@@ -3523,13 +3523,13 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               orderId: 117703764514
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Successful response - OCO order cancelled
@@ -3812,13 +3812,13 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               otoId: 117703764514
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: OTO order cancelled
@@ -4459,8 +4459,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: Successful response
@@ -4906,8 +4906,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               orders:
                 - side: buy
@@ -5703,8 +5703,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: Order cancelled successfully
@@ -5891,8 +5891,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               orders:
                 - market: BTC_USDT
@@ -5900,7 +5900,7 @@ paths:
                 - market: ETH_USDT
                   clientOrderId: my-client-id
               request: "{{request}}"
-              nonce: "{{nonce}}"
+              nonce: 1594297865000
       responses:
         '200':
           description: Bulk cancel result. The response is an array — `response[i]` corresponds to `request.orders[i]`. Each item contains either a `result` (cancellation succeeded) or an `error` (cancellation failed for that item). Partial failures within the array are normal; the request itself returns HTTP 200.
@@ -6007,8 +6007,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
             example:
               market: BTC_USDT
               type:
@@ -6117,8 +6117,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: List of active orders
@@ -6248,8 +6248,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: "Executed order history. Response shape depends on whether the
@@ -6346,8 +6346,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: Successful response - returns paginated order deals
@@ -6540,8 +6540,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: Successful response - returns order history grouped by market. Empty response if order is not yours.
@@ -6794,8 +6794,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: Order modified successfully
@@ -6912,8 +6912,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: Successful response - kill-switch timer synced
@@ -7007,8 +7007,8 @@ paths:
                   type: string
                   example: "{{request}}"
                 nonce:
-                  type: string
-                  example: "{{nonce}}"
+                  type: integer
+                  example: 1594297865000
       responses:
         '200':
           description: Successful response - returns array of kill-switch timer statuses
@@ -7217,8 +7217,8 @@ components:
           type: string
           example: "{{request}}"
         nonce:
-          type: string
-          example: "{{nonce}}"
+          type: integer
+          example: 1594297865000
 
     MarketOrderRequest:
       type: object
@@ -7256,8 +7256,8 @@ components:
           type: string
           example: "{{request}}"
         nonce:
-          type: string
-          example: "{{nonce}}"
+          type: integer
+          example: 1594297865000
 
     StopLimitOrderRequest:
       type: object
@@ -7309,8 +7309,8 @@ components:
           type: string
           example: "{{request}}"
         nonce:
-          type: string
-          example: "{{nonce}}"
+          type: integer
+          example: 1594297865000
 
     StockMarketOrderRequest:
       type: object
@@ -7348,8 +7348,8 @@ components:
           type: string
           example: "{{request}}"
         nonce:
-          type: string
-          example: "{{nonce}}"
+          type: integer
+          example: 1594297865000
 
     StopMarketOrderRequest:
       type: object
@@ -7392,8 +7392,8 @@ components:
           type: string
           example: "{{request}}"
         nonce:
-          type: string
-          example: "{{nonce}}"
+          type: integer
+          example: 1594297865000
 
     BulkOrderItem:
       type: object

@@ -35,7 +35,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
             "email": "strategy-alpha@example.com",
             "permissions": {"spotEnabled": true, "collateralEnabled": false},
             "request": "/api/v4/sub-account/create",
-            "nonce": "1709340000000"
+            "nonce": 1709340000000
           }'
         ```
       </Tab>
@@ -48,7 +48,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
         BASE_URL = "https://whitebit.com"
 
         def make_request(endpoint, body):
-            nonce = str(int(time.time() * 1000))
+            nonce = int(time.time() * 1000)
             body["request"] = endpoint
             body["nonce"] = nonce
             data_json = json.dumps(body)
@@ -120,7 +120,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
             "ticker": "USDT",
             "amount": "100",
             "request": "/api/v4/sub-account/transfer",
-            "nonce": "1709340000001"
+            "nonce": 1709340000001
           }'
         ```
       </Tab>
@@ -164,7 +164,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
             "type": 1,
             "title": "Trading Bot Key",
             "request": "/api/v4/sub-account/api-key/create",
-            "nonce": "1709340000002"
+            "nonce": 1709340000002
           }'
         ```
       </Tab>
@@ -202,7 +202,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
           -d '{
             "id": "<sub-account-id-from-step-1>",
             "request": "/api/v4/sub-account/balances",
-            "nonce": "1709340000003"
+            "nonce": 1709340000003
           }'
         ```
       </Tab>
