@@ -481,7 +481,7 @@ paths:
                 - ticker
                 - provider
                 - amount
-                - unique_id
+                - uniqueId
                 - request
                 - nonce
               properties:
@@ -497,9 +497,9 @@ paths:
                   type: string
                   description: Deposit amount
                   example: "100"
-                unique_id:
+                uniqueId:
                   type: string
-                  description: Unique transaction identifier on client's side
+                  description: Unique transaction identifier on client's side. Any string up to 255 characters; not validated as a UUID.
                   example: "qw22"
                 customer:
                   type: object
@@ -596,7 +596,7 @@ paths:
                   ticker: "UAH"
                   provider: "VISAMASTER"
                   amount: "100"
-                  unique_id: "{{generateID}}"
+                  uniqueId: "{{generateID}}"
                   request: "{{request}}"
                   nonce: 1594297865000
               withCustomer:
@@ -605,7 +605,7 @@ paths:
                   ticker: "UAH"
                   provider: "VISAMASTER"
                   amount: "100"
-                  unique_id: "{{generateID}}"
+                  uniqueId: "{{generateID}}"
                   customer:
                     firstName: "John"
                     lastName: "Doe"
@@ -881,7 +881,7 @@ paths:
 
         The system processes refunds only for deposits with status `canceled`.
 
-        Obtain `transaction_id` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
+        Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
 
         The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT address. The refund address can differ from the original deposit sender address.
 
@@ -898,7 +898,7 @@ paths:
           "code": 0,
           "message": "Validation failed",
           "errors": {
-            "transaction_id": ["The transaction id field is required."],
+            "transactionId": ["The transaction id field is required."],
             "address": ["The address field is required."]
           }
         }
@@ -924,12 +924,12 @@ paths:
             schema:
               type: object
               required:
-                - transaction_id
+                - transactionId
                 - address
                 - request
                 - nonce
               properties:
-                transaction_id:
+                transactionId:
                   type: string
                   format: uuid
                   description: |
@@ -951,7 +951,7 @@ paths:
                     A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
                   example: 1594297865000
             example:
-              transaction_id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
+              transactionId: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
               address: "0x1234567890abcdef1234567890abcdef12345678"
               request: "{{request}}"
               nonce: 1594297865000
@@ -1008,7 +1008,7 @@ paths:
                 - ticker
                 - amount
                 - address
-                - unique_id
+                - uniqueId
                 - request
                 - nonce
               properties:
@@ -1035,10 +1035,10 @@ paths:
 
                     ⚠️ Required if currency is memoable.
                   example: "48565488244493"
-                unique_id:
+                uniqueId:
                   type: string
                   description: |
-                    Unique transaction identifier.
+                    Unique transaction identifier. Any string up to 255 characters; not validated as a UUID.
 
                     ⚠️ Generate a new unique ID for each withdrawal request.
                   example: "24529041"
@@ -1063,9 +1063,11 @@ paths:
                 beneficiary:
                   type: object
                   description: |
-                    Beneficiary information data array.
+                    Beneficiary information.
 
-                    ⚠️ Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR
+                    ⚠️ Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR.
+
+                    Per-field requirements vary by currency and provider. Card-related fields (`cardToken`, `card.*`, `cardTokenSave`, `fingerprintSession`) apply only to card-acquiring rails; bank-related fields (`bank.*`) apply to bank-rail withdrawals; `tin` is required for UAH_IBAN; `phone`, `email`, and `birthDate` are required for VISAMASTER/Mercuryo rails. See `/asset-status-list` for the active provider per currency.
                   properties:
                     firstName:
                       type: string
@@ -1108,8 +1110,107 @@ paths:
                       description: |
                         Beneficiary birth date. Format: YYYY-MM-DD.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, or when withdrawing through Mercuryo.
                       example: "1990-01-01"
+                    code:
+                      type: string
+                      description: |
+                        Beneficiary verification code returned by a prior verification step. Used by some card-acquiring flows that require a one-time verification challenge before settlement.
+                      example: "123456"
+                    cardToken:
+                      type: string
+                      description: |
+                        Tokenized payment-card identifier for card-acquiring rails. Use instead of raw PAN; obtain from the card-tokenisation endpoint or from a prior successful settlement on the same card.
+                      example: "tok_4f7c8e2a"
+                    cardTokenSave:
+                      type: boolean
+                      description: |
+                        If `true`, request the acquiring provider to persist the card token for reuse on subsequent withdrawals to the same beneficiary.
+                      example: false
+                    fingerprintSession:
+                      type: string
+                      description: |
+                        Anti-fraud device-fingerprint session identifier captured at the partner's checkout surface and forwarded to the acquiring provider. Required by some VISAMASTER configurations.
+                      example: "fps_abc123"
+                    card:
+                      type: object
+                      description: |
+                        Card details for card-acquiring rails. Use `cardToken` instead when available; raw card details apply only when a fresh card is being added.
+                      properties:
+                        save:
+                          type: boolean
+                          description: If `true`, persist the card for reuse on subsequent withdrawals.
+                          example: false
+                        name:
+                          type: string
+                          description: Cardholder name as embossed on the card.
+                          example: "John Doe"
+                        firstName:
+                          type: string
+                          description: Cardholder first name.
+                          example: "John"
+                        lastName:
+                          type: string
+                          description: Cardholder last name.
+                          example: "Doe"
+                        number:
+                          type: string
+                          description: Primary Account Number (PAN). Treat as PCI-scope sensitive data on the partner side.
+                          example: "4111111111111111"
+                        month:
+                          type: string
+                          description: Card expiry month as a two-digit string (`01`-`12`).
+                          example: "12"
+                        year:
+                          type: string
+                          description: Card expiry year as a four-digit string.
+                          example: "2030"
+                    address:
+                      type: object
+                      description: |
+                        Beneficiary postal address. Required for several VISAMASTER/SEPA configurations.
+                      properties:
+                        line1:
+                          type: string
+                          description: Street address line 1.
+                          example: "Martinez Campos 37"
+                        line2:
+                          type: string
+                          description: Street address line 2.
+                          example: ""
+                        city:
+                          type: string
+                          description: City.
+                          example: "Madrid"
+                        zip:
+                          type: string
+                          description: Postal / ZIP code.
+                          example: "28010"
+                        country:
+                          type: string
+                          description: ISO country code.
+                          example: "ES"
+                    bank:
+                      type: object
+                      description: |
+                        Beneficiary bank details for bank-rail withdrawals (used when the destination is an account number rather than an IBAN).
+                      properties:
+                        routingNumber:
+                          type: string
+                          description: Bank routing number (ABA, BSB, sort code, or equivalent for the destination country).
+                          example: "021000021"
+                        name:
+                          type: string
+                          description: Bank name.
+                          example: "Example Bank"
+                        address:
+                          type: string
+                          description: Bank postal address.
+                          example: "1 Bank Street, London"
+                        country:
+                          type: string
+                          description: Bank country (ISO code).
+                          example: "GB"
                 travelRule:
                   type: object
                   description: |
@@ -1168,7 +1269,7 @@ paths:
                   ticker: "ETH"
                   amount: "0.9"
                   address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
-                  unique_id: "24529041"
+                  uniqueId: "24529041"
                   request: "{{request}}"
                   nonce: 1594297865000
               multiNetwork:
@@ -1177,7 +1278,7 @@ paths:
                   ticker: "USDT"
                   amount: "0.9"
                   address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
-                  unique_id: "24529042"
+                  uniqueId: "24529042"
                   network: "ERC20"
                   request: "{{request}}"
                   nonce: 1594297865000
@@ -1187,7 +1288,7 @@ paths:
                   ticker: "UAH"
                   amount: "100"
                   provider: "VISAMASTER"
-                  unique_id: "24529043"
+                  uniqueId: "24529043"
                   request: "{{request}}"
                   nonce: 1594297865000
               fiatPartial:
@@ -1198,7 +1299,7 @@ paths:
                   address: "t6XIpyirkiLP+I++XHWfSeGrn5p38g=="
                   provider: "VISAMASTER_PAYCORE"
                   partialEnable: true
-                  unique_id: "24529045"
+                  uniqueId: "24529045"
                   request: "{{request}}"
                   nonce: 1594297865000
               fiatIban:
@@ -1212,7 +1313,7 @@ paths:
                     lastName: "Lastname"
                     tin: 1000000000
                   provider: "UAH_IBAN"
-                  unique_id: "24529045"
+                  uniqueId: "24529045"
                   request: "{{request}}"
                   nonce: 1594297865000
               fiatVisamaster:
@@ -1227,7 +1328,7 @@ paths:
                     phone: "1234567891"
                     email: "john_doe@email.com"
                   provider: "USD_VISAMASTER"
-                  unique_id: "24529045"
+                  uniqueId: "24529045"
                   request: "{{request}}"
                   nonce: 1594297865000
               travelRuleIndividual:
@@ -1236,7 +1337,7 @@ paths:
                   ticker: "BTC"
                   amount: "0.5"
                   address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-                  unique_id: "24529046"
+                  uniqueId: "24529046"
                   travelRule:
                     type: "individual"
                     vasp: "Binance"
@@ -1250,7 +1351,7 @@ paths:
                   ticker: "BTC"
                   amount: "1.2"
                   address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-                  unique_id: "24529047"
+                  uniqueId: "24529047"
                   travelRule:
                     type: "entity"
                     vasp: "Kraken"
@@ -1286,14 +1387,14 @@ paths:
                       address: ["The address field is required."]
                       amount: ["The amount field is required."]
                       ticker: ["The ticker field is required."]
-                      unique_id: ["The unique id field is required."]
+                      uniqueId: ["The unique id field is required."]
                 duplicateUniqueId:
                   summary: Duplicate uniqueId
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      unique_id: ["The unique id has already been taken."]
+                      uniqueId: ["The unique id has already been taken."]
                 unconfirmedUser:
                   summary: Unconfirmed user (without KYC)
                   value:
@@ -1365,7 +1466,7 @@ paths:
               change); on field `error`, e.g. `Withdrawals restricted until {time}`.
             - **Address blocked by compliance** — the request is accepted but the withdrawal
               transitions to an `AML_FROZEN` state (no distinct error body); check the request
-              status by `unique_id` in deposit/withdraw history.
+              status by `uniqueId` in deposit/withdraw history.
           content:
             application/json:
               schema:
@@ -1428,7 +1529,7 @@ paths:
               ticker: ETH
               amount: "0.9"
               address: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
-              unique_id: "24529041"
+              uniqueId: "24529041"
               request: "{{request}}"
               nonce: 1594297865000
       responses:
@@ -1459,14 +1560,14 @@ paths:
                       address: ["The address field is required."]
                       amount: ["The amount field is required."]
                       ticker: ["The ticker field is required."]
-                      unique_id: ["The unique id field is required."]
+                      uniqueId: ["The unique id field is required."]
                 duplicateUniqueId:
                   summary: Duplicate uniqueId
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      unique_id: ["The unique id has already been taken."]
+                      uniqueId: ["The unique id has already been taken."]
                 unconfirmedUser:
                   summary: Unconfirmed user (without KYC)
                   value:
@@ -1766,7 +1867,7 @@ paths:
         - `Successful` - 3, 7
         - `Canceled` - 4, 9
         - `Unconfirmed by user` - 5
-        - `Additional data required` - 21
+        - `AML frozen` - 21
         - `Uncredited` - 22
         - `Pending` - 15
 
@@ -1781,7 +1882,7 @@ paths:
         - `Successful` - 3, 7
         - `Canceled` - 4
         - `Unconfirmed by user` - 5
-        - `Additional data required` - 21
+        - `AML frozen` - 21
         - `Partially successful` - 18
 
         <Warning>
@@ -2267,7 +2368,7 @@ paths:
                   example: ETH
                 amount:
                   type: string
-                  description: "Amount to transfer. Max [precision](/glossary#precision) = 8, value must be greater than zero and less than or equal to the [main balance](/glossary#balance-main)."
+                  description: "Amount to transfer. Up to 18 decimal places, value greater than zero and capped at 1e17 (10^17), and not exceeding the [main balance](/glossary#balance-main)."
                   example: "0.002"
                 passphrase:
                   type: string
@@ -2276,8 +2377,8 @@ paths:
                   example: "some passphrase"
                 description:
                   type: string
-                  maxLength: 75
-                  description: "Additional text description for [code](/glossary#whitebit-codes). Visible only for creator. Max: 75 symbols."
+                  maxLength: 280
+                  description: "Additional text description for [code](/glossary#whitebit-codes). Visible only for creator. Max: 280 symbols."
                   example: "some description"
                 request:
                   type: string
@@ -2349,7 +2450,7 @@ paths:
                       amount: ["The amount must be at least 0."]
                       description:
                         [
-                          "The description may not be greater than 75 characters.",
+                          "The description may not be greater than 280 characters.",
                         ]
                       passphrase:
                         [
@@ -6819,7 +6920,7 @@ components:
         - ticker
         - amount
         - address
-        - unique_id
+        - uniqueId
         - request
         - nonce
       properties:
@@ -6839,9 +6940,9 @@ components:
           type: string
           description: "Required if currency is memoable. See [memo](/glossary#memodestination-tag) for details."
           example: "48565488244493"
-        unique_id:
+        uniqueId:
           type: string
-          description: "Unique transaction identifier. ⚠️ Generate a new unique ID for each withdrawal request."
+          description: "Unique transaction identifier. Any string up to 255 characters; not validated as a UUID. ⚠️ Generate a new unique ID for each withdrawal request."
           example: "24529041"
         provider:
           type: string

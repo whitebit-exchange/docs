@@ -77,7 +77,7 @@ See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setu
 - [ ] HMAC-SHA512 signature verification implemented on every incoming webhook.
 - [ ] Webhook nonce tracked — each nonce is strictly greater than the previous.
 - [ ] Idempotency implemented using `uniqueId` to prevent double-processing.
-- [ ] Fallback polling implemented for reconciliation (webhook delivery: 5 retries at 10-minute intervals = 50 minutes).
+- [ ] Fallback polling implemented for reconciliation. Webhook delivery is best-effort — a small number of retries spaced roughly hourly over a ~1-day window — so polling must close the gap for extended consumer outages.
 - [ ] Server responds with HTTP `200` for successfully processed webhooks.
 
 See [Webhooks](/platform/webhook) and [Security Best Practices](/best-practices/security) for verification implementation.

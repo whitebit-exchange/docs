@@ -158,12 +158,12 @@ Query deposit and withdrawal history using the main account history endpoint:
 
 ### Webhook-based monitoring
 
-For real-time deposit and withdrawal notifications, configure webhooks. Webhook delivery includes up to 5 retries at 10-minute intervals (50-minute coverage window).
+For real-time deposit and withdrawal notifications, configure webhooks. Webhook delivery is best-effort — a small number of retries spaced roughly an hour apart over a window of about one day. Treat the exact cadence as not contractually guaranteed.
 
 **Recommended reconciliation approach:**
 
 - **Primary:** Webhooks — process events as they arrive for near-instant updates
-- **Fallback:** REST polling — periodically query the history endpoint to catch any events missed during webhook downtime or after the 50-minute retry window expires
+- **Fallback:** REST polling — periodically query the history endpoint to catch any events missed during webhook downtime or after the retry window expires
 
 See [Webhooks](/platform/webhook) for setup, signature verification, and event types. For the full deposit/withdrawal lifecycle including status state machines and fee calculation, see [Payment Integration](/guides/payment-integration).
 
