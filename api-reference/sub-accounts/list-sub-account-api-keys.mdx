@@ -3,6 +3,12 @@ title: "List Sub-Account API Keys"
 description: "List all API keys associated with a specific sub-account via the WhiteBIT V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/api-key/list
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/sub-account/api-key/list" fields={SIGNER_FIELDS["/api/v4/sub-account/api-key/list"]} />
+
+
 
 <Note>
 For security reasons, the `apiSecret` field returns an empty string in the response. The API secret is only displayed once during the initial API key creation.

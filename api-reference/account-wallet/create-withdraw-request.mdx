@@ -3,6 +3,12 @@ title: "Create withdraw request"
 description: "Submit a cryptocurrency or fiat withdrawal request from a WhiteBIT account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/withdraw
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/withdraw" fields={SIGNER_FIELDS["/api/v4/main-account/withdraw"]} />
+
+
 
 ## Withdrawal Scenarios Guide
 

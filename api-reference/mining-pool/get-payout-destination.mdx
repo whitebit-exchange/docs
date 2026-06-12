@@ -3,3 +3,9 @@ title: "Get Payout Destination"
 description: "Retrieve the current payout destination for mining rewards via the WhiteBIT V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/payout-destination
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/mining/payout-destination" fields={SIGNER_FIELDS["/api/v4/mining/payout-destination"]} />
+
+

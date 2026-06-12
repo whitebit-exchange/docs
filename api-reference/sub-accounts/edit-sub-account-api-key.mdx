@@ -3,4 +3,10 @@ title: "Edit Sub-Account API Key"
 description: "Update the permissions or settings of a sub-account API key via the WhiteBIT V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/api-key/edit
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/sub-account/api-key/edit" fields={SIGNER_FIELDS["/api/v4/sub-account/api-key/edit"]} />
+
+
 

@@ -3,3 +3,9 @@ title: "Issue JWT token"
 description: "Issue a JWT token for authenticating with WhiteBIT services via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/jwt
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/jwt" fields={SIGNER_FIELDS["/api/v4/jwt"]} />
+
+

@@ -3,6 +3,12 @@ title: "Get plans"
 description: "Get a list of available fixed-term Smart investment plans with available terms and interest rates via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/smart/plans
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/smart/plans" fields={SIGNER_FIELDS["/api/v4/main-account/smart/plans"]} />
+
+
 
 <Note>
 These endpoints are available only for B2B partner services. Fill the form at https://whitebit.com/institutional-services/b2b to request access.

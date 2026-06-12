@@ -3,3 +3,9 @@ title: "Create Mining Account"
 description: "Create a new mining account linked to a WhiteBIT account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/accounts/create
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/mining/accounts/create" fields={SIGNER_FIELDS["/api/v4/mining/accounts/create"]} />
+
+

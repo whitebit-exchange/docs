@@ -4,6 +4,10 @@ description: "List all open spot orders not yet executed via the WhiteBIT V4 API
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/orders"
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/orders" fields={SIGNER_FIELDS["/api/v4/orders"]} />
 
 <RelatedResources>
 - [Cancel order](/api-reference/spot-trading/cancel-order) — cancel an open order

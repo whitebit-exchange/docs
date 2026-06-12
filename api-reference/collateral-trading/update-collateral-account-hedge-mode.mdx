@@ -4,6 +4,10 @@ description: "Enable or disable hedge mode on a collateral trading account via t
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/hedge-mode/update"
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/collateral-account/hedge-mode/update" fields={SIGNER_FIELDS["/api/v4/collateral-account/hedge-mode/update"]} />
 
 
 <RelatedResources>

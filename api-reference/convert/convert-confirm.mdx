@@ -3,3 +3,9 @@ title: "Convert Confirm"
 description: "Confirm a previously estimated currency conversion and execute the trade via the WhiteBIT V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/convert/confirm"
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/convert/confirm" fields={SIGNER_FIELDS["/api/v4/convert/confirm"]} />
+
+

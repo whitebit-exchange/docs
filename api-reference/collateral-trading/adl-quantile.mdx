@@ -5,6 +5,10 @@ openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/ad
 ---
 import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/collateral-account/adl-quantile" fields={SIGNER_FIELDS["/api/v4/collateral-account/adl-quantile"]} />
 
 ## Authentication
 

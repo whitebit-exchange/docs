@@ -3,3 +3,9 @@ title: "Refund deposit"
 description: "Request a refund for a cryptocurrency deposit sent to a WhiteBIT account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/refund-deposit
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/refund-deposit" fields={SIGNER_FIELDS["/api/v4/main-account/refund-deposit"]} />
+
+

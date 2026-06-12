@@ -3,4 +3,10 @@ title: "Get Sub-Account Transfer History"
 description: "Retrieve the history of fund transfers between the main account and sub-accounts via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/transfer/history
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/sub-account/transfer/history" fields={SIGNER_FIELDS["/api/v4/sub-account/transfer/history"]} />
+
+
 

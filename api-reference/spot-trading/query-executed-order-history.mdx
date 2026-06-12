@@ -4,6 +4,10 @@ description: "Retrieve the history of fully and partially executed spot orders v
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/trade-account/executed-history"
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/trade-account/executed-history" fields={SIGNER_FIELDS["/api/v4/trade-account/executed-history"]} />
 
 
 <RelatedResources>

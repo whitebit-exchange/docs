@@ -3,4 +3,10 @@ title: "Get fees"
 description: "Get deposit and withdrawal fee information for all supported currencies via the WhiteBIT V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/fee
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/fee" fields={SIGNER_FIELDS["/api/v4/main-account/fee"]} />
+
+
 

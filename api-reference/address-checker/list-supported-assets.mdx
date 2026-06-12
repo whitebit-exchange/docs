@@ -5,6 +5,10 @@ openapi: "/openapi/private/address-checker.yaml POST /api/v4/aml/checks/assets"
 ---
 
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/aml/checks/assets" fields={SIGNER_FIELDS["/api/v4/aml/checks/assets"]} />
 
 <RelatedResources>
 - [Create address check](/api-reference/address-checker/create-address-check) — initiate a screening request

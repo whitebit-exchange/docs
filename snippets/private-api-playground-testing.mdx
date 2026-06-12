@@ -1,40 +1,31 @@
-The API playground requires all three authentication headers for private endpoints:
-`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, and `X-TXC-SIGNATURE`.
+Each private API reference page includes an **HMAC request signer** that computes and sends authenticated requests directly from the browser.
 
-`X-TXC-PAYLOAD` and `X-TXC-SIGNATURE` must be computed before each request — the playground
-cannot generate the values automatically.
-
-**Steps to test a private endpoint:**
+**To test a private endpoint:**
 
 <Steps>
-  <Step title="Build the request body">
-    Construct the JSON body with `request`, `nonce`, and any endpoint-specific parameters.
-    ```json
-    {
-      "request": "/api/v4/trade-account/balance",
-      "nonce": 1594297865123,
-      "ticker": "BTC"
-    }
-    ```
+  <Step title="Scroll to the HMAC request signer">
+    The signer appears on every private endpoint page below the endpoint description.
   </Step>
-  <Step title="Compute X-TXC-PAYLOAD">
-    Base64-encode the JSON body (no whitespace normalization required).
-    The result is the `X-TXC-PAYLOAD` value.
+  <Step title="Enter the API key and secret">
+    The signer keeps credentials in browser memory only — never written to `localStorage` or cookies.
+    Reloading the page clears all stored credentials.
   </Step>
-  <Step title="Compute X-TXC-SIGNATURE">
-    Compute `hex(HMAC-SHA512(payload, api_secret))`.
-    The result is the `X-TXC-SIGNATURE` value.
+  <Step title="Fill in the endpoint parameters">
+    Each field appears as a labeled input. For endpoints without a schema, enter parameters as a JSON object.
+    The signer adds `request`, `nonce`, and `nonceWindow` automatically — omit these fields from the input.
   </Step>
-  <Step title="Fill in the playground auth fields">
-    Enter the API key, payload, and signature in the playground authentication fields, then send the request.
+  <Step title="Click Send request">
+    The signer computes `X-TXC-PAYLOAD` and `X-TXC-SIGNATURE` fresh for each request,
+    then dispatches the call and shows the response inline.
   </Step>
 </Steps>
 
 <Info>
-  Each signature covers a specific request body and nonce. Generate fresh `X-TXC-PAYLOAD`
-  and `X-TXC-SIGNATURE` values for each test run — reusing the values causes a nonce or payload
-  validation error.
+  The signer computes `X-TXC-PAYLOAD` and `X-TXC-SIGNATURE` in-browser on every send.
+  Click **Compute headers** first to preview the values, then **Send request** to dispatch.
 </Info>
 
-The [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) provides
-ready-to-run signing scripts in Python, Node.js, Go, PHP, Ruby, Kotlin, Rust, and C++.
+**Manual signing (alternative)**
+
+To sign outside the browser, the [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart)
+provides ready-to-run signing scripts in Python, Node.js, Go, PHP, Ruby, Kotlin, Rust, and C++.

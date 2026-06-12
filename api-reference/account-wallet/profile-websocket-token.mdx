@@ -4,3 +4,9 @@ openapi: /openapi/private/main_api_v4.yaml POST /api/v4/profile/websocket_token
 title: Get WebSocket Token
 description: "Generate a short-lived token for authenticating private WebSocket connections via the V4 API."
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/profile/websocket_token" fields={SIGNER_FIELDS["/api/v4/profile/websocket_token"]} />
+
+

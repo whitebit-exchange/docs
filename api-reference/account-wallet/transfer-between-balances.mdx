@@ -3,4 +3,10 @@ title: "Transfer between balances"
 description: "Transfer funds between main, trade, and collateral balances on WhiteBIT via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/transfer
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/transfer" fields={SIGNER_FIELDS["/api/v4/main-account/transfer"]} />
+
+
 

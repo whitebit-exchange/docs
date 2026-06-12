@@ -4,6 +4,10 @@ description: "Retrieve trading fee rates for all spot markets on WhiteBIT via th
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/market/fee"
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/market/fee" fields={SIGNER_FIELDS["/api/v4/market/fee"]} />
 
 
 <RelatedResources>
