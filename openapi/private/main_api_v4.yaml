@@ -1060,6 +1060,13 @@ paths:
                   type: boolean
                   description: Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as "true". To use this parameter, the application must support "Partially successful" withdrawal status and latest updates in deposit/withdrawal history.
                   example: false
+                customerIp:
+                  type: string
+                  description: |
+                    End-customer IP address forwarded to the [fiat](/glossary#fiat) [provider](/glossary#provider) for antifraud checks before the withdrawal is processed.
+
+                    ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER [provider](/glossary#provider).
+                  example: "203.0.113.42"
                 beneficiary:
                   type: object
                   description: |
@@ -1289,6 +1296,17 @@ paths:
                   amount: "100"
                   provider: "VISAMASTER"
                   uniqueId: "24529043"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              fiatUsdVisamaster:
+                summary: Fiat USD/EUR with VISAMASTER (customerIp required)
+                value:
+                  ticker: "USD"
+                  amount: "150.00"
+                  address: "4111111111111111"
+                  provider: "VISAMASTER"
+                  uniqueId: "ab12cd34-9101-4abc-9def-1234567890ab"
+                  customerIp: "203.0.113.42"
                   request: "{{request}}"
                   nonce: 1594297865000
               fiatPartial:
@@ -6956,6 +6974,10 @@ components:
           type: boolean
           description: "Optional parameter for [FIAT](/glossary#fiat) withdrawals with increased Maximum Limit if set as \"true\". To use this parameter, the application must support \"Partially successful\" withdrawal status and latest updates in deposit/withdrawal history."
           example: false
+        customerIp:
+          type: string
+          description: "End-customer IP address forwarded to the [fiat](/glossary#fiat) [provider](/glossary#provider) for antifraud checks before the withdrawal is processed. ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER [provider](/glossary#provider)."
+          example: "203.0.113.42"
         beneficiary:
           type: object
           description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
