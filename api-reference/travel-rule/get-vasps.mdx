@@ -1,0 +1,57 @@
+---
+title: "Get available VASPs"
+description: "Retrieve the list of Virtual Asset Service Providers (VASPs) for travel rule submissions via the V4 API."
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/travel-rule/vasps
+---
+
+## Overview
+
+This endpoint retrieves the list of VASPs that can be used when submitting travel rule data for deposits and withdrawals.
+
+**When to use `vaspId` vs `vaspName`:**
+- If the destination/originating VASP appears in this list, use its `vaspId` for accurate identification
+- If the VASP is not in the list, use `vaspName` as a fallback with the VASP's name as a string
+
+---
+
+## Usage Notes
+
+<Note>
+- The list may vary depending on your account's region
+</Note>
+
+---
+
+## Integration Example
+
+```javascript
+// 1. Fetch available VASPs
+const vaspsResponse = await fetch('https://whitebit.com/api/v4/travel-rule/vasps', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-TXC-APIKEY': apiKey,
+    'X-TXC-PAYLOAD': payload,
+    'X-TXC-SIGNATURE': signature
+  },
+  body: JSON.stringify({ request: payload, nonce: Date.now() })
+});
+
+const { data: { vasps } } = await vaspsResponse.json();
+
+// 2. Check if user's VASP is in the list
+const userVaspName = "Binance";
+const knownVasp = vasps.find(v => v.name === userVaspName);
+
+// 3. Use in travel rule submission
+const travelRuleVasp = knownVasp
+  ? { vaspId: knownVasp.vaspId }
+  : { vaspName: userVaspName };
+```
+
+---
+
+## Related Endpoints
+
+- [Submit deposit verification](/api-reference/travel-rule/submit-deposit-verification) - Use VASPs when submitting deposit originator data
+- [Create withdraw request](/api-reference/account-wallet/create-withdraw-request) - Use VASPs when creating withdrawals with travel rule data

@@ -1,0 +1,137 @@
+---
+title: "Travel Rule"
+sidebarTitle: "Overview"
+description: "Endpoints for Travel Rule compliance for cryptocurrency deposits and withdrawals."
+---
+
+Manage Travel Rule compliance for cryptocurrency transactions. These endpoints enable B2B API clients to submit Travel Rule data for deposits and withdrawals as required by regulatory frameworks like FATF and MiCA.
+
+For general API conventions, see [API Reference Overview](/api-reference/overview).
+
+---
+
+## What is the Travel Rule?
+
+The Travel Rule requires Virtual Asset Service Providers (VASPs) to share originator and beneficiary information for cryptocurrency transfers above certain thresholds. This regulatory requirement helps prevent money laundering and terrorist financing.
+
+**When Travel Rule applies:**
+- Cryptocurrency deposits and withdrawals
+- Accounts registered in the [European Economic Area (EEA)](/glossary#european-economic-area-eea)
+- Transactions meeting regional threshold requirements
+
+---
+
+## Workflow Overview
+
+### Deposit Flow
+
+```
+1. Deposit arrives and is detected as Travel Rule-eligible
+   └── Deposit is ready for verification
+
+2. Get available VASPs for user selection
+   POST /api/v4/travel-rule/vasps
+
+3. Submit originator data for the deposit
+   POST /api/v4/travel-rule/deposit/verification
+
+4. Compliance review
+   ├── Approved → Deposit credited
+   └── Rejected → Deposit canceled
+```
+
+### Withdrawal Flow
+
+```
+1. Get available VASPs for user selection
+   POST /api/v4/travel-rule/vasps
+
+2. Create withdrawal with travel rule data
+   POST /api/v4/main-account/withdraw (with travelRule object)
+
+3. Compliance review
+   ├── Approved → Withdrawal processed
+   └── Rejected → Withdrawal canceled
+```
+
+---
+
+## Key Concepts
+
+### Wallet Types
+
+| Type | Description | VASP Required |
+|------|-------------|---------------|
+| `hosted` | VASP-hosted wallet (exchange, custodian) | Yes |
+| `unhosted` | Self-custody wallet (hardware, software) | No |
+
+### Party Types
+
+| Type | Description | Required Fields |
+|------|-------------|-----------------|
+| `individual` | Natural person | `firstName`, `lastName` |
+| `entity` | Legal entity | `fullName` |
+
+### Country Codes
+
+All country fields use [ISO 3166-1 alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) codes (3-letter codes):
+
+| Code | Country |
+|------|---------|
+| `DEU` | Germany |
+| `GBR` | United Kingdom |
+| `NLD` | Netherlands |
+| `TUR` | Turkey |
+| `USA` | United States |
+
+---
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Get available VASPs" icon="building-columns" href="/api-reference/travel-rule/get-vasps">
+    Retrieve the list of VASPs for travel rule submissions
+  </Card>
+  <Card title="Submit deposit verification" icon="file-import" href="/api-reference/travel-rule/submit-deposit-verification">
+    Submit originator data for a deposit ready for verification
+  </Card>
+</CardGroup>
+
+---
+
+## Related Endpoints
+
+- [Create withdraw request](/api-reference/account-wallet/create-withdraw-request) - Create withdrawals with travel rule data
+- [Get deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) - Monitor transaction status
+
+---
+
+## Error Handling
+
+### Common Errors
+
+**API disabled for region:**
+```json
+{
+  "code": 0,
+  "message": "Something went wrong",
+  "errors": {
+    "error": ["This endpoint is disabled for your region"]
+  }
+}
+```
+
+**Missing VASP for hosted wallet:**
+```json
+{
+  "code": 0,
+  "message": "Validation failed",
+  "errors": {
+    "originatingVasp": ["Either vaspId or vaspName is required for hosted wallets"]
+  }
+}
+```
+
+<Note>
+The Travel Rule API must be enabled for your region. Contact support if you need access.
+</Note>

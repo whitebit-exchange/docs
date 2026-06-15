@@ -53,6 +53,8 @@ tags:
     description: Credit line information
   - name: JWT
     description: JWT token management
+  - name: Travel Rule
+    description: Travel Rule compliance endpoints for deposits and withdrawals
 
 paths:
   /api/v4/main-account/balance:
@@ -1214,39 +1216,83 @@ paths:
                 travelRule:
                   type: object
                   description: |
-                    Travel Rule information data array.
+                    Travel Rule information for regulatory compliance.
 
                     ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
+
+                    See [Travel Rule Overview](/api-reference/travel-rule/overview) for complete documentation.
                   properties:
-                    type:
+                    walletType:
                       type: string
-                      enum: [individual, entity]
+                      enum: [hosted, unhosted]
                       description: |
-                        Travel rule receiver type. Values: "individual" or "entity"
-
-                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
-                      example: "individual"
+                        Destination wallet type:
+                        - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `vasp` object.
+                        - `unhosted` - Self-custody wallet (hardware, software). No `vasp` required.
+                      example: "hosted"
+                    beneficiary:
+                      type: object
+                      description: Beneficiary information.
+                      properties:
+                        type:
+                          type: string
+                          enum: [individual, entity]
+                          description: |
+                            Beneficiary type:
+                            - `individual` - Natural person. Requires `firstName`, `lastName`.
+                            - `entity` - Legal entity. Requires `fullName`.
+                          example: "individual"
+                        firstName:
+                          type: string
+                          description: First name. Required if `type` is `individual`.
+                          example: "John"
+                        lastName:
+                          type: string
+                          description: Last name. Required if `type` is `individual`.
+                          example: "Doe"
+                        fullName:
+                          type: string
+                          description: Full legal name. Required if `type` is `entity`.
+                          example: "Acme Trading Ltd"
+                        residenceCountry:
+                          type: string
+                          description: Beneficiary's country of residence. ISO 3166-1 alpha-3 code (3 letters).
+                          example: "DEU"
+                        address:
+                          type: object
+                          description: Physical address.
+                          properties:
+                            country:
+                              type: string
+                              description: ISO 3166-1 alpha-3 country code.
+                              example: "DEU"
+                            city:
+                              type: string
+                              description: City name.
+                              example: "Berlin"
+                            postCode:
+                              type: string
+                              description: Postal code.
+                              example: "10178"
+                            addressLine1:
+                              type: string
+                              description: Street address.
+                              example: "Alexanderplatz 1"
                     vasp:
-                      type: string
+                      type: object
                       description: |
-                        Travel rule destination platform (VASP) name.
+                        VASP (Virtual Asset Service Provider) information. Required if `walletType` is `hosted`.
 
-                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
-                      example: "Binance"
-                    name:
-                      type: string
-                      description: |
-                        Travel rule. If individual - first_name ; if entity - entity_name
-
-                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
-                      example: "John"
-                    address:
-                      type: string
-                      description: |
-                        Travel rule. If individual - last_name ; if entity - entity_address
-
-                        ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
-                      example: "123 Business Street, London, UK"
+                        Use `vaspId` if the destination VASP is in the list from [Get VASPs](/api-reference/travel-rule/get-vasps), otherwise use `vaspName`.
+                      properties:
+                        vaspId:
+                          type: string
+                          description: VASP ID from the [Get VASPs](/api-reference/travel-rule/get-vasps) endpoint. Use this if the VASP is in the list.
+                          example: "vasp-001"
+                        vaspName:
+                          type: string
+                          description: VASP name as a string. Use this if the VASP is not in the list.
+                          example: "Famous Vasp Inc"
                 paymentDescription:
                   type: string
                   description: |
@@ -1331,32 +1377,69 @@ paths:
                   uniqueId: "24529045"
                   request: "{{request}}"
                   nonce: 1594297865000
-              travelRuleIndividual:
-                summary: Travel rule (individual)
+              travelRuleIndividualHosted:
+                summary: Travel rule - individual to hosted wallet
                 value:
                   ticker: "BTC"
                   amount: "0.5"
                   address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-                  uniqueId: "24529046"
+                  uniqueId: "24529048"
                   travelRule:
-                    type: "individual"
-                    vasp: "Binance"
-                    name: "John"
-                    address: "123 Business Street, London, UK"
+                    walletType: "hosted"
+                    beneficiary:
+                      type: "individual"
+                      firstName: "John"
+                      lastName: "Doe"
+                      residenceCountry: "DEU"
+                      address:
+                        country: "DEU"
+                        city: "Berlin"
+                        addressLine1: "Alexanderplatz 1"
+                    vasp:
+                      vaspId: "vasp-001"
                   request: "{{request}}"
                   nonce: 1594297865000
-              travelRuleEntity:
-                summary: Travel rule (entity)
+              travelRuleEntityHosted:
+                summary: Travel rule - entity to hosted wallet
                 value:
-                  ticker: "BTC"
-                  amount: "1.2"
-                  address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-                  uniqueId: "24529047"
+                  ticker: "USDT"
+                  amount: "10000"
+                  address: "0x742d35Cc6634C0532925a3b844Bc9e7595f8a2B1"
+                  network: "ERC20"
+                  uniqueId: "24529049"
                   travelRule:
-                    type: "entity"
-                    vasp: "Kraken"
-                    name: "Acme Corp"
-                    address: "123 Business Street, London, UK"
+                    walletType: "hosted"
+                    beneficiary:
+                      type: "entity"
+                      fullName: "Acme Trading Ltd"
+                      residenceCountry: "GBR"
+                      address:
+                        country: "GBR"
+                        city: "London"
+                        postCode: "EC2A 4BX"
+                        addressLine1: "123 Finsbury Square"
+                    vasp:
+                      vaspName: "Famous Vasp Inc"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              travelRuleIndividualUnhosted:
+                summary: Travel rule - individual to unhosted wallet
+                value:
+                  ticker: "ETH"
+                  amount: "2.5"
+                  address: "0xabcdef1234567890abcdef1234567890abcdef12"
+                  uniqueId: "24529050"
+                  travelRule:
+                    walletType: "unhosted"
+                    beneficiary:
+                      type: "individual"
+                      firstName: "Jane"
+                      lastName: "Smith"
+                      residenceCountry: "NLD"
+                      address:
+                        country: "NLD"
+                        city: "Amsterdam"
+                        addressLine1: "Damrak 1"
                   request: "{{request}}"
                   nonce: 1594297865000
       responses:
@@ -6867,6 +6950,322 @@ paths:
                 code: 0
                 message: ""
 
+  /api/v4/travel-rule/vasps:
+    post:
+      tags:
+        - Travel Rule
+      summary: Get available VASPs
+      description: |
+        Retrieves the list of Virtual Asset Service Providers (VASPs) that can be used when submitting travel rule data for deposits and withdrawals.
+
+        Use the returned `vaspId` when submitting travel rule data if the destination/originating VASP is in this list. If the VASP is not in the list, use `vaspName` as a fallback.
+
+        <Accordion title="Errors">
+        **API disabled for region (422):**
+        ```json
+        {
+          "code": 0,
+          "message": "Something went wrong",
+          "errors": {
+            "error": ["This endpoint is disabled for your region"]
+          }
+        }
+        ```
+        </Accordion>
+
+        Beyond the errors above, this endpoint can return only the [common authentication errors](/api-reference/authentication).
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+      operationId: getTravelRuleVasps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: Unique request identifier
+                  example: 1594297865000
+      responses:
+        "200":
+          description: Successful response with list of VASPs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      vasps:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            vaspId:
+                              type: string
+                              description: Unique VASP identifier to use in travel rule submissions
+                              example: "vasp-001"
+                            name:
+                              type: string
+                              description: Human-readable VASP name
+                              example: "Binance"
+              example:
+                data:
+                  vasps:
+                    - vaspId: "vasp-001"
+                      name: "Binance"
+                    - vaspId: "vasp-002"
+                      name: "Coinbase"
+                    - vaspId: "vasp-003"
+                      name: "Kraken"
+        "422":
+          description: API disabled for region
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "Something went wrong"
+                errors:
+                  error: ["This endpoint is disabled for your region"]
+
+  /api/v4/travel-rule/deposit/verification:
+    post:
+      tags:
+        - Travel Rule
+      summary: Submit deposit originator data
+      description: |
+        Submits originator information for a deposit that is ready for the travel rule verification.
+
+        **Wallet types:**
+        - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `originatingVasp` object.
+        - `unhosted` - Self-custody wallet (hardware wallet, software wallet). No VASP required.
+
+        **Party types:**
+        - `individual` - Natural person. Requires `firstName` and `lastName`.
+        - `entity` - Legal entity. Requires `fullName`.
+
+        <Accordion title="Errors">
+        **Validation failed (400):**
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "originator.firstName": ["The first name field is required for individual."],
+            "originator.address": ["The originator address field is required."]
+          }
+        }
+        ```
+
+        **Transaction not found (422):**
+        ```json
+        {
+          "code": 0,
+          "message": "Something went wrong",
+          "errors": {
+            "uniqueId": ["Transaction not found"]
+          }
+        }
+        ```
+
+        **Transaction must be deposit (422):**
+        ```json
+        {
+          "code": 0,
+          "message": "Something went wrong",
+          "errors": {
+            "uniqueId": ["Transaction must be a deposit"]
+          }
+        }
+        ```
+
+        **Transaction not ready for verification (422):**
+        ```json
+        {
+          "code": 0,
+          "message": "Something went wrong",
+          "errors": {
+            "uniqueId": ["Transaction is not ready for verification"]
+          }
+        }
+        ```
+
+        **API disabled for region (422):**
+        ```json
+        {
+          "code": 0,
+          "message": "Something went wrong",
+          "errors": {
+            "error": ["This endpoint is disabled for your region"]
+          }
+        }
+        ```
+
+        **Missing VASP for hosted wallet (400):**
+        ```json
+        {
+          "code": 0,
+          "message": "Validation failed",
+          "errors": {
+            "originatingVasp": ["Either vaspId or vaspName is required for hosted wallets"]
+          }
+        }
+        ```
+        </Accordion>
+
+        Beyond the errors above, this endpoint can return only the [common authentication errors](/api-reference/authentication).
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+      operationId: submitTravelRuleDepositVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TravelRuleDepositVerificationRequest"
+            examples:
+              individualHostedVaspInList:
+                summary: Individual from hosted wallet (VASP in list)
+                value:
+                  uniqueId: "550e8400-e29b-41d4-a716-446655440000"
+                  walletType: "hosted"
+                  originator:
+                    type: "individual"
+                    firstName: "Alice"
+                    lastName: "Johnson"
+                    residenceCountry: "NLD"
+                    walletAddress: "0x9876543210fedcba9876543210fedcba98765432"
+                    address:
+                      country: "NLD"
+                      city: "Amsterdam"
+                      addressLine1: "Damrak 1"
+                  originatingVasp:
+                    vaspId: "vasp-002"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              entityHostedVaspNotInList:
+                summary: Entity from hosted wallet (VASP not in list)
+                value:
+                  uniqueId: "550e8400-e29b-41d4-a716-446655440000"
+                  walletType: "hosted"
+                  originator:
+                    type: "entity"
+                    fullName: "Acme Corporation Ltd"
+                    residenceCountry: "GBR"
+                    walletAddress: "0xabcdef1234567890abcdef1234567890abcdef12"
+                    address:
+                      country: "GBR"
+                      city: "London"
+                      postCode: "EC2A 4BX"
+                      addressLine1: "123 Finsbury Square"
+                  originatingVasp:
+                    vaspName: "Famous Vasp Inc"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              individualUnhosted:
+                summary: Individual from unhosted wallet
+                value:
+                  uniqueId: "550e8400-e29b-41d4-a716-446655440000"
+                  walletType: "unhosted"
+                  originator:
+                    type: "individual"
+                    firstName: "Bob"
+                    lastName: "Smith"
+                    residenceCountry: "DEU"
+                    walletAddress: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+                    address:
+                      country: "DEU"
+                      city: "Berlin"
+                      addressLine1: "Alexanderplatz 1"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+      responses:
+        "200":
+          description: Successful submission
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uniqueId:
+                        type: string
+                        description: Transaction external ID
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+                      status:
+                        type: string
+                        description: |
+                          Verification status:
+                          - `submitted` - Data submitted successfully, awaiting review
+                          - `approved` - Immediately approved (rare)
+                          - Other SumSub review statuses
+                        example: "submitted"
+              example:
+                data:
+                  uniqueId: "550e8400-e29b-41d4-a716-446655440000"
+                  status: "submitted"
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  originator.firstName: ["The first name field is required for individual."]
+        "422":
+          description: Business logic error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                transactionNotFound:
+                  summary: Transaction not found
+                  value:
+                    code: 0
+                    message: "Something went wrong"
+                    errors:
+                      uniqueId: ["Transaction not found"]
+                notDeposit:
+                  summary: Transaction must be deposit
+                  value:
+                    code: 0
+                    message: "Something went wrong"
+                    errors:
+                      uniqueId: ["Transaction must be a deposit"]
+                notReady:
+                  summary: Transaction not ready for verification
+                  value:
+                    code: 0
+                    message: "Something went wrong"
+                    errors:
+                      uniqueId: ["Transaction is not ready for verification"]
+
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -6913,6 +7312,197 @@ components:
             type: array
             items:
               type: string
+
+    TravelRuleDepositVerificationRequest:
+      type: object
+      required:
+        - uniqueId
+        - walletType
+        - originator
+        - request
+        - nonce
+      properties:
+        uniqueId:
+          type: string
+          maxLength: 100
+          description: Transaction external ID (from deposit/withdraw history)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        walletType:
+          type: string
+          enum: [hosted, unhosted]
+          description: |
+            Wallet type:
+            - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `originatingVasp` object.
+            - `unhosted` - Self-custody wallet (hardware wallet, software wallet).
+          example: "hosted"
+        originator:
+          $ref: "#/components/schemas/TravelRuleOriginator"
+        originatingVasp:
+          $ref: "#/components/schemas/TravelRuleVasp"
+        request:
+          type: string
+          description: Request signature
+          example: "{{request}}"
+        nonce:
+          type: integer
+          description: Unique request identifier
+          example: 1594297865000
+
+    TravelRuleOriginator:
+      type: object
+      required:
+        - type
+        - residenceCountry
+        - walletAddress
+        - address
+      description: Originator information for travel rule compliance
+      properties:
+        type:
+          type: string
+          enum: [individual, entity]
+          description: |
+            Party type:
+            - `individual` - Natural person. Requires `firstName` and `lastName`.
+            - `entity` - Legal entity. Requires `fullName`.
+          example: "individual"
+        firstName:
+          type: string
+          maxLength: 100
+          description: First name. Required if type = `individual`.
+          example: "Alice"
+        lastName:
+          type: string
+          maxLength: 100
+          description: Last name. Required if type = `individual`.
+          example: "Johnson"
+        fullName:
+          type: string
+          maxLength: 200
+          description: Full legal name. Required if type = `entity`.
+          example: "Acme Corporation Ltd"
+        residenceCountry:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 3166-1 alpha-3 country code (3 letters, e.g., `NLD`, `DEU`, `GBR`)
+          example: "NLD"
+        walletAddress:
+          type: string
+          maxLength: 200
+          description: Source wallet address
+          example: "0x9876543210fedcba9876543210fedcba98765432"
+        address:
+          $ref: "#/components/schemas/TravelRuleAddress"
+
+    TravelRuleBeneficiary:
+      type: object
+      required:
+        - type
+        - residenceCountry
+        - address
+      description: Beneficiary information for travel rule compliance
+      properties:
+        type:
+          type: string
+          enum: [individual, entity]
+          description: |
+            Party type:
+            - `individual` - Natural person. Requires `firstName` and `lastName`.
+            - `entity` - Legal entity. Requires `fullName`.
+          example: "individual"
+        firstName:
+          type: string
+          maxLength: 100
+          description: First name. Required if type = `individual`.
+          example: "John"
+        lastName:
+          type: string
+          maxLength: 100
+          description: Last name. Required if type = `individual`.
+          example: "Doe"
+        fullName:
+          type: string
+          maxLength: 200
+          description: Full legal name. Required if type = `entity`.
+          example: "Acme Trading Ltd"
+        residenceCountry:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 3166-1 alpha-3 country code (3 letters, e.g., `NLD`, `DEU`, `GBR`)
+          example: "DEU"
+        address:
+          $ref: "#/components/schemas/TravelRuleAddress"
+
+    TravelRuleAddress:
+      type: object
+      required:
+        - country
+        - city
+        - addressLine1
+      description: Physical address for travel rule compliance
+      properties:
+        country:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 3166-1 alpha-3 country code (3 letters)
+          example: "NLD"
+        city:
+          type: string
+          maxLength: 100
+          description: City name
+          example: "Amsterdam"
+        postCode:
+          type: string
+          maxLength: 20
+          description: Postal code (optional)
+          example: "1012"
+        addressLine1:
+          type: string
+          maxLength: 200
+          description: Street address
+          example: "Damrak 1"
+
+    TravelRuleVasp:
+      type: object
+      description: |
+        VASP (Virtual Asset Service Provider) information. Required when `walletType` is `hosted`.
+        Provide either `vaspId` (if VASP is in the list from `/travel-rule/vasps`) or `vaspName` (if not in list).
+      properties:
+        vaspId:
+          type: string
+          maxLength: 100
+          description: VASP ID from `/travel-rule/vasps` endpoint. Use this if the VASP is in the list.
+          example: "vasp-002"
+        vaspName:
+          type: string
+          maxLength: 200
+          description: VASP name as fallback if not in the list.
+          example: "Famous Vasp Inc"
+
+    TravelRuleWithdrawal:
+      type: object
+      required:
+        - walletType
+        - beneficiary
+      description: |
+        Travel Rule data for withdrawals. Required when the Travel Rule API is enabled for the user's region and the withdrawal is Travel Rule-eligible.
+
+        **Backward Compatibility**: When the Travel Rule API is disabled for the user's region, this new format is still accepted and automatically mapped to the legacy format.
+      properties:
+        walletType:
+          type: string
+          enum: [hosted, unhosted]
+          description: |
+            Wallet type:
+            - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `vasp` object.
+            - `unhosted` - Self-custody wallet (hardware wallet, software wallet).
+          example: "hosted"
+        beneficiary:
+          $ref: "#/components/schemas/TravelRuleBeneficiary"
+        vasp:
+          $ref: "#/components/schemas/TravelRuleVasp"
 
     WithdrawRequest:
       type: object
