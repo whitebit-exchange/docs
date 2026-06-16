@@ -1221,6 +1221,8 @@ paths:
                     ⚠️ Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)
 
                     See [Travel Rule Overview](/api-reference/travel-rule/overview) for complete documentation.
+
+                    **Legacy format:** The API still accepts the old flat format (`type`, `vasp`, `name`, `address` fields), but this format will not pass Travel Rule verification. To complete Travel Rule compliance, use the new structured format with `walletType`, `beneficiary`, and `vasp` objects.
                   properties:
                     walletType:
                       type: string
@@ -1440,6 +1442,34 @@ paths:
                         country: "NLD"
                         city: "Amsterdam"
                         addressLine1: "Damrak 1"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              travelRuleLegacyIndividual:
+                summary: Travel rule - legacy format (won't pass verification)
+                value:
+                  ticker: "BTC"
+                  amount: "0.5"
+                  address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+                  uniqueId: "24529051"
+                  travelRule:
+                    type: "individual"
+                    vasp: "Binance"
+                    name: "John"
+                    address: "Doe"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              travelRuleLegacyEntity:
+                summary: Travel rule - legacy format entity (won't pass verification)
+                value:
+                  ticker: "BTC"
+                  amount: "1.0"
+                  address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+                  uniqueId: "24529052"
+                  travelRule:
+                    type: "entity"
+                    vasp: "Kraken"
+                    name: "Acme Corp"
+                    address: "123 Business Street, London, UK"
                   request: "{{request}}"
                   nonce: 1594297865000
       responses:

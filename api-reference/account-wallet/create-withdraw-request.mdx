@@ -26,106 +26,13 @@ For cryptocurrencies existing on multiple blockchains.
 </Warning>
 
 #### **Scenario 3: Travel Rule Compliance (EEA Users)**
-Required for crypto withdrawals when the account is registered in the European Economic Area (EEA) and the Travel Rule API is enabled.
-- **Required fields**: Standard crypto fields + `travelRule` object
-- **Wallet types**:
-  - `hosted` - Destination is a VASP-hosted wallet (exchange, custodian). Requires `vasp` object.
-  - `unhosted` - Destination is a self-custody wallet.
-- **Beneficiary types**:
-  - `individual` - Personal withdrawals (requires `firstName`, `lastName`)
-  - `entity` - Business withdrawals (requires `fullName`)
-- **Use when**: The account is registered in EEA countries
+Required for crypto withdrawals when the account is registered in the [EEA](/glossary#european-economic-area-eea) and the Travel Rule API is enabled.
 
-<Note>
-Get the list of available VASPs via the [Get VASPs endpoint](/api-reference/travel-rule/get-vasps). Use `vaspId` if the destination VASP is in the list, otherwise use `vaspName`.
-</Note>
+<Warning>
+The legacy flat format (`type`, `vasp`, `name`, `address`) is still accepted but will **not pass Travel Rule verification**. Use the new structured format.
+</Warning>
 
-For complete Travel Rule documentation, see the [Travel Rule Overview](/api-reference/travel-rule/overview).
-
-**Example: Individual to hosted wallet (VASP in list)**
-```json
-{
-  "ticker": "BTC",
-  "amount": "0.5",
-  "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-  "uniqueId": "withdraw-tr-001",
-  "travelRule": {
-    "walletType": "hosted",
-    "beneficiary": {
-      "type": "individual",
-      "firstName": "John",
-      "lastName": "Doe",
-      "residenceCountry": "DEU",
-      "address": {
-        "country": "DEU",
-        "city": "Berlin",
-        "addressLine1": "Alexanderplatz 1"
-      }
-    },
-    "vasp": {
-      "vaspId": "vasp-001"
-    }
-  },
-  "request": "{{request}}",
-  "nonce": 1594297865000
-}
-```
-
-**Example: Entity to hosted wallet (VASP not in list)**
-```json
-{
-  "ticker": "USDT",
-  "amount": "10000",
-  "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f8a2B1",
-  "network": "ERC20",
-  "uniqueId": "withdraw-tr-002",
-  "travelRule": {
-    "walletType": "hosted",
-    "beneficiary": {
-      "type": "entity",
-      "fullName": "Acme Trading Ltd",
-      "residenceCountry": "GBR",
-      "address": {
-        "country": "GBR",
-        "city": "London",
-        "postCode": "EC2A 4BX",
-        "addressLine1": "123 Finsbury Square"
-      }
-    },
-    "vasp": {
-      "vaspName": "Famous Vasp Inc"
-    }
-  },
-  "request": "{{request}}",
-  "nonce": 1594297865000
-}
-```
-
-**Example: Individual to unhosted wallet**
-```json
-{
-  "ticker": "ETH",
-  "amount": "2.5",
-  "address": "0xabcdef1234567890abcdef1234567890abcdef12",
-  "uniqueId": "withdraw-tr-003",
-  "travelRule": {
-    "walletType": "unhosted",
-    "beneficiary": {
-      "type": "individual",
-      "firstName": "Jane",
-      "lastName": "Smith",
-      "residenceCountry": "NLD",
-      "address": {
-        "country": "NLD",
-        "city": "Amsterdam",
-        "addressLine1": "Damrak 1"
-      }
-    }
-  },
-  "request": "{{request}}",
-  "nonce": 1594297865000
-}
-```
+For detailed requirements, field mapping, and request examples, see [Travel Rule](/concepts/travel-rule#withdrawal-examples).
 
 ### 🔹 Fiat Withdrawals (KYC Required)
 

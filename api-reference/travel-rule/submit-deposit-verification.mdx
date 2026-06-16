@@ -6,74 +6,28 @@ openapi: /openapi/private/main_api_v4.yaml POST /api/v4/travel-rule/deposit/veri
 
 ## Overview
 
-When a deposit is detected as Travel Rule-eligible, it becomes ready for verification. Use this endpoint to submit the required originator data to proceed with the verification process.
+When a deposit is detected as Travel Rule-eligible, it enters a "ready for verification" state. Use this endpoint to submit the required originator data.
+
+For detailed information about wallet types, party types, and field requirements, see [Travel Rule](/concepts/travel-rule).
 
 ---
 
-## Submission Scenarios
+## Required fields by scenario
 
-### Scenario 1: Individual from Hosted Wallet (VASP in list)
-
-Use when the sender is a natural person sending from an exchange or custodian that appears in the [VASPs list](/api-reference/travel-rule/get-vasps).
-
-**Required fields:**
-- `walletType`: `"hosted"`
-- `originator.type`: `"individual"`
-- `originator.firstName`, `originator.lastName`
-- `originator.residenceCountry`, `originator.walletAddress`, `originator.address`
-- `originatingVasp.vaspId`
-
-### Scenario 2: Entity from Hosted Wallet (VASP not in list)
-
-Use when the sender is a legal entity sending from an exchange or custodian not in the VASPs list.
-
-**Required fields:**
-- `walletType`: `"hosted"`
-- `originator.type`: `"entity"`
-- `originator.fullName`
-- `originator.residenceCountry`, `originator.walletAddress`, `originator.address`
-- `originatingVasp.vaspName`
-
-### Scenario 3: Individual from Unhosted Wallet
-
-Use when the sender is a natural person sending from a self-custody wallet (hardware wallet, software wallet).
-
-**Required fields:**
-- `walletType`: `"unhosted"`
-- `originator.type`: `"individual"`
-- `originator.firstName`, `originator.lastName`
-- `originator.residenceCountry`, `originator.walletAddress`, `originator.address`
+| Scenario | `walletType` | `originator.type` | VASP | Name fields |
+|----------|--------------|-------------------|------|-------------|
+| Individual from exchange | `hosted` | `individual` | `vaspId` or `vaspName` | `firstName`, `lastName` |
+| Entity from exchange | `hosted` | `entity` | `vaspId` or `vaspName` | `fullName` |
+| Individual from self-custody | `unhosted` | `individual` | Not required | `firstName`, `lastName` |
+| Entity from self-custody | `unhosted` | `entity` | Not required | `fullName` |
 
 <Note>
-No `originatingVasp` is required for unhosted wallets.
+Get the list of available VASPs via the [Get VASPs endpoint](/api-reference/travel-rule/get-vasps). Use `vaspId` if the originating VASP is in the list, otherwise use `vaspName`.
 </Note>
 
 ---
 
-## Field Requirements by Wallet and Party Type
-
-| Field | Hosted + Individual | Hosted + Entity | Unhosted + Individual | Unhosted + Entity |
-|-------|---------------------|-----------------|----------------------|-------------------|
-| `firstName` | Required | - | Required | - |
-| `lastName` | Required | - | Required | - |
-| `fullName` | - | Required | - | Required |
-| `originatingVasp` | Required | Required | - | - |
-
----
-
-## Address Requirements
-
-All address objects require:
-- `country` - ISO 3166-1 alpha-3 code (e.g., `"NLD"`, `"DEU"`)
-- `city` - City name
-- `addressLine1` - Street address
-
-Optional:
-- `postCode` - Postal code
-
----
-
-## Verification Status
+## Verification status
 
 After successful submission, the response contains a `status` field:
 
@@ -81,71 +35,23 @@ After successful submission, the response contains a `status` field:
 |--------|-------------|
 | `submitted` | Data submitted, awaiting compliance review |
 | `approved` | Immediately approved (rare) |
-| Other | Various review statuses |
 
-<Note>
-Monitor the deposit status via [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) to track when the deposit is credited or rejected.
-</Note>
+Monitor deposit status via [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history).
 
 ---
 
-## Common Errors
+## Common errors
 
 <Warning>
-**Transaction Not Found**: Ensure the `uniqueId` matches a transaction in your deposit history. The transaction must exist and belong to your account.
+**Transaction Not Found**: Ensure the `uniqueId` matches a transaction in the deposit history. The transaction must exist and belong to the authenticated account.
 </Warning>
 
-**Transaction not ready for verification:**
-The deposit must be ready for verification. If the deposit is not in the correct state or has already been processed, this error is returned.
-
 **Missing VASP for hosted wallet:**
-When `walletType` is `"hosted"`, you must provide either `vaspId` (if VASP is in the list) or `vaspName` (if not in the list).
+When `walletType` is `"hosted"`, provide either `vaspId` or `vaspName`.
 
 ---
 
-## Integration Workflow
+## Related
 
-```javascript
-// 1. Find deposits ready for verification
-const history = await getDepositHistory();
-const depositForVerification = history.find(d => d.requiresVerification);
-
-// 2. Get available VASPs
-const { data: { vasps } } = await getVasps();
-
-// 3. Determine VASP reference
-const originatingVaspName = "Binance"; // From user input
-const knownVasp = vasps.find(v => v.name === originatingVaspName);
-const originatingVasp = knownVasp
-  ? { vaspId: knownVasp.vaspId }
-  : { vaspName: originatingVaspName };
-
-// 4. Submit verification
-const response = await submitDepositVerification({
-  uniqueId: depositForVerification.unique_id,
-  walletType: "hosted",
-  originator: {
-    type: "individual",
-    firstName: "Alice",
-    lastName: "Johnson",
-    residenceCountry: "NLD",
-    walletAddress: depositForVerification.address,
-    address: {
-      country: "NLD",
-      city: "Amsterdam",
-      addressLine1: "Damrak 1"
-    }
-  },
-  originatingVasp
-});
-
-console.log(`Verification status: ${response.data.status}`);
-```
-
----
-
-## Related Endpoints
-
-- [Get available VASPs](/api-reference/travel-rule/get-vasps) - Fetch VASPs list before submission
-- [Get deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) - Find deposits ready for verification and monitor status
-- [Travel Rule Overview](/api-reference/travel-rule/overview) - Complete travel rule documentation
+- [Get available VASPs](/api-reference/travel-rule/get-vasps) — Fetch VASPs list before submission
+- [Travel Rule](/concepts/travel-rule) — Detailed requirements and workflows
