@@ -1280,7 +1280,7 @@ paths:
                               type: string
                               description: Street address.
                               example: "Alexanderplatz 1"
-                    vasp:
+                    vaspData:
                       type: object
                       description: |
                         VASP (Virtual Asset Service Provider) information. Required if `walletType` is `hosted`.
@@ -1397,7 +1397,7 @@ paths:
                         country: "DEU"
                         city: "Berlin"
                         addressLine1: "Alexanderplatz 1"
-                    vasp:
+                    vaspData:
                       vaspId: "vasp-001"
                   request: "{{request}}"
                   nonce: 1594297865000
@@ -1420,7 +1420,7 @@ paths:
                         city: "London"
                         postCode: "EC2A 4BX"
                         addressLine1: "123 Finsbury Square"
-                    vasp:
+                    vaspData:
                       vaspName: "Famous Vasp Inc"
                   request: "{{request}}"
                   nonce: 1594297865000
@@ -7081,7 +7081,7 @@ paths:
         Submits originator information for a deposit that is ready for the travel rule verification.
 
         **Wallet types:**
-        - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `originatingVasp` object.
+        - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `vaspData` object.
         - `unhosted` - Self-custody wallet (hardware wallet, software wallet). No VASP required.
 
         **Party types:**
@@ -7151,7 +7151,7 @@ paths:
           "code": 0,
           "message": "Validation failed",
           "errors": {
-            "originatingVasp": ["Either vaspId or vaspName is required for hosted wallets"]
+            "vaspData": ["Either vaspId or vaspName is required for hosted wallets"]
           }
         }
         ```
@@ -7189,7 +7189,7 @@ paths:
                       country: "NLD"
                       city: "Amsterdam"
                       addressLine1: "Damrak 1"
-                  originatingVasp:
+                  vaspData:
                     vaspId: "vasp-002"
                   request: "{{request}}"
                   nonce: 1594297865000
@@ -7208,7 +7208,7 @@ paths:
                       city: "London"
                       postCode: "EC2A 4BX"
                       addressLine1: "123 Finsbury Square"
-                  originatingVasp:
+                  vaspData:
                     vaspName: "Famous Vasp Inc"
                   request: "{{request}}"
                   nonce: 1594297865000
@@ -7362,12 +7362,12 @@ components:
           enum: [hosted, unhosted]
           description: |
             Wallet type:
-            - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `originatingVasp` object.
+            - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `vaspData` object.
             - `unhosted` - Self-custody wallet (hardware wallet, software wallet).
           example: "hosted"
         originator:
           $ref: "#/components/schemas/TravelRuleOriginator"
-        originatingVasp:
+        vaspData:
           $ref: "#/components/schemas/TravelRuleVasp"
         request:
           type: string
@@ -7526,12 +7526,12 @@ components:
           enum: [hosted, unhosted]
           description: |
             Wallet type:
-            - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `vasp` object.
+            - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `vaspData` object.
             - `unhosted` - Self-custody wallet (hardware wallet, software wallet).
           example: "hosted"
         beneficiary:
           $ref: "#/components/schemas/TravelRuleBeneficiary"
-        vasp:
+        vaspData:
           $ref: "#/components/schemas/TravelRuleVasp"
 
     WithdrawRequest:

@@ -27,7 +27,7 @@ The Travel Rule API is not available to all accounts. To request access, contact
 
 | Type | Description | VASP required |
 |------|-------------|---------------|
-| `hosted` | VASP-hosted wallet (exchange, custodian) | Yes — provide `vasp` or `originatingVasp` object |
+| `hosted` | VASP-hosted wallet (exchange, custodian) | Yes — provide `vaspData` object |
 | `unhosted` | Self-custody wallet (hardware, software) | No |
 
 ---
@@ -82,7 +82,7 @@ sequenceDiagram
     WhiteBIT API-->>Client: List of available VASPs
 
     Client->>WhiteBIT API: POST /api/v4/travel-rule/deposit/verification
-    Note right of Client: Submit originator data<br/>(walletType, originator, originatingVasp)
+    Note right of Client: Submit originator data<br/>(walletType, originator, vaspData)
     WhiteBIT API->>Compliance: Review originator data
 
     alt Approved
@@ -115,7 +115,7 @@ sequenceDiagram
       "addressLine1": "Damrak 1"
     }
   },
-  "originatingVasp": {
+  "vaspData": {
     "vaspId": "vasp-002"
   }
 }
@@ -138,7 +138,7 @@ sequenceDiagram
       "addressLine1": "123 Finsbury Square"
     }
   },
-  "originatingVasp": {
+  "vaspData": {
     "vaspName": "Famous Vasp Inc"
   }
 }
@@ -180,7 +180,7 @@ sequenceDiagram
     WhiteBIT API-->>Client: List of available VASPs
 
     Client->>WhiteBIT API: POST /api/v4/main-account/withdraw
-    Note right of Client: Include travelRule object<br/>(walletType, beneficiary, vasp)
+    Note right of Client: Include travelRule object<br/>(walletType, beneficiary, vaspData)
     WhiteBIT API->>Compliance: Review beneficiary data
 
     alt Approved
@@ -216,7 +216,7 @@ sequenceDiagram
         "addressLine1": "Alexanderplatz 1"
       }
     },
-    "vasp": {
+    "vaspData": {
       "vaspId": "vasp-001"
     }
   }
@@ -244,7 +244,7 @@ sequenceDiagram
         "addressLine1": "123 Finsbury Square"
       }
     },
-    "vasp": {
+    "vaspData": {
       "vaspName": "Famous Vasp Inc"
     }
   }
@@ -288,7 +288,7 @@ The API still accepts the legacy flat format for withdrawals, but it will **not 
 | Legacy field | New field |
 |--------------|-----------|
 | `type` | `beneficiary.type` |
-| `vasp` | `vasp.vaspId` or `vasp.vaspName` |
+| `vasp` | `vaspData.vaspId` or `vaspData.vaspName` |
 | `name` | `beneficiary.firstName` (individual) or `beneficiary.fullName` (entity) |
 | `address` | `beneficiary.lastName` (individual) or `beneficiary.address` (entity) |
 
