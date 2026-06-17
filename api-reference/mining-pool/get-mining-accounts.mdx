@@ -2,4 +2,11 @@
 title: "Get Mining Accounts"
 description: "List all mining accounts associated with a WhiteBIT account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/accounts
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/mining/accounts" fields={SIGNER_FIELDS["/api/v4/mining/accounts"]} />
+
+

@@ -2,5 +2,12 @@
 title: "Main balance"
 description: "Get the main account balance for all currencies or a specific currency via the WhiteBIT V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/balance
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/balance" fields={SIGNER_FIELDS["/api/v4/main-account/balance"]} />
+
+
 

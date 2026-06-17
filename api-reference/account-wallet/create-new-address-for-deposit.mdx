@@ -2,5 +2,12 @@
 title: "Create new address for deposit"
 description: "Generate a new cryptocurrency deposit address for a specified currency and network via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/create-new-address
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/create-new-address" fields={SIGNER_FIELDS["/api/v4/main-account/create-new-address"]} />
+
+
 

@@ -2,9 +2,14 @@
 title: "Get check history"
 description: "Return historical address screening data with filtering options."
 openapi: "/openapi/private/address-checker.yaml POST /api/v4/aml/checks/history"
+playground: none
 ---
 
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/aml/checks/history" fields={SIGNER_FIELDS["/api/v4/aml/checks/history"]} />
 
 <RelatedResources>
 - [Create address check](/api-reference/address-checker/create-address-check) — initiate a screening request

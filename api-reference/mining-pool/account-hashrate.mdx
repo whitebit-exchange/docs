@@ -2,4 +2,11 @@
 title: "Account Hashrate"
 description: "Retrieve hashrate history for a mining account at configurable intervals via the WhiteBIT V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/hashrate
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/mining/hashrate" fields={SIGNER_FIELDS["/api/v4/mining/hashrate"]} />
+
+

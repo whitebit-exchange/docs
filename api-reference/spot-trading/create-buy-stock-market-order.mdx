@@ -2,8 +2,13 @@
 title: "Create buy stock market order"
 description: "Place a buy market order specifying the exact quantity of the base asset to receive via the V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/stock_market"
+playground: none
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/order/stock_market" fields={SIGNER_FIELDS["/api/v4/order/stock_market"]} />
 
 
 <RelatedResources>
