@@ -2,7 +2,14 @@
 title: "Create Sub-Account"
 description: "Create a new sub-account under a main WhiteBIT account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/create
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/sub-account/create" fields={SIGNER_FIELDS["/api/v4/sub-account/create"]} />
+
+
 
 <Note>
 The `email` field requirement depends on the `shareKyc` parameter:

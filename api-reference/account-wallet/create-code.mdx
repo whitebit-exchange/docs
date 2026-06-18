@@ -2,5 +2,12 @@
 title: "Create code"
 description: "Create a WhiteBIT code for transferring funds between accounts or to other users via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/codes
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/codes" fields={SIGNER_FIELDS["/api/v4/main-account/codes"]} />
+
+
 

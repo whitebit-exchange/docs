@@ -2,8 +2,13 @@
 title: "Cancel order"
 description: "Cancel a specific open spot order by order ID via the WhiteBIT V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/cancel"
+playground: none
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/order/cancel" fields={SIGNER_FIELDS["/api/v4/order/cancel"]} />
 
 
 <RelatedResources>

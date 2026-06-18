@@ -1,0 +1,49 @@
+---
+title: "Travel Rule"
+sidebarTitle: "Overview"
+description: "API endpoints for Travel Rule compliance for cryptocurrency deposits and withdrawals."
+---
+
+Travel Rule API endpoints enable B2B clients to submit originator and beneficiary data for cryptocurrency transactions as required by FATF and MiCA regulations.
+
+For detailed information about Travel Rule requirements, formats, and workflows, see the [Travel Rule concept page](/concepts/travel-rule).
+
+---
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Get available VASPs" icon="building-columns" href="/api-reference/travel-rule/get-vasps">
+    Retrieve the list of VASPs for travel rule submissions.
+  </Card>
+  <Card title="Submit deposit verification" icon="file-import" href="/api-reference/travel-rule/submit-deposit-verification">
+    Submit originator data for a deposit pending verification.
+  </Card>
+</CardGroup>
+
+---
+
+## Related
+
+- [Create withdraw request](/api-reference/account-wallet/create-withdraw-request) — Create withdrawals with travel rule data
+- [Get deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) — Monitor transaction status
+- [Travel Rule concept](/concepts/travel-rule) — Detailed requirements, formats, and workflows
+
+---
+
+## Common errors
+
+**API disabled for region:**
+```json
+{
+  "code": 0,
+  "message": "Something went wrong",
+  "errors": {
+    "error": ["This endpoint is disabled for your region"]
+  }
+}
+```
+
+<Note>
+The Travel Rule API is not available to all accounts. To request access, contact the assigned Account Manager or email institutional@whitebit.com.
+</Note>

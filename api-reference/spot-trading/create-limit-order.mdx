@@ -2,9 +2,14 @@
 title: "Create limit order"
 description: "Place a spot limit order to buy or sell at a specified price via the WhiteBIT V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/new"
+playground: none
 ---
 
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/order/new" fields={SIGNER_FIELDS["/api/v4/order/new"]} />
 
 <RelatedResources>
 - [Query unexecuted orders](/api-reference/spot-trading/query-unexecuted-orders) — list open orders

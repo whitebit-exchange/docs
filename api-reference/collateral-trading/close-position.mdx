@@ -2,8 +2,13 @@
 title: "Close position"
 description: "Close an open collateral trading position at market price via the WhiteBIT V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/position/close"
+playground: none
 ---
 import { RelatedResources } from '/components/RelatedResources.jsx';
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/collateral-account/position/close" fields={SIGNER_FIELDS["/api/v4/collateral-account/position/close"]} />
 
 
 <RelatedResources>

@@ -1,0 +1,57 @@
+---
+title: "Submit deposit verification"
+description: "Submit originator information for a deposit pending travel rule verification via the V4 API."
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/travel-rule/deposit/verification
+---
+
+## Overview
+
+When a deposit is detected as Travel Rule-eligible, it enters a "ready for verification" state. Use this endpoint to submit the required originator data.
+
+For detailed information about wallet types, party types, and field requirements, see [Travel Rule](/concepts/travel-rule).
+
+---
+
+## Required fields by scenario
+
+| Scenario | `walletType` | `originator.type` | VASP | Name fields |
+|----------|--------------|-------------------|------|-------------|
+| Individual from exchange | `hosted` | `individual` | `vaspId` or `vaspName` | `firstName`, `lastName` |
+| Entity from exchange | `hosted` | `entity` | `vaspId` or `vaspName` | `fullName` |
+| Individual from self-custody | `unhosted` | `individual` | Not required | `firstName`, `lastName` |
+| Entity from self-custody | `unhosted` | `entity` | Not required | `fullName` |
+
+<Note>
+Get the list of available VASPs via the [Get VASPs endpoint](/api-reference/travel-rule/get-vasps). Use `vaspId` if the originating VASP is in the list, otherwise use `vaspName`.
+</Note>
+
+---
+
+## Verification status
+
+After successful submission, the response contains a `status` field:
+
+| Status | Description |
+|--------|-------------|
+| `submitted` | Data submitted, awaiting compliance review |
+| `approved` | Immediately approved (rare) |
+
+Monitor deposit status via [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history).
+
+---
+
+## Common errors
+
+<Warning>
+**Transaction Not Found**: Ensure the `uniqueId` matches a transaction in the deposit history. The transaction must exist and belong to the authenticated account.
+</Warning>
+
+**Missing VASP for hosted wallet:**
+When `walletType` is `"hosted"`, provide either `vaspId` or `vaspName`.
+
+---
+
+## Related
+
+- [Get available VASPs](/api-reference/travel-rule/get-vasps) — Fetch VASPs list before submission
+- [Travel Rule](/concepts/travel-rule) — Detailed requirements and workflows

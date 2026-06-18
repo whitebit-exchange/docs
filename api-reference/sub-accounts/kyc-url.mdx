@@ -2,7 +2,14 @@
 title: "Get Sub-Account KYC URL"
 description: "Generate a temporary KYC verification link for a sub-account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/kyc-url
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/sub-account/kyc-url" fields={SIGNER_FIELDS["/api/v4/sub-account/kyc-url"]} />
+
+
 
 <Note>
 A KYC URL can only be generated when all of the following conditions are met:

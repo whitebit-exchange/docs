@@ -2,7 +2,14 @@
 title: "Create withdraw request"
 description: "Submit a cryptocurrency or fiat withdrawal request from a WhiteBIT account via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/withdraw
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/withdraw" fields={SIGNER_FIELDS["/api/v4/main-account/withdraw"]} />
+
+
 
 ## Withdrawal Scenarios Guide
 
@@ -26,12 +33,13 @@ For cryptocurrencies existing on multiple blockchains.
 </Warning>
 
 #### **Scenario 3: Travel Rule Compliance (EEA Users)**
-Required for crypto withdrawals when the account is registered in the European Economic Area (EEA).
-- **Required fields**: Standard crypto fields + `travelRule` object
-- **Travel rule types**: 
-  - `individual` - Personal withdrawals (requires first name / last name)
-  - `entity` - Business withdrawals (requires company name / address)
-- **Use when**: The account is registered in EEA countries
+Required for crypto withdrawals when the account is registered in the [EEA](/glossary#european-economic-area-eea) and the Travel Rule API is enabled.
+
+<Warning>
+The legacy flat format (`type`, `vasp`, `name`, `address`) is still accepted but will **not pass Travel Rule verification**. Use the new structured format.
+</Warning>
+
+For detailed requirements, field mapping, and request examples, see [Travel Rule](/concepts/travel-rule#withdrawal-examples).
 
 ### 🔹 Fiat Withdrawals (KYC Required)
 
@@ -44,6 +52,7 @@ Standard fiat withdrawal via VISAMASTER provider.
 - **Required fields**: `ticker`, `amount`, `provider`, `uniqueId`
 - **Currencies**: UAH, USD, EUR, etc.
 - **Use when**: Standard fiat withdrawal within normal limits
+- **USD/EUR with VISAMASTER**: also requires `customerIp` — the end-customer IP address forwarded to the provider for antifraud checks.
 
 #### **Scenario 5: Fiat with Partial Enable**
 For withdrawals exceeding standard limits with "partially successful" status support.
