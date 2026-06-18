@@ -2,7 +2,14 @@
 title: "Invest"
 description: "Create a new fixed-term Smart investment by locking funds for a specified period via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/smart/investment
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/smart/investment" fields={SIGNER_FIELDS["/api/v4/main-account/smart/investment"]} />
+
+
 
 <Note>
 These endpoints are available only for B2B partner services. Fill the form at https://whitebit.com/institutional-services/b2b to request access.

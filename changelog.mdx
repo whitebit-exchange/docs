@@ -4,6 +4,42 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="June 15, 2026">
+## Travel Rule API
+**New endpoints and structured format for Travel Rule compliance**
+
+The Travel Rule API enables B2B clients to submit originator and beneficiary data for cryptocurrency transactions as required by FATF and MiCA regulations. Available for accounts registered in the European Economic Area (EEA).
+
+**New endpoints:**
+- `POST /api/v4/travel-rule/vasps` — Retrieve the list of available VASPs for travel rule submissions.
+- `POST /api/v4/travel-rule/deposit/verification` — Submit originator data for deposits pending verification.
+
+**Updated `travelRule` format on withdrawals:**
+
+The `travelRule` object on `POST /api/v4/main-account/withdraw` now uses a structured format with `walletType`, `beneficiary`, and `vasp` objects. The legacy flat format is deprecated.
+
+<CardGroup cols={2}>
+  <Card title="Travel Rule Overview" href="/api-reference/travel-rule/overview" icon="passport" horizontal/>
+  <Card title="Get VASPs" href="/api-reference/travel-rule/get-vasps" icon="building-columns" horizontal/>
+  <Card title="Submit Deposit Verification" href="/api-reference/travel-rule/submit-deposit-verification" icon="file-import" horizontal/>
+  <Card title="Create Withdraw Request" href="/api-reference/account-wallet/create-withdraw-request" icon="money-bill-transfer" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="June 8, 2026">
+## TradFi Futures markets on Market Info
+**New `tradfiFutures` market type and `isTradFiFutures` flag on `GET /api/v4/public/markets`**
+
+`GET /api/v4/public/markets` now returns traditional-finance (TradFi) futures markets — futures contracts on traditional financial assets such as equities (for example, `AAPL_USD`). A TradFi market carries `type: tradfiFutures` together with `isTradFiFutures: true`; both fields are always present on every market entry. Availability is region-gated: markets you are not eligible to trade are omitted from the response entirely and do not appear under any other market type.
+
+<CardGroup cols={2}>
+  <Card title="Market Info" href="/api-reference/market-data/market-info" icon="chart-line" horizontal/>
+  <Card title="Markets concept" href="/concepts/markets" icon="book" horizontal/>
+  <Card title="Glossary — TradFi futures" href="/glossary#tradfi-futures" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
+
 <Update label="May 26, 2026">
 ## Retail flag on Create Limit Order and Bulk Limit Order
 **New `retail` request parameter enables API clients to take RPI-maker liquidity**

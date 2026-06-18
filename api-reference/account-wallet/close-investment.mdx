@@ -2,7 +2,14 @@
 title: "Close investment"
 description: "Close an active fixed-term Smart investment and return funds to the main balance via the V4 API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/smart/investment/close
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/smart/investment/close" fields={SIGNER_FIELDS["/api/v4/main-account/smart/investment/close"]} />
+
+
 
 <Note>
 These endpoints are available only for B2B partner services. Fill the form at https://whitebit.com/institutional-services/b2b to request access.

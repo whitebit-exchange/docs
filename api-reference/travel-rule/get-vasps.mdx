@@ -1,0 +1,52 @@
+---
+title: "Get available VASPs"
+description: "Retrieve the list of Virtual Asset Service Providers (VASPs) for travel rule submissions via the V4 API."
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/travel-rule/vasps
+---
+
+## Overview
+
+This endpoint retrieves the list of VASPs that can be used when submitting travel rule data for deposits and withdrawals. For detailed Travel Rule requirements, see [Travel Rule](/concepts/travel-rule).
+
+**When to use `vaspId` vs `vaspName`:**
+- If the destination/originating VASP appears in this list, use its `vaspId` for accurate identification
+- If the VASP is not in the list, use `vaspName` as a fallback with the VASP's name as a string
+
+---
+
+## Usage Notes
+
+<Note>
+The list may vary depending on the account's region.
+</Note>
+
+---
+
+## VASP Selection Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant WhiteBIT API
+
+    Client->>WhiteBIT API: POST /api/v4/travel-rule/vasps
+    WhiteBIT API-->>Client: List of available VASPs
+
+    Note over Client: Search for target VASP in list
+
+    alt VASP found in list
+        Note over Client: Use vaspId from response
+        Client->>WhiteBIT API: Submit with { vaspId: "vasp-001" }
+    else VASP not in list
+        Note over Client: Use vaspName as fallback
+        Client->>WhiteBIT API: Submit with { vaspName: "Famous Vasp Name" }
+    end
+```
+
+---
+
+## Related
+
+- [Submit deposit verification](/api-reference/travel-rule/submit-deposit-verification) — Use VASPs when submitting deposit originator data
+- [Create withdraw request](/api-reference/account-wallet/create-withdraw-request) — Use VASPs when creating withdrawals with travel rule data
+- [Travel Rule](/concepts/travel-rule) — Detailed requirements and workflows

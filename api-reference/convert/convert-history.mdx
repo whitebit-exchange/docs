@@ -2,4 +2,11 @@
 title: "Convert History"
 description: "Retrieve the history of currency conversion operations on WhiteBIT via the V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/convert/history"
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/convert/history" fields={SIGNER_FIELDS["/api/v4/convert/history"]} />
+
+

@@ -2,4 +2,11 @@
 title: "List Unconfirmed Sub-Account Withdrawals"
 description: "Retrieve a paginated list of sub-account withdrawal transactions awaiting main account confirmation."
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/withdraw/unconfirmed-list
+playground: none
 ---
+import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
+import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+
+<WhitebitSigner path="/api/v4/sub-account/withdraw/unconfirmed-list" fields={SIGNER_FIELDS["/api/v4/sub-account/withdraw/unconfirmed-list"]} />
+
+
