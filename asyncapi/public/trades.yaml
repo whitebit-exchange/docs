@@ -33,6 +33,10 @@ channels:
       <Note>
       To subscribe to all markets, send the request with an empty `params` array.
       </Note>
+
+      <Note>
+      On subscribe, the server first sends an initial snapshot — one `trades_update` carrying up to 100 of the latest trades per market, ordered newest first — then streams new trades in real time. Because every resubscribe replays this snapshot, deduplicate by trade `id`.
+      </Note>
     messages:
       tradesRequest:
         $ref: '#/components/messages/tradesRequest'
@@ -125,7 +129,7 @@ components:
           summary: |
             Array of recent trades where each trade contains:
             - id: Trade ID (41358530)
-            - time: Unix timestamp with milliseconds (1580905394.70332)
+            - time: Unix timestamp in seconds, with microsecond precision (1580905394.70332)
             - price: Trade price (0.020857)
             - amount: Trade amount (5.511)
             - type: Trade type (buy/sell)
@@ -187,7 +191,7 @@ components:
             Trade update event with parameters:
             - params[0]: Market name (ETH_BTC)
             - params[1]: Array of trade objects
-            Trade fields: id, time (Unix ms), price, amount, type (buy/sell), rpi (Retail Price Improvement flag)
+            Trade fields: id, time (Unix seconds, microsecond precision), price, amount, type (buy/sell), rpi (Retail Price Improvement flag)
           payload:
             id: null
             method: trades_update
@@ -222,7 +226,7 @@ components:
           description: Trade ID
         time:
           type: number
-          description: Trade time (Unix timestamp with milliseconds)
+          description: "Trade time as a Unix timestamp in seconds (UTC), with microsecond precision"
         price:
           type: string
           description: Trade price

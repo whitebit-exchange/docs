@@ -45,7 +45,7 @@ See the [Crypto Deposits](#crypto-deposits) tab for endpoint detail.
 
 ### UC3 — EEA crypto withdrawal with Travel Rule
 
-A partner serving EEA end users submits withdrawals with the required `travelRule` object. The withdrawal is processed immediately on the signed API request, then settles on-chain to the destination VASP.
+A partner serving EEA end users submits withdrawals with the required `travelRule` object. The withdrawal goes through compliance review before on-chain broadcast.
 
 ```mermaid
 sequenceDiagram
@@ -53,17 +53,27 @@ sequenceDiagram
     participant P as Partner backend
     participant U as End user (EEA, withdrawal destination)
     participant W as WhiteBIT API
+    participant C as Compliance
     participant V as Destination VASP
 
     Note over P,W: Travel Rule applies to all crypto withdrawals from EEA accounts.
-    U->>P: Provide destination address + VASP name + name/address per type
-    P->>W: POST /api/v4/main-account/withdraw with Travel Rule data
+    U->>P: Provide destination address + beneficiary details (walletType, VASP, identity)
+    P->>W: POST /api/v4/main-account/withdraw with travelRule object
+    Note right of P: travelRule: walletType, beneficiary,<br/>vaspData (vaspId or vaspName)
     W-->>P: HTTP 201 — withdrawal created
     W->>P: webhook: withdraw.unconfirmed
-    W->>P: webhook: withdraw.pending (status in 1, 2, 6, 10–17)
-    W->>V: On-chain broadcast to destination VASP wallet
-    W->>P: webhook: withdraw.successful (status 3 — terminal)
-    P->>P: Reconcile by uniqueId → mark customer withdrawal complete
+    W->>C: Review beneficiary data
+    alt Approved
+        C-->>W: Approved
+        W->>P: webhook: withdraw.pending (status in 1, 2, 6, 10–17)
+        W->>V: On-chain broadcast to destination VASP wallet
+        W->>P: webhook: withdraw.successful (status 3 — terminal)
+        P->>P: Reconcile by uniqueId → mark customer withdrawal complete
+    else Rejected
+        C-->>W: Rejected
+        W->>P: webhook: withdraw.canceled (status 4)
+        P->>P: Notify end user — Travel Rule data rejected
+    end
 ```
 
 See the [Crypto Withdrawals](#crypto-withdrawals) tab for endpoint detail.
@@ -252,7 +262,7 @@ After funds arrive at a generated deposit address, the deposit passes through a 
 4. Confirmations reach the required threshold — `deposit.updated` webhook fires with updated `confirmations.actual`
 5. Deposit credited to Main balance — `deposit.processed` webhook fires — **terminal success state**
 6. OR: Deposit canceled — `deposit.canceled` webhook fires — **terminal failure state**
-7. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28), see Travel Rule section below
+7. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28). If the Travel Rule API is enabled, submit originator data via API to unfreeze; otherwise manual action at whitebit.com is required. See Travel Rule section below.
 
 ## Deposit status state machine
 
@@ -311,8 +321,12 @@ Since May 19, 2025, inbound crypto deposits for EEA and Turkey accounts are plac
 - **Status 27** (`DEPOSIT_TRAVEL_RULE_FROZEN`): deposit frozen, awaiting Travel Rule data from the account holder
 - **Status 28** (`DEPOSIT_TRAVEL_RULE_FROZEN_PROCESSING`): Travel Rule data submitted, under review by WhiteBIT
 
+<Note>
+  **API-based verification:** When the Travel Rule API is enabled for the account, partners can submit originator data via `POST /api/v4/travel-rule/deposit/verification` to unfreeze deposits programmatically. See [Travel Rule](/concepts/travel-rule) for the full verification flow and request format.
+</Note>
+
 <Warning>
-  Travel Rule verification for deposits requires the account holder to submit data through the WhiteBIT web interface. The API does not provide an endpoint to submit Travel Rule data for incoming deposits. Inform end users that frozen deposits require manual action at whitebit.com.
+  **Manual verification fallback:** If the Travel Rule API is not enabled for the account, frozen deposits require manual action at whitebit.com. Contact institutional@whitebit.com to request Travel Rule API access.
 </Warning>
 
 See [Regulatory Compliance](/institutional/compliance) for the full Travel Rule reference. See the [Travel Rule help center article](https://help.whitebit.com/hc/en-gb/articles/24093241373341-Travel-Rule-Requirements-Updates-to-Crypto-Withdrawals-Interface-and-API) for the complete requirements.
@@ -383,11 +397,21 @@ Two withdrawal endpoints are available:
 
 Crypto withdrawals from EEA accounts require a `travelRule` object in the request body. The `travelRule` object is required when the currency is crypto AND the account is from the EEA.
 
-<Note>
-  **Field-role multiplex:** The `name` and `address` fields encode different data depending on `type`. For `type: "individual"`, `name` is the receiver's first name and `address` is the receiver's last name. For `type: "entity"`, `name` is the entity legal name and `address` is the entity address. Name local variables for the role the field carries (`receiver_first_name` / `receiver_last_name` for individuals), not for the spec field name.
+### Structured format (recommended)
 
-  **API enforcement:** The `type` field is currently accepted as free text — the API does not validate whether the value is `individual` or `entity` and does not behave differently based on it. The role-multiplex described above is the documented intent and the schema partners should adhere to.
-</Note>
+| Field | Type | Description |
+|-------|------|-------------|
+| `walletType` | string | `"hosted"` (VASP-hosted) or `"unhosted"` (self-custody) |
+| `beneficiary` | object | Beneficiary details (`type`, `firstName`/`lastName` or `fullName`, `residenceCountry`, `address`) |
+| `vaspData` | object | VASP identification (`vaspId` or `vaspName`) — required when `walletType` is `"hosted"` |
+
+See [Travel Rule](/concepts/travel-rule) for the full schema reference and request examples.
+
+### Legacy format (deprecated)
+
+<Warning>
+  The legacy flat format is still accepted but **will not pass Travel Rule verification**. Migrate to the structured format above for compliance.
+</Warning>
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -396,56 +420,7 @@ Crypto withdrawals from EEA accounts require a `travelRule` object in the reques
 | `name` | string | If individual: first name. If entity: entity name. |
 | `address` | string | If individual: last name. If entity: entity address. |
 
-<Tabs>
-  <Tab title="curl — Individual">
-    ```bash
-    curl -X POST "https://whitebit.com/api/v4/main-account/withdraw" \
-      -H "Content-Type: application/json" \
-      -H "X-TXC-APIKEY: YOUR_API_KEY" \
-      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-      -d '{
-        "ticker": "ETH",
-        "amount": "0.1",
-        "address": "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c",
-        "uniqueId": "order-12345-eth-individual",
-        "travelRule": {
-          "type": "individual",
-          "vasp": "Binance",
-          "name": "Alex",
-          "address": "Smith"
-        },
-        "request": "/api/v4/main-account/withdraw",
-        "nonce": 1594297865000
-      }'
-    ```
-  </Tab>
-  <Tab title="curl — Entity">
-    ```bash
-    curl -X POST "https://whitebit.com/api/v4/main-account/withdraw" \
-      -H "Content-Type: application/json" \
-      -H "X-TXC-APIKEY: YOUR_API_KEY" \
-      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-      -d '{
-        "ticker": "ETH",
-        "amount": "0.1",
-        "address": "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c",
-        "uniqueId": "order-12345-eth-entity",
-        "travelRule": {
-          "type": "entity",
-          "vasp": "Kraken",
-          "name": "Acme Trading Ltd",
-          "address": "123 Exchange Street, London, UK"
-        },
-        "request": "/api/v4/main-account/withdraw",
-        "nonce": 1594297865000
-      }'
-    ```
-  </Tab>
-</Tabs>
-
-See [Regulatory Compliance](/institutional/compliance) and the [Travel Rule help center article](https://help.whitebit.com/hc/en-gb/articles/24093241373341-Travel-Rule-Requirements-Updates-to-Crypto-Withdrawals-Interface-and-API) for the complete requirements.
+See [Travel Rule — Legacy format](/concepts/travel-rule#legacy-format-withdrawals-only) for migration guidance.
 
 ## Withdrawal confirmation model
 
@@ -573,6 +548,7 @@ When a deposit is canceled (status 4 or 9), a refund may be available.
 | Endpoint | Purpose | API Reference |
 |----------|---------|---------------|
 | `POST /api/v4/main-account/balance` | Check Main balance before withdrawal | [Main Balance](/api-reference/account-wallet/main-balance) |
+| `POST /api/v4/travel-rule/vasps` | Get available VASPs for Travel Rule (EEA withdrawals) | [Get VASPs](/api-reference/travel-rule/get-vasps) |
 | `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | Webhooks (`withdraw.unconfirmed`, `withdraw.pending`, `withdraw.successful`, `withdraw.canceled`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |

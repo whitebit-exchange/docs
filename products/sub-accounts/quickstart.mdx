@@ -186,6 +186,15 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
     <Warning>
       Save the `secretKey` immediately -- the API does not return the secret key again after creation.
     </Warning>
+
+    <Note>
+      To receive crypto deposits directly, the sub-account needs a `type: 2` key (deposits and
+      withdrawals) **and** the account must have deposits enabled. Crypto deposits are disabled by
+      default — to enable them for the account and its sub-accounts, contact your assigned Account
+      Manager or email institutional@whitebit.com. Once enabled, generate the address via the
+      standard [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
+      signed with the sub-account's own key.
+    </Note>
   </Step>
 
   <Step title="Check sub-account balances">

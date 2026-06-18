@@ -32,3 +32,13 @@ Browse the available public WebSocket channels below. For connection details and
     Best bid and ask prices in the order book
   </Card>
 </CardGroup>
+
+## Managing subscriptions
+
+Each subscribe request defines the complete set of markets for that channel on the connection. A new subscribe **replaces** the channel's previous subscription rather than adding to it — the server does not merge incremental subscribes.
+
+- **Add a market** — resubscribe with the full target list, including the markets you are already receiving.
+- **Remove a market** — resubscribe with the reduced list. There is no per-market unsubscribe; sending the channel's unsubscribe method with an empty `params` array clears the whole subscription.
+- **Manage markets independently** — a connection holds one subscription per channel. To add or drop markets without touching the others, place them on separate connections. Weigh the connection limit and added latency described in [WebSocket Rate Limits](/websocket/rate-limits).
+
+On channels that send an initial snapshot on subscribe — such as [Market Trades](/websocket/market-streams/trades), which replays up to 100 of the latest trades per market — resubscribing to add or remove a market backfills the markets carried into the new list. Deduplicate by record `id` to handle the replayed snapshot.

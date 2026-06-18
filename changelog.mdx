@@ -4,7 +4,7 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
-<Update label="June 15, 2026">
+<Update label="June 18, 2026">
 ## Travel Rule API
 **New endpoints and structured format for Travel Rule compliance**
 
@@ -141,6 +141,29 @@ The `reduceOnly` field also appears in the response of [query active orders](/ap
 The `reduce_only` field is added to the [Orders Pending](/websocket/account-streams/orders-pending) and [Orders Executed](/websocket/account-streams/orders-executed) channels — both in query responses and real-time update events.
 
 See [Order Types — Reduce-only orders](/concepts/order-types#reduce-only-orders) for full details.
+</Update>
+
+<Update label="April 22, 2026">
+## clientOrderId uniqueness scope change
+**Breaking change: `clientOrderId` is now unique only among open orders, not for a fixed time window**
+
+The uniqueness rule for `clientOrderId` on spot and collateral order creation changed. Uniqueness is now enforced only among the account's open (pending) orders on the same market. Once a previous order is filled or canceled, the same `clientOrderId` can be reused, including on the same market. The previous time-based uniqueness window no longer applies.
+
+**Impact on retry and deduplication logic:**
+
+Integrations that relied on a fixed-time uniqueness window to suppress duplicate submissions should not assume a resubmitted `clientOrderId` will be rejected after the original order leaves the open state. Before resubmitting an order whose response was not received, check whether an order with that `clientOrderId` already exists:
+
+- [Query unexecuted orders](/api-reference/spot-trading/query-unexecuted-orders) (`POST /api/v4/orders`) — search open orders by `clientOrderId`.
+- [Query executed orders](/api-reference/spot-trading/query-executed-orders) (`POST /api/v4/trade-account/order/history`) — search filled and canceled orders by `clientOrderId`.
+
+If the order is found in either result, the original submission was accepted and no retry is needed.
+
+<CardGroup cols={2}>
+  <Card title="Client Order ID guide" href="/guides/client-order-id" icon="tag" horizontal/>
+  <Card title="Create Limit Order" href="/api-reference/spot-trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Query unexecuted orders" href="/api-reference/spot-trading/query-unexecuted-orders" icon="magnifying-glass" horizontal/>
+  <Card title="Query executed orders" href="/api-reference/spot-trading/query-executed-orders" icon="clock-rotate-left" horizontal/>
+</CardGroup>
 </Update>
 
 ## Previous Changes

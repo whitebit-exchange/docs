@@ -34,6 +34,7 @@ Automatic skills run after every pipeline without being explicitly asked.
 | Doc style review | `ai/skills/doc-style-review/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 1–2) |
 | Doc review plan | `ai/skills/doc-review-plan/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 3–4) |
 | Integration check | `ai/skills/integration-check/SKILL.md` | internal — invoked by ticket-impl-plan and doc-review-plan |
+| Cross-document impact | `ai/skills/cross-document-impact/SKILL.md` | internal — **automatic** post-edit ripple check; invoked by task-completion-review (Step 2.5) and task-self-review (Step 5) |
 | Task execution | `ai/skills/task-execution/SKILL.md` | internal — invoked by dev-ticket-pipeline and doc-review-pipeline (Phase 5) |
 | Task completion review | `ai/skills/task-completion-review/SKILL.md` | On demand — before committing; invoked by pipelines at Phase 6 |
 | Close-out session | `ai/skills/close-out-session/SKILL.md` | On demand — composite end-of-session ritual: TCR → autonomous `git add` → commit message. Never runs `git commit` (RULES §2.2) |

@@ -60,12 +60,18 @@ Fetch recent trades for a market without subscribing.
 For each WebSocket connection, subscribe to either specific markets or all markets. **Every new subscription replaces the existing one.**
 </Warning>
 
+To add or remove markets on an active subscription, resubscribe with the full target list — see [Managing subscriptions](/websocket/market-streams/overview#managing-subscriptions).
+
+<Note>
+**Initial snapshot.** On subscribe, the server first sends a snapshot — one `trades_update` carrying up to 100 of the latest trades per market, ordered newest first — then streams new trades in real time. Resubscribing replays this snapshot, so deduplicate by trade `id`.
+</Note>
+
 <WsSubscribeSteps
   subscribe={exSubscribeSpecificMarkets}
   subscribeNote="Pass market name strings in params to subscribe to specific markets. params[0], params[1], ... — market name (STRING, e.g. BTC_USDT). Pass an empty array to subscribe to all markets."
   confirmation={{id: 9, result: {status: "success"}, error: null}}
   update={exTradesUpdate}
-  updateNote="params[0] is the market name. params[1] is an array of trade objects."
+  updateNote="The first trades_update after the confirmation is the initial snapshot — up to 100 of the latest trades, newest first. New trades then stream in real time. In every message, params[0] is the market name and params[1] is an array of trade objects."
   unsubscribe={{id: 10, method: "trades_unsubscribe", params: []}}
 />
 
@@ -79,7 +85,7 @@ Updates are pushed in **real time** on each trade execution.
 
 ## Unsubscribe
 
-Send `trades_unsubscribe` with an empty `params` array to stop receiving trade updates on the connection.
+Send `trades_unsubscribe` with an empty `params` array to stop receiving trade updates on the connection. There is no per-market unsubscribe — to keep a subset of markets, resubscribe with the markets you want to retain. See [Managing subscriptions](/websocket/market-streams/overview#managing-subscriptions).
 
 ## Error codes
 
