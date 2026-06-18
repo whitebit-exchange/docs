@@ -150,6 +150,12 @@ paths:
       description: |
         The endpoint retrieves a deposit address of the cryptocurrency.
 
+        <Note>
+        Sub-accounts use this endpoint with their own API key once deposits are enabled for the
+        account. Crypto deposits are disabled by default — to enable them, contact your assigned
+        Account Manager or email institutional@whitebit.com.
+        </Note>
+
         <Accordion title="Errors">
         ```json
         {
@@ -2236,6 +2242,11 @@ paths:
       summary: Create new address for deposit
       description: |
         The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default, contact support@whitebit.com to get permissions to use the endpoint.
+
+        <Note>
+        For sub-accounts, crypto deposits must also be enabled for the account (disabled by
+        default). To enable them, contact your assigned Account Manager or email institutional@whitebit.com.
+        </Note>
 
         **Address types:**
 
@@ -4647,10 +4658,19 @@ paths:
         - When `shareKyc` is `true`: `email` is **optional**
         </Note>
 
+        <Note>
+        Crypto deposits are disabled by default. Once deposits are enabled for the account, the
+        capability applies to the account and its sub-accounts; enablement is not available via
+        API. To request it, contact your assigned Account Manager or email institutional@whitebit.com.
+        Once enabled, a sub-account generates deposit addresses through the standard
+        [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
+        using its own API key with deposit permission.
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
+
         <Note>
         The API does not cache the response.
         </Note>
@@ -5334,6 +5354,12 @@ paths:
       summary: Create Sub-Account API Key
       description: |
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
+
+        <Note>
+        A `type: 2` key carries deposit and withdrawal permissions, but crypto deposits must also
+        be enabled for the account. Deposits are disabled by default — to enable them, contact your
+        assigned Account Manager or email institutional@whitebit.com.
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.

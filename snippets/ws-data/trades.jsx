@@ -11,7 +11,7 @@
 
 export const trade = [
   { name: "id", type: "integer", required: true, description: "Trade ID" },
-  { name: "time", type: "number", required: true, description: "Trade time (Unix timestamp with milliseconds)" },
+  { name: "time", type: "number", required: true, description: "Trade time as a Unix timestamp in seconds (UTC), with microsecond precision" },
   { name: "price", type: "string", required: true, description: "Trade price" },
   { name: "amount", type: "string", required: true, description: "Trade amount" },
   { name: "type", type: "string", required: true, enum: ["buy","sell"], description: "Trade type (buy/sell)" },
