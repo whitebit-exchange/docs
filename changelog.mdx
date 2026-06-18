@@ -4,6 +4,28 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="June 15, 2026">
+## Travel Rule API
+**New endpoints and structured format for Travel Rule compliance**
+
+The Travel Rule API enables B2B clients to submit originator and beneficiary data for cryptocurrency transactions as required by FATF and MiCA regulations. Available for accounts registered in the European Economic Area (EEA).
+
+**New endpoints:**
+- `POST /api/v4/travel-rule/vasps` — Retrieve the list of available VASPs for travel rule submissions.
+- `POST /api/v4/travel-rule/deposit/verification` — Submit originator data for deposits pending verification.
+
+**Updated `travelRule` format on withdrawals:**
+
+The `travelRule` object on `POST /api/v4/main-account/withdraw` now uses a structured format with `walletType`, `beneficiary`, and `vasp` objects. The legacy flat format is deprecated.
+
+<CardGroup cols={2}>
+  <Card title="Travel Rule Overview" href="/api-reference/travel-rule/overview" icon="passport" horizontal/>
+  <Card title="Get VASPs" href="/api-reference/travel-rule/get-vasps" icon="building-columns" horizontal/>
+  <Card title="Submit Deposit Verification" href="/api-reference/travel-rule/submit-deposit-verification" icon="file-import" horizontal/>
+  <Card title="Create Withdraw Request" href="/api-reference/account-wallet/create-withdraw-request" icon="money-bill-transfer" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="June 8, 2026">
 ## TradFi Futures markets on Market Info
 **New `tradfiFutures` market type and `isTradFiFutures` flag on `GET /api/v4/public/markets`**

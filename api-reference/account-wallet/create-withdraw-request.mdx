@@ -33,12 +33,13 @@ For cryptocurrencies existing on multiple blockchains.
 </Warning>
 
 #### **Scenario 3: Travel Rule Compliance (EEA Users)**
-Required for crypto withdrawals when the account is registered in the European Economic Area (EEA).
-- **Required fields**: Standard crypto fields + `travelRule` object
-- **Travel rule types**: 
-  - `individual` - Personal withdrawals (requires first name / last name)
-  - `entity` - Business withdrawals (requires company name / address)
-- **Use when**: The account is registered in EEA countries
+Required for crypto withdrawals when the account is registered in the [EEA](/glossary#european-economic-area-eea) and the Travel Rule API is enabled.
+
+<Warning>
+The legacy flat format (`type`, `vasp`, `name`, `address`) is still accepted but will **not pass Travel Rule verification**. Use the new structured format.
+</Warning>
+
+For detailed requirements, field mapping, and request examples, see [Travel Rule](/concepts/travel-rule#withdrawal-examples).
 
 ### 🔹 Fiat Withdrawals (KYC Required)
 
