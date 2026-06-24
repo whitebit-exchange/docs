@@ -130,6 +130,36 @@ For OCO orders, `reduceOnly` is a single top-level parameter that applies to bot
 | `postOnly: true` | Post-only — rejects the order if it would match immediately (ensures maker) | All limit-type orders |
 | `reduceOnly: true` | Reduce-only — order can only decrease or close an existing position | Collateral orders only |
 
+## Regional restrictions
+
+In some regions the set of available order types and execution flags is narrower than the global default. The restriction is applied at order creation: a request for an order type, flag, or BBO role that is not available in the active region is rejected synchronously with HTTP status `453`.
+
+```json
+{
+  "code": 30,
+  "errors": {
+    "orderType": [
+      "This order type is not available"
+    ]
+  },
+  "message": "Validation failed"
+}
+```
+
+These limits currently apply to the **EU** region only. Every other region keeps the full set of order types described above.
+
+### EU region
+
+In the EU region, the available order types are restricted to meet applicable regulatory requirements. As a result:
+
+- **Spot** exposes only `market`, `advanced-limit`, and `stop-market`. On `advanced-limit` the `ioc` flag is forced (`required: true`) and the BBO role is locked to `counterparty` — a maker (post-only / queue) order cannot be placed.
+- **`limit`, `multi-limit`, `stop-limit`, and `oco` are not available** on spot.
+- **Margin and futures are not available** — requesting order types for these trade types returns an empty list, and order creation is rejected.
+
+### New-listing window
+
+Independent of region, while a market has not yet been fully listed (its trading-open time is still in the future) only a single **post-only limit** order is accepted. Every other order type and flag combination returns `453` until the market is fully listed. This applies because a maker order cannot rest against the empty order book of a not-yet-listed asset.
+
 ## Related features
 
 - **Client Order ID** — Attach a custom identifier to orders for tracking. See [Client Order ID guide](/guides/client-order-id).
