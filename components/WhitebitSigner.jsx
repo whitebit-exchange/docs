@@ -342,7 +342,7 @@ export const WhitebitSigner = ({
                 setUrlCopied(true);
                 setTimeout(function () { setUrlCopied(false); }, 1500);
               }}
-              className="truncate text-left text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+              className="truncate text-left text-black dark:text-white transition-colors"
             >
               {path}
             </button>
