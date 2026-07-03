@@ -366,7 +366,7 @@ RPI orders use post-only behavior by design. An RPI order does not support the I
 
 **Fees**
 
-RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use the `Query Market Fee` or `Query All Market Fees` endpoints to retrieve effective fees.
+RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use the `Query Market Fees` endpoint to retrieve effective fees.
 </Accordion>
 
 <Accordion title="Retail flag">
@@ -457,9 +457,9 @@ A main account manages a sub-account. The main account assigns specific permissi
 
 Crypto deposits are a separately enabled capability and are disabled by default. Once enabled for the account, the capability applies to the account and its sub-accounts; to request it, contact the assigned Account Manager or email institutional@whitebit.com.
 
-A sub-account can use a custom trading [fee](#fee) or rebate model defined for the sub-account. Use [`Query Market Fee`](/api-reference/spot-trading/query-market-fee) and [`Query All Market Fees`](/api-reference/spot-trading/query-all-market-fees) to retrieve effective fees when an API key belongs to a sub-account.
+A sub-account can use a custom trading [fee](#fee) or rebate model defined for the sub-account. Use [`Query Market Fees`](/api-reference/spot-trading/query-market-fee) to retrieve effective fees when an API key belongs to a sub-account.
 
-[RPI](#retail-price-improvement-rpi) trading uses account-specific fees or rebates. When a user places RPI orders through a sub-account, the system applies the effective sub-account fees. Use [`Query Market Fee`](/api-reference/spot-trading/query-market-fee) and [`Query All Market Fees`](/api-reference/spot-trading/query-all-market-fees) to verify fees for RPI executions.
+[RPI](#retail-price-improvement-rpi) trading uses account-specific fees or rebates. When a user places RPI orders through a sub-account, the system applies the effective sub-account fees. Use [`Query Market Fees`](/api-reference/spot-trading/query-market-fee) to verify fees for RPI executions.
 </Accordion>
 </AccordionGroup>
 
