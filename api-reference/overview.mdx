@@ -73,8 +73,6 @@ A response of `["pong"]` confirms the API is operational.
 
 Private endpoints require HMAC-SHA512 signed requests. See the [Authentication](/api-reference/authentication) guide for the full signing process.
 
-WhiteBIT provides the [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) with examples in Python, PHP, Node.js, Go, JavaScript, Kotlin, .NET, Ruby, C++, and Rust.
-
 **Required headers for private endpoints:**
 
 | Header | Value |
@@ -99,8 +97,6 @@ The [Main Balance](/api-reference/account-wallet/main-balance) endpoint retrieve
 
 **Example with cURL** (replace `YOUR_API_KEY` and `YOUR_SIGNATURE` with the signed payload):
 
-<Tabs>
-  <Tab title="cURL">
 ```bash
 curl -X POST "https://whitebit.com/api/v4/main-account/balance" \
   -H "Content-type: application/json" \
@@ -109,18 +105,8 @@ curl -X POST "https://whitebit.com/api/v4/main-account/balance" \
   -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
   -d '{"request":"/api/v4/main-account/balance","nonce":1594297865000}'
 ```
-  </Tab>
-  <Tab title="Python (with helper)">
-```python
-# Use the API Quick Start Helper: https://github.com/whitebit-exchange/api-quickstart
-from whitebit import Whitebit
 
-wb = Whitebit(api_key="YOUR_API_KEY", api_secret="YOUR_API_SECRET")
-balance = wb.main_account_balance()
-print(balance)
-```
-  </Tab>
-</Tabs>
+For a runnable signing implementation in Python, see [First API Call](/guides/first-api-call).
 
 **Expected response:**
 
@@ -228,4 +214,4 @@ For retry strategies, authentication errors, and best practices, see
 - [Market Data](/api-reference/market-data/overview) — Public endpoints for orderbook, trades, and market info
 - [Spot Trading](/api-reference/spot-trading/overview) — Place and manage orders
 - [WebSocket API](/websocket/overview) — Real-time market data and account streams
-- [API Quick Start Helper](https://github.com/whitebit-exchange/api-quickstart) — Multi-language SDK for authentication and requests
+- [SDKs](/sdks) — Official Go, Python, and PHP SDKs
