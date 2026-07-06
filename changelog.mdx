@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 6, 2026">
+## Granted permissions on OAuth API key info
+**New `permissions` array on `GET /oauth2/api-key/info`**
+
+`GET /oauth2/api-key/info` now returns a `permissions` array alongside `exists`, `isEnabled`, and `externalId`. Each entry is a permission group with a locale-independent `name` (for partner-side logic), a locale-dependent `title` (display only), and a `urls` list of `{ url, enable }` pairs reflecting what the user granted during the OAuth handshake. The array is empty when no key exists; for a disabled key the array still reflects the grant-time permission set, so the partner can show the original scope.
+
+<CardGroup cols={2}>
+  <Card title="Check key existence" href="/api-reference/oauth/usage/api-key-info" icon="magnifying-glass" horizontal/>
+  <Card title="Fast API Key integration guide" href="/guides/fast-api-key-via-oauth" icon="key" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="June 18, 2026">
 ## Travel Rule API
 **New endpoints and structured format for Travel Rule compliance**
