@@ -1,5 +1,5 @@
 # Rate Limits — Single source of truth
-# Consumed by: api-reference/rate-limits.mdx, api-reference/overview.mdx
+# Consumed by: api-reference/rate-limits.mdx, api-reference/overview.mdx, guides/market-maker-guide.mdx
 # Generator: node scripts/generate-concept-data.mjs → snippets/concept-data/rate-limits.jsx
 
 scopeLimits:
@@ -56,6 +56,9 @@ endpointLimits:
   - endpoint: "POST /api/v4/order/collateral/bulk"
     method: "POST"
     limit: 10000
+  - endpoint: "POST /api/v4/main-account/history"
+    method: "POST"
+    limit: 200
 
 exceededBehavior:
   httpStatus: 429
