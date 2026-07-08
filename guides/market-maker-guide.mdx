@@ -227,7 +227,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 
 | Channel | Carries | Recovery model | Where to learn the protocol |
 |---|---|---|---|
-| `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives within ~1.5s of subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
+| `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives shortly after subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `marginPositionsEvents` | Position-change events (open, update, close, liquidation) | Event-only — pair with `positions` for complete state | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 
 **Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/guides/websocket-quickstart#authenticate-for-private-channels) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/guides/websocket-quickstart#subscribe-to-orderbook-depth)). To stop quoting on one pair without disrupting the others, send `depth_unsubscribe` or `bookTicker_unsubscribe` with that market name in `params` — only that market's feed drops; an empty array unsubscribes from all markets on the stream.
@@ -286,7 +286,9 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 **Kill-switch configuration:** Set a kill-switch timer for every quoted market as the first action after connecting — each timer covers only its own market. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timers with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels each covered market's open orders as its timeout expires.
 
-**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order in a single request. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is not part of the colocation endpoint subset — call it via the standard public API; the in-zone alternatives are per-order `order/cancel` and the kill-switch. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
+**Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders cancelled when the timer lapses.
+
+**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is not part of the colocation endpoint subset — call it via the standard public API; the in-zone alternatives are per-order `order/cancel` and the kill-switch. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
 
 <Tabs>
   <Tab title="curl">
