@@ -6328,6 +6328,10 @@ paths:
         An unknown or not-owned `orderId` is **not** an error. The endpoint always returns HTTP 200 with the paged-list envelope; a non-matching `orderId` simply filters down to an empty `records` array.
         </Note>
 
+        <Note>
+        The endpoint can retrieve data not older than 6 months from the current month. For older data, use the Report on the History page. An order older than this window returns an empty `records` array even when the order was filled.
+        </Note>
+
         <Accordion title="Error Codes">
           - `30` - default validation error code (for example, a missing or malformed `orderId`, or invalid pagination)
         </Accordion>
