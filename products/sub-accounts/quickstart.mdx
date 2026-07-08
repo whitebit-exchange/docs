@@ -76,7 +76,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       </Tab>
     </Tabs>
 
-    For Go and PHP examples, see [SDKs](/sdks).
+    For TypeScript and Python SDK examples, see [SDKs](/sdks).
 
     **Required fields:** `alias` (display name), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required.
 
@@ -245,6 +245,109 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
 The sub-account now has an isolated balance and a dedicated API key. To restrict the key to known IPs, call `POST /api/v4/sub-account/api-key/ip-address/create` with the whitelist.
 
+## Sub-account withdrawal approval
+
+When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal.
+
+```mermaid
+sequenceDiagram
+    participant Sub as Sub-account (own key)
+    participant WB as WhiteBIT
+    participant Main as Main account (own key)
+    Sub->>WB: POST /main-account/withdraw
+    WB-->>Sub: status unconfirmed_by_main_account
+    Main->>WB: POST /sub-account/withdraw/unconfirmed-list
+    WB-->>Main: pending withdrawals (transaction id)
+    Main->>WB: POST /sub-account/withdraw/confirm (transaction id)
+    WB-->>Main: 200 — released for processing
+    Note over WB: Unconfirmed withdrawals expire if not confirmed
+```
+
+<Note>
+  The sub-account withdrawal endpoints are not available by default. To request access, contact
+  institutional@whitebit.com. Without main account confirmation, an unconfirmed withdrawal
+  expires after a retention period.
+</Note>
+
+<Steps>
+  <Step title="Initiate the withdrawal from the sub-account">
+    The sub-account creates the withdrawal with the sub-account's own `type: 2` API key (deposits
+    and withdrawals) on the standard [Create withdraw request](/api-reference/account-wallet/create-withdraw-request)
+    endpoint (`POST /api/v4/main-account/withdraw`). No main-account-side initiation endpoint
+    exists — the request is signed with the sub-account key. The resulting transaction enters
+    `unconfirmed_by_main_account` status.
+  </Step>
+
+  <Step title="List pending withdrawals from the main account">
+    Using a main-account key, list the sub-account withdrawals awaiting approval. Capture the
+    `id` of each transaction to confirm.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://whitebit.com/api/v4/sub-account/withdraw/unconfirmed-list \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "limit": 100,
+            "offset": 0,
+            "request": "/api/v4/sub-account/withdraw/unconfirmed-list",
+            "nonce": 1709340000004
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # List unconfirmed sub-account withdrawals
+        response = make_request("/api/v4/sub-account/withdraw/unconfirmed-list", {
+            "limit": 100,
+            "offset": 0,
+        })
+        print(json.dumps(response.json(), indent=2))
+        ```
+      </Tab>
+    </Tabs>
+
+    Each item includes the transaction `id`, `subAccountId`, `currency`, `amount`, and `createdAt`.
+  </Step>
+
+  <Step title="Confirm the withdrawal from the main account">
+    Approve a listed withdrawal by external `id`. A successful call returns an empty object and
+    releases the withdrawal for processing.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://whitebit.com/api/v4/sub-account/withdraw/confirm \
+          -H "Content-Type: application/json" \
+          -H "X-TXC-APIKEY: YOUR_API_KEY" \
+          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+          -d '{
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+            "request": "/api/v4/sub-account/withdraw/confirm",
+            "nonce": 1709340000005
+          }'
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        # Confirm a sub-account withdrawal
+        response = make_request("/api/v4/sub-account/withdraw/confirm", {
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        })
+        print(response.status_code, response.json())
+        ```
+      </Tab>
+    </Tabs>
+
+    Confirmation is the only main-account action on an unconfirmed withdrawal — no reject endpoint
+    exists, and an unconfirmed withdrawal that is never confirmed expires automatically.
+  </Step>
+</Steps>
+
 ## What's Next
 
 <CardGroup cols={2}>
@@ -256,4 +359,4 @@ The sub-account now has an isolated balance and a dedicated API key. To restrict
   </Card>
 </CardGroup>
 
-For Go and PHP examples, see [SDKs](/sdks).
+For TypeScript and Python SDK examples, see [SDKs](/sdks).

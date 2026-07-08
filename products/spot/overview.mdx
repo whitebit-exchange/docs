@@ -48,7 +48,7 @@ Full fee schedule with all VIP tier breakpoints: [trading fees page](https://whi
 
 | Detail | Value |
 |--------|-------|
-| Endpoints | 18 (all `POST`, all authenticated) |
+| Endpoints | 17 (all `POST`, all authenticated) |
 | Authentication | HMAC-SHA512 ([guide](/api-reference/authentication)) |
 | Rate limits | Vary per endpoint ([details](/api-reference/rate-limits)) |
 | Base URL | `https://whitebit.com` |
@@ -57,7 +57,7 @@ Endpoint categories:
 - **Account** — Trade balance query (1 endpoint)
 - **Order management** — Create, modify, cancel orders; bulk operations (9 endpoints)
 - **Order queries** — Active orders, executed history, execution deals, order history (4 endpoints)
-- **Market fees** — Per-market and all-market fee queries (2 endpoints)
+- **Market fees** — Default maker/taker rates plus custom per-market overrides (1 endpoint)
 - **Kill-switch** — Sync timer, status (2 endpoints)
 
 For full endpoint documentation, see the [Spot Trading API Reference](/api-reference/spot-trading/overview).
@@ -71,7 +71,7 @@ For Go and PHP examples, see [SDKs](/sdks).
     Place a first trade in 5 minutes.
   </Card>
   <Card title="API Reference" icon="square-terminal" href="/api-reference/spot-trading/overview">
-    All 18 spot trading endpoints with parameters, signing, error codes, and rate limits.
+    All 17 spot trading endpoints with parameters, signing, error codes, and rate limits.
   </Card>
   <Card title="Trading Bot Guide" icon="robot" href="/guides/building-a-trading-bot">
     Build a Python trading bot with signed REST orders, WebSocket fills, kill-switch heartbeat, and a grid-bot example.

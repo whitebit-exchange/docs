@@ -5,13 +5,9 @@ export const WhitebitSigner = ({
   defaultParams = "{}",
   fields = null,
 }) => {
-  const getApiHost = () => {
-    const sel =
-      typeof document !== "undefined"
-        ? document.querySelector('select[aria-label="Select base URL"]')
-        : null;
-    return sel?.options[sel.selectedIndex]?.text?.trim() || "https://whitebit.com";
-  };
+  const [baseUrl, setBaseUrl] = useState("https://whitebit.com");
+
+  const getApiHost = () => baseUrl;
 
   const hex = (buf) =>
     Array.from(new Uint8Array(buf))
@@ -313,35 +309,52 @@ export const WhitebitSigner = ({
     <div className="not-prose my-6 flex w-full flex-col bg-background-light dark:bg-background-dark border-standard rounded-2xl p-1.5">
 
       {/* ── Top toggle bar ── */}
-      <div
-        className={
-          "flex w-full items-center space-x-1.5 rounded-xl p-1.5 transition-colors border-standard " +
-          (open ? "bg-gray-50 dark:bg-white/5" : "hover:bg-gray-50 dark:hover:bg-white/5")
-        }
-      >
-        <button
-          type="button"
-          onClick={function () { setOpen(function (v) { return !v; }); }}
-          className="rounded-lg font-bold px-1.5 py-0.5 text-xs leading-5 shrink-0 bg-blue-400/20 text-blue-700 dark:text-blue-400 cursor-pointer"
-        >
-          POST
-        </button>
+      <div className="flex w-full items-center space-x-1.5 rounded-xl p-1.5 border-standard">
 
-        <button
-          type="button"
-          onClick={function () { setOpen(function (v) { return !v; }); }}
-          className="flex-1 min-w-0 text-sm font-mono text-gray-600 dark:text-gray-400 truncate text-left cursor-pointer"
-        >
-          {path}
-        </button>
+        {/* Left section: POST badge + domain selector + path */}
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <span className="rounded-lg font-bold px-1.5 py-0.5 text-xs leading-5 shrink-0 bg-blue-400/20 text-blue-700 dark:text-blue-400">
+            POST
+          </span>
+          <div className="flex items-center flex-1 min-w-0 text-sm font-mono overflow-hidden">
+            {/* Domain dropdown */}
+            <div className="relative shrink-0 flex items-center">
+              <select
+                value={baseUrl}
+                onChange={function (e) { setBaseUrl(e.target.value); }}
+                onClick={function (e) { e.stopPropagation(); }}
+                className="appearance-none bg-transparent outline-none font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors cursor-pointer pr-4"
+              >
+                <option value="https://whitebit.com">https://whitebit.com</option>
+                <option value="https://whitebit.eu">https://whitebit.eu</option>
+              </select>
+              <svg className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-gray-500" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            {/* Path — click to copy full URL */}
+            <button
+              type="button"
+              title="Copy URL"
+              onClick={function () {
+                var url = baseUrl + path;
+                if (navigator && navigator.clipboard) navigator.clipboard.writeText(url);
+                setUrlCopied(true);
+                setTimeout(function () { setUrlCopied(false); }, 1500);
+              }}
+              className="truncate text-left text-black dark:text-white transition-colors"
+            >
+              {path}
+            </button>
+          </div>
+        </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          {/* Copy URL */}
+          {/* Copy URL icon */}
           <button
             type="button"
             title="Copy URL"
-            onClick={function (e) {
-              e.stopPropagation();
+            onClick={function () {
               var url = getApiHost() + path;
               if (navigator && navigator.clipboard) navigator.clipboard.writeText(url);
               setUrlCopied(true);
@@ -361,22 +374,27 @@ export const WhitebitSigner = ({
             )}
           </button>
 
-          <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-[#2AB673]/10 text-[#2AB673] hidden sm:inline">
-            Try it
-          </span>
-
+          {/* Try it — the only way to open/close the form */}
           <button
             type="button"
             onClick={function () { setOpen(function (v) { return !v; }); }}
-            className="flex items-center justify-center cursor-pointer"
+            className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-[#2AB673] text-white hover:bg-[#239660] active:bg-[#1e7d52] transition-colors hidden sm:inline-flex items-center gap-1.5 cursor-pointer"
           >
-            <svg
-              width="14" height="14" viewBox="0 0 14 14" fill="none"
-              className="text-gray-400 dark:text-gray-500 transition-transform shrink-0"
-              style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-            >
-              <path d="M3 5.5L7 9L11 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            {open ? (
+              <>
+                Close
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
+                  <path d="M2 9L6 5L10 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </>
+            ) : (
+              <>
+                Try it
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
+                  <polygon points="2,1 11,6 2,11" fill="currentColor" />
+                </svg>
+              </>
+            )}
           </button>
         </div>
       </div>

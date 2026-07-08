@@ -86,7 +86,7 @@ See [Webhooks](/platform/webhook) and [Security Best Practices](/best-practices/
 
 - [ ] Balance monitoring active — alerts on unexpected balance changes.
 - [ ] Order status monitoring — track open orders and detect stuck states.
-- [ ] Kill-switch configured for trading applications — cancels all orders after a timeout if the system becomes unresponsive.
+- [ ] Kill-switch configured for trading applications — one timer per traded market; cancels that market's open orders after a timeout if the system becomes unresponsive.
 - [ ] API response time monitoring — detect latency degradation.
 - [ ] Error rate monitoring — alert on elevated error rates (especially `429` and `500`).
 
