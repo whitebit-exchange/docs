@@ -476,6 +476,9 @@ export const SIGNER_FIELDS = {
     {"name":"offset","type":"integer","required":false,"description":"Number of records to skip.","example":"0","default":0},
     {"name":"subAccountId","type":"string","required":false,"description":"Filter by specific sub-account external ID. If omitted, returns withdrawals from all sub-accounts.","example":"a1b2c3d4-5678-90ab-cdef-1234567890ab"},
   ],
+  "/api/v4/sub-account/withdraw/confirm": [
+    {"name":"id","type":"string","required":true,"description":"External id of the withdrawal transaction to confirm.","example":"f47ac10b-58cc-4372-a567-0e02b2c3d479"},
+  ],
   "/api/v4/sub-account/api-key/create": [
     {"name":"type","type":"integer","required":true,"description":"Type of API key (1 - info and trading; 2 - info, trading, deposits, withdraws)","example":"1","enum":["1","2"]},
     {"name":"subAccountId","type":"string","required":true,"description":"ID of the sub-account to create the API key for","example":"8e667b4a-0b71-4988-8af5-9474dbfaeb51"},

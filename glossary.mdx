@@ -34,6 +34,11 @@ Final-stage liquidation mechanism on the futures market. Activates only when sta
 ## B
 
 <AccordionGroup>
+<Accordion title="B2B partner account">
+
+An account designation for business-to-business (B2B) institutional partner services. Certain endpoint groups require a B2B partner account — for example fixed [lending](/products/lending/overview) plans and the [Travel Rule](#travel-rule) API — and canceled orders are not recorded in order history. Request access through the [institutional services form](https://whitebit.com/institutional-services/b2b).
+</Accordion>
+
 <Accordion title="Balance Collateral">
 
 Balance for [margin](#margin-trading) and [futures trading](#futures-trading)
@@ -103,6 +108,11 @@ Crypto Lending enables earning passive income by lending funds to the exchange i
 A transaction where two parties buy or sell an [asset](#assets) at an agreed-upon price. The trade record includes the price, amount, date, and any [fees](#fee).
 </Accordion>
 
+<Accordion title="Demo tokens (DBTC/DUSDT)">
+
+Test assets for risk-free Spot trading on the live platform. WhiteBIT has no public testnet — activate free demo tokens (0.5 DBTC + 1,000 DUSDT) from the [WhiteBIT Codes page](https://whitebit.com/codes) with no KYC required, and trade the `DBTC_DUSDT` pair through the standard API endpoints. Demo tokens support Spot trading only.
+</Accordion>
+
 <Accordion title="Derivative">
 
 Crypto derivatives are contracts deriving value from a primary underlying [asset](#assets). The primary asset is a cryptocurrency such as Bitcoin.
@@ -165,6 +175,13 @@ Futures trading supports opening Long and Short positions and using [leverage](#
 
 ## G
 
+<AccordionGroup>
+<Accordion title="Grid trading">
+
+An automated strategy that places [limit orders](#limit-order) at fixed price intervals around a center price. When a buy order fills, the strategy places a sell order one grid level above; when a sell order fills, the strategy places a buy order one level below. Profit comes from price oscillation within the grid range. See the [Trading Bot guide](/guides/building-a-trading-bot) for the strategy walkthrough.
+</Accordion>
+</AccordionGroup>
+
 ## H
 
 <AccordionGroup>
@@ -172,9 +189,21 @@ Futures trading supports opening Long and Short positions and using [leverage](#
 
 An automated trading strategy involving executing a large number of [orders](#orders) at extremely high speeds, typically utilizing [colocation](#colocation) services to minimize [latency](#latency).
 </Accordion>
+
+<Accordion title="HMAC-SHA512">
+
+A keyed hash algorithm that signs private REST API requests: the client computes `hex(HMAC_SHA512(payload, key=api_secret))` and sends the result in the `X-TXC-SIGNATURE` header. See [Authentication](/api-reference/authentication) for the full signing scheme.
+</Accordion>
 </AccordionGroup>
 
 ## I
+
+<AccordionGroup>
+<Accordion title="IP whitelisting">
+
+Restricting an API key to accept requests only from pre-approved IP addresses, with up to 50 addresses per key. Configure the whitelist at the API settings page. See [Security Best Practices](/best-practices/security) for key-management guidance.
+</Accordion>
+</AccordionGroup>
 
 ## J
 
@@ -183,7 +212,7 @@ An automated trading strategy involving executing a large number of [orders](#or
 <AccordionGroup>
 <Accordion title="Kill-switch timer">
 
-A function to cancel all [orders](#orders) automatically when the timer expires. The kill-switch timer only cancels orders grouped by concrete [asset](#assets).
+A function to cancel all [orders](#orders) on a specific market automatically when the timer expires. Each timer covers a single market and can be restricted to spot, margin, or futures order types.
 </Accordion>
 </AccordionGroup>
 
@@ -496,6 +525,11 @@ See [Volume](#volumetrade-volume)
 
 Traditional-finance (TradFi) futures contracts on assets such as equities (for example, `AAPL_USD`), carrying `type: tradfiFutures` and `isTradFiFutures: true` in the [markets](/api-reference/market-data/market-info) response. Availability is region-gated. See [Perpetual futures](#perpetual-futures) for crypto-settled contracts.
 </Accordion>
+
+<Accordion title="Travel Rule">
+
+A regulatory requirement for Virtual Asset Service Providers (VASPs) to share originator and beneficiary information for cryptocurrency transfers above certain thresholds, mandated by frameworks such as the Financial Action Task Force (FATF) recommendations and Markets in Crypto-Assets (MiCA). WhiteBIT can hold deposits under statuses 27 (awaiting verification) and 28 (confirmation in progress) until verifying the required data. See [Travel Rule](/concepts/travel-rule) for when the rule applies and the API workflow.
+</Accordion>
 </AccordionGroup>
 
 ## U
@@ -512,6 +546,11 @@ The total number of shares or contracts buyers and sellers exchange in a [market
 ## W
 
 <AccordionGroup>
+<Accordion title="Webhook">
+
+An HTTP callback the platform sends to a partner-configured URL when an event occurs, such as a deposit or withdrawal status change. WhiteBIT signs each delivery so the consumer can verify the origin. See [Webhooks](/platform/webhook) for setup, the event catalog, and retry behavior.
+</Accordion>
+
 <Accordion title="WhiteBIT Codes">
 
 WhiteBIT Codes enable converting funds into a unique alphanumeric code. Easy and free to use.

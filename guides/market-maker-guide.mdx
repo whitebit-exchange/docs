@@ -1,10 +1,12 @@
 ---
 title: "Market Maker Integration Guide"
-description: "Complete guide for professional market makers — Market-Making Program, colocation setup, available endpoints, quoting strategy, and safety mechanisms."
+description: "Guide for professional market makers — Market-Making Program terms, colocation setup, available endpoints, quoting strategy, and safety mechanisms."
 sidebarTitle: "Market Maker Guide"
 ---
 
 import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
+import { ConceptTable } from '/snippets/ConceptTable.jsx';
+import { endpointLimits } from '/snippets/concept-data/rate-limits.jsx';
 
 <RegionBaseUrl />
 
@@ -12,11 +14,9 @@ The Market-Making Program provides dedicated infrastructure for professional liq
 
 ## Market-Making Program overview
 
-The Market-Making Program offers tiered maker-fee rebates based on 30-day rolling trading volume, with separate tiers for spot and futures. Negative maker fees are rebates — the exchange pays the market maker for each maker order filled.
+Maker-fee rebates are tiered by 30-day rolling trading volume, with separate tiers for spot and futures. Negative maker fees are rebates — the exchange pays the market maker for each maker order filled.
 
 Rates and volume breakpoints change over time and are not duplicated here. For current fees and tier requirements, see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program), the [trading fees page](https://whitebit.com/trading-data/trading-fees), or the [VIP program](https://whitebit.com/vip-program).
-
-**How to apply:** Contact **institutional@whitebit.com** with trading volume history and target markets.
 
 **Program benefits beyond fees:**
 
@@ -118,19 +118,22 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
 
 **Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order). For how the engine sequences orders — price-time priority, participant fairness, and latency factors — see [Matching engine](/concepts/matching-engine).
 
-**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — sets a timeout; if the endpoint is not called again before it expires, the kill-switch cancels every active order on the account. The deadman trigger for process crashes, lost connectivity, and operator absence. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
+**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — sets a per-market timeout of 5–600 seconds; if the endpoint is not called again before it expires, the kill-switch cancels every open order on that market. Quoting several markets requires one timer per market. The deadman trigger for process crashes, lost connectivity, and operator absence. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
 
-- Configuration: set the timeout period; the timer resets on each API call to the kill-switch endpoint
-- Scope: pass the optional `types` array (`"spot"`, `"margin"`, `"futures"`) to restrict the breaker to a subset of order types — useful when running spot market-making alongside futures positions you do not want to kill
+- Configuration: set the timeout (5–600 seconds); each call to the endpoint resets the timer; `timeout: null` deletes it
+- Scope: pass the optional `types` array (`"spot"`, `"margin"`, `"futures"`) to restrict the breaker to a subset of order types — useful when spot market-making runs alongside futures positions whose protective orders must stay on the book
 - Check status: `POST /api/v4/order/kill-switch/status` — see the [API Reference](/api-reference/spot-trading/status-kill-switch-timer)
 
 **Self-Trade Prevention:** Market makers providing two-sided quotes (bid + ask) must understand STP behavior to avoid self-trades. When a new order would match against an existing order from the same account, the STP mechanism cancels the new order, the existing order, both, or neither — depending on the `stp` mode passed at order placement. The default mode (`no`) allows self-trades, which is usually not what a two-sided quoter wants. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available modes.
 
+The examples below assume an API key with trade permissions. Payload signing (`X-TXC-PAYLOAD`, `X-TXC-SIGNATURE`) is covered in the [request-signing setup](/guides/first-api-call).
+
 <Tabs>
   <Tab title="curl">
     ```bash
-    # Place a bulk order (up to 20 limit orders). Each order item carries its
-    # own "market" field — there is no top-level market parameter.
+    # Place a bulk order — the "orders" array carries 1–20 limit orders.
+    # Each order item has its own "market" field; there is no top-level
+    # market parameter.
     curl -X POST "https://whitebit.com/api/v4/order/bulk" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
@@ -138,107 +141,73 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
       -d '{
         "orders": [
-          {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "60000", "clientOrderId": "quote-bid-1"},
-          {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "59900", "clientOrderId": "quote-bid-2"},
-          {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60200", "clientOrderId": "quote-ask-1"},
-          {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60300", "clientOrderId": "quote-ask-2"}
+          {"market": "BTC_USDT", "side": "buy", "amount": "0.01", "price": "60000", "clientOrderId": "quote-bid-1"}
         ],
         "request": "/api/v4/order/bulk",
-        "nonce": 1594297865000
-      }'
-
-    # Requote the top bid by clientOrderId. The response carries a new orderId;
-    # the clientOrderId is preserved so local tracking survives the modify.
-    curl -X POST "https://whitebit.com/api/v4/order/modify" \
-      -H "Content-Type: application/json" \
-      -H "X-TXC-APIKEY: YOUR_API_KEY" \
-      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-      -d '{
-        "market": "BTC_USDT",
-        "clientOrderId": "quote-bid-1",
-        "price": "60050",
-        "request": "/api/v4/order/modify",
-        "nonce": 1594297865000
-      }'
-
-    # Set a kill-switch with 60-second timeout. The timeout field is a string.
-    curl -X POST "https://whitebit.com/api/v4/order/kill-switch" \
-      -H "Content-Type: application/json" \
-      -H "X-TXC-APIKEY: YOUR_API_KEY" \
-      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-      -d '{
-        "market": "BTC_USDT",
-        "timeout": "60",
-        "request": "/api/v4/order/kill-switch",
         "nonce": 1594297865000
       }'
     ```
   </Tab>
   <Tab title="Python">
     ```python
-    import hashlib
-    import hmac
-    import json
-    import time
-    import base64
-    import requests
+    # Request bodies for the quoting loop. To send each one: add "request"
+    # (the endpoint path) and "nonce", sign with HMAC-SHA512, and send with
+    # the X-TXC-* headers — implementation in the First API Call guide
+    # linked above.
 
-    API_KEY = "YOUR_API_KEY"
-    API_SECRET = "YOUR_SECRET"
-    BASE_URL = "https://whitebit.com"
-
-    def send_request(endpoint, payload):
-        payload["request"] = endpoint
-        payload["nonce"] = int(time.time() * 1000)
-        body = json.dumps(payload)
-        encoded = base64.b64encode(body.encode()).decode()
-        signature = hmac.new(
-            API_SECRET.encode(), encoded.encode(), hashlib.sha512
-        ).hexdigest()
-        headers = {
-            "Content-Type": "application/json",
-            "X-TXC-APIKEY": API_KEY,
-            "X-TXC-PAYLOAD": encoded,
-            "X-TXC-SIGNATURE": signature,
-        }
-        return requests.post(f"{BASE_URL}{endpoint}", headers=headers, data=body)
-
-    # Place a bulk order. Each order item carries its own "market" field —
-    # there is no top-level market parameter. The response is a list of
-    # {"result": {...}, "error": {...}} pairs — check each item individually
-    # since per-order failures do not fail the HTTP request.
-    response = send_request("/api/v4/order/bulk", {
+    # POST /api/v4/order/bulk — 1–20 limit orders; each item carries its own
+    # "market". The response is a list of {"result": ..., "error": ...} pairs —
+    # check each item individually; per-order failures do not fail the
+    # HTTP request.
+    bulk_body = {
         "orders": [
-            {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "60000", "clientOrderId": "quote-bid-1"},
-            {"market": "BTC_USDT", "side": "buy",  "amount": "0.01", "price": "59900", "clientOrderId": "quote-bid-2"},
-            {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60200", "clientOrderId": "quote-ask-1"},
-            {"market": "BTC_USDT", "side": "sell", "amount": "0.01", "price": "60300", "clientOrderId": "quote-ask-2"},
+            {"market": "BTC_USDT", "side": "buy", "amount": "0.01", "price": "60000", "clientOrderId": "quote-bid-1"},
         ],
-    })
-    print(response.json())
+    }
 
-    # Requote the top bid by clientOrderId. Response carries a new orderId;
-    # clientOrderId is preserved so local tracking survives the modify.
-    response = send_request("/api/v4/order/modify", {
+    # POST /api/v4/order/modify — requote by clientOrderId. The response
+    # carries a new orderId; clientOrderId is preserved so local tracking
+    # survives the modify.
+    modify_body = {
         "market": "BTC_USDT",
         "clientOrderId": "quote-bid-1",
         "price": "60050",
-    })
-    print(response.json())
-
-    # Set a kill-switch with 60-second timeout. The timeout field is a string.
-    response = send_request("/api/v4/order/kill-switch", {
-        "market": "BTC_USDT",
-        "timeout": "60",
-    })
-    print(response.json())
+    }
     ```
   </Tab>
 </Tabs>
 
 For Go and PHP examples, see [SDKs](/sdks).
+
+The kill-switch rides the same loop: arm one timer per quoted market, reset it on every quote refresh, and let expiry cancel that market's open orders if the bot stops calling in.
+
+```mermaid
+sequenceDiagram
+    participant Bot as MM bot
+    participant WB as WhiteBIT API
+
+    Bot->>WB: POST /api/v4/order/kill-switch (arm timer)
+    WB-->>Bot: timer confirmed
+    loop every quote refresh — before the timeout expires
+        Bot->>WB: POST /api/v4/order/kill-switch (reset timer)
+        WB-->>Bot: timer reset
+    end
+    Bot->>WB: POST /api/v4/order/kill-switch/status (verify active timers)
+    WB-->>Bot: active timers for the market
+    Note over Bot,WB: bot crashes or loses connectivity — resets stop
+    WB->>WB: timeout expires — open orders on the market are cancelled
+```
+
+```python
+# POST /api/v4/order/kill-switch — arm or reset the deadman timer.
+# "timeout" is a string, "5"–"600" seconds; null deletes the timer.
+# The optional "types" array restricts scope, e.g. ["spot"].
+# Sign and send as above.
+kill_switch_body = {
+    "market": "BTC_USDT",
+    "timeout": "60",
+}
+```
 
 ## WebSocket workflow for market making
 
@@ -246,7 +215,7 @@ The market-making loop runs on real-time WebSocket data, not REST polling. Quote
 
 The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff reconnection, and the query-then-subscribe recovery pattern — are covered end-to-end in the [WebSocket Quickstart](/guides/websocket-quickstart).
 
-| Channel | Tells you | Recovery model | Where to learn the protocol |
+| Channel | Carries | Recovery model | Where to learn the protocol |
 |---|---|---|---|
 | `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates; detect gaps via the `past_update_id` chain on deltas (keepalive snapshots are full resets, not gaps) | [WS Quickstart — Subscribe to orderbook depth](/guides/websocket-quickstart#subscribe-to-orderbook-depth) |
 | `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders. Track RPI quotes via the private active-orders state. |
@@ -256,9 +225,9 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 
 **Futures additions.** When quoting perpetuals (e.g. `BTC_PERP`), add two more channels:
 
-| Channel | Tells you | Recovery model | Where to learn the protocol |
+| Channel | Carries | Recovery model | Where to learn the protocol |
 |---|---|---|---|
-| `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives within ~1.5s of subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
+| `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives shortly after subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `marginPositionsEvents` | Position-change events (open, update, close, liquidation) | Event-only — pair with `positions` for complete state | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 
 **Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/guides/websocket-quickstart#authenticate-for-private-channels) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/guides/websocket-quickstart#subscribe-to-orderbook-depth)). To stop quoting on one pair without disrupting the others, send `depth_unsubscribe` or `bookTicker_unsubscribe` with that market name in `params` — only that market's feed drops; an empty array unsubscribes from all markets on the stream.
@@ -295,18 +264,31 @@ Worked example: run the BTC_USDT spot MM book in one sub-account funded with its
 
 **Rate limit management:**
 
-- Rate limits vary per endpoint — check [Rate Limits](/api-reference/rate-limits) for per-endpoint values
+All limits are per IP address. Order placement, cancellation, and modification sit at 10,000 requests per 10 seconds per endpoint; `trade-account` reads allow 12,000. The outlier is `POST /api/v4/profile/websocket_token` at 10 requests per 60 seconds. Full reference: [Rate Limits](/api-reference/rate-limits).
+
+<ConceptTable
+  title="Per-endpoint rate limits — common market-making operations"
+  columns={[
+    { key: 'endpoint', header: 'Endpoint' },
+    { key: 'limit', header: 'Requests / 10 sec' },
+  ]}
+  rows={endpointLimits.filter((row) => !row.endpoint.includes('/main-account/'))}
+  codeColumns={['endpoint']}
+/>
+
 - Use bulk orders (`/order/bulk`) to reduce request count: 20 orders per call vs. 20 individual calls
 - Use WebSocket for market data instead of polling REST endpoints
-- Maintain a per-endpoint token bucket sized to the limits in [Rate Limits](/api-reference/rate-limits); back off when the bucket empties rather than retrying after a 429
+- Maintain a per-endpoint token bucket sized to the table above; back off when the bucket empties rather than retrying after a 429
 
 ## Monitoring and safety
 
 Set the kill-switch first; everything below is the loop that keeps it reset, the manual cancel that overrides it, and the balance and fee surfaces the loop reads from.
 
-**Kill-switch configuration:** Set the kill-switch timeout as the first action after connecting. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timer with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels all orders after the timeout expires.
+**Kill-switch configuration:** Set a kill-switch timer for every quoted market as the first action after connecting — each timer covers only its own market. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timers with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels each covered market's open orders as its timeout expires.
 
-**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for when you are not there. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
+**Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders cancelled when the timer lapses.
+
+**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is not part of the colocation endpoint subset — call it via the standard public API; the in-zone alternatives are per-order `order/cancel` and the kill-switch. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
 
 <Tabs>
   <Tab title="curl">
@@ -327,12 +309,12 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
   </Tab>
   <Tab title="Python">
     ```python
-    # Uses send_request helper from the Quoting strategy example above.
-    response = send_request("/api/v4/order/cancel/all", {
+    # POST /api/v4/order/cancel/all — request body; sign and send per the
+    # First API Call guide (see Quoting strategy above).
+    cancel_all_body = {
         "market": "BTC_USDT",
         "type": ["spot"],
-    })
-    print(response.json())
+    }
     ```
   </Tab>
 </Tabs>
@@ -342,6 +324,10 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 **Fee tracking:** Use `POST /api/v4/market/fee` to pull the account's global maker and taker fees plus any per-pair custom fees — the `market` request parameter is currently ignored, so the endpoint returns fees for all markets regardless. Filter the per-pair `custom_fee` map client-side. Fee tiers are based on 30-day rolling volume — monitor tier changes as volume accumulates. Look up tier breakpoints on the [VIP program page](https://whitebit.com/vip-program) or the [trading fees page](https://whitebit.com/trading-data/trading-fees).
 
 **Self-Trade Prevention:** Understand the STP mode active on the account. Two-sided quoters hit STP frequently when bid and ask orders overlap. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available modes and behavior.
+
+## How to apply
+
+Contact **institutional@whitebit.com** with trading volume history and target markets. The dedicated account manager provides colocation connection details — AWS region, availability zone, and connection endpoints — during onboarding.
 
 ## What's Next
 

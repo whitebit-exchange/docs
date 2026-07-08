@@ -24,7 +24,7 @@ The code lifecycle has two phases: creation and application.
 
 <Steps>
   <Step title="Create a code">
-    Send a `POST` request to [`/api/v4/main-account/codes`](/api-reference/account-wallet/create-code) with `ticker` (e.g., `ETH`), `amount` (string, max 8 decimals), optional `passphrase` (max 25 characters, latin letters + numbers + symbols, no whitespace), and optional `description` (max 75 characters, visible only to the creator). The amount is debited from the [Main balance](/concepts/balances). The response returns a `code` string (format: `WB{uuid}{TICKER}`, e.g., `WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH`) and an `external_id`.
+    Send a `POST` request to [`/api/v4/main-account/codes`](/api-reference/account-wallet/create-code) with `ticker` (e.g., `ETH`), `amount` (string, up to 18 decimal places), optional `passphrase` (max 25 characters, latin letters + numbers + symbols, no whitespace), and optional `description` (max 280 characters, visible only to the creator). The amount is debited from the [Main balance](/concepts/balances). The response returns a `code` string (format: `WB{uuid}{TICKER}`, e.g., `WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH`) and an `external_id`.
   </Step>
   <Step title="Share the code">
     Transmit the code string to the intended recipient. If a passphrase was set, share the passphrase separately.
@@ -50,9 +50,9 @@ WhiteBIT Codes uses 4 authenticated endpoints. All operate on the [Main balance]
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `ticker` | string | Yes | Currency ticker (e.g., `ETH`, `BTC`) |
-| `amount` | string | Yes | Amount to encapsulate. Max precision: 8 decimals. Must be greater than 0 and less than or equal to the Main balance. |
+| `amount` | string | Yes | Amount to encapsulate. Up to 18 decimal places. Must be greater than 0, capped at 1e17, and not exceed the Main balance. |
 | `passphrase` | string | No | Optional protection. Latin letters, numbers, symbols only. Max 25 characters. No whitespace. |
-| `description` | string | No | Internal note visible only to the creator. Max 75 characters. |
+| `description` | string | No | Internal note visible only to the creator. Max 280 characters. |
 
 ## Code example
 
@@ -110,52 +110,30 @@ Create a code for 0.002 ETH with a passphrase, then apply the code on a differen
   </Tab>
   <Tab title="Python">
     ```python
-    import time
-    import json
-    import hmac
-    import hashlib
-    import base64
-    import requests
-
-    API_KEY = "YOUR_API_KEY"
-    SECRET = "YOUR_SECRET"
-    BASE_URL = "https://whitebit.com"
-
-    def send_request(path, data):
-        data["request"] = path
-        data["nonce"] = int(time.time() * 1000)
-        payload = base64.b64encode(json.dumps(data).encode())
-        signature = hmac.new(
-            SECRET.encode(), payload, hashlib.sha512
-        ).hexdigest()
-        headers = {
-            "X-TXC-APIKEY": API_KEY,
-            "X-TXC-PAYLOAD": payload.decode(),
-            "X-TXC-SIGNATURE": signature,
-            "Content-Type": "application/json",
-        }
-        return requests.post(BASE_URL + path, headers=headers, json=data)
-
-    # Step 1: Create a WhiteBIT code
-    create = send_request("/api/v4/main-account/codes", {
+    # Step 1: Create a WhiteBIT code.
+    # Request body for POST /api/v4/main-account/codes:
+    create_body = {
         "ticker": "ETH",
         "amount": "0.002",
         "passphrase": "mySecretPass1",
-    })
-    create_data = create.json()
-    print("Code:", create_data["code"])
-    print("External ID:", create_data["external_id"])
+    }
+    # The response returns the code string and an external_id.
 
-    # Step 2: Apply the code on the recipient's account
-    apply = send_request("/api/v4/main-account/codes/apply", {
-        "code": create_data["code"],
+    # Step 2: Apply the code on the recipient's account.
+    # Request body for POST /api/v4/main-account/codes/apply:
+    apply_body = {
+        "code": "WBe11f4fce-2a53-4edc-b195-66b693bd77e3ETH",  # from the create response
         "passphrase": "mySecretPass1",
-    })
-    apply_data = apply.json()
-    print("Applied:", apply_data["amount"], apply_data["ticker"])
+    }
+    # To send: add "request" and "nonce" to the body, serialize with compact
+    # separators (the server rejects spaced JSON), sign with HMAC-SHA512, and
+    # send with the X-TXC-APIKEY / X-TXC-PAYLOAD / X-TXC-SIGNATURE headers —
+    # implementation in the First API Call guide linked below.
     ```
   </Tab>
 </Tabs>
+
+[First API Call](/guides/first-api-call) documents the signing details (payload construction, nonce, and headers).
 
 For Go and PHP examples, see [SDKs](/sdks).
 
