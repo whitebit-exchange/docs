@@ -445,6 +445,34 @@ paths:
                         nullable: true
                         description: External UUID of the existing key. `null` when `exists` is `false`.
                         example: 550e8400-e29b-41d4-a716-446655440000
+                      permissions:
+                        type: array
+                        description: Permission groups assigned to the key. Empty array when `exists` is `false`. For a disabled key (`isEnabled` is `false`), the array still reflects the permissions the user granted at creation time, so the partner can show the original scope. When the user granted zero permissions during the OAuth handshake, the array contains every offered group with every `urls[].enable` set to `false`.
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Locale-independent identifier of the permission group. Use the value for partner-side logic.
+                              example: trading
+                            title:
+                              type: string
+                              description: Translated label of the permission group. The value depends on the authenticated user's locale — display only, never branch on the value.
+                              example: Trading
+                            urls:
+                              type: array
+                              description: Endpoint permissions inside the group. `enable` set to `true` means the user granted the action during the OAuth handshake; `enable` set to `false` means the action was offered but not granted.
+                              items:
+                                type: object
+                                properties:
+                                  url:
+                                    type: string
+                                    description: Endpoint path the permission controls.
+                                    example: /v2/order
+                                  enable:
+                                    type: boolean
+                                    description: The user granted the action during the OAuth handshake.
+                                    example: true
         "401":
           description: Missing or invalid Bearer token, or token does not carry the `apikeys.read` scope.
           content:

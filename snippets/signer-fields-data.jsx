@@ -22,6 +22,7 @@ export const SIGNER_FIELDS = {
     {"name":"rpi","type":"boolean","required":false,"description":"Enables Retail Price Improvement (RPI) mode. RPI orders are post-only by design and cannot be used with ioc=true. The API returns error code 40 when both rpi=true and ioc=true a…","example":"true","default":false},
     {"name":"positionSide","type":"string","required":false,"description":"Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See positionSide. - **One-way mode** (default account mode): the field is…","example":"LONG","enum":["LONG","SHORT","BOTH"]},
     {"name":"reduceOnly","type":"boolean","required":false,"description":"When true, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position s…","example":"false","default":false},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/collateral/bulk": [
     {"name":"orders","type":"array","required":false},
@@ -36,6 +37,7 @@ export const SIGNER_FIELDS = {
     {"name":"takeProfit","type":"string","required":false,"description":"Take profit price. When provided, the system creates an OTO order with a take profit condition.","example":"40000"},
     {"name":"positionSide","type":"string","required":false,"description":"Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See positionSide. - **One-way mode** (default account mode): the field is…","example":"LONG","enum":["LONG","SHORT","BOTH"]},
     {"name":"reduceOnly","type":"boolean","required":false,"description":"When true, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position s…","example":"false","default":false},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/collateral/stop-limit": [
     {"name":"market","type":"string","required":true,"description":"Available margin market. Example: BTC_USDT","example":"BTC_USDT"},
@@ -48,6 +50,7 @@ export const SIGNER_FIELDS = {
     {"name":"clientOrderId","type":"string","required":false,"description":"Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same …","example":"order1987111"},
     {"name":"positionSide","type":"string","required":false,"description":"Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See positionSide. - **One-way mode** (default account mode): the field is…","example":"LONG","enum":["LONG","SHORT","BOTH"]},
     {"name":"reduceOnly","type":"boolean","required":false,"description":"When true, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position s…","example":"false","default":false},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/collateral/trigger-market": [
     {"name":"market","type":"string","required":true,"description":"Available margin market. Example: BTC_USDT","example":"BTC_USDT"},
@@ -59,6 +62,7 @@ export const SIGNER_FIELDS = {
     {"name":"takeProfit","type":"string","required":false,"description":"Take profit price. When provided, the system creates an OTO order with a take profit condition.","example":"30000"},
     {"name":"positionSide","type":"string","required":false,"description":"Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See positionSide. - **One-way mode** (default account mode): the field is…","example":"LONG","enum":["LONG","SHORT","BOTH"]},
     {"name":"reduceOnly","type":"boolean","required":false,"description":"When true, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position s…","example":"false","default":false},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/collateral-account/summary": [
   ],
@@ -111,6 +115,7 @@ export const SIGNER_FIELDS = {
     {"name":"clientOrderId","type":"string","required":false,"description":"Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same …","example":"order1987111"},
     {"name":"reduceOnly","type":"boolean","required":false,"description":"When true, both legs of the OCO order can only reduce or close an existing position — neither leg can increase the position or open a new one. If the order amount exceeds the cu…","example":"false","default":false},
     {"name":"positionSide","type":"string","required":false,"description":"Position direction. Optional at the request layer but functionally required when hedge mode is enabled. See positionSide. Both legs of the OCO inherit the value. - **One-way mod…","example":"LONG","enum":["LONG","SHORT","BOTH"]},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. The value applies to both legs of the OCO order. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cance…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/conditional-cancel": [
     {"name":"market","type":"string","required":true,"description":"Market of the conditional order to cancel. Example: BTC_USDT","example":"BTC_USDT"},
@@ -157,7 +162,7 @@ export const SIGNER_FIELDS = {
     {"name":"postOnly","type":"boolean","required":false,"description":"Post-only flag. When true, the order executes only as a maker order and the system rejects the order if it would match immediately. Default: false.","example":"false","default":false},
     {"name":"ioc","type":"boolean","required":false,"description":"Immediate-or-cancel (IOC) flag. When true, the matching engine executes all or part of the order immediately and cancels any unfilled portion. Default: false. IOC does not suppo…","example":"false","default":false},
     {"name":"bboRole","type":"integer","required":false,"description":"Best Bid/Offer (BBO) execution method. The system selects the best market price for execution. 1 = Queue method, 2 = Counterparty method. Use method 2 with the ioc flag.","enum":["1","2"]},
-    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no, cancel_both, cancel_new, cancel_old. Default: no.","example":"no","enum":["no","cancel_both","cancel_new","cancel_old"],"default":"no"},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
     {"name":"rpi","type":"boolean","required":false,"description":"Enables Retail Price Improvement (RPI) mode. Default: false. RPI orders use post-only behavior by design. An RPI order does not support ioc=true. The API returns error code 40 w…","example":"true","default":false},
     {"name":"retail","type":"boolean","required":false,"description":"Retail-source taker flag. When true, the order is eligible to match against orders submitted by RPI makers and may receive price improvement at execution. Default: false. The Re…","example":"false","default":false},
   ],
@@ -170,14 +175,14 @@ export const SIGNER_FIELDS = {
     {"name":"side","type":"string","required":true,"description":"Order side. Allowed values: buy, sell.","example":"buy","enum":["buy","sell"]},
     {"name":"amount","type":"string","required":true,"description":"For buy orders: total in quote (money) currency to spend. For sell orders: quantity in base (stock) currency to sell. Minimum and maximum values are market-dependent. Query GET …","example":"100"},
     {"name":"clientOrderId","type":"string","required":false,"description":"Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same …","example":"order1987111"},
-    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no, cancel_both, cancel_new, cancel_old. Default: no.","example":"no","enum":["no","cancel_both","cancel_new","cancel_old"],"default":"no"},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/stock_market": [
     {"name":"market","type":"string","required":true,"description":"Trading pair. Format: BASE_QUOTE (e.g., BTC_USDT). Query GET /api/v4/public/markets for available markets.","example":"BTC_USDT"},
     {"name":"side","type":"string","required":true,"description":"Order side. Allowed values: buy, sell.","example":"buy","enum":["buy","sell"]},
     {"name":"amount","type":"string","required":true,"description":"Order quantity in base (stock) currency for both buy and sell sides. To place a market order specifying the quote (money) currency amount instead, use POST /api/v4/order/market.…","example":"0.001"},
     {"name":"clientOrderId","type":"string","required":false,"description":"Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same …","example":"order1987111"},
-    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no, cancel_both, cancel_new, cancel_old. Default: no.","example":"no","enum":["no","cancel_both","cancel_new","cancel_old"],"default":"no"},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/stop_limit": [
     {"name":"market","type":"string","required":true,"description":"Trading pair. Format: BASE_QUOTE (e.g., BTC_USDT). Query GET /api/v4/public/markets for available markets.","example":"BTC_USDT"},
@@ -187,7 +192,7 @@ export const SIGNER_FIELDS = {
     {"name":"activation_price","type":"string","required":true,"description":"Trigger price in quote (money) currency. For buy orders, the stop triggers when the market price rises to or above the specified price. For sell orders, the stop triggers when t…","example":"10000"},
     {"name":"clientOrderId","type":"string","required":false,"description":"Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same …","example":"order1987111"},
     {"name":"bboRole","type":"integer","required":false,"description":"Best Bid/Offer (BBO) execution method. The system selects the best market price for execution after the stop triggers. 1 = Queue method, 2 = Counterparty method.","enum":["1","2"]},
-    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no, cancel_both, cancel_new, cancel_old. Default: no.","example":"no","enum":["no","cancel_both","cancel_new","cancel_old"],"default":"no"},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/stop_market": [
     {"name":"market","type":"string","required":true,"description":"Trading pair. Format: BASE_QUOTE (e.g., BTC_USDT). Query GET /api/v4/public/markets for available markets.","example":"BTC_USDT"},
@@ -195,7 +200,7 @@ export const SIGNER_FIELDS = {
     {"name":"amount","type":"string","required":true,"description":"For buy orders: total in quote (money) currency to spend. For sell orders: quantity in base (stock) currency to sell. Minimum and maximum values are market-dependent. Query GET …","example":"0.01"},
     {"name":"activation_price","type":"string","required":true,"description":"Trigger price in quote (money) currency. For buy orders, the stop triggers when the market price rises to or above the specified price. For sell orders, the stop triggers when t…","example":"10000"},
     {"name":"clientOrderId","type":"string","required":false,"description":"Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same …","example":"order1987111"},
-    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no, cancel_both, cancel_new, cancel_old. Default: no.","example":"no","enum":["no","cancel_both","cancel_new","cancel_old"],"default":"no"},
+    {"name":"stp","type":"string","required":false,"description":"Self-trade prevention mode. Allowed values: no (self-trades allowed), cb (cancel both the new and the existing order), cn (cancel the new order, keep the existing), co (cancel t…","example":"no","enum":["no","cb","cn","co"],"default":"no"},
   ],
   "/api/v4/order/cancel": [
     {"name":"market","type":"string","required":true,"description":"Available market. Example: BTC_USDT","example":"BTC_USDT"},
