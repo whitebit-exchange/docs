@@ -4,6 +4,20 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 3, 2026">
+## Abbreviated Self-Trade Prevention mode values
+**`stp` accepts `cb`, `cn`, `co`; long-form values deprecated**
+
+The `stp` parameter on trade endpoints now uses abbreviated mode values: `cb` (cancel both), `cn` (cancel new), and `co` (cancel old); `no` is unchanged. The legacy values `cancel_both`, `cancel_new`, and `cancel_old` are deprecated. The long-form values remain accepted with identical behavior until a deprecation deadline is announced, after which the API rejects the long-form values. Responses always return the abbreviated form, regardless of which variant the request used. The parameter is documented on the five spot order endpoints (limit, market, stock market, stop-limit, stop-market) and the five collateral order endpoints (limit, market, stop-limit, trigger-market, OCO).
+
+<CardGroup cols={2}>
+  <Card title="Self-Trade Prevention" href="/platform/self-trade-prevention" icon="shield" horizontal/>
+  <Card title="Create Limit Order" href="/api-reference/spot-trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Collateral Limit Order" href="/api-reference/collateral-trading/collateral-limit-order" icon="layer-group" horizontal/>
+  <Card title="Glossary — STP" href="/glossary#self-trade-prevention-stp" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="June 18, 2026">
 ## Travel Rule API
 **New endpoints and structured format for Travel Rule compliance**

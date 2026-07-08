@@ -8,6 +8,10 @@ description: "Self Trade Prevention (STP) is a mechanism to prevent traders from
 
 When placing [orders](/glossary#orders), specify how the system should handle potential self-trades using the `stp` parameter. This parameter determines the behavior when an order would match against another order from the same account.
 
+<Warning>
+Deprecation notice: the long-form mode values `cancel_both`, `cancel_new`, and `cancel_old` are deprecated. The long-form values remain accepted and behave identically to the abbreviated equivalents (`cb`, `cn`, `co`) until a migration deadline is announced, after which the API rejects the long-form values. Responses already return only the abbreviated values. Migrate integrations to the abbreviated forms now.
+</Warning>
+
 ## STP Modes
 
 The following STP modes are available:
@@ -15,9 +19,9 @@ The following STP modes are available:
 | Mode | Description |
 |------|-------------|
 | `no` | Default mode. Self-trades are allowed |
-| `cancel_both` | Both the new order and the existing order will be canceled |
-| `cancel_new` | The new order will be canceled, and the existing order will remain |
-| `cancel_old` | The existing order will be canceled, and the new order will be placed |
+| `cb` | Cancel both: the new order and the existing order will be canceled |
+| `cn` | Cancel new: the new order will be canceled, and the existing order will remain |
+| `co` | Cancel old: the existing order will be canceled, and the new order will be placed |
 
 ## Usage
 
@@ -37,7 +41,7 @@ Specify the STP mode when placing any type of order:
   "side": "buy",
   "amount": "0.001",
   "price": "40000",
-  "stp": "cancel_both"  // STP mode specification
+  "stp": "cb"
 }
 ```
 
@@ -45,24 +49,25 @@ Specify the STP mode when placing any type of order:
 
 STP is supported on the following API endpoints:
 
-- [POST `/api/v4/order/new`](/api-reference/spot-trading/overview#create-limit-order) (Limit orders)
-- [POST `/api/v4/order/market`](/api-reference/spot-trading/overview#create-market-order) (Market orders)
-- [POST `/api/v4/order/stock_market`](/api-reference/spot-trading/overview#create-buy-stock-market-order) (Stock market orders)
-- [POST `/api/v4/order/stop_limit`](/api-reference/spot-trading/overview#create-stop-limit-order) (Stop-limit orders)
-- [POST `/api/v4/order/stop_market`](/api-reference/spot-trading/overview#create-stop-market-order) (Stop-market orders)
-- [POST `/api/v4/order/collateral/market`](/api-reference/collateral-trading/overview#collateral-market-order) (Collateral market orders)
-- [POST `/api/v4/order/collateral/stop-limit`](/api-reference/collateral-trading/overview#collateral-stop-limit-order) (Collateral stop-limit orders)
-- [POST `/api/v4/order/collateral/trigger-market`](/api-reference/collateral-trading/overview#collateral-trigger-market-order) (Collateral trigger market orders)
-- [POST `/api/v4/order/collateral/oco`](/api-reference/collateral-trading/overview#create-collateral-oco-order) (Collateral OCO orders)
+- [POST `/api/v4/order/new`](/api-reference/spot-trading/create-limit-order) (Limit orders)
+- [POST `/api/v4/order/market`](/api-reference/spot-trading/create-market-order) (Market orders)
+- [POST `/api/v4/order/stock_market`](/api-reference/spot-trading/create-buy-stock-market-order) (Stock market orders)
+- [POST `/api/v4/order/stop_limit`](/api-reference/spot-trading/create-stop-limit-order) (Stop-limit orders)
+- [POST `/api/v4/order/stop_market`](/api-reference/spot-trading/create-stop-market-order) (Stop-market orders)
+- [POST `/api/v4/order/collateral/limit`](/api-reference/collateral-trading/collateral-limit-order) (Collateral limit orders)
+- [POST `/api/v4/order/collateral/market`](/api-reference/collateral-trading/collateral-market-order) (Collateral market orders)
+- [POST `/api/v4/order/collateral/stop-limit`](/api-reference/collateral-trading/collateral-stop-limit-order) (Collateral stop-limit orders)
+- [POST `/api/v4/order/collateral/trigger-market`](/api-reference/collateral-trading/collateral-trigger-market-order) (Collateral trigger market orders)
+- [POST `/api/v4/order/collateral/oco`](/api-reference/collateral-trading/create-collateral-oco-order) (Collateral OCO orders)
 
 ## Best Practices
 
 1. **Default Behavior**: If no STP mode is specified, the system defaults to `no`, allowing self-trades.
-2. **Risk Management**: For automated trading systems or when running multiple strategies, it's recommended to use `cancel_both` or `cancel_new` to prevent unintentional self-trades.
-3. **Market Making**: When running [market making](/glossary#maker) strategies, consider using `cancel_new` to maintain existing orders' queue position.
+2. **Risk Management**: For automated trading systems or when running multiple strategies, use `cb` or `cn` to prevent unintentional self-trades.
+3. **Market Making**: When running [market making](/glossary#maker) strategies, consider using `cn` to maintain existing orders' queue position.
 
 ## Response Handling
 
-When an order is affected by STP rules, the order response includes the `stp` field indicating the applied mode. The order status will reflect the outcome based on the STP mode:
+When an order is affected by STP rules, the order response includes the `stp` field indicating the applied mode. The `stp` field always returns the abbreviated value (`no`, `cb`, `cn`, `co`), even when the request used a deprecated long-form value. The order status will reflect the outcome based on the STP mode:
 - Orders canceled due to STP will have a "CANCELED" status
 - Successfully placed orders will proceed with normal status progression
