@@ -4446,15 +4446,26 @@ paths:
                     example: "0.0001"
                   custom_fee:
                     type: object
-                    nullable: true
                     description: |
-                      Custom spot fees assigned to specific markets, keyed by market pair. Present only when the account has per-market custom spot fees. Each value is a list of fee percentage strings for that market. Absent or null when no custom per-market spot fees apply.
+                      Per-market fee overrides, keyed by market name. Each value contains the market's custom `taker` and `maker` rates.
                     additionalProperties:
-                      type: array
-                      items:
-                        type: string
+                      type: object
+                      properties:
+                        taker:
+                          type: string
+                          description: Custom taker fee percentage for the market
+                          example: "0.055"
+                        maker:
+                          type: string
+                          description: Custom maker fee percentage for the market
+                          example: "0.01"
                     example:
-                      BTC_USDT: ["0.001", "0.001"]
+                      BTC_PERP:
+                        taker: "0.055"
+                        maker: "0.01"
+                      ETH_PERP:
+                        taker: "0.055"
+                        maker: "0.01"
         '422':
           description: Validation failed
           content:
