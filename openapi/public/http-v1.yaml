@@ -294,15 +294,14 @@ paths:
           in: query
           required: true
           description: "Trading pair to query. The market must exist and be enabled for trading. Example: BTC_USDT"
-          example: BTC_USDT
           schema:
             type: string
+            default: BTC_USDT
             example: BTC_USDT
         - name: start
           in: query
           required: false
           description: "Start time in Unix seconds. Must be greater than or equal to 0 and not greater than the end parameter. When omitted, the default time window depends on the interval — see the interval parameter. Example: 1596848400"
-          example: 1596848400
           schema:
             type: integer
             example: 1596848400
@@ -310,7 +309,6 @@ paths:
           in: query
           required: false
           description: "End time in Unix seconds. Must be greater than the start parameter and not greater than the current timestamp. Default value is the current time. Example: 1596927600"
-          example: 1596927600
           schema:
             type: integer
             example: 1596927600
