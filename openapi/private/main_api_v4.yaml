@@ -2008,6 +2008,8 @@ paths:
         - `Uncredited` - 22
         - `Pending` - 15
 
+        `Successful` (3, 7) is a final state. A credited deposit does not later transition to `AML frozen` (21) or `Uncredited` (22); those checks happen before crediting.
+
         **Travel Rule Deposit check status codes:**
         - `Awaiting verification` - 27: The transaction has been frozen due to the lack of data required under the Travel Rule. The user is required to provide this data manually through the exchange interface.
         - `Confirmation in progress` - 28: The Travel Rule data provided by the user is currently being verified by WhiteBIT.
@@ -7745,7 +7747,7 @@ components:
         unique_id:
           type: string
           nullable: true
-          description: Unique Id of deposit/withdraw
+          description: Unique Id of deposit/withdraw. Unique per user.
           example: null
         createdAt:
           type: integer
@@ -7790,12 +7792,12 @@ components:
           example: null
         transactionHash:
           type: string
-          description: Deposit/Withdraw transaction hash
+          description: "Deposit/Withdraw transaction hash. A single hash can map to multiple records (e.g. several outputs to a WhiteBIT address in one on-chain transaction); use `transaction_id` to distinguish them."
           example: "3b49d7b8cf7a4d3c1234567890abcdef"
         transaction_id:
           type: string
-          description: Transaction ID
-          example: "tx-id-1234"
+          description: Transaction UUID. Unique across the whole system and never reused.
+          example: "5e112b38-9652-11ed-a1eb-0242ac120002"
         details:
           type: object
           nullable: true
