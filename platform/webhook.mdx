@@ -257,9 +257,9 @@ Performed when deposit was canceled. Request example:
 }
 ```
 
-#### Travel Rule deposit events (EEA)
+#### Travel Rule deposit statuses (EEA)
 
-For EEA users, deposits may be frozen pending Travel Rule verification. When a deposit is frozen, the webhook delivers deposit.updated events with Travel Rule-specific status codes. The end user must complete Travel Rule verification through the WhiteBIT platform UI — the partner cannot submit Travel Rule data via API.
+For EEA users, an inbound deposit may be frozen pending Travel Rule verification, and the deposit carries a Travel Rule status code (see the table below). There is currently no webhook for these transitions, so track them via the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). When the Travel Rule API is enabled for the account, submit the deposit originator data via [Submit deposit originator data](/api-reference/travel-rule/submit-deposit-verification) (`POST /api/v4/travel-rule/deposit/verification`); otherwise the deposit is verified manually at whitebit.com. Funds are credited only after successful verification.
 
 For details on Travel Rule requirements and the travelRule object for withdrawals, see [Regulatory Compliance](/institutional/compliance).
 
@@ -268,8 +268,8 @@ Deposit status codes:
 | Code | Status | Description |
 |---|---|---|
 | 15 | Pending | Deposit detected, awaiting confirmations |
-| 27 | Travel Rule Frozen | Deposit frozen — Travel Rule verification required (EEA) |
-| 28 | Travel Rule Frozen Processing | Travel Rule verification in progress (EEA) |
+| 27 | Travel Rule Frozen | Deposit frozen; the user must complete Travel Rule verification (EEA) |
+| 28 | Travel Rule Frozen Processing | Travel Rule data submitted, verification in progress (EEA) |
 
 {/* TODO: verify complete deposit status code list with engineering — codes beyond 15, 27, 28 may exist */}
 
