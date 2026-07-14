@@ -2008,6 +2008,8 @@ paths:
         - `Uncredited` - 22
         - `Pending` - 15
 
+        `Successful` (3, 7) is a final state. A credited deposit does not later transition to `AML frozen` (21) or `Uncredited` (22); those checks happen before crediting.
+
         **Travel Rule Deposit check status codes:**
         - `Awaiting verification` - 27: The transaction has been frozen due to the lack of data required under the Travel Rule. The user is required to provide this data manually through the exchange interface.
         - `Confirmation in progress` - 28: The Travel Rule data provided by the user is currently being verified by WhiteBIT.
@@ -5228,11 +5230,9 @@ paths:
         created by [sub-accounts](/glossary#sub-account) of the authenticated main account and awaiting main account confirmation.
         Results are ordered by creation time, newest first.
 
-        Only withdrawals from sub-accounts of type **general** are returned.
-
         <Note>
-        The authenticated user must have the **sub-account crypto service** permission.
-        If the permission is missing, the endpoint returns `404 Not Found`.
+        The sub-account withdrawal endpoints are not available by default. To request access, contact institutional@whitebit.com.
+        A `404 Not Found` response indicates the endpoint is not enabled for the account.
         </Note>
 
         <Note>
@@ -5326,7 +5326,7 @@ paths:
         "401":
           description: Unauthorized — invalid or missing API key
         "404":
-          description: Not Found — user does not have the sub-account crypto service permission
+          description: Not Found — the sub-account withdrawal endpoints are not enabled for the account
         "422":
           description: Validation error — invalid parameter values
           content:
@@ -5346,6 +5346,104 @@ paths:
                     - "The limit field must be at least 1."
                   offset:
                     - "The offset field must be at least 0."
+
+  /api/v4/sub-account/withdraw/confirm:
+    post:
+      tags:
+        - Sub-Account
+      summary: Confirm Sub-Account Withdrawal
+      description: |
+        The endpoint confirms a single withdrawal transaction created by a [sub-account](/glossary#sub-account)
+        of the authenticated main account. Confirmation is the main account action that approves a withdrawal
+        held in `unconfirmed_by_main_account` status and releases it for processing.
+
+        Identify the target transaction by its external id, obtained from
+        [List Unconfirmed Sub-Account Withdrawals](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals).
+        Confirmation is the only main account action on an unconfirmed withdrawal; a withdrawal left unconfirmed
+        expires after a retention period. A successful call returns an empty object.
+
+        <Note>
+        The sub-account withdrawal endpoints are not available by default. To request access, contact institutional@whitebit.com.
+        A `404 Not Found` response indicates the endpoint is not enabled for the account.
+        </Note>
+
+        <Note>
+        The sub-account feature must be enabled for the region.
+        </Note>
+      operationId: confirmSubAccountWithdrawal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  description: External id of the withdrawal transaction to confirm.
+                  example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+            example:
+              id: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+      responses:
+        "200":
+          description: Successful response — the withdrawal is confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+        "400":
+          description: Validation error — the id field is missing or does not match an existing transaction
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 0
+                message: "Validation failed"
+                errors:
+                  id:
+                    - "validation.exists"
+        "401":
+          description: Unauthorized — the API key is not authorized for the requested action
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                code: 4
+                message: "This API Key is not authorized to perform this action."
+        "404":
+          description: Not Found — the sub-account withdrawal endpoints are not enabled for the account
+        "422":
+          description: |
+            Validation error. Triggered when the transaction does not belong to a sub-account of the authenticated
+            account, when the transaction is not in a confirmable status, or when an inner validation fails
+            (for example, insufficient funds or an invalid destination address).
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                transactionNotFound:
+                  summary: Transaction does not belong to a sub-account of the authenticated account
+                  value:
+                    code: 422
+                    message: "Transaction doesn't exist"
+                incorrectStatus:
+                  summary: Transaction is not in a confirmable status
+                  value:
+                    code: 422
+                    message: "Transaction has incorrect status"
+                innerValidation:
+                  summary: Inner validation failed, such as insufficient funds
+                  value:
+                    code: 0
+                    message: "Inner validation failed"
+                    errors:
+                      amount: "insufficientFunds"
 
   /api/v4/sub-account/api-key/create:
     post:
@@ -7649,7 +7747,7 @@ components:
         unique_id:
           type: string
           nullable: true
-          description: Unique Id of deposit/withdraw
+          description: Unique Id of deposit/withdraw. Unique per user.
           example: null
         createdAt:
           type: integer
@@ -7694,12 +7792,12 @@ components:
           example: null
         transactionHash:
           type: string
-          description: Deposit/Withdraw transaction hash
+          description: "Deposit/Withdraw transaction hash. A single hash can map to multiple records (e.g. several outputs to a WhiteBIT address in one on-chain transaction); use `transaction_id` to distinguish them."
           example: "3b49d7b8cf7a4d3c1234567890abcdef"
         transaction_id:
           type: string
-          description: Transaction ID
-          example: "tx-id-1234"
+          description: Transaction UUID. Unique across the whole system and never reused.
+          example: "5e112b38-9652-11ed-a1eb-0242ac120002"
         details:
           type: object
           nullable: true

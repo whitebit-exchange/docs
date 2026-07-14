@@ -49,7 +49,7 @@ const clientOrderId = "trade15-market-a7b8c9";
 <Tab title="Timestamp">
 **Timestamp Integration**
 
-```bash
+```typescript
 const getClientOrderId = (prefix: string) => {
   const timestamp = Date.now();
   return `${prefix}-${timestamp}`;
@@ -64,7 +64,7 @@ const orderId = getClientOrderId("btc-dca"); // "btc-dca-1678234567890"
 <Tab title="Strategy">
 **Strategy Identification**
 
-```bash
+```typescript
 const generateStrategyOrderId = (
   strategy: string,
   pair: string,
@@ -91,7 +91,6 @@ const orderId = generateStrategyOrderId("grid", "btcusdt", "buy");
 <Card title="Advanced Examples">
 - • bot1-grid-btc-h4-001
 - • arb-eth-ftm-cross-002
-- • Dashes (-)
 - • hedge-btc-perp-003
 </Card>
 </CardGroup>
@@ -121,7 +120,7 @@ const limitOrderRequest = {
 <Tab title="Market Order">
 **Market Order with Strategy Tag**
 
-```bash
+```javascript
 // Market order for DCA strategy
 const marketOrderRequest = {
   market: "BTC_USDT",
@@ -136,7 +135,7 @@ const marketOrderRequest = {
 <Tab title="Stop-Limit">
 **Stop-Limit Order with Position Tracking**
 
-```bash
+```javascript
 // Stop-limit order with position tracking
 const stopLimitOrderRequest = {
   market: "BTC_USDT",
@@ -152,7 +151,7 @@ const stopLimitOrderRequest = {
 <Tab title="OTO Orders">
 **OTO (One-Triggers-Other) Orders**
 
-```bash
+```javascript
 // Main order with stop loss and take profit
 const otoOrderRequest = {
   market: "BTC_USDT",
@@ -188,7 +187,7 @@ const queryActiveOrders = {
 <Note>
 Example response includes order details such as ID, status, and execution information:
 </Note>
-```bash
+```json
 {
   "orderId": 4180284841,
   "clientOrderId": "dca-btc-market-002",
@@ -218,18 +217,18 @@ const queryOrderHistory = {
 };
 ```
 <Note>
-Example response showing execution details and final order status:
+Example response showing execution details and final order status. The response groups orders by market name:
 </Note>
-```bash
+```json
 {
-  "records": [
+  "BTC_USDT": [
     {
-      "orderId": 4180284841,
+      "id": 4180284841,
       "clientOrderId": "grid-btc-sell-003",
-      "market": "BTC_USDT",
       "side": "sell",
       "type": "limit",
-      "timestamp": 1595792396.165973,
+      "ctime": 1595792396.165973,
+      "ftime": 1595792396.999999,
       "dealMoney": "41.258268",
       "dealStock": "0.001",
       "amount": "0.001",
@@ -441,104 +440,45 @@ await cancelClientOrder('ind123', 'spot', '1678234567');
 
 #### Retrieving Historical Client Orders
 
-Brokers can retrieve and analyze historical order data for reporting, analysis, and compliance:
+The [Query Order History endpoint](/api-reference/spot-trading/query-executed-orders) (`/api/v4/trade-account/order/history`) supports exact `clientOrderId` lookup only: pass the full identifier to retrieve a single order. When `clientOrderId` is supplied, the endpoint switches to single-order lookup mode and ignores the `startDate`, `endDate`, and `status` filters. Pattern or prefix matching on `clientOrderId` is not supported.
 
 ```javascript
-// Function to get client order history with optional filtering
-async function getClientOrderHistory(clientId, orderPurpose, startTime, endTime) {
-  // Base query parameters
-  const queryParams = {
-    market: "BTC_USDT",
-    limit: 100,
-    offset: 0
-  };
-
-  // Add clientOrderId filter if specific client and purpose
-  if (clientId && orderPurpose) {
-    // Using partial match prefix to get all orders matching the pattern
-    queryParams.clientOrderId = `brk-${clientId}-*-${orderPurpose}-*`;
-  }
-
-  // Add time range if specified
-  if (startTime) queryParams.start_time = startTime;
-  if (endTime) queryParams.end_time = endTime;
-
-  try {
-    const response = await api.get('/api/v4/trade-account/order/history', { params: queryParams });
-    return response.data.records;
-  } catch (error) {
-    console.error("Failed to fetch client order history:", error);
-    throw error;
-  }
-}
-
-// Example: Get all spot trades for a specific client
-const clientSpotOrders = await getClientOrderHistory('ind123', 'spot',
-  Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
-  Date.now() // now
-);
-
-// Example: Get all DCA orders across clients
-const allDcaOrders = await getClientOrderHistory(null, 'dca');
+// Exact lookup of one client order (single-order mode)
+const lookupClientOrder = {
+  market: "BTC_USDT",
+  clientOrderId: "brk-ind123-limit-spot-1678234567"
+};
 ```
+
+For reporting across many client orders, retrieve history in list mode — filtered by `market`, `startDate`, and `endDate` (Unix seconds) — and parse the structured identifiers client-side, as shown below.
 
 ### Broker Analytics and Reporting
 
-With structured clientOrderId patterns, brokers can implement powerful analytics and reporting by parsing the IDs:
+With structured clientOrderId patterns, brokers can reconstruct per-client reporting from order history without a separate order database — each ID segment maps to a report dimension:
+
+| ID segment | Encodes | Analytics use |
+|------------|---------|---------------|
+| `brk` | Broker prefix | Separates broker flow from other orders |
+| `clientId` | Internal client identifier | Groups orders and volume per client |
+| `orderType` | Order type (market/limit) | Order-type mix per client |
+| `purpose` | Trading purpose/strategy (spot, dca, grid, rebal) | Order count and volume per strategy |
+| `timestamp` | Submission time | Keeps IDs distinct; submission-time analysis |
+
+The critical path is the parser — split the ID and validate its shape. Aggregating parsed segments into per-client totals (order counts, `dealMoney` volume, per-purpose breakdowns) is standard reporting code on top of it:
 
 ```javascript
-// Parse clientOrderId to extract metadata
+// Parse clientOrderId back into its metadata segments
+// Format: brk-{clientId}-{orderType}-{purpose}-{timestamp}
 function parseClientOrderId(clientOrderId) {
-  // Format: brk-{clientId}-{orderType}-{purpose}-{timestamp}
   const parts = clientOrderId.split('-');
   if (parts.length !== 5 || parts[0] !== 'brk') {
     throw new Error('Invalid broker clientOrderId format');
   }
-
   return {
     clientId: parts[1],
     orderType: parts[2],
     purpose: parts[3],
     timestamp: parseInt(parts[4])
   };
-}
-
-// Example usage for reporting
-function generateClientReport(orderHistory) {
-  const clientStats = {};
-
-  orderHistory.forEach(order => {
-    try {
-      const { clientId, purpose } = parseClientOrderId(order.clientOrderId);
-
-      if (!clientStats[clientId]) {
-        clientStats[clientId] = {
-          totalOrders: 0,
-          volume: 0,
-          byPurpose: {}
-        };
-      }
-
-      // Update client stats
-      clientStats[clientId].totalOrders++;
-      clientStats[clientId].volume += parseFloat(order.dealMoney);
-
-      // Update purpose-specific stats
-      if (!clientStats[clientId].byPurpose[purpose]) {
-        clientStats[clientId].byPurpose[purpose] = {
-          count: 0,
-          volume: 0
-        };
-      }
-
-      clientStats[clientId].byPurpose[purpose].count++;
-      clientStats[clientId].byPurpose[purpose].volume += parseFloat(order.dealMoney);
-
-    } catch (error) {
-      console.warn("Skipping order with invalid clientOrderId:", order.clientOrderId);
-    }
-  });
-
-  return clientStats;
 }
 ```

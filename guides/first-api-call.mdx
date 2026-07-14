@@ -8,13 +8,12 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Make a first WhiteBIT API call — public data with no authentication, then a private request with HMAC-SHA512 signing. The walkthrough is for developers integrating the v4 REST API for the first time and includes curl and Python examples for each step.
+Make a first WhiteBIT API call — public data with no authentication, then a private request with HMAC-SHA512 signing. The walkthrough is for developers integrating the v4 REST API for the first time and includes curl and Python examples for each API call.
 
 <Note>
-  WhiteBIT does not offer a public testnet or sandbox environment.
-  All API calls in this guide execute against the live API.
-  Steps 1 and 2 are read-only public calls — safe to run freely.
-  Step 4 reads account balances only — no orders are placed and no funds are moved.
+  WhiteBIT does not offer a public testnet or sandbox environment — all API calls in this guide execute against the live API.
+  Steps 1 and 2 are read-only public calls, safe to run freely.
+  Step 4 only reads account balances — it places no orders and moves no funds.
 </Note>
 
 ## Prerequisites
@@ -25,9 +24,9 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
 
 <Steps>
   <Step title="Check server time (public, no auth)">
-    Verify connectivity by calling the public server time endpoint. No authentication is required.
+    Verify connectivity by calling the public server time endpoint — no authentication needed.
 
-    **Endpoint:** `GET https://whitebit.com/api/v4/public/time`
+    **Endpoint:** `GET https://whitebit.com/api/v4/public/time` ([API Reference](/api-reference/market-data/server-time))
 
     <Tabs>
       <Tab title="cURL">
@@ -53,12 +52,14 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
     ```
 
     The `time` field is a Unix timestamp in seconds.
+
+    For Go and PHP examples, see [SDKs](/sdks).
   </Step>
 
   <Step title="Fetch market data (public, no auth)">
-    Retrieve the list of available spot markets. No authentication is required.
+    Retrieve the list of available markets — spot, futures, and TradFi futures. The endpoint requires no authentication.
 
-    **Endpoint:** `GET https://whitebit.com/api/v4/public/markets`
+    **Endpoint:** `GET https://whitebit.com/api/v4/public/markets` ([API Reference](/api-reference/market-data/market-info))
 
     <Tabs>
       <Tab title="cURL">
@@ -108,24 +109,24 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
   </Step>
 
   <Step title="Generate an API key">
-    An API key is required for all private endpoints. Skip this step if a key is already available.
+    All private endpoints require an API key. Skip this step if a key is already available.
 
     1. Navigate to [API key settings](https://whitebit.com/settings/api).
-    2. Enable 2FA if not already active — 2FA is required before key creation.
+    2. Enable 2FA if not already active — key creation requires active 2FA.
     3. Create a new key with **Info + Trading** permissions.
     4. Optionally whitelist the current IP address (up to 50 addresses per key).
-    5. Save the API key and secret immediately — the secret is shown only once and cannot be retrieved later.
+    5. Save the API key and secret immediately — the portal displays the secret only once and offers no way to retrieve it later.
 
     <Warning>
       Store the API secret securely in an environment variable or secrets manager.
-      Never commit secrets to version control or include them in client-side code.
+      Never commit secrets to version control or embed credentials in client-side code.
     </Warning>
   </Step>
 
   <Step title="Authenticated balance check (private)">
-    Read the spot trading account balance. This call requires HMAC-SHA512 signing.
+    Read the Trade account balance. This call requires HMAC-SHA512 signing.
 
-    **Endpoint:** `POST https://whitebit.com/api/v4/trade-account/balance`
+    **Endpoint:** `POST https://whitebit.com/api/v4/trade-account/balance` ([API Reference](/api-reference/spot-trading/trading-balance))
 
     Every private request requires three headers computed from the request body:
     - `X-TXC-APIKEY` — the API key string
@@ -191,8 +192,6 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
       </Tab>
     </Tabs>
 
-    For Go and PHP examples, see [SDKs](/sdks).
-
     **Expected response:**
     ```json
     {
@@ -207,7 +206,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
     }
     ```
 
-    Each key is an asset ticker. `available` is the amount ready to trade. `freeze` is locked in open orders. An empty response (`{}`) means the Trade balance holds no assets — transfer funds from Main first. See [Balances & Transfers](/concepts/balances) for details on Main, Trade, and Collateral account types.
+    Each key is an asset ticker. `available` is the amount ready to trade; `freeze` is the amount locked in open orders. An empty response (`{}`) means the Trade balance holds no assets — transfer funds from Main first. See [Balances & Transfers](/concepts/balances) for details on Main, Trade, and Collateral account types.
   </Step>
 </Steps>
 
@@ -218,8 +217,8 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
     The payload used for Base64 encoding must be the exact same JSON string sent as the request body. Verify:
 
     - The `request` field matches the endpoint path exactly (e.g., `"/api/v4/trade-account/balance"`).
-    - The `nonce` is a string (not an integer) and is larger than the previous request's nonce.
-    - The API secret is correct and has not been regenerated.
+    - The `nonce` is an integer larger than the previous request's nonce — use Unix milliseconds.
+    - The API secret is current — regenerating the key invalidates the old secret.
     - The HMAC uses the Base64-encoded string as input, not the raw JSON.
 
     See [Authentication](/api-reference/authentication) for the complete signing walkthrough.
@@ -227,7 +226,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
   <Accordion title="API key not found or 401 Unauthorized">
     Verify:
 
-    - The API key is copied correctly — no leading or trailing spaces.
+    - Copy the API key exactly — no leading or trailing spaces.
     - The key is active. Keys auto-deactivate after 14 days of inactivity. Reactivate at [whitebit.com/settings/api](https://whitebit.com/settings/api).
     - The key has **Info + Trading** permissions for balance endpoints.
   </Accordion>

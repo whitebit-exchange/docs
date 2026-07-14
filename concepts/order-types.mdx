@@ -163,7 +163,7 @@ Independent of region, while a market has not yet been fully listed (its trading
 ## Related features
 
 - **Client Order ID** — Attach a custom identifier to orders for tracking. See [Client Order ID guide](/guides/client-order-id).
-- **Kill-switch** — Emergency cancellation mechanism that cancels all active orders after a configurable timeout. Endpoints: `POST /api/v4/order/kill-switch` (activate) and `GET /api/v4/order/kill-switch/status` (check).
+- **Kill-switch** — Emergency cancellation mechanism that cancels a market's active orders after a configurable timeout, one timer per market. Endpoints: `POST /api/v4/order/kill-switch` (activate) and `POST /api/v4/order/kill-switch/status` (check).
 - **Self-Trade Prevention** — Prevents an account's orders from matching against each other. See [Self-Trade Prevention](/platform/self-trade-prevention).
 - **Reduce-only** — Guarantees an order only decreases or closes an existing position. See [Reduce-only orders](#reduce-only-orders) above.
 

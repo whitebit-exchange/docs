@@ -1,6 +1,6 @@
 ---
 title: "Regulatory Compliance"
-description: "MiCA USDT restrictions, Travel Rule requirements, and regional compliance considerations affecting API integrations."
+description: "MiCA USDT restrictions, Travel Rule requirements, data processing, certifications, and restricted jurisdictions affecting API integrations."
 sidebarTitle: "Compliance"
 ---
 
@@ -8,30 +8,36 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Regulatory requirements affect API behavior depending on account jurisdiction. The following sections document active compliance changes that require integration adjustments.
+Regulatory requirements affect API behavior depending on account jurisdiction. Two active regimes require integration changes for European Economic Area ([EEA](/glossary#european-economic-area-eea)) accounts: MiCA restrictions on USDT operations and Travel Rule data requirements on crypto withdrawals.
 
-## MiCA: USDT Restrictions for EEA Users
+| Regulation | Affected accounts | API impact |
+|------------|-------------------|------------|
+| [MiCA — USDT restrictions](#mica-usdt-restrictions-for-eea-users) | EEA | USDT deposits, withdrawals, and WhiteBIT Codes rejected since December 30, 2024 |
+| [Travel Rule](#travel-rule-eea-crypto-withdrawals) | EEA (and Turkey) | `travelRule` object required on crypto withdrawals since May 19, 2025; deposit status codes 27 and 28 |
+| [Data processing (GDPR)](#data-processing-and-privacy) | All | No API impact — data processing terms and DPA availability |
 
-Since **December 30, 2024**, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT. The restriction implements Markets in Crypto-Assets Regulation (MiCA) requirements -- Tether (USDT issuer) has not obtained EU e-money authorization.
+## MiCA: USDT restrictions for EEA users
 
-### Impact on API Integrations
+Since **December 30, 2024**, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT. The restriction implements Markets in Crypto-Assets Regulation (MiCA) requirements — Tether (USDT issuer) has not obtained EU e-money authorization.
 
-- USDT deposit requests from EEA accounts are rejected at the server level
-- USDT withdrawal requests from EEA accounts are rejected at the server level
-- WhiteBIT Codes denominated in USDT are blocked for EEA accounts
-- No endpoint schema changes -- the same endpoints are used, but the server returns an error for USDT operations from EEA-jurisdiction accounts
-- Non-EEA accounts are not affected
+### Impact on API integrations
 
-### Recommended Alternatives
+- The server rejects USDT deposit requests from EEA accounts
+- The server rejects USDT withdrawal requests from EEA accounts
+- The server blocks WhiteBIT Codes denominated in USDT for EEA accounts
+- No endpoint schema changes — the same endpoints apply, but the server returns an error for USDT operations from EEA-jurisdiction accounts
+- Non-EEA accounts are not currently affected
 
-| Stablecoin | Issuer | MiCA Status |
-|-----------|--------|-------------|
-| **USDC** | Circle | EU e-money license obtained |
-| **EURI** | Euro-pegged | MiCA-compliant |
+### Recommended alternatives
 
-### Integration Guidance
+| Stablecoin | Peg | MiCA status |
+|------------|-----|-------------|
+| **USDC** | US dollar | EU e-money license obtained (issuer: Circle) |
+| **EURI** | Euro | MiCA-compliant |
 
-Do not hardcode USDT as the default stablecoin for EEA users. Use the Asset Status endpoint (`GET /api/v4/public/assets`) to check available currencies dynamically. Build currency selection logic that respects jurisdiction-specific restrictions.
+### MiCA integration guidance
+
+Do not hardcode USDT as the default stablecoin for EEA users. Use the [Asset Status endpoint](/api-reference/market-data/asset-status-list) (`GET /api/v4/public/assets`) to check available currencies dynamically. Build currency selection logic that respects jurisdiction-specific restrictions.
 
 **Source:** [Changes to USDT Services for EEA Users (Help Center)](https://help.whitebit.com/hc/en-gb/articles/23937597184413-Important-Update-Changes-to-USDT-Services-for-EEA-Users)
 
@@ -39,17 +45,23 @@ Do not hardcode USDT as the default stablecoin for EEA users. Use the Asset Stat
 
 The following platform-level thresholds apply to EEA users under MiCA. Any integration should account for the possibility that end users may encounter additional verification steps at these levels:
 
-| Threshold | Platform behaviour |
+| Threshold | Platform behavior |
 |-----------|-------------------|
-| > 1,000 EUR | Anonymous transactions prohibited — KYC required |
+| > 1,000 EUR | Anonymous transactions prohibited — know-your-customer (KYC) verification required |
 | ≥ 10,000 EUR per transaction | Additional verification checks may apply |
 | > 50,000 EUR annually | Enhanced due diligence required |
 
 Only fiat-backed stablecoins (e.g., USDC, EURI) are permitted under MiCA. Algorithmic stablecoins are not allowed for EEA accounts.
 
-## Travel Rule: EEA Crypto Withdrawals
+## Travel Rule: EEA crypto withdrawals
 
-Since **May 19, 2025**, crypto withdrawals from EEA accounts (and Turkey) require a `travelRule` object in the withdrawal request body. The requirement implements the FATF Travel Rule for Virtual Asset Service Providers (VASPs).
+Since **May 19, 2025**, crypto withdrawals from EEA accounts (and Turkey) require a `travelRule` object in the withdrawal request body. The requirement implements the Financial Action Task Force (FATF) Travel Rule for Virtual Asset Service Providers (VASPs).
+
+<Note>
+  The Travel Rule API endpoints are not available to all accounts. To request access, contact the
+  assigned Account Manager or email institutional@whitebit.com. See the
+  [Travel Rule overview](/api-reference/travel-rule/overview) for details.
+</Note>
 
 ### Timeline
 
@@ -58,29 +70,49 @@ Since **May 19, 2025**, crypto withdrawals from EEA accounts (and Turkey) requir
 | May 18, 2025 | New deposit status codes (27, 28) activated |
 | May 19, 2025 | Travel Rule enforcement activated for withdrawals |
 
-### Withdrawal Request: travelRule Object
+### Withdrawal request: travelRule object
 
-The `travelRule` object is required on `POST /api/v4/main-account/withdraw` for crypto withdrawals from EEA accounts.
+The `travelRule` object is required on [`POST /api/v4/main-account/withdraw`](/api-reference/account-wallet/create-withdraw-request) for crypto withdrawals from EEA accounts (and Turkey). The object uses a structured format:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `type` | string | Yes (EEA crypto) | Receiver type. Values: `"individual"` or `"entity"` |
-| `vasp` | string | Yes (EEA crypto) | Destination platform (VASP) name. Example: `"Binance"` |
-| `name` | string | Yes (EEA crypto) | If `type` = `"individual"`: first name. If `type` = `"entity"`: entity name. |
-| `address` | string | Yes (EEA crypto) | If `type` = `"individual"`: last name. If `type` = `"entity"`: entity address. |
+| Parameter | Description |
+|-----------|-------------|
+| `walletType` | Destination wallet type: `hosted` (VASP-hosted — exchange or custodian) or `unhosted` (self-custody wallet) |
+| `beneficiary` | Receiver details: `type` (`individual` or `entity`), `firstName` and `lastName` (individual) or `fullName` (entity), `residenceCountry`, and an `address` object |
+| `vaspData` | Required when `walletType` is `hosted`: `vaspId` from the [Get VASPs](/api-reference/travel-rule/get-vasps) endpoint, or `vaspName` when the destination VASP is not in the list |
 
-<Note>
-  Despite the field names, `name` contains the **first name** (or entity name) and `address`
-  contains the **last name** (or entity address) -- not a physical address. The mapping matches the
-  OpenAPI spec field descriptions.
-</Note>
+For the complete field-level reference, see the [withdraw endpoint](/api-reference/account-wallet/create-withdraw-request) and the [Travel Rule concept page](/concepts/travel-rule).
 
-### Code Example: Withdrawal with Travel Rule
+<Warning>
+  The API still accepts a legacy flat format (`type`, `vasp`, `name`, `address`), but withdrawals
+  submitted in the legacy format **do not pass Travel Rule verification**. Use the structured
+  format for all integrations and migrate existing ones — see the
+  [legacy field mapping](/concepts/travel-rule#legacy-format-withdrawals-only) for the migration.
+</Warning>
+
+### Code example: withdrawal with Travel Rule
+
+The flow: collect the beneficiary and destination-wallet details from the end user first, then submit the withdrawal with the `travelRule` object attached.
+
+```mermaid
+sequenceDiagram
+    participant User as End user
+    participant Partner as Partner backend
+    participant WB as WhiteBIT API
+
+    User->>Partner: withdrawal request
+    Partner->>User: collect beneficiary and destination wallet details
+    Partner->>WB: POST /api/v4/main-account/withdraw (travelRule object)
+    alt travelRule object included
+        WB-->>Partner: withdrawal accepted
+    else travelRule object missing
+        WB-->>Partner: request rejected
+    end
+```
 
 <Tabs>
   <Tab title="cURL">
     ```bash
-    # EEA crypto withdrawal with Travel Rule (individual)
+    # EEA crypto withdrawal with Travel Rule (individual, hosted wallet)
     curl -X POST https://whitebit.com/api/v4/main-account/withdraw \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
@@ -90,12 +122,18 @@ The `travelRule` object is required on `POST /api/v4/main-account/withdraw` for 
         "ticker": "ETH",
         "amount": "0.5",
         "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18",
-        "unique_id": "withdrawal-001",
+        "uniqueId": "withdrawal-001",
         "travelRule": {
-          "type": "individual",
-          "vasp": "Binance",
-          "name": "John",
-          "address": "Doe"
+          "walletType": "hosted",
+          "beneficiary": {
+            "type": "individual",
+            "firstName": "John",
+            "lastName": "Doe",
+            "residenceCountry": "DEU"
+          },
+          "vaspData": {
+            "vaspId": "vasp-001"
+          }
         },
         "request": "/api/v4/main-account/withdraw",
         "nonce": 1709340000000
@@ -104,111 +142,114 @@ The `travelRule` object is required on `POST /api/v4/main-account/withdraw` for 
   </Tab>
   <Tab title="Python">
     ```python
-    import requests, json, hmac, hashlib, base64, time
-
-    API_KEY = "YOUR_API_KEY"
-    API_SECRET = "YOUR_SECRET"
-    BASE_URL = "https://whitebit.com"
-
-    def make_request(endpoint, body):
-        nonce = int(time.time() * 1000)
-        body["request"] = endpoint
-        body["nonce"] = nonce
-        data_json = json.dumps(body)
-        payload = base64.b64encode(data_json.encode())
-        signature = hmac.new(
-            API_SECRET.encode(), payload, hashlib.sha512
-        ).hexdigest()
-        headers = {
-            "Content-Type": "application/json",
-            "X-TXC-APIKEY": API_KEY,
-            "X-TXC-PAYLOAD": payload.decode(),
-            "X-TXC-SIGNATURE": signature,
-        }
-        return requests.post(f"{BASE_URL}{endpoint}", headers=headers, data=data_json)
-
-    # EEA crypto withdrawal with Travel Rule (individual)
-    response = make_request("/api/v4/main-account/withdraw", {
+    # EEA crypto withdrawal with Travel Rule (individual, hosted wallet).
+    # Request body for POST /api/v4/main-account/withdraw:
+    body = {
         "ticker": "ETH",
         "amount": "0.5",
         "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18",
-        "unique_id": "withdrawal-001",
+        "uniqueId": "withdrawal-001",
         "travelRule": {
-            "type": "individual",
-            "vasp": "Binance",
-            "name": "John",
-            "address": "Doe",
+            "walletType": "hosted",
+            "beneficiary": {
+                "type": "individual",
+                "firstName": "John",
+                "lastName": "Doe",
+                "residenceCountry": "DEU",
+            },
+            "vaspData": {"vaspId": "vasp-001"},
         },
-    })
-    print(response.json())
+    }
+    # To send: add "request" and "nonce" to the body, serialize with compact
+    # separators (the server rejects spaced JSON), sign with HMAC-SHA512, and
+    # send with the X-TXC-APIKEY / X-TXC-PAYLOAD / X-TXC-SIGNATURE headers —
+    # implementation in the First API Call guide linked below.
     ```
   </Tab>
 </Tabs>
+
+[First API Call](/guides/first-api-call) documents the signing details (payload construction, nonce, and headers).
 
 For Go and PHP examples, see [SDKs](/sdks).
 
 **Entity example:**
 
-For entity withdrawals, set `type` to `"entity"`, `name` to the entity name, and `address` to the entity address:
+For entity withdrawals, set `beneficiary.type` to `"entity"` and provide the legal name in `fullName`:
 
 ```json
 "travelRule": {
-  "type": "entity",
-  "vasp": "Kraken",
-  "name": "Acme Corp",
-  "address": "123 Business Street, London, UK"
+  "walletType": "hosted",
+  "beneficiary": {
+    "type": "entity",
+    "fullName": "Acme Trading Ltd",
+    "residenceCountry": "DEU"
+  },
+  "vaspData": {
+    "vaspName": "Famous Vasp Inc"
+  }
 }
 ```
 
-### Deposit Status Codes
+### Deposit status codes
 
-Two new deposit status codes indicate Travel Rule verification in progress.
+Two deposit status codes indicate Travel Rule verification in progress. Travel Rule deposit holds apply to EEA and Turkey accounts.
 
-| Status Code | Name | Description |
+| Status code | Name | Description |
 |-------------|------|-------------|
-| 27 | `DEPOSIT_TRAVEL_RULE_FROZEN` | Deposit frozen pending Travel Rule verification |
+| 27 | `DEPOSIT_TRAVEL_RULE_FROZEN` | Deposit frozen — awaiting Travel Rule verification |
 | 28 | `DEPOSIT_TRAVEL_RULE_FROZEN_PROCESSING` | Travel Rule verification in progress |
 
-Deposits with status 27 or 28 are not credited to the account balance until Travel Rule verification completes. Build deposit monitoring logic to handle status codes 27 and 28 gracefully -- do not treat frozen deposits as failed deposits.
+Deposits with status 27 or 28 are not credited to the account balance until Travel Rule verification completes. Build deposit monitoring logic to handle status codes 27 and 28 gracefully — do not treat frozen deposits as failed deposits.
 
-### Integration Guidance
+To resolve a frozen deposit: when the Travel Rule API is enabled for the account, submit the required data via [Submit deposit verification](/api-reference/travel-rule/submit-deposit-verification); otherwise the depositor provides the data manually through the WhiteBIT interface.
 
-Partners must collect beneficiary information (type, VASP name, name, address) from end users **before** submitting withdrawal requests. Withdrawal requests from EEA accounts that omit the `travelRule` object will be rejected.
+### Travel Rule integration guidance
+
+Partners must collect beneficiary information (wallet type, beneficiary details, VASP identification) from end users **before** submitting withdrawal requests. The server rejects withdrawal requests from EEA (and Turkey) accounts that omit the `travelRule` object.
 
 **Source:** [Travel Rule Requirements (Help Center)](https://help.whitebit.com/hc/en-gb/articles/24093241373341-Travel-Rule-Requirements-Updates-to-Crypto-Withdrawals-Interface-and-API)
 
-## Data Processing & Privacy
+## Data processing and privacy
 
-- **Data residency:** Data processed in the European Union. Data Processing Agreement (DPA) available on request.
-- **GDPR:** WhiteBIT processes data in accordance with the General Data Protection Regulation (GDPR). GDPR is a European regulation, not a certification.
+- **Data residency:** WhiteBIT processes data in the European Union. A Data Processing Agreement (DPA) is available on request.
+- **GDPR:** WhiteBIT processes data in accordance with the General Data Protection Regulation (GDPR).
 - **Sub-processors:** For the current list of sub-processors, contact compliance@whitebit.com.
 - **Data retention:** For data retention policies, contact compliance@whitebit.com.
 
-## Certifications & Audits
+## Certifications and audits
 
 | Certification | Details |
-|--------------|---------|
+|---------------|---------|
 | ISO 27001 | Information security management. Audited by Hacken. |
 | PCI DSS Level 1 | Payment card data security. Audited by Hacken. |
 | CCSS Level 3 | Cryptocurrency Security Standard. Audited by Hacken. |
 
 For certificate numbers, issuing bodies, and validity dates, contact institutional@whitebit.com. Independent verification is available on request.
 
-## VASP Registrations
+## VASP registrations
 
 WhiteBIT holds VASP registrations in multiple jurisdictions. For a complete list of registration jurisdictions, supervising authorities, and registration numbers, contact compliance@whitebit.com.
 
 {/* If specific jurisdictions become available from the legal team, list them here in a table: Jurisdiction | Registration Number | Supervising Authority */}
 
-## Restricted Jurisdictions
+## Restricted jurisdictions
 
 For a current list of restricted and prohibited jurisdictions, contact compliance@whitebit.com.
 
 {/* If the restricted jurisdictions list is published, add it here. The compliance persona flagged this as a critical gap. */}
 
-## Compliance Requirements May Expand
+## Regulatory scope
 
-Regulatory requirements are evolving. Travel Rule enforcement and MiCA restrictions currently apply to EEA accounts (and Turkey for Travel Rule). Additional jurisdictions may be added. Monitor the [WhiteBIT Help Center](https://help.whitebit.com/hc/en-gb) and the Changelog for updates.
+Regulatory requirements are evolving. Travel Rule enforcement and MiCA restrictions currently apply to EEA accounts (and Turkey for Travel Rule). WhiteBIT may extend enforcement to additional jurisdictions. Monitor the [WhiteBIT Help Center](https://help.whitebit.com/hc/en-gb) and the [Changelog](/changelog) for updates.
+
+{/* SME pending (2026-07-05): confirm whether withdrawal-side travelRule enforcement includes Turkey — deposit-side holds do (openapi/private/main_api_v4.yaml deposit-hold description). */}
+
+## Contact
+
+- **compliance@whitebit.com** — DPA requests, sub-processor lists, data retention policies, VASP registration details, and restricted-jurisdiction confirmations
+- **institutional@whitebit.com** — certificate verification, Travel Rule API access, and institutional onboarding
+
+Include the account jurisdiction, the partner type, and the specific request in the first message to avoid an extra clarification round-trip.
 
 ## What's Next
 
@@ -220,5 +261,3 @@ Regulatory requirements are evolving. Travel Rule enforcement and MiCA restricti
     Step-by-step institutional onboarding process.
   </Card>
 </CardGroup>
-
-For Go and PHP examples, see [SDKs](/sdks).

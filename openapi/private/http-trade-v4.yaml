@@ -348,6 +348,17 @@ paths:
                   default: false
                   description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
+                stp:
+                  type: string
+                  enum: [no, cb, cn, co]
+                  default: no
+                  description: |
+                    Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+                    Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+                    See [Self-Trade Prevention](/platform/self-trade-prevention).
+                  example: "no"
                 request:
                   type: string
                   example: "{{request}}"
@@ -438,7 +449,7 @@ paths:
                     $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
-                    description: Self trade prevention mode
+                    description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                     example: "no"
                   oto:
                     type: object
@@ -748,7 +759,7 @@ paths:
                           $ref: '#/components/schemas/ActiveOrderStatus'
                         stp:
                           type: string
-                          description: Self trade prevention mode
+                          description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                           example: "no"
                         positionSide:
                           type: string
@@ -937,6 +948,17 @@ paths:
                   default: false
                   description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
+                stp:
+                  type: string
+                  enum: [no, cb, cn, co]
+                  default: no
+                  description: |
+                    Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+                    Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+                    See [Self-Trade Prevention](/platform/self-trade-prevention).
+                  example: "no"
                 request:
                   type: string
                   example: "{{request}}"
@@ -1008,7 +1030,7 @@ paths:
                     $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
-                    description: Self trade prevention mode
+                    description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                     example: "no"
                   oto:
                     type: object
@@ -1164,6 +1186,17 @@ paths:
                   default: false
                   description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
+                stp:
+                  type: string
+                  enum: [no, cb, cn, co]
+                  default: no
+                  description: |
+                    Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+                    Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+                    See [Self-Trade Prevention](/platform/self-trade-prevention).
+                  example: "no"
                 request:
                   type: string
                   example: "{{request}}"
@@ -1248,7 +1281,7 @@ paths:
                     $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
-                    description: Self trade prevention mode
+                    description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                     example: "no"
                   oto:
                     type: object
@@ -1406,6 +1439,17 @@ paths:
                   default: false
                   description: "When `true`, the order can only reduce or close an existing position — the order cannot increase the position or open a new one. If the order amount exceeds the current position size, the system reduces the order to match — the response returns the adjusted amount. Cannot be combined with `stopLoss` or `takeProfit`. The API returns error code `116` if no open position exists or the order side matches the position direction. See [reduce-only](/glossary#reduce-only)."
                   example: false
+                stp:
+                  type: string
+                  enum: [no, cb, cn, co]
+                  default: no
+                  description: |
+                    Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+                    Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+                    See [Self-Trade Prevention](/platform/self-trade-prevention).
+                  example: "no"
                 request:
                   type: string
                   example: "{{request}}"
@@ -1482,7 +1526,7 @@ paths:
                     $ref: '#/components/schemas/ActiveOrderStatus'
                   stp:
                     type: string
-                    description: Self trade prevention mode
+                    description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                     example: "no"
                   oto:
                     type: object
@@ -3113,6 +3157,17 @@ paths:
                     - **One-way mode** (default account mode): the field is ignored. Orders always use `BOTH`, and the response returns `positionSide: "BOTH"` on each leg whether the field is sent or omitted.
                     - **Hedge mode**: the field MUST be `LONG` or `SHORT`. Sending `BOTH`, omitting the field, or sending a value that does not match the account's mode causes the trade service to reject the order with error code `114` (`Hedge mode position side does not match`).
                   example: "LONG"
+                stp:
+                  type: string
+                  enum: [no, cb, cn, co]
+                  default: no
+                  description: |
+                    Self-trade prevention mode. The value applies to both legs of the OCO order. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+                    Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+                    See [Self-Trade Prevention](/platform/self-trade-prevention).
+                  example: "no"
                 request:
                   type: string
                   example: "{{request}}"
@@ -3235,7 +3290,7 @@ paths:
                         $ref: '#/components/schemas/ActiveOrderStatus'
                       stp:
                         type: string
-                        description: Self trade prevention mode
+                        description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                         example: "no"
                       positionSide:
                         type: string
@@ -3316,7 +3371,7 @@ paths:
                         $ref: '#/components/schemas/ActiveOrderStatus'
                       stp:
                         type: string
-                        description: Self trade prevention mode
+                        description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                         example: "no"
                       positionSide:
                         type: string
@@ -3630,7 +3685,7 @@ paths:
                         $ref: '#/components/schemas/OrderStatus'
                       stp:
                         type: string
-                        description: Self trade prevention mode
+                        description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                         example: "no"
                   take_profit:
                     type: object
@@ -3698,7 +3753,7 @@ paths:
                         $ref: '#/components/schemas/OrderStatus'
                       stp:
                         type: string
-                        description: Self trade prevention mode
+                        description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
                         example: "no"
               example:
                 id: 117703764513
@@ -6189,7 +6244,7 @@ paths:
         </Note>
 
         <Note>
-        For B2B accounts, canceled order recording is disabled by default. To include canceled orders in the history, contact support to enable canceled order storage.
+        For B2B accounts, canceled orders are not recorded in the history. To obtain canceled-order data, contact support or the assigned account manager.
         </Note>
 
         <Accordion title="Errors">
@@ -6326,6 +6381,10 @@ paths:
 
         <Note>
         An unknown or not-owned `orderId` is **not** an error. The endpoint always returns HTTP 200 with the paged-list envelope; a non-matching `orderId` simply filters down to an empty `records` array.
+        </Note>
+
+        <Note>
+        The endpoint can retrieve data not older than 6 months from the current month. For older data, use the Report on the History page. An order older than this window returns an empty `records` array even when the order was filled.
         </Note>
 
         <Accordion title="Error Codes">
@@ -6491,7 +6550,7 @@ paths:
         </Note>
 
         <Note>
-        For B2B accounts, canceled order recording is disabled by default. To include canceled orders in the history, contact support to enable canceled order storage.
+        For B2B accounts, canceled orders are not recorded in the history. To obtain canceled-order data, contact support or the assigned account manager.
         </Note>
 
         <Accordion title="Errors">
@@ -7204,9 +7263,14 @@ components:
           description: "Best Bid/Offer ([BBO](/glossary#bbo)) execution method. The system selects the best market price for execution. `1` = Queue method, `2` = Counterparty method. Use method `2` with the `ioc` flag."
         stp:
           type: string
-          enum: [no, cancel_both, cancel_new, cancel_old]
+          enum: [no, cb, cn, co]
           default: no
-          description: "Self-trade prevention mode. Allowed values: `no`, `cancel_both`, `cancel_new`, `cancel_old`. Default: `no`."
+          description: |
+            Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+            Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+            See [Self-Trade Prevention](/platform/self-trade-prevention).
           example: "no"
         rpi:
           type: boolean
@@ -7270,9 +7334,14 @@ components:
           example: "order1987111"
         stp:
           type: string
-          enum: [no, cancel_both, cancel_new, cancel_old]
+          enum: [no, cb, cn, co]
           default: no
-          description: "Self-trade prevention mode. Allowed values: `no`, `cancel_both`, `cancel_new`, `cancel_old`. Default: `no`."
+          description: |
+            Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+            Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+            See [Self-Trade Prevention](/platform/self-trade-prevention).
           example: "no"
         request:
           type: string
@@ -7323,9 +7392,14 @@ components:
           description: "Best Bid/Offer ([BBO](/glossary#bbo)) execution method. The system selects the best market price for execution after the stop triggers. `1` = Queue method, `2` = Counterparty method."
         stp:
           type: string
-          enum: [no, cancel_both, cancel_new, cancel_old]
+          enum: [no, cb, cn, co]
           default: no
-          description: "Self-trade prevention mode. Allowed values: `no`, `cancel_both`, `cancel_new`, `cancel_old`. Default: `no`."
+          description: |
+            Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+            Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+            See [Self-Trade Prevention](/platform/self-trade-prevention).
           example: "no"
         request:
           type: string
@@ -7362,9 +7436,14 @@ components:
           example: "order1987111"
         stp:
           type: string
-          enum: [no, cancel_both, cancel_new, cancel_old]
+          enum: [no, cb, cn, co]
           default: no
-          description: "Self-trade prevention mode. Allowed values: `no`, `cancel_both`, `cancel_new`, `cancel_old`. Default: `no`."
+          description: |
+            Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+            Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+            See [Self-Trade Prevention](/platform/self-trade-prevention).
           example: "no"
         request:
           type: string
@@ -7406,9 +7485,14 @@ components:
           example: "order1987111"
         stp:
           type: string
-          enum: [no, cancel_both, cancel_new, cancel_old]
+          enum: [no, cb, cn, co]
           default: no
-          description: "Self-trade prevention mode. Allowed values: `no`, `cancel_both`, `cancel_new`, `cancel_old`. Default: `no`."
+          description: |
+            Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+            Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+            See [Self-Trade Prevention](/platform/self-trade-prevention).
           example: "no"
         request:
           type: string
@@ -7542,7 +7626,7 @@ components:
           $ref: '#/components/schemas/OrderStatus'
         stp:
           type: string
-          description: "Self-trade prevention mode. Possible values: `no`, `cancel_both`, `cancel_new`, `cancel_old`. Default: `no`."
+          description: "Self-trade prevention mode applied to the order. Possible values: `no`, `cb`, `cn`, `co`. The response always returns the abbreviated form, even when the request used a legacy value. Default: `no`."
           example: "no"
         positionSide:
           type: string

@@ -117,53 +117,30 @@ Estimate a BTC-to-USDT conversion and confirm the quote.
   </Tab>
   <Tab title="Python">
     ```python
-    import time
-    import json
-    import hmac
-    import hashlib
-    import base64
-    import requests
-
-    API_KEY = "YOUR_API_KEY"
-    SECRET = "YOUR_SECRET"
-    BASE_URL = "https://whitebit.com"
-
-    def send_request(path, data):
-        data["request"] = path
-        data["nonce"] = int(time.time() * 1000)
-        payload = base64.b64encode(json.dumps(data).encode())
-        signature = hmac.new(
-            SECRET.encode(), payload, hashlib.sha512
-        ).hexdigest()
-        headers = {
-            "X-TXC-APIKEY": API_KEY,
-            "X-TXC-PAYLOAD": payload.decode(),
-            "X-TXC-SIGNATURE": signature,
-            "Content-Type": "application/json",
-        }
-        return requests.post(BASE_URL + path, headers=headers, json=data)
-
-    # Step 1: Request a conversion estimate
-    estimate = send_request("/api/v4/convert/estimate", {
+    # Step 1: Request a conversion estimate.
+    # Request body for POST /api/v4/convert/estimate:
+    estimate_body = {
         "from": "BTC",
         "to": "USDT",
         "direction": "from",
         "amount": "1",
-    })
-    estimate_data = estimate.json()
-    print("Quote ID:", estimate_data["id"])
-    print("Rate:", estimate_data["rate"])
+    }
+    # The response returns id, give, receive, rate, and expireAt.
 
-    # Step 2: Confirm the quote
-    confirm = send_request("/api/v4/convert/confirm", {
-        "quoteId": estimate_data["id"],
-    })
-    confirm_data = confirm.json()
-    print("Final give:", confirm_data["finalGive"])
-    print("Final receive:", confirm_data["finalReceive"])
+    # Step 2: Confirm before expireAt, quoting the estimate id.
+    # Request body for POST /api/v4/convert/confirm:
+    confirm_body = {
+        "quoteId": "123",  # id from the estimate response
+    }
+    # To send: add "request" and "nonce" to the body, serialize with compact
+    # separators (the server rejects spaced JSON), sign with HMAC-SHA512, and
+    # send with the X-TXC-APIKEY / X-TXC-PAYLOAD / X-TXC-SIGNATURE headers —
+    # implementation in the First API Call guide linked below.
     ```
   </Tab>
 </Tabs>
+
+[First API Call](/guides/first-api-call) documents the signing details (payload construction, nonce, and headers).
 
 For Go and PHP examples, see [SDKs](/sdks).
 

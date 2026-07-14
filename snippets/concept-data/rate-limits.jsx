@@ -24,6 +24,7 @@ export const endpointLimits = [
   { endpoint: "POST /api/v4/collateral-account/balance", method: "POST", limit: 12000 },
   { endpoint: "POST /api/v4/order/collateral/limit", method: "POST", limit: 10000 },
   { endpoint: "POST /api/v4/order/collateral/bulk", method: "POST", limit: 10000 },
+  { endpoint: "POST /api/v4/main-account/history", method: "POST", limit: 200 },
 ];
 
 export const exceededBehavior = {

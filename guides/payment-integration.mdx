@@ -1,6 +1,6 @@
 ---
 title: "Payment Integration"
-description: "Crypto deposits, withdrawals, withdrawals with currency conversion, fiat SEPA operations, and WhiteBIT Codes — status state machines, fee calculation, and webhook reconciliation."
+description: "Crypto deposits, withdrawals, withdrawals with currency conversion, fiat operations (SEPA and card providers), and WhiteBIT Codes — status state machines, fee calculation, and webhook reconciliation."
 sidebarTitle: "Payment Integration"
 ---
 
@@ -8,15 +8,23 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-The Payment Integration guide covers every step required to move funds into and out of WhiteBIT programmatically — crypto deposits, crypto withdrawals, crypto withdrawals with currency conversion, fiat (SEPA) operations, and WhiteBIT Codes. Each section includes the full transaction lifecycle, status state machine, fee calculation, and webhook events.
+Move funds into and out of WhiteBIT programmatically: generate deposit addresses, submit crypto and fiat withdrawals, convert between currencies before withdrawing, and settle between accounts with WhiteBIT Codes. Each flow documents the transaction lifecycle, status state machine, fee calculation, and webhook events, where each applies.
 
 <Warning>
-  **EEA users:** USDT deposits and withdrawals are not available since December 30, 2024 (MiCA compliance). Use USDC or EURI as alternatives. See [Regulatory Compliance](/institutional/compliance) for details.
+  **EEA users:** USDT deposits and withdrawals have been unavailable since December 30, 2024 (MiCA compliance). Use USDC or EURI as alternatives. See [Regulatory Compliance](/institutional/compliance) for details.
 </Warning>
+
+## Prerequisites
+
+Before integrating any flow on this page:
+
+- **API key** — create an API key with the required permissions in the WhiteBIT dashboard. Every endpoint on this page requires [HMAC-signed requests](/api-reference/authentication) (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE` headers). Store the secret per [Security Best Practices](/best-practices/security).
+- **Webhook URL** — configure the webhook endpoint in the API key settings to receive transaction notifications. See [Webhooks](/platform/webhook).
+- **Fiat access** — fiat operations additionally require completed [institutional onboarding](/institutional/onboarding) with approved fiat access.
 
 ## Use cases
 
-Common partner-integration scenarios. Each links to the relevant per-endpoint tabs below for the API reference.
+Three scenarios cover the most common partner integrations. Each closes with a link to the tab documenting the endpoints.
 
 ### UC1 — Payment provider with per-end-user deposit address
 
@@ -30,7 +38,7 @@ sequenceDiagram
     participant W as WhiteBIT API
     participant B as Blockchain
 
-    P->>W: POST /api/v4/main-account/create-new-address (ticker, network)
+    P->>W: POST /api/v4/main-account/create-new-address
     W-->>P: 201 — unique address (+ memo if applicable)
     P->>U: Show deposit address + QR
     U->>B: Send funds to address
@@ -41,9 +49,9 @@ sequenceDiagram
     P->>P: Match by address / uniqueId → credit customer
 ```
 
-See the [Crypto Deposits](#crypto-deposits) tab for endpoint detail.
+See the [Crypto Deposits tab](#deposit-address-generation) for endpoint detail.
 
-### UC3 — EEA crypto withdrawal with Travel Rule
+### UC2 — EEA crypto withdrawal with Travel Rule
 
 A partner serving EEA end users submits withdrawals with the required `travelRule` object. The withdrawal goes through compliance review before on-chain broadcast.
 
@@ -57,9 +65,9 @@ sequenceDiagram
     participant V as Destination VASP
 
     Note over P,W: Travel Rule applies to all crypto withdrawals from EEA accounts.
-    U->>P: Provide destination address + beneficiary details (walletType, VASP, identity)
-    P->>W: POST /api/v4/main-account/withdraw with travelRule object
-    Note right of P: travelRule: walletType, beneficiary,<br/>vaspData (vaspId or vaspName)
+    U->>P: Provide destination address + beneficiary details
+    P->>W: POST /api/v4/main-account/withdraw with Travel Rule data
+    Note right of P: Travel Rule data: wallet type,<br/>beneficiary, VASP identification
     W-->>P: HTTP 201 — withdrawal created
     W->>P: webhook: withdraw.unconfirmed
     W->>C: Review beneficiary data
@@ -68,7 +76,7 @@ sequenceDiagram
         W->>P: webhook: withdraw.pending (status in 1, 2, 6, 10–17)
         W->>V: On-chain broadcast to destination VASP wallet
         W->>P: webhook: withdraw.successful (status 3 — terminal)
-        P->>P: Reconcile by uniqueId → mark customer withdrawal complete
+        P->>P: Reconcile by unique identifier → mark customer withdrawal complete
     else Rejected
         C-->>W: Rejected
         W->>P: webhook: withdraw.canceled (status 4)
@@ -76,9 +84,9 @@ sequenceDiagram
     end
 ```
 
-See the [Crypto Withdrawals](#crypto-withdrawals) tab for endpoint detail.
+See the [Crypto Withdrawals tab](#create-a-withdrawal) for endpoint detail.
 
-### UC4 — Crypto payout with conversion
+### UC3 — Crypto payout with conversion
 
 When the partner holds one currency in Main balance but needs to send another, request a conversion quote, confirm it, and submit the withdrawal. The convert service handles balance routing internally; no manual Main↔Trade transfers are required.
 
@@ -89,19 +97,19 @@ sequenceDiagram
     participant W as WhiteBIT API
     participant B as Blockchain
 
-    P->>W: POST /api/v4/main-account/balance (source ticker)
+    P->>W: POST /api/v4/main-account/balance
     W-->>P: Available balance
-    P->>W: POST /api/v4/convert/estimate (from, to, direction, amount)
-    W-->>P: Quote id + rate + expireAt
-    P->>W: POST /api/v4/convert/confirm (quoteId)
-    W-->>P: finalReceive (converted amount)
-    P->>W: POST /api/v4/main-account/withdraw (target ticker, destination address, uniqueId)
+    P->>W: POST /api/v4/convert/estimate
+    W-->>P: Quote identifier + rate + expiry
+    P->>W: POST /api/v4/convert/confirm
+    W-->>P: Converted amount
+    P->>W: POST /api/v4/main-account/withdraw (converted currency, destination address)
     W-->>P: HTTP 201
     W->>B: On-chain broadcast
     W->>P: webhook: withdraw.successful (terminal)
 ```
 
-See the [Withdrawal with Conversion](#withdrawal-with-conversion) tab for endpoint detail.
+See the [Withdrawal with Conversion tab](#conversion-in-the-withdrawal-flow) for endpoint detail.
 
 <Tabs>
   <Tab title="Crypto Deposits">
@@ -115,9 +123,8 @@ Generate a deposit address by calling `POST /api/v4/main-account/address`. See t
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ticker` | string | Currency ticker (e.g., `BTC`, `ETH`). The currency must have `can_deposit: true` in the [Asset Status](/api-reference/market-data/asset-status-list) response. |
-| `network` | string | Cryptocurrency network (e.g., `ERC20`, `TRC20`). Required for multi-network currencies like USDT. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint for available networks per currency. |
 
-**Optional parameters:** `type` (address-type selector — confirm valid values with the institutional team before integrating).
+**Optional parameters:** `network` — cryptocurrency network (e.g., `ERC20`, `TRC20`). Required for multi-network currencies like USDT; omit for single-network currencies. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint for available networks per currency.
 
 The endpoint returns the same address for the same ticker and network combination on repeated calls — addresses are permanent and reusable, not ephemeral.
 
@@ -206,14 +213,17 @@ The `POST /api/v4/main-account/address` endpoint above returns the same address 
   The `/create-new-address` endpoint is not available by default. Contact support@whitebit.com to request access.
 </Warning>
 
+<Note>
+  For sub-accounts, crypto deposits are disabled by default. To enable deposits, contact the assigned Account Manager or institutional@whitebit.com.
+</Note>
+
 **Required parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ticker` | string | Currency ticker (e.g., `BTC`, `ETH`) |
-| `network` | string | Cryptocurrency network (e.g., `ERC20`, `TRC20`). Required for multi-network currencies. |
 
-**Optional parameters:** `type` (address-type selector — confirm valid values with the institutional team before integrating).
+**Optional parameters:** `network` (required for multi-network currencies; for USDT the default network is `ERC20`), `type` (address type for currencies that support several formats — BTC and LTC accept `p2sh-segwit` and `bech32`; the default is `bech32`).
 
 **Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
 
@@ -245,7 +255,7 @@ The `POST /api/v4/main-account/address` endpoint above returns the same address 
   </Tab>
 </Tabs>
 
-**Choosing between the two endpoints:** The choice depends on the partner's reconciliation model. If the partner manages one consolidated wallet per asset (treasury / market-maker / single-merchant), use `/address` — repeat calls return the same address, simplifying address management. If the partner assigns one address per end customer (payment provider / per-user wallet), use `/create-new-address` — repeat calls return fresh addresses, enabling deposit-amount-to-end-user mapping without bookkeeping.
+**Choosing between the two endpoints:** The choice depends on the partner's reconciliation model. Partners managing one consolidated wallet per asset (treasury, market-maker, single-merchant) use `/address`; repeat calls return the same address. Partners assigning one address per end customer (payment provider, per-user wallet) use `/create-new-address`; each call returns a fresh address, so an incoming deposit identifies the end user by address alone.
 
 | Endpoint | Behavior | Best for |
 |----------|----------|----------|
@@ -258,18 +268,18 @@ After funds arrive at a generated deposit address, the deposit passes through a 
 
 1. Address generated (`POST /api/v4/main-account/address`)
 2. Funds sent by the external party — mempool detection begins
-3. Confirmation tracking begins — `deposit.accepted` webhook fires, `confirmations.actual` < `confirmations.required`
-4. Confirmations reach the required threshold — `deposit.updated` webhook fires with updated `confirmations.actual`
+3. Confirmation tracking begins — `deposit.accepted` webhook fires while `confirmations.actual` is below `confirmations.required`
+4. Each confirmation-count change fires the `deposit.updated` webhook with the new `confirmations.actual` — this event tracks progress; it does not signal completion
 5. Deposit credited to Main balance — `deposit.processed` webhook fires — **terminal success state**
 6. OR: Deposit canceled — `deposit.canceled` webhook fires — **terminal failure state**
-7. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28). If the Travel Rule API is enabled, submit originator data via API to unfreeze; otherwise manual action at whitebit.com is required. See Travel Rule section below.
+7. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28). If the Travel Rule API is enabled, submit originator data via API to unfreeze; otherwise manual action at whitebit.com is required. See [Travel Rule](#travel-rule-eea-and-turkey) below.
 
 ## Deposit status state machine
 
 The deposit/withdraw history endpoint returns numeric status codes. The following table maps each code to the meaning and the corresponding webhook event.
 
 <Note>
-  Numeric status codes are namespaced by `transactionMethod`. The same code may mean different things for deposits (`transactionMethod: 1`) and withdrawals (`transactionMethod: 2`). Always interpret the code in the context of the transactionMethod that returned it.
+  Numeric status codes are namespaced by `transactionMethod`. The same code may mean different things for deposits (`transactionMethod: 1`) and withdrawals (`transactionMethod: 2`). Always interpret the code in the context of the `transactionMethod` that returned it.
 </Note>
 
 | Status | State | Webhook | Terminal? | Partner action | Description |
@@ -277,7 +287,7 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 15 | Pending | `deposit.accepted` | No | Wait for next webhook | Deposit detected, awaiting confirmations |
 | 15 | Updated | `deposit.updated` | No | Wait for next webhook | Confirmation count changed |
 | 3, 7 | Successful | `deposit.processed` | Yes | Credit end user, close watcher | Funds credited to Main balance |
-| 4, 9 | Canceled | `deposit.canceled` | Yes | Surface refund flow | Deposit canceled (refund may be available) |
+| 4, 9 | Canceled | `deposit.canceled` | Yes | Surface refund flow — see [Refund flow](#refund-flow) | Deposit canceled (refund may be available) |
 | 5 | Unconfirmed by user | — | No | Notify end user — manual action required at whitebit.com | Awaiting user action |
 | 21 | AML frozen | — | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit frozen by AML controls |
 | 22 | Uncredited | — | No | Wait — credit pending. Escalate to support if >24h | Detected but not credited |
@@ -285,14 +295,14 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
 
 <Note>
-  Use `POST /api/v4/main-account/history` with `transactionMethod: 1` and `status` filter to poll for deposits in specific states. See [Rate Limits](/api-reference/rate-limits) for the current enforced limit on this endpoint.
+  Use `POST /api/v4/main-account/history` with `transactionMethod: 1` and `status` filter to poll for deposits in specific states. See the [endpoint page](/api-reference/account-wallet/get-deposit-withdraw-history) for the current enforced rate limit.
 </Note>
 
 ## Network confirmations
 
-Each cryptocurrency network requires a different number of block confirmations before a deposit is credited.
+Each cryptocurrency network requires a different number of block confirmations before the platform credits a deposit.
 
-Webhook payloads include `confirmations.actual` and `confirmations.required` fields — use the `confirmations.required` value to determine when the deposit will complete. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint (`GET /api/v4/public/assets`) for per-currency confirmation requirements.
+Webhook payloads include `confirmations.actual` and `confirmations.required` fields — the `confirmations.required` value determines when the deposit completes. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint (`GET /api/v4/public/assets`) for per-currency confirmation requirements.
 
 Confirmation requirements vary by currency and network. Do not hardcode specific numbers — always retrieve the current values from the Asset Status endpoint.
 
@@ -300,12 +310,71 @@ Confirmation requirements vary by currency and network. Do not hardcode specific
 
 Crypto deposits credit the actual on-chain amount received; the system does not flag deposits as "underpaid" or "overpaid". If a partner expects an exact amount (e.g., for invoice matching), reconciliation logic must compare the deposit amount in the `deposit.processed` webhook against the expected amount and surface mismatches as application-level alerts.
 
+## Refund flow
+
+When a deposit is canceled (status 4 or 9), a refund may be available.
+
+**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/account-wallet/refund-deposit) for the full specification.
+
+**Prerequisites:**
+
+- The deposit must have status `canceled`.
+- Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface.
+
+**Required parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `transactionId` | string | Transaction UUID of the canceled deposit. |
+| `address` | string | Destination wallet address for the refund. |
+
+The refund `address` must satisfy three constraints:
+
+- The address must support the same network and asset as the original deposit.
+- The address must not be a WhiteBIT-generated deposit address (an address created by `/api/v4/main-account/address` or `/api/v4/main-account/create-new-address`) — the endpoint refunds to external addresses only.
+- The address does not need to match the original sender address.
+
+**Webhook events for refund outcomes:**
+
+- `refund.successful` — refund completed (includes `refundAmount`, `refundNetworkFee`, `refundHash`)
+- `refund.failed` — refund failed (the destination address does not support the required network or asset, or address validation fails; use a different address or contact support)
+
+**Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
+
+<Tabs>
+  <Tab title="curl">
+    ```bash
+    curl -X POST "https://whitebit.com/api/v4/main-account/refund-deposit" \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -d '{
+        "transactionId": "5e112b38-9e12-4345-a1b2-c3d4e5f67890",
+        "address": "bc1qRefundAddress1234567890abcdef",
+        "request": "/api/v4/main-account/refund-deposit",
+        "nonce": 1594297865000
+      }'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    response = send_request("/api/v4/main-account/refund-deposit", {
+        "transactionId": "5e112b38-9e12-4345-a1b2-c3d4e5f67890",
+        "address": "bc1qRefundAddress1234567890abcdef",
+    })
+    print(response.json())
+    ```
+  </Tab>
+</Tabs>
+
 ## Required endpoints for deposits
 
 | Endpoint | Purpose | API Reference |
 |----------|---------|---------------|
 | `POST /api/v4/main-account/create-new-address` | Generate a unique deposit address per user | [Create New Address](/api-reference/account-wallet/create-new-address-for-deposit) |
 | Webhooks (`deposit.accepted`, `deposit.updated`, `deposit.processed`) | Deposit status notifications | [Webhooks](/platform/webhook) |
+| `POST /api/v4/main-account/refund-deposit` | Refund a canceled deposit | [Refund Deposit](/api-reference/account-wallet/refund-deposit) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/fee` | Available currencies, networks, and deposit limits | [Get Fees](/api-reference/account-wallet/get-fees) |
@@ -316,7 +385,7 @@ Crypto deposits credit the actual on-chain amount received; the system does not 
 
 ## Travel Rule (EEA and Turkey)
 
-Since May 19, 2025, inbound crypto deposits for EEA and Turkey accounts are placed on hold until Travel Rule verification completes.
+Since May 18, 2025, WhiteBIT places inbound crypto deposits for EEA and Turkey accounts on hold until Travel Rule verification completes.
 
 - **Status 27** (`DEPOSIT_TRAVEL_RULE_FROZEN`): deposit frozen, awaiting Travel Rule data from the account holder
 - **Status 28** (`DEPOSIT_TRAVEL_RULE_FROZEN_PROCESSING`): Travel Rule data submitted, under review by WhiteBIT
@@ -343,10 +412,14 @@ Two withdrawal endpoints are available:
 | Endpoint | Fee Handling |
 |----------|-------------|
 | `POST /api/v4/main-account/withdraw` | Amount **includes** the fee — the receiver gets `amount - fee` |
-| `POST /api/v4/main-account/withdraw-pay` | Amount **excludes** the fee — the receiver gets the exact amount specified; the fee is charged on top |
+| `POST /api/v4/main-account/withdraw-pay` | Amount **excludes** the fee — the receiver gets the exact amount specified; the platform charges the fee on top |
+
+<Warning>
+  Crypto withdrawals cannot be reversed once broadcast on-chain. Verify the destination address and network before submitting the request — funds sent to a wrong address or an incompatible network are lost.
+</Warning>
 
 <Note>
-  **Internal-transfer routing:** When the destination `address` belongs to another WhiteBIT user, the platform routes the transfer as an internal off-chain transfer rather than an on-chain broadcast. Internal transfers are fee-free; the partner does not pay blockchain fees and the recipient sees the funds immediately. For partner-to-partner or master-to-sub-account settlement, consider [WhiteBIT Codes](#whitebit-codes) for fee-free transfers without requiring the destination address.
+  **Internal-transfer routing:** When the destination `address` belongs to another WhiteBIT user, the platform routes the transfer as an internal off-chain transfer rather than an on-chain broadcast. Internal transfers are fee-free; the partner does not pay blockchain fees and the recipient sees the funds immediately. For partner-to-partner or master-to-sub-account settlement, consider [WhiteBIT Codes](#whitebit-codes-overview) for fee-free transfers without requiring the destination address.
 </Note>
 
 **Required parameters:**
@@ -356,7 +429,7 @@ Two withdrawal endpoints are available:
 | `ticker` | string | Currency ticker (e.g., `BTC`, `ETH`) |
 | `amount` | string | Withdrawal amount |
 | `address` | string | Destination wallet address |
-| `uniqueId` | string | Unique transaction identifier — any unique string up to 255 characters per request. Not validated as a UUID format. |
+| `uniqueId` | string | Unique transaction identifier — any unique string up to 255 characters per request. The endpoint does not validate the value as a UUID. |
 
 **Optional parameters:** `network` (required for multi-network currencies), `memo` (for currencies requiring a memo or destination tag).
 
@@ -395,7 +468,7 @@ Two withdrawal endpoints are available:
 
 ## Travel Rule for EEA withdrawals
 
-Crypto withdrawals from EEA accounts require a `travelRule` object in the request body. The `travelRule` object is required when the currency is crypto AND the account is from the EEA.
+Crypto withdrawals from EEA accounts require a `travelRule` object in the request body. The object identifies the destination wallet and, for hosted wallets, the destination VASP (Virtual Asset Service Provider — the exchange or custodian hosting the receiving wallet).
 
 ### Structured format (recommended)
 
@@ -410,7 +483,7 @@ See [Travel Rule](/concepts/travel-rule) for the full schema reference and reque
 ### Legacy format (deprecated)
 
 <Warning>
-  The legacy flat format is still accepted but **will not pass Travel Rule verification**. Migrate to the structured format above for compliance.
+  The platform still accepts the legacy flat format, but legacy submissions **do not pass Travel Rule verification**. Migrate to the structured format above for compliance.
 </Warning>
 
 | Field | Type | Description |
@@ -426,17 +499,19 @@ See [Travel Rule — Legacy format](/concepts/travel-rule#legacy-format-withdraw
 
 After a withdrawal request is submitted, the system validates the request and begins processing.
 
-The `POST /api/v4/main-account/withdraw` endpoint returns HTTP 201 when validation succeeds. **API-initiated withdrawals are confirmed and processed immediately** — the signed request is the authentication. There is no interactive 2FA step between the POST response and the processing start.
+The `POST /api/v4/main-account/withdraw` endpoint returns HTTP 201 when validation succeeds. **The platform confirms and processes API-initiated withdrawals immediately** — the signed request is the authentication. There is no interactive 2FA step between the POST response and the processing start.
 
 **Exceptions to immediate processing:**
 
 - **Sub-account withdrawals** wait for main-account approval before processing.
-- **AML-blocked destination addresses** are frozen pending compliance review.
+- **Withdrawals to AML-blocked destination addresses** freeze pending compliance review.
 - **Temporary withdrawal freeze (3 days)** applies after a password reset or a 2FA setting change on the account.
 
 Status transitions follow the state machine below: unconfirmed → pending → successful or canceled. Webhook events track the full lifecycle.
 
-> **Coming soon for B2B partners:** IP-whitelisted API keys will gain a new security model. When a new IP is added to the whitelist, an email notification is sent to the account owner and withdrawals from that IP are frozen for 24 hours. Once the freeze period ends, IP-whitelisted API keys will be able to bypass withdrawal confirmation. This feature is not yet deployed. Contact institutional@whitebit.com to be notified when it is available.
+<Note>
+  A revised confirmation model for IP-whitelisted API keys is planned but not yet deployed. Contact institutional@whitebit.com for availability.
+</Note>
 
 ## Withdrawal status state machine
 
@@ -449,7 +524,7 @@ The withdrawal lifecycle progresses through the following states.
 | 3, 7 | Successful | `withdraw.successful` | Yes | Mark complete, close watcher | Withdrawal completed, funds sent |
 | 4 | Canceled | `withdraw.canceled` | Yes | Surface to operations | Withdrawal canceled |
 | 5 | Unconfirmed by user | — | No | Notify end user — manual action required | Awaiting user action |
-| 18 | Partially successful | `withdraw.partial_successful` | Partial | Reconcile against `requestAmount` / `processedAmount`; surface remainder to operations | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
+| 18 | Partially successful | `withdraw.partial_successful` | No | Reconcile against `requestAmount` / `processedAmount`; surface remainder to operations | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | — | No | Wait — under compliance review. Escalate to institutional team if >24h | Withdrawal frozen by AML controls |
 
 ## Fee calculation
@@ -466,7 +541,7 @@ Withdrawal fees combine a fixed component and a flexible (percentage-based) comp
 
 **Fee calculation formula:**
 
-```
+```text
 percentFee = amount * (percent / 100)
 flexComponent = clamp(percentFee, minFee, maxFee)
 totalFee = fixedFee + flexComponent
@@ -476,7 +551,7 @@ If `maxFee` is `"0"`, no ceiling applies.
 
 **Worked example — BTC withdrawal of 0.5 BTC:**
 
-```
+```text
 fixedFee = 0.0004 BTC
 flexFee: percent = 0, minFee = 0, maxFee = 0
 percentFee = 0.5 * 0 = 0
@@ -490,58 +565,6 @@ Using /withdraw-pay:  Sender pays  0.5004 BTC,  receiver gets 0.5 BTC
 <Note>
   Fee parameters vary by currency and network. Query the Asset Status endpoint (`GET /api/v4/public/assets`) for current fee values.
 </Note>
-
-## Refund flow
-
-When a deposit is canceled (status 4 or 9), a refund may be available.
-
-**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/account-wallet/refund-deposit) for the full specification.
-
-**Prerequisites:**
-
-- The deposit must have status `canceled`.
-- Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface.
-
-**Required parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `transactionId` | string | Transaction UUID of the canceled deposit. |
-| `address` | string | Destination wallet address for the refund. Must support the same network and asset as the original deposit. Must NOT be an address generated by `/api/v4/main-account/address` or `/api/v4/main-account/create-new-address` (no WhiteBIT-to-WhiteBIT refunds via this endpoint — use [Transfer Between Balances](/api-reference/account-wallet/transfer-between-balances) for internal transfers). Does not need to match the original sender address. |
-
-**Webhook events for refund outcomes:**
-
-- `refund.successful` — refund completed (includes `refundAmount`, `refundNetworkFee`, `refundHash`)
-- `refund.failed` — refund failed (address validation failure or network issue; use a different address or contact support)
-
-**Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
-
-<Tabs>
-  <Tab title="curl">
-    ```bash
-    curl -X POST "https://whitebit.com/api/v4/main-account/refund-deposit" \
-      -H "Content-Type: application/json" \
-      -H "X-TXC-APIKEY: YOUR_API_KEY" \
-      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-      -d '{
-        "transactionId": "5e112b38-9e12-4345-a1b2-c3d4e5f67890",
-        "address": "bc1qRefundAddress1234567890abcdef",
-        "request": "/api/v4/main-account/refund-deposit",
-        "nonce": 1594297865000
-      }'
-    ```
-  </Tab>
-  <Tab title="Python">
-    ```python
-    response = send_request("/api/v4/main-account/refund-deposit", {
-        "transactionId": "5e112b38-9e12-4345-a1b2-c3d4e5f67890",
-        "address": "bc1qRefundAddress1234567890abcdef",
-    })
-    print(response.json())
-    ```
-  </Tab>
-</Tabs>
 
 ## Required endpoints for withdrawals
 
@@ -559,24 +582,39 @@ When a deposit is canceled (status 4 or 9), a refund may be available.
 </Note>
 
   </Tab>
-  <Tab title="Fiat (SEPA)">
+  <Tab title="Fiat Operations">
 
 ## Prerequisites for fiat operations
 
 Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For broker-managed sub-account fiat scope and constraints, see the [Broker Program guide](/guides/broker-guide).
 
 <Warning>
-  Fiat operations require completion of institutional onboarding including KYB verification and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until fiat access is explicitly approved.
+  Fiat operations require completion of institutional onboarding including KYB (Know Your Business) verification and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until WhiteBIT explicitly approves fiat access.
 </Warning>
 
-The onboarding process has two phases: Phase 1 (crypto access via KYB) and Phase 2 (fiat access via fiat processing partner review). Fiat access is NOT automatic after KYB approval — a separate review process with the fiat processing partner is required.
+The onboarding process has two phases: Phase 1 (crypto access via KYB) and Phase 2 (fiat access via fiat processing partner review). Fiat access is **not** automatic after KYB approval — a separate review process with the fiat processing partner is required.
 
-## Fiat deposit (SEPA)
+## Fiat deposit
 
-Generate a fiat deposit invoice by calling `POST /api/v4/main-account/fiat-deposit-url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-address) for the full specification.
+The fiat deposit flow is invoice-based: generate a payment URL, hand it to the end user, and reconcile the settlement.
+
+<Steps>
+  <Step title="Generate a deposit invoice">
+    Call `POST /api/v4/main-account/fiat-deposit-url` with the fiat ticker, amount, provider, and a partner-side `uniqueId`. The response contains a `url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-address) for the full specification.
+  </Step>
+  <Step title="Present the URL to the end user">
+    The end user opens the returned URL and completes the payment with the provider or bank.
+  </Step>
+  <Step title="For SEPA: instruct the end user on the payment reference">
+    The bank-side transfer must carry the `uniqueId` in the payment-reference field — see [SEPA payment reference](#sepa-payment-reference) below.
+  </Step>
+  <Step title="Confirm completion and reconcile">
+    Confirm the credited deposit through the deposit history (`POST /api/v4/main-account/history`) or the Main balance (`POST /api/v4/main-account/balance`), matching by `uniqueId`.
+  </Step>
+</Steps>
 
 <Note>
-  The fiat deposit endpoint works on demand. Contact WhiteBIT support and provide the API key to get access.
+  The fiat deposit endpoint requires per-account activation. Contact WhiteBIT support and provide the API key to request access.
 </Note>
 
 **Required parameters:**
@@ -592,32 +630,82 @@ Generate a fiat deposit invoice by calling `POST /api/v4/main-account/fiat-depos
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `successLink` | string | Redirect URL after successful deposit. Must use HTTPS. Host must be registered with the WhiteBIT institutional team before use — otherwise the request fails validation. |
-| `failureLink` | string | Redirect URL after failed deposit. Same HTTPS + host-registration requirement as `successLink`. |
+| `successLink` | string | Redirect URL after successful deposit. HTTPS only. Redirect links require feature activation — contact support before use; unactivated or non-HTTPS links fail validation. |
+| `failureLink` | string | Redirect URL after failed deposit. Same HTTPS and activation requirement as `successLink`. |
 | `returnLink` | string | Redirect URL the end user lands on after the deposit flow (success or failure). Optional fallback target. |
 | `address` | string | For `provider: "VISAMASTER"` — the end user's card number (PAN). Required when funding by card. |
 | `customer` | object | Customer identity block. Required for `provider: "VISAMASTER"` (USD/EUR) and `provider: "MERCURYO"`. Sub-fields: `firstName`, `lastName`, `email`, `birthDate` (YYYY-MM-DD), `address.{line1, line2, city, zipCode, countryCode}`. |
 | `expiresAfter` | integer | Invoice expiration in seconds. Maximum 86400 (24 hours). Accepted only for `provider: "VISAMASTER"` and `provider: "CHECKOUT"`. |
 
 <Note>
-  `GEL` and `UAH_VISAMASTER` tickers are blocked via the API. To deposit those currencies, use the WhiteBIT web interface.
+  The API does not accept the `GEL` and `UAH_VISAMASTER` tickers. To deposit those currencies, use the WhiteBIT web interface.
 </Note>
 
-The endpoint returns a URL that the end user opens to complete the fiat deposit.
+The endpoint returns a URL that the end user opens to complete the fiat deposit. Take the `provider` value for the currency from the [Asset Status](/api-reference/market-data/asset-status-list) response.
+
+<Tabs>
+  <Tab title="curl">
+    ```bash
+    # Generate a fiat deposit invoice (provider value from Asset Status)
+    curl -X POST "https://whitebit.com/api/v4/main-account/fiat-deposit-url" \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -d '{
+        "ticker": "EUR",
+        "provider": "PROVIDER",
+        "amount": "100",
+        "uniqueId": "fiat-deposit-001",
+        "request": "/api/v4/main-account/fiat-deposit-url",
+        "nonce": 1594297865000
+      }'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    # Generate a fiat deposit invoice (provider value from Asset Status).
+    # The send_request() helper is defined in the Crypto Deposits tab.
+    response = send_request("/api/v4/main-account/fiat-deposit-url", {
+        "ticker": "EUR",
+        "provider": "PROVIDER",
+        "amount": "100",
+        "uniqueId": "fiat-deposit-001",
+    })
+    invoice_url = response.json()["url"]
+    print("Send the end user to:", invoice_url)
+    ```
+  </Tab>
+</Tabs>
+
+### SEPA payment reference
+
+The `uniqueId` submitted in the `/fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank-side transfer initiated by the end user. WhiteBIT uses this string to match the incoming SEPA settlement to the original deposit request. If the end user omits or alters it, the deposit may settle unmatched and require manual reconciliation through institutional support.
+
+### Card-provider flows
 
 <Note>
-  **VISAMASTER `Referer` header:** When using the VISAMASTER provider, the browser must be configured to send the `Referer` header when opening the invoice link. If the header is missing (e.g., when opening the link from a Telegram message or an email client that strips referrers), the end user is redirected to the WhiteBIT homepage instead of the payment provider. Test the redirect path in the actual deployment surface (mobile app, email link, in-app web view) before go-live.
+  **VISAMASTER `Referer` header:** When using the VISAMASTER provider, configure the browser to send the `Referer` header when opening the invoice link. If the header is missing (e.g., when opening the link from a Telegram message or an email client that strips referrers), WhiteBIT redirects the end user to the homepage instead of the payment provider. Test the redirect path in the actual deployment surface (mobile app, email link, in-app web view) before go-live.
 </Note>
 
-**Bank-side payment reference (SEPA):** The `uniqueId` returned by `/fiat-deposit-url` must appear in the SEPA payment-reference field on the bank-side transfer initiated by the end user. WhiteBIT uses this string to match the incoming SEPA settlement to the original deposit request. If the end user omits it or alters it, the deposit may settle unmatched and require manual reconciliation through institutional support.
+### Deposit request errors
 
-## Fiat withdrawal (SEPA)
+Common synchronous rejections from `/fiat-deposit-url` and the recovery for each:
+
+| Error | Cause | Recovery |
+|-------|-------|----------|
+| `Your domain scheme incorrect. Use https only` | `successLink` / `failureLink` uses HTTP | Use HTTPS redirect URLs |
+| `Currency is not depositable via API` | The ticker is not enabled for API fiat deposits | Check `can_deposit` in the Asset Status response; use the web interface for blocked tickers |
+| `User not verified` | Account verification incomplete | Complete institutional onboarding before requesting invoices |
+| `Amount is too big for deposit` / `Daily limit reached` | Amount exceeds the per-transaction or daily limit | Query `POST /api/v4/main-account/fee` for current limits and retry within the returned limits |
+
+## Fiat withdrawal
 
 Create a fiat withdrawal using the same `POST /api/v4/main-account/withdraw` endpoint used for crypto, specifying a fiat ticker.
 
 The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Use fiat-specific tickers such as `EUR`, `UAH_IBAN`, `USD_VISAMASTER`, `EUR_VISAMASTER`.
 
-The `beneficiary` object is required for fiat withdrawals with tickers `UAH_IBAN`, `USD_VISAMASTER`, `EUR_VISAMASTER`, `USD`, and `EUR`. The `partialEnable` parameter may be set to `true` for increased maximum limits — the application must handle status 18 ("Partially successful").
+The `beneficiary` object is required for fiat withdrawals with tickers `UAH_IBAN`, `USD_VISAMASTER`, `EUR_VISAMASTER`, `USD`, and `EUR`. Set `partialEnable` to `true` for increased maximum limits — the application must then handle status 18 ("Partially successful").
 
 ### Beneficiary object fields
 
@@ -625,25 +713,35 @@ Sub-field requirements vary by ticker and provider. Verify the current contract 
 
 | Sub-field | Required for | Notes |
 |-----------|--------------|-------|
-| `firstName` | UAH_IBAN, USD_VISAMASTER, USD, EUR | |
-| `lastName` | UAH_IBAN, USD_VISAMASTER, USD, EUR | |
-| `email` | USD_VISAMASTER, EUR_VISAMASTER | |
-| `code` | Provider-dependent | |
+| `firstName` | UAH_IBAN, USD_VISAMASTER, USD, EUR | — |
+| `lastName` | UAH_IBAN, USD_VISAMASTER, USD, EUR | — |
+| `email` | USD_VISAMASTER, EUR_VISAMASTER | — |
+| `code` | Provider-dependent | — |
 | `tin` | UAH_IBAN | 10-digit integer |
-| `phone` | VISAMASTER + USD/EUR | |
-| `birthDate` | MERCURYO | Format: `YYYY-MM-DD` |
-| `cardToken`, `cardTokenSave`, `fingerprintSession` | Card-tokenization flows | |
-| `card.{save, name, firstName, lastName, number, month, year}` | Card-funded flows | |
-| `address.{line1, line2, city, zip, country}` | Address-required flows | |
-| `bank.{routingNumber, name, address, country}` | Bank-direct flows | |
+| `phone` | VISAMASTER + USD/EUR | — |
+| `birthDate` | USD_VISAMASTER, EUR_VISAMASTER, MERCURYO | Format: `YYYY-MM-DD` |
+| `cardToken`, `cardTokenSave`, `fingerprintSession` | Card-tokenization flows | — |
+| `card.{save, name, firstName, lastName, number, month, year}` | Card-funded flows | — |
+| `address.{line1, line2, city, zip, country}` | Address-required flows | — |
+| `bank.{routingNumber, name, address, country}` | Bank-direct flows | — |
 
 Fiat withdrawals require KYC verification. Accounts without KYC verification cannot process fiat withdrawals.
 
 <Note>
-  In exceptional cases, a per-account override may be granted by the WhiteBIT institutional team that permits fiat withdrawal without standard KYC. This is exception-only — not a default capability. Contact institutional@whitebit.com for integrations with a documented case requiring the override.
+  In exceptional cases, the WhiteBIT institutional team may grant a per-account override that permits fiat withdrawal without standard KYC. This is exception-only — not a default capability. Contact institutional@whitebit.com for integrations with a documented case requiring the override.
 </Note>
 
 See [Institutional Onboarding](/institutional/onboarding) for the full fiat onboarding process.
+
+## Required endpoints for fiat operations
+
+| Endpoint | Purpose | API Reference |
+|----------|---------|---------------|
+| `POST /api/v4/main-account/fiat-deposit-url` | Generate a fiat deposit invoice | [Fiat Deposit URL](/api-reference/account-wallet/get-fiat-deposit-address) |
+| `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a fiat withdrawal | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
+| `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
+| `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
+| `POST /api/v4/main-account/fee` | Available currencies, providers, and limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
   </Tab>
   <Tab title="WhiteBIT Codes">
@@ -655,22 +753,22 @@ WhiteBIT Codes enable fee-free value transfer between WhiteBIT accounts.
 WhiteBIT Codes are alphanumeric strings representing a fixed amount of a specific currency. One account creates a code, shares the code string via any channel, and another account applies the code to receive the funds.
 
 - **Fee-free** — no fees for creating or applying codes
-- Use cases: internal transfers between accounts, promotional distributions, cross-account settlement
+- Use cases: internal transfers between accounts, promotional distributions, settlement between sub-accounts or partner accounts
 - Optional passphrase protection (up to 25 characters)
-
-<Note>
-  WhiteBIT Codes are fee-free. No creation fee, no application fee. Ideal for internal settlement between sub-accounts or partner accounts.
-</Note>
 
 ## Lifecycle and behavior
 
-**State machine:** WhiteBIT Codes have two terminal states: `created` (an unredeemed code exists; the creator's funds are reserved) and `applied` (the code has been redeemed; funds credited to the redeemer). There is no void or cancel operation; an unredeemed code cannot be reclaimed by the creator.
+**State machine:** A WhiteBIT Code moves through two states: `created` (an unredeemed code exists; the platform reserves the creator's funds) and `applied` (terminal — the code has been redeemed; funds credited to the redeemer). There is no void or cancel operation; the creator cannot reclaim an unredeemed code.
 
-**Expiration:** Codes may fail to apply for several reasons (expired, invalid format, non-existent, wrong passphrase); the API does not distinguish reasons in the apply response. If a redeemer's apply fails on a recently-created code, request a fresh code from the creator.
+**Apply failures:** Codes may fail to apply for several reasons (expired, invalid format, non-existent, wrong passphrase). The apply response distinguishes an already-applied code and a code applied by its own creator; the platform collapses the remaining failure modes into a generic rejection. If a redeemer's apply fails on a recently-created code, request a fresh code from the creator.
 
-**Correlation:** The `code` string is the only correlation key shared between creator and redeemer. The creator-side `description` field is creator-only and not exposed to the redeemer. Partners running redemption flows must map the code to their internal user ID on their side.
+**Correlation:** The `code` string is the only correlation key shared between creator and redeemer. The creator-side `description` field is creator-only and not exposed to the redeemer. Partners running redemption flows must map the code to an internal user ID on the partner side.
 
-**Security model:** The code string is a bearer token — possession grants redemption. Share codes through trusted channels and consider the optional passphrase for an additional protection layer. Passphrases accept latin letters, digits, and ASCII symbols (no whitespace, no Unicode) up to 25 characters. Treat the code string as sensitive on the partner side: do not log it in plaintext, do not include it in error reports, do not commit it to version control.
+<Warning>
+  The code string is a bearer token — possession grants redemption, and the creator cannot reclaim an unredeemed code. A leaked code is spendable by whoever holds it.
+</Warning>
+
+**Security model:** Share codes through trusted channels and consider the optional passphrase for an additional protection layer. Passphrases accept Latin letters, digits, and ASCII symbols (no whitespace, no Unicode) up to 25 characters. Treat the code string as sensitive on the partner side: do not log it in plaintext, do not include it in error reports, do not commit it to version control.
 
 ## Create and apply a code
 
@@ -678,27 +776,43 @@ The code lifecycle has two steps: create and apply.
 
 **Create:** `POST /api/v4/main-account/codes` — see the [API Reference](/api-reference/account-wallet/create-code)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `ticker` | string | Yes | Currency ticker (e.g., `BTC`, `ETH`) |
-| `amount` | string | Yes | Amount to transfer (max precision: 18 decimal places; maximum value 1e17). |
-| `passphrase` | string | No | Passphrase for protection (up to 25 characters, latin letters, numbers, and symbols). |
-| `description` | string | No | Description visible only to the creator (up to 280 characters). |
-| `async` | boolean | No | Processing-mode flag accepted by the endpoint. Confirm the exact semantic with the institutional team before relying on it in production. |
+**Required parameters:**
 
-Rate limit: subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ticker` | string | Currency ticker (e.g., `BTC`, `ETH`) |
+| `amount` | string | Amount to transfer (max precision: 18 decimal places; maximum value 1e17). |
+
+**Optional parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `passphrase` | string | Passphrase for protection (up to 25 characters, Latin letters, digits, and ASCII symbols). |
+| `description` | string | Description visible only to the creator (up to 280 characters). |
+| `async` | boolean | Processing-mode flag accepted by the endpoint. Confirm the exact semantic with the institutional team before relying on it in production. |
+
+**Key response fields:** `code` — the generated WhiteBIT Code string to share with the redeemer; `message` — success message; `external_id` — external identifier.
+
+**Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
 
 **Apply:** `POST /api/v4/main-account/codes/apply` — see the [API Reference](/api-reference/account-wallet/apply-code)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `code` | string | Yes | The WhiteBIT Code string |
-| `passphrase` | string | No | Required if the code was created with a passphrase |
-| `async` | boolean | No | Processing-mode flag accepted by the endpoint. Confirm the exact semantic with the institutional team before relying on it in production. |
+**Required parameters:**
 
-Rate limit: subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `code` | string | The WhiteBIT Code string |
 
-**Webhook event:** `code.apply` fires when a code is applied.
+**Optional parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `passphrase` | string | Required if the code was created with a passphrase |
+| `async` | boolean | Processing-mode flag accepted by the endpoint. Confirm the exact semantic with the institutional team before relying on it in production. |
+
+**Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
+
+**Webhook event:** `code.apply` fires when an account applies a code.
 
 <Tabs>
   <Tab title="curl">
@@ -795,51 +909,68 @@ When the currency held in Main balance differs from the currency the end user ne
 </Steps>
 
 <Note>
-  Quote expiry is set per-quote by the convert service and returned in `expireAt` (Unix timestamp). Confirm the quote before that time elapses, or request a new estimate. See [Convert](/platform/convert) for full parameter details, direction options, and history queries.
+  The convert service sets quote expiry per quote and returns the value in `expireAt` (Unix timestamp). Confirm the quote before that time elapses, or request a new estimate. See [Convert](/platform/convert) for full parameter details, direction options, and history queries.
+</Note>
+
+## Conversion errors
+
+Common synchronous rejections from `/convert/confirm` and the recovery for each:
+
+| Error code | Cause | Recovery |
+|------------|-------|----------|
+| `20` (`api.converter.quoteExpired`) | The quote expired before confirmation | Request a new estimate and confirm within the quote window |
+| `37` | Insufficient balance at confirm time — the platform re-checks the balance on confirm, and the balance can change within the quote window even when the estimate succeeded | Top up the Main balance or request a new estimate for a smaller amount |
+| `0` with the `quoteId` field key `frontendServerSide.converter.quoteInvalid` | The quote was already used or never existed — the response does not distinguish the two | Request a new estimate |
+
+<Note>
+  Error `message` values may arrive as translation keys (e.g., `api.converter.quoteExpired`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
 </Note>
 
 ## Code example
 
-Convert USDT to BTC and withdraw BTC to an external address. The `send_request()` helper used below is defined in the Crypto Deposits tab.
+Convert USDT to BTC and withdraw BTC to an external address. The estimate returns a short-lived quote — confirm it before it expires, or request a new one:
+
+```mermaid
+sequenceDiagram
+    participant Partner as Partner backend
+    participant WB as WhiteBIT API
+
+    Partner->>WB: POST /api/v4/main-account/balance
+    WB-->>Partner: Main balance for the source currency
+    Partner->>WB: POST /api/v4/convert/estimate
+    WB-->>Partner: conversion quote with rate and expiry
+    alt confirmed before quote expiry
+        Partner->>WB: POST /api/v4/convert/confirm
+        WB-->>Partner: final converted amounts
+    else quote expired
+        Partner->>WB: POST /api/v4/convert/estimate (new quote)
+    end
+    Partner->>WB: POST /api/v4/main-account/withdraw
+    WB-->>Partner: withdrawal accepted
+    WB->>Partner: withdraw.successful webhook
+```
+
+The critical-path call is the estimate — every later step reuses identifiers from its response. The Crypto Deposits tab defines the `send_request()` helper used below.
 
 <Tabs>
   <Tab title="Python">
     ```python
-    # Step 1: Check Main balance
-    balance = send_request("/api/v4/main-account/balance", {"ticker": "USDT"})
-    print("USDT Main balance:", balance.json())
-
-    # Step 2: Request conversion estimate (USDT → BTC)
+    # Request a conversion estimate (USDT → BTC). The response carries the
+    # quote "id" for /convert/confirm, the "rate", and "expireAt".
     estimate = send_request("/api/v4/convert/estimate", {
         "from": "USDT",
         "to": "BTC",
         "direction": "from",
         "amount": "100",
     })
-    estimate_data = estimate.json()
-    quote_id = estimate_data["id"]
-    print("Quote ID:", quote_id, "Rate:", estimate_data["rate"], "Expires at:", estimate_data["expireAt"])
-
-    # Step 3: Confirm conversion (confirm before expireAt)
-    confirm = send_request("/api/v4/convert/confirm", {
-        "quoteId": quote_id,
-    })
-    btc_received = confirm.json()["finalReceive"]
-    print("BTC received:", btc_received)
-
-    # Step 4: Create withdrawal
-    response = send_request("/api/v4/main-account/withdraw", {
-        "ticker": "BTC",
-        "amount": btc_received,
-        "address": "bc1qRecipientAddress1234567890abcdef",
-        "uniqueId": "order-12345-btc-conversion",
-    })
-    print("Withdrawal response:", response.json())
+    data = estimate.json()
+    print("Quote:", data["id"], "Rate:", data["rate"], "Expires at:", data["expireAt"])
     ```
   </Tab>
   <Tab title="curl">
     ```bash
-    # Step 1: Request conversion estimate (USDT → BTC)
+    # Request a conversion estimate (USDT → BTC). The response carries the
+    # quote "id" for /convert/confirm, the "rate", and "expireAt".
     curl -X POST "https://whitebit.com/api/v4/convert/estimate" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
@@ -851,33 +982,6 @@ Convert USDT to BTC and withdraw BTC to an external address. The `send_request()
         "direction": "from",
         "amount": "100",
         "request": "/api/v4/convert/estimate",
-        "nonce": 1594297865000
-      }'
-
-    # Step 2: Confirm conversion (use the "id" from estimate response)
-    curl -X POST "https://whitebit.com/api/v4/convert/confirm" \
-      -H "Content-Type: application/json" \
-      -H "X-TXC-APIKEY: YOUR_API_KEY" \
-      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-      -d '{
-        "quoteId": "ESTIMATE_ID",
-        "request": "/api/v4/convert/confirm",
-        "nonce": 1594297865000
-      }'
-
-    # Step 3: Create withdrawal
-    curl -X POST "https://whitebit.com/api/v4/main-account/withdraw" \
-      -H "Content-Type: application/json" \
-      -H "X-TXC-APIKEY: YOUR_API_KEY" \
-      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-      -d '{
-        "ticker": "BTC",
-        "amount": "BTC_AMOUNT_FROM_CONFIRM",
-        "address": "bc1qRecipientAddress1234567890abcdef",
-        "uniqueId": "order-12345-btc-conversion",
-        "request": "/api/v4/main-account/withdraw",
         "nonce": 1594297865000
       }'
     ```
@@ -911,7 +1015,7 @@ Reliable fund tracking requires both webhook-based and polling-based reconciliat
 - Verify the HMAC-SHA512 signature on every incoming webhook. Each delivery includes three headers — `X-TXC-APIKEY` (the API key the webhook is bound to), `X-TXC-PAYLOAD` (base64-encoded JSON body), and `X-TXC-SIGNATURE` (HMAC-SHA512 of the payload with the API secret). See [Security Best Practices](/best-practices/security) for the verification algorithm.
 - Track the `nonce` field — each webhook nonce is strictly greater than the previous. The nonce travels inside the JSON payload, not in a separate header.
 
-**Retry policy:** Approximately 3 retries, attempted roughly once per hour, over a 24-hour delivery window.
+**Retry policy:** The platform retries failed deliveries over a 24-hour window — see [Webhooks](/platform/webhook) for the retry schedule.
 
 **Fallback method — poll `POST /api/v4/main-account/history`:**
 
@@ -920,7 +1024,13 @@ Reliable fund tracking requires both webhook-based and polling-based reconciliat
 - Recommended polling interval: every 5 minutes for active monitoring
 - See [Rate Limits](/api-reference/rate-limits) for current enforced values
 
+For balance endpoints, WebSocket account streams, and polling-interval guidance beyond deposits and withdrawals, see [Account Monitoring](/guides/account-monitoring).
+
 **Deduplication:** Use the `uniqueId` from webhook payloads and history responses to deduplicate across webhook and polling paths.
+
+<Note>
+  The meaning of `uniqueId` differs by direction: for withdrawals, the value echoes the identifier supplied in the withdrawal request; for deposits, the platform assigns the value (the transaction identifier that the refund endpoint consumes as `transactionId`). Both are unique per transaction and safe as idempotency keys.
+</Note>
 
 <Note>
   WhiteBIT does not offer a webhook replay mechanism. Implement polling as a fallback for outages longer than the 24-hour retry window. Store all processed `uniqueId` values to prevent double-processing.
@@ -932,19 +1042,16 @@ Reliable fund tracking requires both webhook-based and polling-based reconciliat
 2. Store the event with `uniqueId` as the idempotency key
 3. On polling cycle: query the history endpoint — compare `uniqueId` values against stored events
 4. Process any events found via polling that the webhook path did not deliver
-5. Mark transactions as complete only when a terminal status is reached (3/7 for success, 4/9 for canceled deposits, 4 for canceled withdrawals)
+5. Mark transactions as complete only when the transaction reaches a terminal status (3/7 for success, 4/9 for canceled deposits, 4 for canceled withdrawals)
 
 ## What's Next
 
 <CardGroup cols={2}>
   <Card title="Webhooks" icon="bell" href="/platform/webhook">
-    Full webhook setup, event types, and signature verification.
+    Webhook setup, event types, signature verification, and retry behavior.
   </Card>
   <Card title="Convert" icon="rotate" href="/platform/convert">
-    Conversion estimate and confirm flow, parameters, and history.
-  </Card>
-  <Card title="Regulatory Compliance" icon="scale-balanced" href="/institutional/compliance">
-    MiCA restrictions, Travel Rule requirements, and regional considerations.
+    Estimate and confirm flow, plus conversion history queries.
   </Card>
   <Card title="Security Best Practices" icon="shield-halved" href="/best-practices/security">
     API key management, IP whitelisting, and secret storage.

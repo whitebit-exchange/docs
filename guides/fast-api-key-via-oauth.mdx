@@ -56,6 +56,8 @@ The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an a
 
 The user picks API key permissions on the WhiteBIT consent screen from the same list shown when creating a manual API key in the dashboard — read, spot, collateral, withdrawal, and the other granular scopes. The partner does not pass the permission set in the authorization request and cannot influence the user's choice. The issued key carries those permissions for its lifetime; changing the permission set requires deleting the key and re-running the OAuth API key flow.
 
+The partner reads the granted permission set through the `permissions` array on [`GET /oauth2/api-key/info`](/api-reference/oauth/usage/api-key-info). Each entry is a permission group with a locale-independent `name` (use for partner-side logic), a locale-dependent display `title`, and per-endpoint `enable` flags that reflect the user's choices on the consent screen. The array also covers disabled keys — the grant-time permission set stays readable so the partner can show the original scope.
+
 If the user selects withdrawal permission, the consent modal adds a warning block and a confirmation checkbox before the user can accept. Step-up MFA is enforced after consent for every Fast API Key creation, regardless of which permissions were selected.
 
 After issuance the key behaves the same as a manually-created key with matching permissions. Trade and withdrawal endpoints are authorized by the HMAC signature on each request — see [Private HTTP API authentication](/api-reference/authentication). KYC for fiat withdrawals, the partner IP allowlist, AML and fraud monitoring, and withdrawal limits apply on every call.
