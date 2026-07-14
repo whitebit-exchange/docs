@@ -1,0 +1,38 @@
+---
+title: "Create express withdraw token"
+description: "Create a single-use Express Withdraw payment token that charges a WhiteBIT user's balance to the partner's Main balance instantly and off-chain via the V4 API."
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/express-withdraw/token
+playground: none
+---
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-express-withdraw-token.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/express-withdraw/token" fields={signerFields} />
+
+
+
+<Note>
+The endpoint is available only for B2B partner services and requires a separate approval process. Request access at https://institutional.whitebit.com/.
+</Note>
+
+## Payment flow
+
+The partner integrates one endpoint; WhiteBIT hosts everything the paying user sees.
+
+1. The partner creates a payment token with the currency, the amount, and a partner-side `externalId`.
+2. The partner presents the returned `url` to the user — redirect, deep link, or QR code.
+3. The user opens the URL while authenticated on WhiteBIT and confirms the displayed [ticker](/glossary#ticker) and amount on the WhiteBIT-hosted confirmation surface.
+4. WhiteBIT debits the user's balance and credits the partner's Main balance in a single internal, off-chain, zero-fee transfer, then marks the token used.
+
+<Note>
+Each token expires 90 seconds after creation — `expireAt` in the response carries the authoritative expiry. Create the token as close as possible to the moment of presenting the URL to the user; after expiry, re-create the token with the same `externalId` to receive a fresh one.
+</Note>
+
+<Warning>
+Each payment is capped at the equivalent of 10,000 USDT, enforced at token creation and re-enforced at confirmation. Requests above the cap return error code `191`.
+</Warning>
+
+## Notes
+
+- For the full integration walkthrough — token lifecycle, idempotency, and limits — see the [Express Withdraw section of the Payment Integration guide](/guides/payment-integration#express-withdraw-payments).
+- The endpoint does not support pagination.
