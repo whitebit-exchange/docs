@@ -1762,6 +1762,116 @@ paths:
                 code: 1
                 message: "This action is unauthorized. Please, enable Two-Factor authentication."
 
+  /api/v4/main-account/express-withdraw/token:
+    post:
+      tags:
+        - Withdraw
+      summary: Create express withdraw token
+      description: |
+        The endpoint creates a signed, single-use Express Withdraw payment token that charges a specific amount from a WhiteBIT user's balance to the partner's [Main balance](/glossary#balance-main) in an instant, off-chain, zero-[fee](/glossary#fee) internal transfer. The response returns a URL that embeds the token; the paying user confirms the exact [ticker](/glossary#ticker) and amount on the WhiteBIT-hosted confirmation surface.
+
+        Token and payment constraints:
+        - Each token is single-use: WhiteBIT marks the token used at confirmation and rejects any replay.
+        - Each token expires 90 seconds after creation; the `expireAt` response field carries the authoritative expiry timestamp. Generate the token as close as possible to the moment of presenting the URL to the user.
+        - The [ticker](/glossary#ticker) must be a withdrawal-enabled cryptocurrency; the endpoint rejects [fiat](/glossary#fiat) tickers.
+        - Each payment is capped at the equivalent of 10,000 USDT; WhiteBIT enforces the cap at token creation and re-enforces the cap at confirmation.
+        - WhiteBIT rejects self-payments: the paying user and the token creator must be different WhiteBIT accounts.
+        - The endpoint is idempotent per `externalId`: re-submitting the same `externalId` with an identical `ticker` and `amount` while the token is still valid returns the same token instead of creating a duplicate charge. After the token expires, the same `externalId` receives a fresh token.
+
+        <Note>
+        Standard private-API rate limits apply — see [Rate limits](/api-reference/rate-limits). The endpoint carries no endpoint-specific limit.
+        </Note>
+      operationId: createExpressWithdrawToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticker
+                - amount
+                - externalId
+                - request
+                - nonce
+              properties:
+                ticker:
+                  type: string
+                  description: |
+                    Currency [ticker](/glossary#ticker) to charge. Example: USDT
+
+                    ⚠️ The ticker must be a withdrawal-enabled cryptocurrency; the endpoint rejects [fiat](/glossary#fiat) tickers. Use [Asset Status endpoint](/public/http-v4/asset-status-list) to check the withdrawal status of a currency.
+                  example: USDT
+                amount:
+                  type: string
+                  description: |
+                    Amount to charge in the specified [ticker](/glossary#ticker). Numeric string.
+
+                    ⚠️ The amount converted to USDT-equivalent must not exceed 10,000; the endpoint rejects larger amounts with error code `191`.
+                  example: "25.50"
+                externalId:
+                  type: string
+                  description: |
+                    Partner-side reference for the payment (order or invoice identifier), unique per partner account. The identifier powers idempotency and replay protection: a pending `externalId` with an identical `ticker` and `amount` returns the same token; the endpoint rejects an already-paid `externalId` with error code `19`.
+                  example: "order-100294"
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: Unique request identifier
+                  example: 1594297865000
+            examples:
+              expressWithdraw:
+                summary: Express Withdraw payment token
+                value:
+                  ticker: "USDT"
+                  amount: "25.50"
+                  externalId: "order-100294"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+      responses:
+        "201":
+          description: Token created. Present the returned URL to the paying user before the expiry in `expireAt`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: |
+                      URL to present to the paying user (redirect, deep link, or QR code). The value is the WhiteBIT-hosted web confirmation page by default, or a mobile deep link when one is configured for the partner at onboarding; in both cases the unique token travels in the `token` query parameter. Treat the value as opaque.
+                    example: "https://whitebit.com/express-withdraw?token=8f3c0a7d4e21"
+                  expireAt:
+                    type: string
+                    description: |
+                      Absolute token expiry timestamp in `YYYY-MM-DD HH:MM:SS` format (UTC). The authoritative expiry: each token expires 90 seconds after creation.
+                    example: "2026-07-10 12:34:56"
+              example:
+                url: "https://whitebit.com/express-withdraw?token=8f3c0a7d4e21"
+                expireAt: "2026-07-10 12:34:56"
+        "403":
+          description: |
+            The account does not have the Express Withdraw permission. WhiteBIT grants the permission through the B2B partner approval process — request access at https://institutional.whitebit.com/.
+        "422":
+          description: |
+            Inner validation failed.
+
+            Business-rule codes (returned with HTTP 422):
+            - 18 - token invalid: a pending `externalId` re-submitted with a different `ticker` or `amount`. Parameters of a pending payment cannot change — use a new `externalId`.
+            - 19 - token already used: the `externalId` belongs to a payment the user already confirmed.
+            - 191 - amount exceeds the limit: the amount converts to more than the 10,000 USDT-equivalent per-payment cap.
+
+            Additional outcomes returned with HTTP 422:
+            - **Currency not allowed** — the [ticker](/glossary#ticker) is [fiat](/glossary#fiat) or not withdrawal-enabled; the error is keyed to the currency field.
+            - **Unexpected server-side error** — a generic "Please try again later" message; retry the request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInner"
+
   /api/v4/main-account/transfer:
     post:
       tags:
@@ -2007,6 +2117,8 @@ paths:
         - `AML frozen` - 21
         - `Uncredited` - 22
         - `Pending` - 15
+
+        `Successful` (3, 7) is a final state. A credited deposit does not later transition to `AML frozen` (21) or `Uncredited` (22); those checks happen before crediting.
 
         **Travel Rule Deposit check status codes:**
         - `Awaiting verification` - 27: The transaction has been frozen due to the lack of data required under the Travel Rule. The user is required to provide this data manually through the exchange interface.
@@ -7745,7 +7857,7 @@ components:
         unique_id:
           type: string
           nullable: true
-          description: Unique Id of deposit/withdraw
+          description: Unique Id of deposit/withdraw. Unique per user.
           example: null
         createdAt:
           type: integer
@@ -7790,12 +7902,12 @@ components:
           example: null
         transactionHash:
           type: string
-          description: Deposit/Withdraw transaction hash
+          description: "Deposit/Withdraw transaction hash. A single hash can map to multiple records (e.g. several outputs to a WhiteBIT address in one on-chain transaction); use `transaction_id` to distinguish them."
           example: "3b49d7b8cf7a4d3c1234567890abcdef"
         transaction_id:
           type: string
-          description: Transaction ID
-          example: "tx-id-1234"
+          description: Transaction UUID. Unique across the whole system and never reused.
+          example: "5e112b38-9652-11ed-a1eb-0242ac120002"
         details:
           type: object
           nullable: true

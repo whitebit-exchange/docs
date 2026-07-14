@@ -96,6 +96,12 @@ sequenceDiagram
     end
 ```
 
+Verification is performed against the originator (sender) address the deposit came from, not the generated deposit address.
+
+Status 28 means the submitted data is under review; it resolves either to a successful credit or to a rejection.
+
+A rejected deposit is canceled rather than refunded automatically. To return the funds, submit a separate refund request via [Refund deposit](/api-reference/account-wallet/refund-deposit) (`POST /api/v4/main-account/refund-deposit`). Deposits canceled under Travel Rule are eligible for refund.
+
 ### Deposit examples
 
 **Individual from hosted wallet (VASP in list):**
