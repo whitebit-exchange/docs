@@ -482,7 +482,7 @@ export const SIGNER_FIELDS = {
   "/api/v4/sub-account/api-key/create": [
     {"name":"type","type":"integer","required":true,"description":"Type of API key (1 - info and trading; 2 - info, trading, deposits, withdraws)","example":"1","enum":["1","2"]},
     {"name":"subAccountId","type":"string","required":true,"description":"ID of the sub-account to create the API key for","example":"8e667b4a-0b71-4988-8af5-9474dbfaeb51"},
-    {"name":"title","type":"string","required":false,"description":"Custom title/name for the API key","example":"Trading Bot Key"},
+    {"name":"title","type":"string","required":true,"description":"Custom title/name for the API key","example":"Trading Bot Key"},
   ],
   "/api/v4/sub-account/api-key/edit": [
     {"name":"apiKeyId","type":"string","required":true,"description":"ID of the API key to update","example":"a1b2c3d4-e5f6-7890-abcd-ef1234567890"},
