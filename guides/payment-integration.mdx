@@ -1,6 +1,6 @@
 ---
 title: "Payment Integration"
-description: "Crypto deposits, withdrawals, withdrawals with currency conversion, fiat operations (SEPA and card providers), and WhiteBIT Codes — status state machines, fee calculation, and webhook reconciliation."
+description: "Crypto deposits, withdrawals, withdrawals with currency conversion, fiat operations (SEPA and card providers), WhiteBIT Codes, and Express Withdraw payments — status state machines, fee calculation, and webhook reconciliation."
 sidebarTitle: "Payment Integration"
 ---
 
@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Move funds into and out of WhiteBIT programmatically: generate deposit addresses, submit crypto and fiat withdrawals, convert between currencies before withdrawing, and settle between accounts with WhiteBIT Codes. Each flow documents the transaction lifecycle, status state machine, fee calculation, and webhook events, where each applies.
+Move funds into and out of WhiteBIT programmatically: generate deposit addresses, submit crypto and fiat withdrawals, convert between currencies before withdrawing, settle between accounts with WhiteBIT Codes, and charge a WhiteBIT user's balance with Express Withdraw. Each flow documents the transaction lifecycle, status state machine, fee calculation, and webhook events, where each applies.
 
 <Warning>
   **EEA users:** USDT deposits and withdrawals have been unavailable since December 30, 2024 (MiCA compliance). Use USDC or EURI as alternatives. See [Regulatory Compliance](/institutional/compliance) for details.
@@ -24,7 +24,7 @@ Before integrating any flow on this page:
 
 ## Use cases
 
-Three scenarios cover the most common partner integrations. Each closes with a link to the tab documenting the endpoints.
+Four scenarios cover the most common partner integrations. Each closes with a link to the tab documenting the endpoints.
 
 ### UC1 — Payment provider with per-end-user deposit address
 
@@ -110,6 +110,28 @@ sequenceDiagram
 ```
 
 See the [Withdrawal with Conversion tab](#conversion-in-the-withdrawal-flow) for endpoint detail.
+
+### UC4 — Charge a WhiteBIT user's balance (Express Withdraw)
+
+A merchant or partner service collects a crypto payment from a WhiteBIT user's balance instantly and off-chain: the partner creates a single-use payment token, presents the returned URL, and the user confirms in one tap. Settlement is an internal zero-fee transfer into the partner's Main balance.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Partner backend
+    participant U as End user (payer)
+    participant W as WhiteBIT
+
+    P->>W: POST /api/v4/main-account/express-withdraw/token
+    W-->>P: 201 — payment URL + expiry (token valid 90 seconds)
+    P->>U: Present URL (redirect, deep link, or QR)
+    U->>W: Open URL — WhiteBIT shows ticker + amount
+    U->>W: Confirm payment
+    W->>W: Internal transfer: user balance → partner Main balance (0 fee, off-chain)
+    W-->>P: Funds credited, token marked used
+```
+
+See the [Express Withdraw tab](#express-withdraw-payments) for endpoint detail.
 
 <Tabs>
   <Tab title="Crypto Deposits">
@@ -867,6 +889,70 @@ The code lifecycle has two steps: create and apply.
     ```
   </Tab>
 </Tabs>
+
+  </Tab>
+  <Tab title="Express Withdraw">
+
+## Express Withdraw payments
+
+Express Withdraw lets an approved partner charge a specific amount from a WhiteBIT user's balance in one confirmation. The partner integrates a single endpoint — `POST /api/v4/main-account/express-withdraw/token` ([API Reference](/api-reference/account-wallet/create-express-withdraw-token)) — and WhiteBIT hosts everything the paying user sees. Settlement is an internal balance move: instant, off-chain, and fee-free on both sides.
+
+<Note>
+  Express Withdraw is available only for B2B partner services and requires a separate approval process. Request access at https://institutional.whitebit.com/. Without the permission, the endpoint returns `403 Forbidden`.
+</Note>
+
+## Token lifecycle
+
+A payment token moves through four states:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created: POST /api/v4/main-account/express-withdraw/token
+    Created --> Created: Re-request with same externalId + ticker + amount returns the same token
+    Created --> Presented: Partner presents url (redirect, deep link, or QR)
+    Presented --> Confirmed: User confirms on the WhiteBIT-hosted page
+    Presented --> Expired: No confirmation within 90 seconds
+    Confirmed --> [*]: WhiteBIT debits the payer, credits the partner Main balance, marks the token used
+    Expired --> [*]: Re-creating with the same externalId issues a fresh token
+```
+
+1. **Created** — the partner calls the create-token endpoint with `ticker`, `amount`, and a partner-side `externalId` (order or invoice identifier). The response carries the payment `url` and `expireAt` (UTC); every token is valid for 90 seconds after creation.
+2. **Presented** — the partner hands the `url` to the user as a redirect, mobile deep link, or QR code. Treat the value as opaque: WhiteBIT returns the hosted web confirmation page by default, or a deep link when one is configured for the partner at onboarding; the token travels in the `token` query parameter either way.
+3. **Confirmed** (terminal) — the user, authenticated on WhiteBIT, reviews the exact `ticker` and `amount` and confirms. WhiteBIT re-validates balance, limits, and permissions, debits the user, credits the partner's Main balance in the same operation, and marks the token used.
+4. **Expired** (terminal) — a token left unconfirmed for 90 seconds becomes unusable. Re-create the payment with the same `externalId`; WhiteBIT issues a fresh token.
+
+Create the token as close as possible to the moment of presenting it — the 90-second window covers the user's review and confirmation, not the partner's checkout flow.
+
+```python
+# Create an Express Withdraw payment token (single-use, valid 90 seconds).
+# The send_request() helper is defined in the Crypto Deposits tab.
+response = send_request("/api/v4/main-account/express-withdraw/token", {
+    "ticker": "USDT",
+    "amount": "25.50",
+    "externalId": "order-100294",
+})
+payment = response.json()
+print("Send the user to:", payment["url"])
+print("Token expires at (UTC):", payment["expireAt"])
+```
+
+## Idempotency and replay protection
+
+The `externalId` is unique per partner account and drives both guarantees:
+
+- Re-requesting a token for the same `externalId` with an identical `ticker` and `amount` while the token is still valid returns the **same** token — safe to retry after a timeout without double-charging.
+- Changing `ticker` or `amount` for a pending `externalId` fails with error code `18` — parameters of a pending payment cannot change; use a new `externalId`.
+- Re-submitting an `externalId` that the user already paid fails with error code `19` — the order is settled, and the rejection prevents a duplicate charge.
+
+See the [endpoint page](/api-reference/account-wallet/create-express-withdraw-token) for the full error-code table.
+
+## Limits and eligibility
+
+- **Per-payment cap:** 10,000 USDT-equivalent, rejected with error code `191` above the cap. WhiteBIT enforces the cap at token creation and re-enforces it at confirmation.
+- **Currency:** crypto only; the ticker must be withdrawal-enabled on the platform. The endpoint rejects fiat tickers.
+- **No self-payments:** the paying user and the token creator must be different WhiteBIT accounts.
+- **Payer eligibility:** at confirmation the user must have withdrawals enabled, pass the standard withdrawal restriction checks, and hold a sufficient balance.
+- **Rate limits:** standard private-API limits apply — see [Rate Limits](/api-reference/rate-limits); the endpoint has no endpoint-specific limit.
 
   </Tab>
   <Tab title="Withdrawal with Conversion">

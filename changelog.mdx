@@ -4,6 +4,23 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 13, 2026">
+## Express Withdraw for B2B partners
+**New `POST /api/v4/main-account/express-withdraw/token` endpoint for B2B partners**
+
+Express Withdraw lets an approved B2B partner charge a specific amount from a WhiteBIT user's balance through a signed, single-use payment token valid for 90 seconds. The partner integrates one endpoint; the user confirms the exact ticker and amount on a WhiteBIT-hosted page, and the funds settle instantly, off-chain, and fee-free into the partner's Main balance.
+
+<Note>
+Express Withdraw is not available to everyone: the endpoints are available only for B2B partner services and require a separate approval process. Request access at https://institutional.whitebit.com/.
+</Note>
+
+<CardGroup cols={2}>
+  <Card title="Create express withdraw token" href="/api-reference/account-wallet/create-express-withdraw-token" icon="bolt" horizontal/>
+  <Card title="Payment Integration guide" href="/guides/payment-integration" icon="book" horizontal/>
+  <Card title="Glossary — Express Withdraw" href="/glossary#express-withdraw" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 6, 2026">
 ## Granted permissions on OAuth API key info
 **New `permissions` array on `GET /oauth2/api-key/info`**

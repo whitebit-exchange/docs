@@ -53,7 +53,7 @@ Real-time best bid and best ask price updates for a market. The server sends an 
 
 ## Update frequency
 
-Updates are pushed **instantly** on every best bid or offer change.
+Updates are pushed **instantly** on every best bid or ask change. The channel is change-driven: the server sends nothing while the best bid and ask are unchanged, so a quiet market can go multiple seconds without an update. Do not infer connection health from message arrival — verify the connection with a [ping](/websocket/market-streams/service) instead.
 
 ## Error codes
 

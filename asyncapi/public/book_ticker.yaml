@@ -24,7 +24,7 @@ channels:
     description: |
       Book Ticker stream for best bid and ask prices.
 
-      **Update Interval**: Instant snapshot followed by incremental updates
+      **Update Interval**: Instant snapshot on subscribe, then an update on every best bid or ask change. The server sends no messages while the best bid and ask are unchanged.
 
       **Subscription**: Can be for specific market or all markets (empty params)
     messages:
