@@ -40,12 +40,14 @@ The Crypto Lending API supports two plan types with distinct yield mechanics.
 | Early withdrawal | Allowed — but **interest is forfeited** | Allowed — **accrued interest is retained** |
 | Auto-reinvest | N/A | Available |
 | Auto-invest | N/A | Available |
-| API access | B2B partners only | All authenticated users |
+| API access | B2B partners only | B2B partners only |
 
 <Note>
-  **Fixed plan API access:** Fixed lending endpoints (`/api/v4/main-account/smart/`) require B2B partner
-  permissions. Complete the institutional services form to request access. Flex endpoints
-  (`/api/v4/main-account/smart-flex/`) are available to all authenticated users.
+  **Lending API access:** Both Fixed (`/api/v4/main-account/smart/`) and Flex
+  (`/api/v4/main-account/smart-flex/`) lending endpoints require B2B partner permissions. Complete the
+  [institutional services form](https://whitebit.com/institutional-services/b2b) to request access.
+  Until access is granted, these endpoints return `403`
+  with `"You don't have permission to use this endpoint. Please contact support for more details"`.
 </Note>
 
 ## Technical Overview

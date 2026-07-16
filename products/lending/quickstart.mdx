@@ -8,19 +8,20 @@ import { RegionBaseUrl } from '/components/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-The four endpoints below cover the full Flex lifecycle — fetch plans, invest, check status, withdraw — operating against Main balance and authenticated with a key that has the Trade permission.
+The four endpoints below cover the full Flex lifecycle — fetch plans, invest, check status, withdraw — operating against Main balance. Access requires B2B partner permissions plus a key with the Trade permission.
 
 ## Prerequisites
 
 - A WhiteBIT account with completed KYC ([register](https://whitebit.com/auth/register))
 - An API key with **Trade** permission ([create key](https://whitebit.com/settings/api))
+- B2B partner access to the lending endpoints ([institutional services form](https://whitebit.com/institutional-services/b2b))
 - Funds in [Main balance](/concepts/balances) (the lending API operates on Main balance, not Trade balance)
 - HMAC-SHA512 signing configured ([authentication guide](/api-reference/authentication))
 - `curl` and `jq` installed (for command-line examples)
 
 <Note>
-  The quickstart uses **Flex plan** endpoints, which are available to all authenticated users.
-  Fixed plan endpoints require B2B partner permissions -- see the [overview](/products/lending/overview) for details.
+  Both Flex and Fixed plan endpoints require B2B partner permissions. Request access via the
+  [institutional services form](https://whitebit.com/institutional-services/b2b). See the [overview](/products/lending/overview) for details.
 </Note>
 
 <Steps>
@@ -228,7 +229,7 @@ After completing Step 4, the withdrawn amount returns to the [Main balance](/con
 
 <CardGroup cols={2}>
   <Card title="Crypto Lending Overview" icon="book-open" href="/products/lending/overview">
-    Fixed vs Flex plan mechanics, B2B partner permissions for Fixed endpoints, ~90 supported assets, and auto-invest behavior.
+    Fixed vs Flex plan mechanics, B2B partner permissions for lending endpoints, ~90 supported assets, and auto-invest behavior.
   </Card>
   <Card title="API Reference" icon="square-terminal" href="/api-reference/account-wallet/overview">
     Full endpoint documentation for all 13 lending endpoints.
