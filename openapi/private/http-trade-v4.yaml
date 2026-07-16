@@ -6756,6 +6756,194 @@ paths:
         '503':
           description: Service temporarily unavailable
 
+  /api/v4/trade-account/order/history/query:
+    post:
+      summary: Query delisting orders
+      operationId: getDelistingOrderHistory
+      description: |
+        The endpoint returns the authenticated account's delisting-related order history from the order-history index. The response combines two categories of orders, each identified by the `delistingKind` field: reverse close orders that the platform generates when a market is delisted (`delistingKind` = `reverse`, `clientOrderId` prefixed with `delisting-`), and active orders canceled at the moment of delisting (`delistingKind` = `canceled`). The endpoint returns a flat array sorted by `finishAt` descending, then `id` descending.
+
+        Set the `status` parameter to narrow the response: `filled` returns only reverse close orders that reached the `filled` outcome, and `delisting` returns only orders canceled during delisting. Omit `status` to return both categories merged in a single array.
+
+        <Note>
+        The endpoint supports pagination via `limit` (default: 500, max: 500) and `offset` (default: 0); the sum of `offset` and `limit` must not exceed 10000. A response that returns fewer than `limit` records indicates the last page.
+        </Note>
+
+        <Note>
+        **Date filter window:** the date range filters orders by the `finishAt` timestamp. The maximum span between `startDate` and `endDate` is **31 days**. `endDate` values greater than the current time are clamped to `now`.
+        </Note>
+
+        <Warning>
+        Rate limit: 10000 requests/10 sec.
+        </Warning>
+      tags:
+        - Spot Trading
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                market:
+                  type: string
+                  description: "Trading pair to filter by. Format: `BASE_QUOTE` (e.g., `BTC_USDT`), matching the pattern `^[A-Z0-9]+_[A-Z0-9]+$`. Omit to retrieve delisting orders across all markets."
+                  example: "BTC_USDT"
+                status:
+                  type: string
+                  enum: [filled, delisting]
+                  description: "Category filter. `filled` returns only reverse close orders (`clientOrderId` prefixed with `delisting-`) that reached the `filled` outcome. `delisting` returns only orders canceled during delisting. Omit to return both categories merged."
+                  example: "filled"
+                startDate:
+                  type: integer
+                  description: "Start of the query window as a Unix timestamp in seconds. Default: `now - 30 days`. Must not be later than `endDate`."
+                  example: 1731369600
+                endDate:
+                  type: integer
+                  description: "End of the query window as a Unix timestamp in seconds. Default: `now`. Values greater than the current time are clamped to `now`. The maximum span between `startDate` and `endDate` is 31 days."
+                  example: 1733961600
+                offset:
+                  type: integer
+                  default: 0
+                  minimum: 0
+                  maximum: 9999
+                  description: "Number of records to skip. Default: `0`. The sum of `offset` and `limit` must not exceed 10000."
+                  example: 0
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 500
+                  default: 500
+                  description: "Maximum number of records to return. Default: `500`. Minimum: `1`. Maximum: `500`."
+                  example: 500
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  example: 1594297865000
+      responses:
+        '200':
+          description: Successful response - returns a flat array of delisting-related orders sorted by `finishAt` descending, then `id` descending. Returns an empty array when no delisting orders match the filters.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: "Unique order identifier assigned by the matching engine."
+                      example: 2286423327099
+                    clientOrderId:
+                      type: string
+                      description: "Custom client order identifier. Reverse close orders carry the platform-generated value prefixed with `delisting-`. Returns an empty string when the original order had no client identifier."
+                      example: "delisting-2286423327099"
+                    createdAt:
+                      type: number
+                      description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
+                      example: 1778077388.002424
+                    finishAt:
+                      type: number
+                      description: "Unix timestamp in seconds (UTC) at which the order reached its final status, with microsecond precision. Primary sort key, descending."
+                      example: 1778077400.123456
+                    market:
+                      type: string
+                      description: "Trading pair the order belongs to. Format: `BASE_QUOTE`."
+                      example: "BTC_USDT"
+                    side:
+                      type: string
+                      enum: [buy, sell]
+                      description: "Order side. Possible values: `buy`, `sell`."
+                      example: "sell"
+                    type:
+                      type: string
+                      description: "Order type. Possible values: `limit`, `market`, `stock market`, `stop limit`, `stop market`."
+                      example: "market"
+                    price:
+                      type: string
+                      description: "Limit price per unit in quote currency. Returns `\"0\"` for market orders."
+                      example: "61234.5000000000"
+                    amount:
+                      type: string
+                      description: "Order quantity in base currency for limit orders, or in quote currency for buy market orders."
+                      example: "0.0500000000"
+                    dealStock:
+                      type: string
+                      description: "Filled amount in base (stock) currency."
+                      example: "0.0500000000"
+                    dealMoney:
+                      type: string
+                      description: "Filled amount in quote (money) currency."
+                      example: "3061.7250000000"
+                    fee:
+                      type: string
+                      description: "Cumulative trading fee charged for filled portions, denominated in the fee asset."
+                      example: "1.5308625000"
+                    feeAsset:
+                      type: string
+                      description: "Currency ticker of the asset used to pay the trading fee."
+                      example: "USDT"
+                    status:
+                      type: string
+                      description: "Execution outcome in lowercase. Reverse close orders that filled return `filled`. Orders canceled during delisting return `canceled`."
+                      example: "filled"
+                    delistingKind:
+                      type: string
+                      enum: [reverse, canceled]
+                      description: "Delisting category discriminator. `reverse` marks a reverse close order generated by the platform. `canceled` marks an active order canceled at the moment of delisting."
+                      example: "reverse"
+              example:
+                - id: 2287000111222
+                  clientOrderId: "user-custom-id-7"
+                  createdAt: 1777991000.000000
+                  finishAt: 1778078000.000000
+                  market: "BTC_USDT"
+                  side: "buy"
+                  type: "limit"
+                  price: "61000.0000000000"
+                  amount: "0.0500000000"
+                  dealStock: "0.0000000000"
+                  dealMoney: "0.0000000000"
+                  fee: "0.0000000000"
+                  feeAsset: "USDT"
+                  status: "canceled"
+                  delistingKind: "canceled"
+                - id: 2286423327099
+                  clientOrderId: "delisting-2286423327099"
+                  createdAt: 1778077388.002424
+                  finishAt: 1778077400.123456
+                  market: "BTC_USDT"
+                  side: "sell"
+                  type: "market"
+                  price: "61234.5000000000"
+                  amount: "0.0500000000"
+                  dealStock: "0.0500000000"
+                  dealMoney: "3061.7250000000"
+                  fee: "1.5308625000"
+                  feeAsset: "USDT"
+                  status: "filled"
+                  delistingKind: "reverse"
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
   /api/v4/order/modify:
     post:
       summary: Modify order
