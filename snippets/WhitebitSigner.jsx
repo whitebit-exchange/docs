@@ -1,10 +1,11 @@
-const { useState, useMemo } = React;
-
 export const WhitebitSigner = ({
   path: defaultPath = "/api/v4/order/market",
   defaultParams = "{}",
   fields = null,
 }) => {
+  // Mintlify provides React globally; destructure inside the component —
+  // snippet files must start with `export` or the export fails to resolve
+  const { useState, useMemo } = React;
   const [baseUrl, setBaseUrl] = useState("https://whitebit.com");
 
   const getApiHost = () => baseUrl;

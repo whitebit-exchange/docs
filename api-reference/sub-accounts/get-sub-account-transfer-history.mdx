@@ -4,10 +4,10 @@ description: "Retrieve the history of fund transfers between the main account an
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/transfer/history
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-transfer-history.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/transfer/history" fields={SIGNER_FIELDS["/api/v4/sub-account/transfer/history"]} />
+<WhitebitSigner path="/api/v4/sub-account/transfer/history" fields={signerFields} />
 
 
 

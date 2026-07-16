@@ -4,10 +4,10 @@ description: "Retrieve active Flex investments with current balances and interes
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/smart-flex/investments
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-smart-flex-investments.jsx';
 
-<WhitebitSigner path="/api/v4/main-account/smart-flex/investments" fields={SIGNER_FIELDS["/api/v4/main-account/smart-flex/investments"]} />
+<WhitebitSigner path="/api/v4/main-account/smart-flex/investments" fields={signerFields} />
 
 
 

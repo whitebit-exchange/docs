@@ -4,10 +4,10 @@ description: "Block a sub-account to temporarily restrict account access to trad
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/block
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-block.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/block" fields={SIGNER_FIELDS["/api/v4/sub-account/block"]} />
+<WhitebitSigner path="/api/v4/sub-account/block" fields={signerFields} />
 
 
 

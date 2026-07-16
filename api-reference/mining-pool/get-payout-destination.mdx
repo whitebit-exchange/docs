@@ -4,9 +4,9 @@ description: "Retrieve the current payout destination for mining rewards via the
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/payout-destination
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-payout-destination.jsx';
 
-<WhitebitSigner path="/api/v4/mining/payout-destination" fields={SIGNER_FIELDS["/api/v4/mining/payout-destination"]} />
+<WhitebitSigner path="/api/v4/mining/payout-destination" fields={signerFields} />
 
 

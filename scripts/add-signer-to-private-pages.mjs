@@ -17,8 +17,9 @@
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { join, relative } from "path";
+import { fileURLToPath } from "url";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const API_REF = join(ROOT, "api-reference");
 const DRY_RUN = process.argv.includes("--dry-run");
 
@@ -38,7 +39,7 @@ function walk(dir, results = []) {
 }
 
 function transformFile(src, endpointPath) {
-  const importLine = `import { WhitebitSigner } from '/components/WhitebitSigner.jsx';`;
+  const importLine = `import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';`;
   const componentLine = `\n<WhitebitSigner path="${endpointPath}" />\n`;
 
   // Locate the end of the frontmatter block (second occurrence of "---")

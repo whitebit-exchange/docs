@@ -4,9 +4,9 @@ description: "Retrieve the history of mining reward payouts for an account via t
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/rewards
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-rewards.jsx';
 
-<WhitebitSigner path="/api/v4/mining/rewards" fields={SIGNER_FIELDS["/api/v4/mining/rewards"]} />
+<WhitebitSigner path="/api/v4/mining/rewards" fields={signerFields} />
 
 
