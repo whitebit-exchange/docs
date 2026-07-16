@@ -4,10 +4,10 @@ description: "Reset the secret key of a sub-account API key and generate a new o
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/api-key/reset
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-api-key-reset.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/api-key/reset" fields={SIGNER_FIELDS["/api/v4/sub-account/api-key/reset"]} />
+<WhitebitSigner path="/api/v4/sub-account/api-key/reset" fields={signerFields} />
 
 
 

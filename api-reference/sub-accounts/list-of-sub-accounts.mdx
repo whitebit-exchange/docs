@@ -4,10 +4,10 @@ description: "Get a list of all sub-accounts under a main WhiteBIT account via t
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/list
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-list.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/list" fields={SIGNER_FIELDS["/api/v4/sub-account/list"]} />
+<WhitebitSigner path="/api/v4/sub-account/list" fields={signerFields} />
 
 
 

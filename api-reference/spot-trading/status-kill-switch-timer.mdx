@@ -4,11 +4,11 @@ description: "Check the current status of the kill-switch timer for automatic or
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/kill-switch/status"
 playground: none
 ---
-import { RelatedResources } from '/components/RelatedResources.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-kill-switch-status.jsx';
 
-<WhitebitSigner path="/api/v4/order/kill-switch/status" fields={SIGNER_FIELDS["/api/v4/order/kill-switch/status"]} />
+<WhitebitSigner path="/api/v4/order/kill-switch/status" fields={signerFields} />
 
 
 <RelatedResources>

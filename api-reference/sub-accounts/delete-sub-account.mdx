@@ -4,10 +4,10 @@ description: "Permanently delete a sub-account from a WhiteBIT account via the V
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/delete
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-delete.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/delete" fields={SIGNER_FIELDS["/api/v4/sub-account/delete"]} />
+<WhitebitSigner path="/api/v4/sub-account/delete" fields={signerFields} />
 
 
 

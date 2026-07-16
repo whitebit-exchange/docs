@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 /**
- * Adds `fields={SIGNER_FIELDS["..."]}` prop and the SIGNER_FIELDS import
- * to every private API MDX page that already has <WhitebitSigner>.
+ * Adds `fields={signerFields}` prop and the per-endpoint signerFields import
+ * (snippets/signer-fields/<slug>.jsx) to every private API MDX page that
+ * already has <WhitebitSigner>.
  *
  * Usage: node scripts/add-signer-fields-prop.mjs [--dry-run]
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { join, relative } from "path";
+import { fileURLToPath } from "url";
+import { endpointSlug } from "./generate-signer-fields.mjs";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const API_REF = join(ROOT, "api-reference");
 const DRY_RUN = process.argv.includes("--dry-run");
-
-const FIELDS_IMPORT = `import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';`;
 
 // Regex to find <WhitebitSigner path="..." /> and add fields prop
 // Handles single-line self-closing tags with or without existing props
@@ -44,7 +45,7 @@ for (const file of walk(API_REF)) {
   }
 
   // Skip if already updated
-  if (src.includes("SIGNER_FIELDS")) {
+  if (src.includes("signerFields")) {
     skipped++;
     continue;
   }
@@ -57,17 +58,18 @@ for (const file of walk(API_REF)) {
   }
 
   const endpointPath = match[1];
+  const fieldsImport = `import { signerFields } from '/snippets/signer-fields/${endpointSlug(endpointPath)}.jsx';`;
 
-  // 1. Add SIGNER_FIELDS import after the WhitebitSigner import line
+  // 1. Add signerFields import after the WhitebitSigner import line
   let newSrc = src.replace(
-    `import { WhitebitSigner } from '/components/WhitebitSigner.jsx';`,
-    `import { WhitebitSigner } from '/components/WhitebitSigner.jsx';\n${FIELDS_IMPORT}`,
+    `import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';`,
+    `import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';\n${fieldsImport}`,
   );
 
   // 2. Add fields prop to the <WhitebitSigner> tag
   newSrc = newSrc.replace(
     SIGNER_TAG_RE,
-    `<WhitebitSigner path="${endpointPath}" fields={SIGNER_FIELDS["${endpointPath}"]}$2`,
+    `<WhitebitSigner path="${endpointPath}" fields={signerFields}$2`,
   );
 
   if (newSrc === src) {

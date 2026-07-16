@@ -4,9 +4,9 @@ description: "List all online workers for a mining account with current status v
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/workers/names
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-workers-names.jsx';
 
-<WhitebitSigner path="/api/v4/mining/workers/names" fields={SIGNER_FIELDS["/api/v4/mining/workers/names"]} />
+<WhitebitSigner path="/api/v4/mining/workers/names" fields={signerFields} />
 
 

@@ -4,10 +4,10 @@ description: "Issue a card token for WhiteBIT card operations via the API."
 openapi: /openapi/private/main_api_v4.yaml POST /api/card-token
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/api-card-token.jsx';
 
-<WhitebitSigner path="/api/card-token" fields={SIGNER_FIELDS["/api/card-token"]} />
+<WhitebitSigner path="/api/card-token" fields={signerFields} />
 
 
 

@@ -4,9 +4,9 @@ description: "Generate a read-only watcher link to share mining statistics with 
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/watcher-links/create
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-watcher-links-create.jsx';
 
-<WhitebitSigner path="/api/v4/mining/watcher-links/create" fields={SIGNER_FIELDS["/api/v4/mining/watcher-links/create"]} />
+<WhitebitSigner path="/api/v4/mining/watcher-links/create" fields={signerFields} />
 
 

@@ -4,10 +4,10 @@ description: "Update the alias or settings of an existing sub-account via the Wh
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/edit
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-edit.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/edit" fields={SIGNER_FIELDS["/api/v4/sub-account/edit"]} />
+<WhitebitSigner path="/api/v4/sub-account/edit" fields={signerFields} />
 
 
 

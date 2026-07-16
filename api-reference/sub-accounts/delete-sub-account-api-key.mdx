@@ -4,10 +4,10 @@ description: "Delete an API key associated with a sub-account via the WhiteBIT V
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/api-key/delete
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-api-key-delete.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/api-key/delete" fields={SIGNER_FIELDS["/api/v4/sub-account/api-key/delete"]} />
+<WhitebitSigner path="/api/v4/sub-account/api-key/delete" fields={signerFields} />
 
 
 

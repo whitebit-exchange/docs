@@ -5,10 +5,10 @@ openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/history
 playground: none
 ---
 import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-history.jsx';
 
-<WhitebitSigner path="/api/v4/main-account/history" fields={SIGNER_FIELDS["/api/v4/main-account/history"]} />
+<WhitebitSigner path="/api/v4/main-account/history" fields={signerFields} />
 
 ## Rate limit
 
