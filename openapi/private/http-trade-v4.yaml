@@ -6796,7 +6796,7 @@ paths:
                 status:
                   type: string
                   enum: [filled, delisting]
-                  description: "Category filter. `filled` returns only reverse close orders (`clientOrderId` prefixed with `delisting-`) that reached the `filled` outcome. `delisting` returns only orders canceled during delisting. Omit to return both categories merged."
+                  description: "Category filter — distinct from the response `status` field. `filled` returns only reverse close orders (`clientOrderId` prefixed with `delisting-`), which carry `delistingKind` = `reverse` and response `status` = `filled`. `delisting` returns only orders canceled at delisting, which carry `delistingKind` = `canceled` and response `status` = `canceled`. Omit to return both categories merged."
                   example: "filled"
                 startDate:
                   type: integer
