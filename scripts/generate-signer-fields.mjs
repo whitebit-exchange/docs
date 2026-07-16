@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /**
- * Generates snippets/signer-fields-data.jsx from all private OpenAPI specs.
+ * Generates one snippets/signer-fields/<slug>.jsx per private POST endpoint.
  * Collects both requestBody fields (paramIn omitted → body) and query/path
  * parameters (paramIn: "query" | "path") for every POST endpoint.
+ * Per-endpoint files keep each page's served-Markdown export free of the
+ * other endpoints' field data (Mintlify inlines every imported module).
  *
  * Re-run after editing any openapi/private/*.yaml request body or parameter schema.
  * Usage: node scripts/generate-signer-fields.mjs
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'yaml';
@@ -21,7 +23,15 @@ const SPECS = [
   'openapi/private/address-checker.yaml',
 ];
 
-const OUT_SNIPPET = join(ROOT, 'snippets/signer-fields-data.jsx');
+const OUT_DIR = join(ROOT, 'snippets/signer-fields');
+
+// /api/v4/order/new → order-new; /api/card-token → api-card-token
+export function endpointSlug(path) {
+  return path
+    .replace(/^\/api\/v4\//, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 // Fields auto-added by WhitebitSigner.compute() — never shown in the UI
 const SKIP = new Set(['request', 'nonce', 'nonceWindow']);
@@ -110,55 +120,68 @@ function opToQueryFields(op) {
     });
 }
 
-const result = {};
+function main() {
+  const result = {};
 
-for (const rel of SPECS) {
-  const spec = parse(readFileSync(join(ROOT, rel), 'utf8'));
-  const { components, paths = {} } = spec;
+  for (const rel of SPECS) {
+    const spec = parse(readFileSync(join(ROOT, rel), 'utf8'));
+    const { components, paths = {} } = spec;
 
-  for (const [path, pathItem] of Object.entries(paths)) {
-    for (const [method, op] of Object.entries(pathItem)) {
-      if (method !== 'post') continue;
+    for (const [path, pathItem] of Object.entries(paths)) {
+      for (const [method, op] of Object.entries(pathItem)) {
+        if (method !== 'post') continue;
 
-      const queryFields = opToQueryFields(op);
+        const queryFields = opToQueryFields(op);
 
-      const schema = op.requestBody?.content?.['application/json']?.schema;
-      const bodyFields = schema ? schemaToBodyFields(schema, components) : [];
+        const schema = op.requestBody?.content?.['application/json']?.schema;
+        const bodyFields = schema ? schemaToBodyFields(schema, components) : [];
 
-      // Query params first, then body params
-      const fields = [...queryFields, ...bodyFields];
+        // Query params first, then body params
+        const fields = [...queryFields, ...bodyFields];
 
-      // Always emit the path (even empty) so the component shows structured mode
-      result[path] = fields;
+        // Always emit the path (even empty) so the component shows structured mode
+        result[path] = fields;
+      }
     }
   }
-}
 
-// ── Build serialized field lines ────────────────────────────────────────────
+  // ── Write snippets/signer-fields/<slug>.jsx (one file per endpoint) ────────
 
-const fieldLines = [];
-for (const [path, fields] of Object.entries(result)) {
-  fieldLines.push(`  ${JSON.stringify(path)}: [`);
-  for (const f of fields) {
-    fieldLines.push(`    ${JSON.stringify(f)},`);
+  const slugToPath = new Map();
+  for (const path of Object.keys(result)) {
+    const slug = endpointSlug(path);
+    if (slugToPath.has(slug)) {
+      console.error(
+        `Slug collision: "${slug}" maps to both ${slugToPath.get(slug)} and ${path}`,
+      );
+      process.exit(1);
+    }
+    slugToPath.set(slug, path);
   }
-  fieldLines.push('  ],');
+
+  mkdirSync(OUT_DIR, { recursive: true });
+
+  for (const [path, fields] of Object.entries(result)) {
+    const lines = [
+      '// AUTO-GENERATED — do not edit manually.',
+      `// Source: openapi/private/*.yaml (requestBody + query/path parameters of ${path}).`,
+      '// Regenerate: node scripts/generate-signer-fields.mjs',
+      '',
+      'export const signerFields = [',
+      ...fields.map((f) => `  ${JSON.stringify(f)},`),
+      '];',
+      '',
+    ];
+    writeFileSync(join(OUT_DIR, `${endpointSlug(path)}.jsx`), lines.join('\n'));
+  }
+
+  console.log(
+    `Generated ${Object.keys(result).length} endpoint files → snippets/signer-fields/`,
+  );
 }
 
-// ── Write snippets/signer-fields-data.jsx ────────────────────────────────────
-
-const snippetLines = [
-  '// AUTO-GENERATED — do not edit manually.',
-  '// Source: openapi/private/*.yaml (requestBody + query/path parameters).',
-  '// Regenerate: node scripts/generate-signer-fields.mjs',
-  '',
-  'export const SIGNER_FIELDS = {',
-  ...fieldLines,
-  '};',
-  '',
-];
-writeFileSync(OUT_SNIPPET, snippetLines.join('\n'));
-
-console.log(
-  `Generated ${Object.keys(result).length} endpoints → snippets/signer-fields-data.jsx`,
-);
+// Run generation only when executed directly, so endpointSlug is importable
+// (e.g. by scripts/add-signer-fields-prop.mjs) without side effects.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main();
+}

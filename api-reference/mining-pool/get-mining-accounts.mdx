@@ -4,9 +4,9 @@ description: "List all mining accounts associated with a WhiteBIT account via th
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/accounts
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-accounts.jsx';
 
-<WhitebitSigner path="/api/v4/mining/accounts" fields={SIGNER_FIELDS["/api/v4/mining/accounts"]} />
+<WhitebitSigner path="/api/v4/mining/accounts" fields={signerFields} />
 
 

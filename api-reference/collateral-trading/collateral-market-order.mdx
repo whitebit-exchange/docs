@@ -4,12 +4,12 @@ description: "Place a collateral market order for immediate execution at the bes
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/collateral/market"
 playground: none
 ---
-import { RelatedResources } from '/components/RelatedResources.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-collateral-market.jsx';
 import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
 
-<WhitebitSigner path="/api/v4/order/collateral/market" fields={SIGNER_FIELDS["/api/v4/order/collateral/market"]} />
+<WhitebitSigner path="/api/v4/order/collateral/market" fields={signerFields} />
 
 <RegionalRestrictionNote />
 

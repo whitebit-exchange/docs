@@ -4,9 +4,9 @@ description: "Request a refund for a cryptocurrency deposit sent to a WhiteBIT a
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/refund-deposit
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-refund-deposit.jsx';
 
-<WhitebitSigner path="/api/v4/main-account/refund-deposit" fields={SIGNER_FIELDS["/api/v4/main-account/refund-deposit"]} />
+<WhitebitSigner path="/api/v4/main-account/refund-deposit" fields={signerFields} />
 
 
