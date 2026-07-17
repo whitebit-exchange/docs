@@ -1,0 +1,17 @@
+---
+title: "Query delisting orders"
+description: "Retrieve delisting-related spot order history via the WhiteBIT V4 API - reverse close orders and orders canceled during delisting."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/trade-account/order/history/query"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/trade-account-order-history-query.jsx';
+
+<WhitebitSigner path="/api/v4/trade-account/order/history/query" fields={signerFields} />
+
+<RelatedResources>
+- [Query executed orders](/api-reference/spot-trading/query-executed-orders) — view executed and canceled order history
+- [Query executed order history](/api-reference/spot-trading/query-executed-order-history) — view full execution history
+- [Query unexecuted orders](/api-reference/spot-trading/query-unexecuted-orders) — list open orders
+</RelatedResources>
