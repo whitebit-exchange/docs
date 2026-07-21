@@ -4,10 +4,10 @@ description: "Apply a WhiteBIT code to an account to receive the associated fund
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/codes/apply
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-codes-apply.jsx';
 
-<WhitebitSigner path="/api/v4/main-account/codes/apply" fields={SIGNER_FIELDS["/api/v4/main-account/codes/apply"]} />
+<WhitebitSigner path="/api/v4/main-account/codes/apply" fields={signerFields} />
 
 
 

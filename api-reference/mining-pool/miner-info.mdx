@@ -4,9 +4,9 @@ description: "Get detailed information about a specific miner including fees, wo
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/miners/info
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-miners-info.jsx';
 
-<WhitebitSigner path="/api/v4/mining/miners/info" fields={SIGNER_FIELDS["/api/v4/mining/miners/info"]} />
+<WhitebitSigner path="/api/v4/mining/miners/info" fields={signerFields} />
 
 

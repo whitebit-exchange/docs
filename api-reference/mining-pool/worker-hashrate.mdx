@@ -4,9 +4,9 @@ description: "Retrieve hashrate history for a specific mining worker at configur
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/workers/hashrate
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-workers-hashrate.jsx';
 
-<WhitebitSigner path="/api/v4/mining/workers/hashrate" fields={SIGNER_FIELDS["/api/v4/mining/workers/hashrate"]} />
+<WhitebitSigner path="/api/v4/mining/workers/hashrate" fields={signerFields} />
 
 

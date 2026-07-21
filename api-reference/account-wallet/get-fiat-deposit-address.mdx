@@ -4,10 +4,10 @@ description: "Get a fiat currency deposit address or payment details for a White
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/fiat-deposit-url
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-fiat-deposit-url.jsx';
 
-<WhitebitSigner path="/api/v4/main-account/fiat-deposit-url" fields={SIGNER_FIELDS["/api/v4/main-account/fiat-deposit-url"]} />
+<WhitebitSigner path="/api/v4/main-account/fiat-deposit-url" fields={signerFields} />
 
 
 

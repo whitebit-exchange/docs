@@ -4,10 +4,10 @@ description: "Submit a withdrawal request where the specified amount is the exac
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/withdraw-pay
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-withdraw-pay.jsx';
 
-<WhitebitSigner path="/api/v4/main-account/withdraw-pay" fields={SIGNER_FIELDS["/api/v4/main-account/withdraw-pay"]} />
+<WhitebitSigner path="/api/v4/main-account/withdraw-pay" fields={signerFields} />
 
 
 

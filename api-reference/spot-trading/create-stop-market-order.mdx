@@ -4,12 +4,12 @@ description: "Place a spot stop-market order for execution at market price when 
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/stop_market"
 playground: none
 ---
-import { RelatedResources } from '/components/RelatedResources.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-stop-market.jsx';
 import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
 
-<WhitebitSigner path="/api/v4/order/stop_market" fields={SIGNER_FIELDS["/api/v4/order/stop_market"]} />
+<WhitebitSigner path="/api/v4/order/stop_market" fields={signerFields} />
 
 <RegionalRestrictionNote />
 

@@ -4,11 +4,11 @@ description: "Retrieve spot trading account balances for all currencies via the 
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/trade-account/balance"
 playground: none
 ---
-import { RelatedResources } from '/components/RelatedResources.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/trade-account-balance.jsx';
 
-<WhitebitSigner path="/api/v4/trade-account/balance" fields={SIGNER_FIELDS["/api/v4/trade-account/balance"]} />
+<WhitebitSigner path="/api/v4/trade-account/balance" fields={signerFields} />
 
 
 <RelatedResources>

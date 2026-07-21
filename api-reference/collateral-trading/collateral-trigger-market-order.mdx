@@ -4,12 +4,12 @@ description: "Place a collateral trigger market order for execution at market pr
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/collateral/trigger-market"
 playground: none
 ---
-import { RelatedResources } from '/components/RelatedResources.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-collateral-trigger-market.jsx';
 import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
 
-<WhitebitSigner path="/api/v4/order/collateral/trigger-market" fields={SIGNER_FIELDS["/api/v4/order/collateral/trigger-market"]} />
+<WhitebitSigner path="/api/v4/order/collateral/trigger-market" fields={signerFields} />
 
 <RegionalRestrictionNote />
 

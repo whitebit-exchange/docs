@@ -4,10 +4,10 @@ description: "Transfer funds between the main account and a sub-account via the 
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/transfer
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-transfer.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/transfer" fields={SIGNER_FIELDS["/api/v4/sub-account/transfer"]} />
+<WhitebitSigner path="/api/v4/sub-account/transfer" fields={signerFields} />
 
 
 

@@ -4,10 +4,10 @@ description: "Retrieve the history of applied and created WhiteBIT codes for an 
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/codes/history
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-codes-history.jsx';
 
-<WhitebitSigner path="/api/v4/main-account/codes/history" fields={SIGNER_FIELDS["/api/v4/main-account/codes/history"]} />
+<WhitebitSigner path="/api/v4/main-account/codes/history" fields={signerFields} />
 
 
 

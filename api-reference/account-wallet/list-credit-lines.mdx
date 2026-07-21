@@ -4,10 +4,10 @@ description: "Retrieve active credit lines with terms, balances, and repayment d
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/credit-line/loans/info
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/credit-line-loans-info.jsx';
 
-<WhitebitSigner path="/api/v4/credit-line/loans/info" fields={SIGNER_FIELDS["/api/v4/credit-line/loans/info"]} />
+<WhitebitSigner path="/api/v4/credit-line/loans/info" fields={signerFields} />
 
 
 

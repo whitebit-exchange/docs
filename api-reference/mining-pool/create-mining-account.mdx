@@ -4,9 +4,9 @@ description: "Create a new mining account linked to a WhiteBIT account via the V
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/mining/accounts/create
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/mining-accounts-create.jsx';
 
-<WhitebitSigner path="/api/v4/mining/accounts/create" fields={SIGNER_FIELDS["/api/v4/mining/accounts/create"]} />
+<WhitebitSigner path="/api/v4/mining/accounts/create" fields={signerFields} />
 
 

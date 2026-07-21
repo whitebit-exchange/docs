@@ -4,12 +4,12 @@ description: "Place a collateral limit order to buy or sell at a specified price
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/collateral/limit"
 playground: none
 ---
-import { RelatedResources } from '/components/RelatedResources.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-collateral-limit.jsx';
 import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
 
-<WhitebitSigner path="/api/v4/order/collateral/limit" fields={SIGNER_FIELDS["/api/v4/order/collateral/limit"]} />
+<WhitebitSigner path="/api/v4/order/collateral/limit" fields={signerFields} />
 
 <RegionalRestrictionNote />
 

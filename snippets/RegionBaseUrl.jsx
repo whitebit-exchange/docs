@@ -1,8 +1,21 @@
-// Mintlify provides React globally
-const { useState, useEffect, useRef } = React;
-
 export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
+    // Mintlify provides React globally; destructure inside the component —
+    // snippet files must start with `export` or the export fails to resolve
+    const { useState, useEffect, useRef } = React;
+
+    // ── TEMPORARY COMPLIANCE HOLD (2026-07-14) ──────────────────────────────
+    // The EU region (whitebit.eu) is not publicly released yet, so the .com/.eu
+    // region switcher is disabled at Compliance's request. While this flag is
+    // false the component renders the Global base URL as static text, shows no
+    // region toggle, ignores any stored "eu" preference, and starts none of the
+    // domain-rewriting / event-listener / MutationObserver / native-dropdown-sync
+    // logic below.
+    // TO REVERT (expected in a few weeks): set EU_ENABLED = true. No other change
+    // is required — all usages and the switching logic stay intact.
+    const EU_ENABLED = false;
+
     const [region, setRegionState] = useState(() => {
+        if (!EU_ENABLED) return "com";
         if (typeof window !== 'undefined') {
             return localStorage.getItem("api-region-preference") || "com";
         }
@@ -136,6 +149,10 @@ export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
     };
 
     useEffect(() => {
+        // Compliance hold: while EU_ENABLED is false, start none of the switching,
+        // rewriting, listener, MutationObserver, or native-dropdown-sync logic.
+        // The static Global render below does not depend on `mounted`.
+        if (!EU_ENABLED) return;
         setMounted(true);
         updateAllContentOnPage(region);
 
@@ -196,6 +213,28 @@ export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
     }, [region]);
 
     const apiBaseUrl = region === "eu" ? "https://whitebit.eu" : "https://whitebit.com";
+
+    // Compliance hold (2026-07-14): render the Global base URL only, no toggle.
+    // region is pinned to "com" above, so apiBaseUrl is https://whitebit.com.
+    if (!EU_ENABLED) {
+        if (!showBaseUrl) return null;
+        return (
+            <div className={`flex items-center gap-2 flex-wrap my-4 region-toggle-component ${className}`}>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">
+                    Base URL
+                </span>
+                <span className="text-sm text-gray-400">:</span>
+                <a
+                    href={apiBaseUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-mono text-primary dark:text-primary-light hover:underline"
+                >
+                    {apiBaseUrl}
+                </a>
+            </div>
+        );
+    }
 
     if (!mounted) return null;
 

@@ -4,7 +4,7 @@ description: "Get default spot and futures maker/taker fee rates, plus any custo
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/market/fee"
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/market-fee.jsx';
 
-<WhitebitSigner path="/api/v4/market/fee" fields={SIGNER_FIELDS["/api/v4/market/fee"]} />
+<WhitebitSigner path="/api/v4/market/fee" fields={signerFields} />

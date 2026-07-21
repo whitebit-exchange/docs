@@ -4,10 +4,10 @@ description: "Retrieve all balances for a specific sub-account across main, spot
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/sub-account/balances
 playground: none
 ---
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/sub-account-balances.jsx';
 
-<WhitebitSigner path="/api/v4/sub-account/balances" fields={SIGNER_FIELDS["/api/v4/sub-account/balances"]} />
+<WhitebitSigner path="/api/v4/sub-account/balances" fields={signerFields} />
 
 
 

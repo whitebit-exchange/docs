@@ -1,6 +1,7 @@
-const { useEffect, useRef, useState } = React;
-
 export const RelatedResources = ({ children }) => {
+  // Mintlify provides React globally; destructure inside the component —
+  // snippet files must start with `export` or the export fails to resolve
+  const { useEffect, useRef, useState } = React;
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 

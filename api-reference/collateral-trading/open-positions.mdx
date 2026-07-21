@@ -5,11 +5,11 @@ openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/po
 playground: none
 ---
 import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
-import { RelatedResources } from '/components/RelatedResources.jsx';
-import { WhitebitSigner } from '/components/WhitebitSigner.jsx';
-import { SIGNER_FIELDS } from '/snippets/signer-fields-data.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/collateral-account-positions-open.jsx';
 
-<WhitebitSigner path="/api/v4/collateral-account/positions/open" fields={SIGNER_FIELDS["/api/v4/collateral-account/positions/open"]} />
+<WhitebitSigner path="/api/v4/collateral-account/positions/open" fields={signerFields} />
 
 ## Rate limit
 
