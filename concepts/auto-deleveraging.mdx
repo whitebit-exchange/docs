@@ -23,15 +23,22 @@ Order properties:
 - **Type.** Post-only limit orders. Public order-book visibility applies while the orders are unfilled, although the small price offset usually results in fast fills.
 - **Volume per order.** Every ADL order matches the full counterparty position size, except the last selected order, which may be smaller to match the exact required volume.
 
-ADL fills appear in standard order history and are identifiable by:
+## Identifying liquidation and ADL fills
 
-- `source`: `"adl"`
-- `clientOrderId`: `"adl_<orderId>"`
-- Terminal status: `FILLED`
-- `reduceOnly`: `false` — even though the order reduces the counterparty's position
+Both the liquidation close order (on the liquidated account) and any ADL fills (on a counterparty account) arrive through the normal execution surfaces. The reliable discriminator differs by delivery channel:
+
+- **WebSocket — [`ordersExecuted`](/websocket/account-streams/orders-executed) stream.** Use the `source` field: `"liquidation"` when your own position is being liquidated, `"adl"` when your position is closed as the counterparty of another user's liquidation.
+- **REST — order and executed history.** The history payloads do not include `source`. Match the `clientOrderId` prefix instead.
+
+|  | Liquidation (your own position) | ADL (as counterparty) |
+|--|--|--|
+| `source` (WebSocket) | `"liquidation"` | `"adl"` |
+| `clientOrderId` prefix | `liquidation_<orderId>_!` | `adl_<orderId>_!` |
+| Order type | Market, `ioc: true` | Post-only limit |
+| Terminal status | `FILLED`, or `PARTIALLY_FILLED` if book depth is insufficient | `FILLED` |
 
 <Note>
-Integrators identifying ADL fills in a counterparty account must use the `source` field. The `reduceOnly` flag remains `false` on ADL-inserted orders despite the position-reducing effect.
+Do not use `reduceOnly` to identify these fills — it remains `false` on ADL-inserted orders despite the position-reducing effect. When your own position is liquidated, your other pending orders on that market are swept with the `AUTO_CANCELED_LIQUIDATION` status.
 </Note>
 
 ## How counterparties are selected

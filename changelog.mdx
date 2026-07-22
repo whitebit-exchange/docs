@@ -219,7 +219,7 @@ WhiteBIT futures markets now apply Auto-Deleveraging as the final stage of liqui
 
 **Integrator-relevant facts:**
 
-- ADL fills appear in standard order history with `source: "adl"` and `client_order_id: "adl_<order_id>"`. The `reduce_only` flag remains `false` on ADL inserts — use `source` to identify them.
+- ADL fills carry `source: "adl"` on the `ordersExecuted` WebSocket stream and a `client_order_id` of the form `adl_<order_id>_!`. Over REST order history — where the payload does not include `source` — match the `adl_` `client_order_id` prefix. The `reduce_only` flag remains `false` on ADL inserts, so do not use it for identification.
 - Pending reduce-only orders auto-cancel with the existing `AUTO_CANCELED_REDUCE_ONLY` status when ADL closes a counterparty position. No ADL-specific cancel status was introduced.
 - ADL Grade (0–4) indicates a position's place in the per-market ADL ranking, with Grade 4 corresponding to the asymptotic top 5% of ranked positions.
 
