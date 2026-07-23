@@ -4,6 +4,28 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 22, 2026">
+## Spot order documentation corrections
+**Doc-only alignment of the v4 spot order contracts with deployed behavior — no API changes**
+
+The v4 spot order endpoint documentation was audited against the deployed API and corrected; response-shape changes were verified with live captures. The API itself is unchanged.
+
+- OCO and conditional order legs: `takerFee`/`makerFee` removed from the documented leg objects (the API does not return them); `feeAsset`, `positionSide`, and per-leg `reduceOnly` documented. OCO legs (`/api/v4/oco-orders`, `/api/v4/order/oco-cancel`) use snake_case field names; conditional legs (`/api/v4/conditional-orders`) use camelCase — both schemas now state this.
+- Shared order response: `feeAsset` and the `oto` object (`otoId`, `takeProfit`, `stopLoss`) documented, with per-field notes on which endpoints and order shapes return `price`, `positionSide`, `reduceOnly`, and the activation fields.
+- `POST /api/v4/order/cancel/all`: optional `positionSide` (`both`, `long`, `short`; perpetual futures markets) documented. The success body on cancel/all, `/api/v4/order/conditional-cancel`, and `/api/v4/order/oto-cancel` is a literal empty array — now documented with examples.
+- `POST /api/v4/order/modify`: `stp` request parameter documented; the at-least-one rule now lists `total`; `amount` and `total` are mutually exclusive. The "cancellation by clientOrderId takes priority" note is removed on cancel and modify — the API accepts exactly one of `orderId` or `clientOrderId`.
+- `POST /api/v4/order/oco-cancel`: cancellation by `clientOrderId` documented (exactly one identifier, matching the deployed validator).
+- `POST /api/v4/order/bulk`: per-item `stp` and `bboRole` documented; `market`, `side`, and `amount` marked required per item.
+- BBO orders: `price` is required only when `bboRole` is not set (`/order/new`, `/order/stop_limit`, bulk items). The [Order Parameter Rules](/guides/order-parameter-rules) guide gains the BBO interaction rules and the postOnly/IOC and RPI/postOnly combination rules.
+- Kill-switch: deleting a timer (`timeout: null`) returns an empty array; the response `types` field is `null` when the timer was created without `types`; `types` accepts 1–3 values.
+- `POST /api/v4/conditional-orders`: pagination bounds documented (`limit` 1–100, default 100; `offset` up to 4294967295) and record schemas completed (per-leg `reduceOnly`, `conditionalOrderType`, full leg shapes).
+
+<CardGroup cols={2}>
+  <Card title="Order Parameter Rules" href="/guides/order-parameter-rules" icon="list-check" horizontal/>
+  <Card title="Spot Trading API" href="/api-reference/spot-trading/overview" icon="arrow-right-arrow-left" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 13, 2026">
 ## Express Withdraw for B2B partners
 **New `POST /api/v4/main-account/express-withdraw/token` endpoint for B2B partners**
