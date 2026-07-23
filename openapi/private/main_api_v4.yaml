@@ -3250,6 +3250,15 @@ paths:
                     message: "Validation failed"
                     errors:
                       ticker: ["The selected ticker is invalid."]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart/investment:
     post:
@@ -3440,6 +3449,15 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       amount: ["Not enough money to pay interest"]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart/investment/close:
     post:
@@ -3529,6 +3547,15 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       error: ["Investment is already closed"]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart/investments:
     post:
@@ -3651,6 +3678,15 @@ paths:
                       id: ["The selected id is invalid."]
                       ticker: ["The selected ticker is invalid."]
                       status: ["The selected status is invalid."]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart/interest-payment-history:
     post:
@@ -3753,6 +3789,15 @@ paths:
                     errors:
                       planId: ["The selected planId is invalid."]
                       ticker: ["The selected ticker is invalid."]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/plans:
     post:
@@ -3856,6 +3901,15 @@ paths:
                           "The offset must be an integer.",
                           "The offset must be at least 0.",
                         ]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/investments:
     post:
@@ -3973,6 +4027,15 @@ paths:
                       investment: ["The selected investment is invalid."]
                       investmentStatus:
                         ["The selected investment status is invalid."]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/investments/history:
     post:
@@ -4107,6 +4170,15 @@ paths:
                   dateTo: ["The date to is invalid."]
                   actionTypes: ["The action types must be an array."]
                   actionTypes.0: ["The selected action type is invalid."]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/investments/payment-history:
     post:
@@ -4226,6 +4298,15 @@ paths:
                   transaction: ["The selected transaction is invalid."]
                   dateFrom: ["The date from is invalid."]
                   dateTo: ["The date to is invalid."]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/investments/invest:
     post:
@@ -4390,6 +4471,15 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       amount: ["Investment limit is exceeded"]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/investments/withdraw:
     post:
@@ -4522,6 +4612,15 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       amount: ["Cannot withdraw amount < min possible"]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/investments/close:
     post:
@@ -4622,6 +4721,15 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       investment: ["Cannot withdraw from closed investment"]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/smart-flex/investments/auto-invest:
     post:
@@ -4708,6 +4816,15 @@ paths:
                 message: "Inner validation failed"
                 errors:
                   plan: ["No existing investments for this plan"]
+        "403":
+          description: Lending API access is not enabled on the account. Request access via the institutional services form (https://whitebit.com/institutional-services/b2b).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
 
   /api/v4/main-account/fee:
     post:
