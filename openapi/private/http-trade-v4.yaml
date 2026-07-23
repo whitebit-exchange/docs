@@ -2686,6 +2686,7 @@ paths:
                             conditionalOrderType:
                               type: string
                               description: Conditional order subtype. Omitted when not set.
+                              example: "margin_take_profit"
                             stopLossPrice:
                               type: string
                               description: Stop loss order price
@@ -7561,7 +7562,7 @@ components:
           example: "no"
         positionSide:
           type: string
-          description: "Position side of the leg. Omitted when not set."
+          description: "Position side of the leg. Present on futures markets (`BOTH` in one-way mode, `LONG`/`SHORT` in hedge mode); omitted on margin-spot markets."
           enum: [LONG, SHORT, BOTH]
           example: "LONG"
         reduceOnly:
@@ -7653,7 +7654,7 @@ components:
           example: "no"
         positionSide:
           type: string
-          description: "Position side of the leg. Omitted when not set."
+          description: "Position side of the leg. Present on futures markets (`BOTH` in one-way mode, `LONG`/`SHORT` in hedge mode); omitted on margin-spot markets."
           enum: [LONG, SHORT, BOTH]
           example: "LONG"
         reduceOnly:
