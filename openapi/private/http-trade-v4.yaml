@@ -2605,11 +2605,15 @@ paths:
                   type: integer
                   description: "Number of records to skip for pagination."
                   default: 0
+                  minimum: 0
+                  maximum: 4294967295
                   example: 0
                 limit:
                   type: integer
                   description: "Maximum number of records to return per page."
-                  default: 50
+                  default: 100
+                  minimum: 1
+                  maximum: 100
                   example: 100
                 request:
                   type: string
@@ -2651,71 +2655,49 @@ paths:
                           properties:
                             id:
                               type: integer
+                              description: Conditional order identifier
                               example: 117703764513
                             type:
                               type: string
                               enum: [oco]
                               example: "oco"
-                            reduceOnly:
-                              type: boolean
-                              description: Reduce-only flag
-                              example: false
+                            conditionalOrderType:
+                              type: string
+                              description: Conditional order subtype. Omitted when not set.
                             stopLoss:
-                              type: object
-                              properties:
-                                orderId:
-                                  type: integer
-                                  example: 117703764514
-                                positionSide:
-                                  type: string
-                                  enum: [LONG, SHORT, BOTH]
-                                  example: "LONG"
+                              description: Stop-loss leg of the OCO order. The `reduceOnly` flag is returned per leg.
+                              allOf:
+                                - $ref: '#/components/schemas/ConditionalOrderLeg'
                             takeProfit:
-                              type: object
-                              properties:
-                                orderId:
-                                  type: integer
-                                  example: 117703764515
-                                positionSide:
-                                  type: string
-                                  enum: [LONG, SHORT, BOTH]
-                                  example: "LONG"
+                              description: Take-profit leg of the OCO order. The `reduceOnly` flag is returned per leg.
+                              allOf:
+                                - $ref: '#/components/schemas/ConditionalOrderLeg'
                         - type: object
                           description: OTO type conditional order
                           properties:
                             id:
                               type: integer
+                              description: Conditional order identifier
                               example: 29457221
                             type:
                               type: string
                               enum: [oto]
                               example: "oto"
-                            reduceOnly:
-                              type: boolean
-                              description: Reduce-only flag
-                              example: false
+                            conditionalOrderType:
+                              type: string
+                              description: Conditional order subtype. Omitted when not set.
                             stopLossPrice:
                               type: string
+                              description: Stop loss order price
                               example: "30000"
                             takeProfitPrice:
                               type: string
+                              description: Take profit order price
                               example: "50000"
                             conditionalOrder:
-                              type: object
-                              properties:
-                                orderId:
-                                  type: integer
-                                  example: 3686033640
-                                clientOrderId:
-                                  type: string
-                                  example: "customId11"
-                                market:
-                                  type: string
-                                  example: "BTC_USDT"
-                                positionSide:
-                                  type: string
-                                  enum: [LONG, SHORT, BOTH]
-                                  example: "LONG"
+                              description: The linked active order. Same shape as an `/api/v4/orders` record, including its per-order `reduceOnly` flag.
+                              allOf:
+                                - $ref: '#/components/schemas/OrderResponse'
               example:
                 limit: 100
                 offset: 0
@@ -2723,53 +2705,49 @@ paths:
                 records:
                   - id: 117703764513
                     type: "oco"
-                    reduceOnly: false
                     stopLoss:
                       orderId: 117703764514
                       clientOrderId: ""
                       market: "BTC_USDT"
                       side: "buy"
-                      type: "stop limit"
+                      type: "margin stop limit"
                       timestamp: 1594605801.49815
                       dealMoney: "0"
                       dealStock: "0"
                       amount: "2.241379"
-                      takerFee: "0.001"
-                      makerFee: "0.001"
                       left: "2.241379"
                       dealFee: "0"
                       postOnly: false
+                      status: "OPEN"
+                      stp: "no"
+                      positionSide: "LONG"
+                      reduceOnly: false
                       mtime: 1662478154.941582
                       price: "19928.79"
                       activationPrice: "29928.79"
                       activationCondition: "gte"
                       activated: 0
-                      status: "FILLED"
-                      stp: "no"
-                      positionSide: "LONG"
                     takeProfit:
                       orderId: 117703764515
                       clientOrderId: ""
                       market: "BTC_USDT"
                       side: "buy"
-                      type: "limit"
+                      type: "margin limit"
                       timestamp: 1662478154.941582
                       dealMoney: "0"
                       dealStock: "0"
                       amount: "0.635709"
-                      takerFee: "0.001"
-                      makerFee: "0.001"
                       left: "0.635709"
                       dealFee: "0"
                       postOnly: false
-                      mtime: 1662478154.941582
-                      price: "9928.79"
-                      status: "FILLED"
+                      status: "OPEN"
                       stp: "no"
                       positionSide: "LONG"
+                      reduceOnly: false
+                      mtime: 1662478154.941582
+                      price: "9928.79"
                   - id: 29457221
                     type: "oto"
-                    reduceOnly: false
                     stopLossPrice: "30000"
                     takeProfitPrice: "50000"
                     conditionalOrder:
@@ -2782,13 +2760,15 @@ paths:
                       dealMoney: "0"
                       dealStock: "0"
                       amount: "2.241379"
-                      takerFee: "0.001"
-                      makerFee: "0.001"
                       left: "2.241379"
                       dealFee: "0"
-                      price: "40000"
-                      status: "FILLED"
+                      ioc: false
+                      status: "OPEN"
                       stp: "no"
+                      rpi: false
+                      reduceOnly: false
+                      price: "40000"
+                      postOnly: false
                       positionSide: "LONG"
         '400':
           description: Inner validation failed
@@ -2848,11 +2828,15 @@ paths:
                   type: integer
                   description: "Number of records to skip for pagination."
                   default: 0
+                  minimum: 0
+                  maximum: 4294967295
                   example: 0
                 limit:
                   type: integer
                   description: "Maximum number of records to return per page."
                   default: 50
+                  minimum: 1
+                  maximum: 100
                   example: 100
                 request:
                   type: string
@@ -2880,135 +2864,13 @@ paths:
                       description: OCO order identifier
                       example: 117703764513
                     stop_loss:
-                      type: object
-                      description: Stop loss order details
-                      properties:
-                        orderId:
-                          type: integer
-                          example: 117703764514
-                        clientOrderId:
-                          type: string
-                          example: ""
-                        market:
-                          type: string
-                          example: "BTC_USDT"
-                        side:
-                          type: string
-                          enum: [buy, sell]
-                          example: "buy"
-                        type:
-                          type: string
-                          example: "stop limit"
-                        timestamp:
-                          type: number
-                          example: 1594605801.49815
-                        dealMoney:
-                          type: string
-                          example: "0"
-                        dealStock:
-                          type: string
-                          example: "0"
-                        amount:
-                          type: string
-                          example: "2.241379"
-                        takerFee:
-                          type: string
-                          example: "0.001"
-                        makerFee:
-                          type: string
-                          example: "0.001"
-                        left:
-                          type: string
-                          example: "2.241379"
-                        dealFee:
-                          type: string
-                          example: "0"
-                        post_only:
-                          type: boolean
-                          example: false
-                        mtime:
-                          type: number
-                          example: 1662478154.941582
-                        price:
-                          type: string
-                          example: "19928.79"
-                        activation_price:
-                          type: string
-                          example: "29928.79"
-                        activation_condition:
-                          type: string
-                          description: |
-                            Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
-                          enum: [gte, lte]
-                          example: "gte"
-                        activated:
-                          type: integer
-                          example: 0
-                        status:
-                          type: string
-                          example: "FILLED"
-                        stp:
-                          type: string
-                          example: "no"
+                      description: Stop loss order details. Includes the `activation_price` / `activation_condition` / `activated` trigger fields.
+                      allOf:
+                        - $ref: '#/components/schemas/OcoOrderLeg'
                     take_profit:
-                      type: object
-                      description: Take profit order details
-                      properties:
-                        orderId:
-                          type: integer
-                          example: 117703764515
-                        clientOrderId:
-                          type: string
-                          example: ""
-                        market:
-                          type: string
-                          example: "BTC_USDT"
-                        side:
-                          type: string
-                          enum: [buy, sell]
-                          example: "buy"
-                        type:
-                          type: string
-                          example: "limit"
-                        timestamp:
-                          type: number
-                          example: 1662478154.941582
-                        dealMoney:
-                          type: string
-                          example: "0"
-                        dealStock:
-                          type: string
-                          example: "0"
-                        amount:
-                          type: string
-                          example: "0.635709"
-                        takerFee:
-                          type: string
-                          example: "0.001"
-                        makerFee:
-                          type: string
-                          example: "0.001"
-                        left:
-                          type: string
-                          example: "0.635709"
-                        dealFee:
-                          type: string
-                          example: "0"
-                        post_only:
-                          type: boolean
-                          example: false
-                        mtime:
-                          type: number
-                          example: 1662478154.941582
-                        price:
-                          type: string
-                          example: "9928.79"
-                        status:
-                          type: string
-                          example: "FILLED"
-                        stp:
-                          type: string
-                          example: "no"
+                      description: Take profit order details. The trigger fields are omitted on this leg.
+                      allOf:
+                        - $ref: '#/components/schemas/OcoOrderLeg'
               example:
                 - id: 117703764513
                   stop_loss:
@@ -3016,42 +2878,40 @@ paths:
                     clientOrderId: ""
                     market: "BTC_USDT"
                     side: "buy"
-                    type: "stop limit"
+                    type: "margin stop limit"
                     timestamp: 1594605801.49815
                     dealMoney: "0"
                     dealStock: "0"
                     amount: "2.241379"
-                    takerFee: "0.001"
-                    makerFee: "0.001"
                     left: "2.241379"
                     dealFee: "0"
                     post_only: false
+                    status: "OPEN"
+                    stp: "no"
+                    reduceOnly: false
                     mtime: 1662478154.941582
                     price: "19928.79"
                     activation_price: "29928.79"
                     activation_condition: "gte"
                     activated: 0
-                    status: "FILLED"
-                    stp: "no"
                   take_profit:
                     orderId: 117703764515
                     clientOrderId: ""
                     market: "BTC_USDT"
                     side: "buy"
-                    type: "limit"
+                    type: "margin limit"
                     timestamp: 1662478154.941582
                     dealMoney: "0"
                     dealStock: "0"
                     amount: "0.635709"
-                    takerFee: "0.001"
-                    makerFee: "0.001"
                     left: "0.635709"
                     dealFee: "0"
                     post_only: false
+                    status: "OPEN"
+                    stp: "no"
+                    reduceOnly: false
                     mtime: 1662478154.941582
                     price: "9928.79"
-                    status: "FILLED"
-                    stp: "no"
         '400':
           description: Inner validation failed
           content:
@@ -3506,7 +3366,15 @@ paths:
               nonce: 1594297865000
       responses:
         '200':
-          description: Order cancelled
+          description: Order cancelled. The response body is a literal empty array.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: "Always an empty array (`[]`) on success."
+                maxItems: 0
+                items: {}
+              example: []
         '400':
           description: Inner validation failed
           content:
@@ -3527,16 +3395,16 @@ paths:
       summary: Cancel OCO order
       operationId: cancelOcoOrder
       description: |
-        The endpoint cancels an OCO order.
+        The endpoint cancels an OCO order. Identify the order by `orderId` or `clientOrderId` — exactly one of the two must be provided. A request specifying both identifiers, or neither, fails validation.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
 
         <Accordion title="Error Codes">
-          - `30` - default validation error code
+          - `30` - default validation error code. Also returned when the request specifies both `orderId` and `clientOrderId`, or neither
           - `31` - market validation failed
-          - `2` - OCO order not found. Returned whether the `orderId` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
+          - `2` - OCO order not found. Returned whether the identifier (`orderId` or `clientOrderId`) does not exist, or the order was already filled or already cancelled — these cases are not distinguished
         </Accordion>
 
         <Accordion title="Errors">
@@ -3564,16 +3432,21 @@ paths:
               type: object
               required:
                 - market
-                - orderId
                 - request
                 - nonce
               properties:
                 market:
                   type: string
+                  description: "Market of the OCO order to cancel. Example: BTC_USDT"
                   example: "BTC_USDT"
                 orderId:
                   type: integer
-                  example: 117703764514
+                  description: "OCO order identifier (the `id` returned at creation and by the OCO listings). Required if `clientOrderId` is not set; mutually exclusive with `clientOrderId`."
+                  example: 117703764513
+                clientOrderId:
+                  type: string
+                  description: "Client-defined order ID supplied at order creation. Required if `orderId` is not set; mutually exclusive with `orderId`."
+                  example: "customId11"
                 request:
                   type: string
                   example: "{{request}}"
@@ -3582,7 +3455,7 @@ paths:
                   example: 1594297865000
             example:
               market: BTC_USDT
-              orderId: 117703764514
+              orderId: 117703764513
               request: "{{request}}"
               nonce: 1594297865000
       responses:
@@ -3598,163 +3471,13 @@ paths:
                     description: OCO order identifier
                     example: 117703764513
                   stop_loss:
-                    type: object
-                    description: Cancelled stop loss order details
-                    properties:
-                      orderId:
-                        type: integer
-                        description: Order identifier
-                        example: 117703764514
-                      clientOrderId:
-                        type: string
-                        description: Custom order identifier. Empty string if not specified
-                        example: ""
-                      market:
-                        type: string
-                        description: Market name
-                        example: "BTC_USDT"
-                      side:
-                        type: string
-                        description: Order side
-                        enum: [buy, sell]
-                        example: "buy"
-                      type:
-                        type: string
-                        description: Order type
-                        example: "stop limit"
-                      timestamp:
-                        type: number
-                        description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
-                        example: 1594605801.49815
-                      dealMoney:
-                        type: string
-                        description: Executed amount in money
-                        example: "0"
-                      dealStock:
-                        type: string
-                        description: Executed amount in stock
-                        example: "0"
-                      amount:
-                        type: string
-                        description: Order amount
-                        example: "2.241379"
-                      takerFee:
-                        type: string
-                        description: Taker fee ratio
-                        example: "0.001"
-                      makerFee:
-                        type: string
-                        description: Maker fee ratio
-                        example: "0.001"
-                      left:
-                        type: string
-                        description: Unexecuted amount in stock
-                        example: "2.241379"
-                      dealFee:
-                        type: string
-                        description: Executed fee by deal
-                        example: "0"
-                      post_only:
-                        type: boolean
-                        description: Post-only flag
-                        example: false
-                      mtime:
-                        type: number
-                        description: Timestamp of order modification
-                        example: 1662478154.941582
-                      price:
-                        type: string
-                        description: Order price
-                        example: "19928.79"
-                      activation_price:
-                        type: string
-                        description: Activation price
-                        example: "29928.79"
-                      activation_condition:
-                        type: string
-                        description: |
-                          Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`.
-                        enum: [gte, lte]
-                        example: "gte"
-                      activated:
-                        type: integer
-                        description: Activation status (0 - not activated, 1 - activated)
-                        example: 0
-                      status:
-                        type: string
-                        $ref: '#/components/schemas/OrderStatus'
-                      stp:
-                        type: string
-                        description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
-                        example: "no"
+                    description: Cancelled stop loss order details. Includes the `activation_price` / `activation_condition` / `activated` trigger fields.
+                    allOf:
+                      - $ref: '#/components/schemas/OcoOrderLeg'
                   take_profit:
-                    type: object
-                    description: Cancelled take profit order details
-                    properties:
-                      orderId:
-                        type: integer
-                        description: Order identifier
-                        example: 117703764515
-                      clientOrderId:
-                        type: string
-                        description: Custom order identifier. Empty string if not specified
-                        example: ""
-                      market:
-                        type: string
-                        description: Market name
-                        example: "BTC_USDT"
-                      side:
-                        type: string
-                        description: Order side
-                        enum: [buy, sell]
-                        example: "buy"
-                      type:
-                        type: string
-                        description: Order type
-                        example: "limit"
-                      timestamp:
-                        type: number
-                        description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
-                        example: 1662478154.941582
-                      dealMoney:
-                        type: string
-                        description: Executed amount in money
-                        example: "0"
-                      dealStock:
-                        type: string
-                        description: Executed amount in stock
-                        example: "0"
-                      amount:
-                        type: string
-                        description: Order amount
-                        example: "0.635709"
-                      left:
-                        type: string
-                        description: Unexecuted amount in stock
-                        example: "0.635709"
-                      dealFee:
-                        type: string
-                        description: Executed fee by deal
-                        example: "0"
-                      post_only:
-                        type: boolean
-                        description: Post-only flag
-                        example: false
-                      mtime:
-                        type: number
-                        description: Timestamp of order modification
-                        example: 1662478154.941582
-                      price:
-                        type: string
-                        description: Order price
-                        example: "9928.79"
-                      status:
-                        type: string
-                        $ref: '#/components/schemas/OrderStatus'
-                      stp:
-                        type: string
-                        description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
-                        example: "no"
+                    description: Cancelled take profit order details. The trigger fields are omitted on this leg.
+                    allOf:
+                      - $ref: '#/components/schemas/OcoOrderLeg'
               example:
                 id: 117703764513
                 stop_loss:
@@ -3762,29 +3485,28 @@ paths:
                   clientOrderId: ""
                   market: "BTC_USDT"
                   side: "buy"
-                  type: "stop limit"
+                  type: "margin stop limit"
                   timestamp: 1594605801.49815
                   dealMoney: "0"
                   dealStock: "0"
                   amount: "2.241379"
-                  takerFee: "0.001"
-                  makerFee: "0.001"
                   left: "2.241379"
                   dealFee: "0"
                   post_only: false
+                  status: "CANCELED"
+                  stp: "no"
+                  reduceOnly: false
                   mtime: 1662478154.941582
                   price: "19928.79"
                   activation_price: "29928.79"
                   activation_condition: "gte"
                   activated: 0
-                  status: "CANCELED"
-                  stp: "no"
                 take_profit:
                   orderId: 117703764515
                   clientOrderId: ""
                   market: "BTC_USDT"
                   side: "buy"
-                  type: "limit"
+                  type: "margin limit"
                   timestamp: 1662478154.941582
                   dealMoney: "0"
                   dealStock: "0"
@@ -3792,10 +3514,11 @@ paths:
                   left: "0.635709"
                   dealFee: "0"
                   post_only: false
-                  mtime: 1662478154.941582
-                  price: "9928.79"
                   status: "CANCELED"
                   stp: "no"
+                  reduceOnly: false
+                  mtime: 1662478154.941582
+                  price: "9928.79"
         '400':
           description: Inner validation failed
           content:
@@ -3876,7 +3599,15 @@ paths:
               nonce: 1594297865000
       responses:
         '200':
-          description: OTO order cancelled
+          description: OTO order cancelled. The response body is a literal empty array.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: "Always an empty array (`[]`) on success."
+                maxItems: 0
+                items: {}
+              example: []
         '400':
           description: Inner validation failed
           content:
@@ -4597,6 +4328,7 @@ paths:
         <Note>
           - RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
+          - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
           - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set.
           - `retail=true` has no effect on a `postOnly=true` order. Post-only orders are makers and cannot be retail takers.
@@ -4856,6 +4588,7 @@ paths:
         <Note>
           - RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
+          - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
           - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set on an item.
           - `retail=true` has no effect on a `postOnly=true` item. Post-only orders are makers and cannot be retail takers.
@@ -4963,10 +4696,14 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - orders
+                - request
+                - nonce
               properties:
                 orders:
                   type: array
-                  description: "Array of limit orders"
+                  description: "Array of limit orders. Each item is validated with the same rules as a single limit order."
                   items:
                     $ref: '#/components/schemas/BulkOrderItem'
                 stopOnFail:
@@ -5672,9 +5409,8 @@ paths:
         </Warning>
 
         <Note>
-        - Cancellation by clientOrderId takes priority over orderId.
-        - The request supports working only with orderId or only with clientOrderId.
-        - Do not pass both values at the same time.
+        - The request accepts exactly one identifier: either `orderId` or `clientOrderId`.
+        - Sending both identifiers, or neither, returns a validation error.
         </Note>
         
         <Accordion title="Error Codes">
@@ -6062,6 +5798,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - request
+                - nonce
               properties:
                 market:
                   type: string
@@ -6080,6 +5819,11 @@ paths:
                   items:
                     type: string
                     enum: [spot, margin, futures]
+                positionSide:
+                  type: string
+                  enum: [both, long, short]
+                  description: "[Position side](/glossary#position-side) scope. Accepted only when `market` is a perpetual futures market (e.g., BTC_PERP); values are lowercase on this endpoint."
+                  example: "both"
                 request:
                   type: string
                   example: "{{request}}"
@@ -6094,7 +5838,15 @@ paths:
                 - futures
       responses:
         '200':
-          description: Orders cancelled successfully
+          description: Orders cancelled successfully. The response body is a literal empty array.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: "Always an empty array (`[]`) on success."
+                maxItems: 0
+                items: {}
+              example: []
         '400':
           description: Inner validation failed
           content:
@@ -6765,17 +6517,16 @@ paths:
         
         Supported order types: limit, stop limit, stop market.
         
-        Request must contain one of the following parameters: amount, price, activationPrice.
-        
+        Request must contain at least one of the following parameters: amount, total, price, activationPrice.
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-        
+
         <Note>
-        - Use total parameter instead of amount for modify buy stop market order.
-        - Modification by clientOrderId takes priority.
-        - The request supports working only with orderId or only with clientOrderId.
-        - Do not pass both values at the same time.
+        - Use total parameter instead of amount for modify buy stop market order. `amount` and `total` are mutually exclusive — a request sending both is rejected.
+        - The request accepts exactly one identifier: either `orderId` or `clientOrderId`.
+        - Sending both identifiers, or neither, returns a validation error.
         </Note>
 
         <Note>
@@ -6871,6 +6622,17 @@ paths:
                   type: string
                   description: "Activation price in [money](/glossary#money) currency. Example: '10000' or 10000"
                   example: "10000"
+                stp:
+                  type: string
+                  enum: [no, cb, cn, co]
+                  default: no
+                  description: |
+                    Self-trade prevention mode. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+                    Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+                    See [Self-Trade Prevention](/platform/self-trade-prevention).
+                  example: "no"
                 request:
                   type: string
                   example: "{{request}}"
@@ -6974,10 +6736,13 @@ paths:
                   example: "BTC_USDT"
                 timeout:
                   type: string
-                  description: "Timer value. Example: '5'-'600' or null"
+                  nullable: true
+                  description: "Timer value in seconds ('5'-'600'), or `null` to delete the existing timer. The key must always be present — omitting it fails validation."
                   example: "60"
                 types:
                   type: array
+                  minItems: 1
+                  maxItems: 3
                   description: "Order types to target. Valid values: \"spot\" — standard spot
                     orders. \"margin\" — marginal orders placed on spot markets. Note: the
                     \"margin\" value is not the same as the collateral account balance;
@@ -6997,36 +6762,50 @@ paths:
                   example: 1594297865000
       responses:
         '200':
-          description: Successful response - kill-switch timer synced
+          description: "Successful response — creating or updating a timer returns the timer object; deleting a timer (`timeout: null`) returns a literal empty array (`[]`)."
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  market:
-                    type: string
-                    description: "Trading pair the timer applies to."
-                    example: "BTC_USDT"
-                  startTime:
-                    type: integer
-                    description: "Unix timestamp (seconds) when the timer was created or last reset."
-                    example: 1662478154
-                  cancellationTime:
-                    type: integer
-                    description: "Unix timestamp (seconds) when the kill-switch will cancel orders. Equals `startTime + timeout`."
-                    example: 1662478154
-                  types:
-                    type: array
-                    description: "Order types targeted by the kill-switch. Possible values: `spot`, `margin`, `futures`."
-                    items:
-                      type: string
-                      enum: [spot, margin, futures]
-                    example: ["spot", "margin"]
-              example:
-                market: "BTC_USDT"
-                startTime: 1662478154
-                cancellationTime: 1662478154
-                types: ["spot", "margin"]
+                oneOf:
+                  - type: object
+                    title: Timer created or updated
+                    properties:
+                      market:
+                        type: string
+                        description: "Trading pair the timer applies to."
+                        example: "BTC_USDT"
+                      startTime:
+                        type: integer
+                        description: "Unix timestamp (seconds) when the timer was created or last reset."
+                        example: 1662478154
+                      cancellationTime:
+                        type: integer
+                        description: "Unix timestamp (seconds) when the kill-switch will cancel orders. Equals `startTime + timeout`."
+                        example: 1662478154
+                      types:
+                        type: array
+                        nullable: true
+                        description: "Order types targeted by the kill-switch. Possible values: `spot`, `margin`, `futures`. Returns `null` when the timer was created without `types` (the kill-switch then targets all order types)."
+                        items:
+                          type: string
+                          enum: [spot, margin, futures]
+                        example: ["spot", "margin"]
+                  - type: array
+                    title: Timer deleted
+                    description: "Deleting a timer (`timeout: null`) returns a literal empty array (`[]`)."
+                    maxItems: 0
+                    items: {}
+              examples:
+                timerSynced:
+                  summary: Timer created or updated
+                  value:
+                    market: "BTC_USDT"
+                    startTime: 1662478154
+                    cancellationTime: 1662478154
+                    types: ["spot", "margin"]
+                timerDeleted:
+                  summary: Timer deleted
+                  value: []
         '400':
           description: Inner validation failed
           content:
@@ -7115,7 +6894,8 @@ paths:
                       example: 1686127343
                     types:
                       type: array
-                      description: "Order types targeted by the kill-switch. Possible values: `spot`, `margin`, `futures`."
+                      nullable: true
+                      description: "Order types targeted by the kill-switch. Possible values: `spot`, `margin`, `futures`. Returns `null` when the timer was created without `types` (the kill-switch then targets all order types)."
                       items:
                         type: string
                         enum: [spot, margin, futures]
@@ -7216,7 +6996,6 @@ components:
         - market
         - side
         - amount
-        - price
         - request
         - nonce
       properties:
@@ -7235,7 +7014,7 @@ components:
           example: "0.001"
         price:
           type: string
-          description: "Limit price per unit in quote (money) currency. Minimum and maximum values are market-dependent. Precision: `moneyPrec`."
+          description: "Limit price per unit in quote (money) currency. Required unless `bboRole` is set — the BBO execution method replaces the explicit price. Minimum and maximum values are market-dependent. Precision: `moneyPrec`."
           example: "9800"
         clientOrderId:
           type: string
@@ -7244,7 +7023,7 @@ components:
         postOnly:
           type: boolean
           default: false
-          description: "Post-only flag. When `true`, the order executes only as a [maker](/glossary#maker) order and the system rejects the order if it would match immediately. Default: `false`."
+          description: "Post-only flag. When `true`, the order executes only as a [maker](/glossary#maker) order and the system rejects the order if it would match immediately. Allowed only when `bboRole` is not set. Do not combine with `rpi=true` — RPI orders apply post-only behavior automatically, and a request setting both flags fails validation. Default: `false`."
           example: false
         ioc:
           type: boolean
@@ -7254,13 +7033,19 @@ components:
 
             IOC does not support `rpi=true` because RPI uses post-only behavior by design.
             The API returns error code `40` when a request sets both `ioc=true` and `rpi=true`.
+            IOC cannot be combined with `postOnly=true` (error code `37`), and with `bboRole` it is allowed only for the Counterparty method (`2`).
 
             Refer to [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
         bboRole:
           type: integer
           enum: [1, 2]
-          description: "Best Bid/Offer ([BBO](/glossary#bbo)) execution method. The system selects the best market price for execution. `1` = Queue method, `2` = Counterparty method. Use method `2` with the `ioc` flag."
+          description: |
+            Best Bid/Offer ([BBO](/glossary#best-bid-offer-bbo)) execution method. The system selects the best market price for execution. `1` = Queue method, `2` = Counterparty method.
+
+            When `bboRole` is set, `price` is not required — the BBO method determines the execution price. `postOnly` is allowed only when `bboRole` is not set; `ioc` can be combined only with the Counterparty method (`2`). Use method `2` with the `ioc` flag.
+
+            Refer to [Order Parameter Rules](/guides/order-parameter-rules) for the full interaction rules.
         stp:
           type: string
           enum: [no, cb, cn, co]
@@ -7278,7 +7063,7 @@ components:
           description: |
             Enables Retail Price Improvement (RPI) mode. Default: `false`.
 
-            RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
+            RPI orders apply post-only behavior automatically — do not also send an explicit `postOnly=true`: a request combining the two flags fails validation. An RPI order does not support `ioc=true`.
             The API returns error code `40` when a request sets both `rpi=true` and `ioc=true`.
             RPI orders do not appear in public order book feeds (`depth`, `bookTicker`). RPI orders are visible only in private active orders and in the exchange UI order book (web/mobile).
             RPI executions may apply custom fees or rebates, especially when trading via sub-accounts. Use Query Market Fees to verify effective fees.
@@ -7356,7 +7141,6 @@ components:
         - market
         - side
         - amount
-        - price
         - activation_price
         - request
         - nonce
@@ -7376,7 +7160,7 @@ components:
           example: "0.001"
         price:
           type: string
-          description: "Limit price per unit in quote (money) currency applied after the stop triggers. Minimum and maximum values are market-dependent. Precision: `moneyPrec`."
+          description: "Limit price per unit in quote (money) currency applied after the stop triggers. Required unless `bboRole` is set — the BBO execution method replaces the explicit price. Minimum and maximum values are market-dependent. Precision: `moneyPrec`."
           example: "9800"
         activation_price:
           type: string
@@ -7389,7 +7173,7 @@ components:
         bboRole:
           type: integer
           enum: [1, 2]
-          description: "Best Bid/Offer ([BBO](/glossary#bbo)) execution method. The system selects the best market price for execution after the stop triggers. `1` = Queue method, `2` = Counterparty method."
+          description: "Best Bid/Offer ([BBO](/glossary#best-bid-offer-bbo)) execution method. The system selects the best market price for execution after the stop triggers. `1` = Queue method, `2` = Counterparty method. When `bboRole` is set, `price` is not required — the BBO method determines the execution price."
         stp:
           type: string
           enum: [no, cb, cn, co]
@@ -7503,6 +7287,10 @@ components:
 
     BulkOrderItem:
       type: object
+      required:
+        - market
+        - side
+        - amount
       properties:
         side:
           type: string
@@ -7515,7 +7303,7 @@ components:
           example: "0.001"
         price:
           type: string
-          description: "Limit price per unit in quote (money) currency. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for precision (`moneyPrec`)."
+          description: "Limit price per unit in quote (money) currency. Required unless `bboRole` is set — the BBO execution method replaces the explicit price. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for precision (`moneyPrec`)."
           example: "40000"
         market:
           type: string
@@ -7524,7 +7312,7 @@ components:
         postOnly:
           type: boolean
           default: false
-          description: "Post-only flag. When `true`, the order executes only as a maker order and is rejected if it would match immediately. Default: `false`."
+          description: "Post-only flag. When `true`, the order executes only as a maker order and is rejected if it would match immediately. Allowed only when `bboRole` is not set. Do not combine with `rpi=true` — RPI items apply post-only behavior automatically, and an item setting both flags fails validation. Default: `false`."
           example: false
         ioc:
           type: boolean
@@ -7534,18 +7322,37 @@ components:
 
             IOC does not support `rpi=true` because RPI uses post-only behavior by design.
             The API returns error code `40` when an order item sets both `ioc=true` and `rpi=true`.
+            IOC cannot be combined with `postOnly=true` (error code `37`), and with `bboRole` it is allowed only for the Counterparty method (`2`).
           example: false
         clientOrderId:
           type: string
           description: "Custom client order identifier. Uniqueness is enforced only among the account's open (pending) orders on the same market — once a previous order is filled or canceled, the same identifier can be reused, including on the same market. Contains only letters, numbers, dashes, dots, or underscores."
           example: ""
+        bboRole:
+          type: integer
+          enum: [1, 2]
+          description: |
+            Best Bid/Offer ([BBO](/glossary#best-bid-offer-bbo)) execution method for the item. The system selects the best market price for execution. `1` = Queue method, `2` = Counterparty method.
+
+            When `bboRole` is set, the item's `price` is not required — the BBO method determines the execution price. `postOnly` is allowed only when `bboRole` is not set; `ioc` can be combined only with the Counterparty method (`2`).
+        stp:
+          type: string
+          enum: [no, cb, cn, co]
+          default: no
+          description: |
+            Self-trade prevention mode for the item. Allowed values: `no` (self-trades allowed), `cb` (cancel both the new and the existing order), `cn` (cancel the new order, keep the existing), `co` (cancel the existing order, place the new one). Default: `no`.
+
+            Legacy values `cancel_both`, `cancel_new`, `cancel_old` are deprecated: the API accepts the legacy values with identical behavior until a deprecation deadline is announced, then rejects the legacy values. Responses always return the abbreviated form, regardless of which variant the request used.
+
+            See [Self-Trade Prevention](/platform/self-trade-prevention).
+          example: "no"
         rpi:
           type: boolean
           default: false
           description: |
             Enables Retail Price Improvement (RPI) mode. Default: `false`.
 
-            RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
+            RPI items apply post-only behavior automatically — do not also send an explicit `postOnly=true`: an item combining the two flags fails validation. An RPI order does not support `ioc=true`.
             The API returns error code `40` when an order item sets both `rpi=true` and `ioc=true`.
           example: true
         retail:
@@ -7565,6 +7372,7 @@ components:
 
     OrderResponse:
       type: object
+      description: "Shared order shape returned by the order-creation, cancel, active-orders list, and modify endpoints. Field presence varies by endpoint and order type — see the per-field notes."
       properties:
         orderId:
           type: integer
@@ -7610,13 +7418,17 @@ components:
           type: string
           description: "Cumulative trading fee charged for filled portions, denominated in the fee asset."
           example: "0"
+        feeAsset:
+          type: string
+          description: "Currency ticker of the asset used to pay the trading fee. Omitted when empty."
+          example: "USDT"
         price:
           type: string
-          description: "Limit price per unit in quote currency. Returns `\"0\"` for market orders."
+          description: "Limit price per unit in quote currency. Present for orders that carry a price (limit and stop-limit shapes); omitted on market and stop-market order shapes."
           example: "40000"
         postOnly:
           type: boolean
-          description: "Post-only flag. When `true`, the order executes only as a maker order and is rejected if it would match immediately. Default: `false`."
+          description: "Post-only flag. When `true`, the order executes only as a maker order and is rejected if it would match immediately. Omitted when not set."
           example: false
         ioc:
           type: boolean
@@ -7630,8 +7442,24 @@ components:
           example: "no"
         positionSide:
           type: string
-          description: "Position side (for collateral orders)"
+          description: "Position side (for collateral orders). Returned on the cancel, active-orders list, and modify responses; omitted when not set. Spot order-creation responses do not include the field."
           example: "LONG"
+        oto:
+          type: object
+          description: "OTO order data. Present only when the order belongs to an [OTO](/glossary#one-triggers-the-other-oto) group — returned on the cancel, active-orders list, and modify responses."
+          properties:
+            otoId:
+              type: integer
+              description: OTO order identifier
+              example: 29457221
+            takeProfit:
+              type: string
+              description: Take profit order price
+              example: "50000"
+            stopLoss:
+              type: string
+              description: Stop loss order price
+              example: "30000"
         rpi:
           type: boolean
           description: "Indicates Retail Price Improvement (RPI) mode for the order."
@@ -7642,13 +7470,14 @@ components:
           example: true
         reduceOnly:
           type: boolean
-          description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. See [reduce-only](/glossary#reduce-only)."
+          description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. Returned on the cancel, active-orders list, and modify responses; spot order-creation responses do not include the field. See [reduce-only](/glossary#reduce-only)."
           example: false
         activated:
           type: integer
           description: "Activation status of the stop order. 0 = not yet triggered
             (waiting for the activation_price condition to be met). 1 = triggered
-            (the stop condition has been met and the order is now active)."
+            (the stop condition has been met and the order is now active).
+            Returned for stop orders; omitted on other order shapes."
           example: 0
         activationCondition:
           type: string
@@ -7662,8 +7491,197 @@ components:
         activation_price:
           type: string
           description: "The trigger price for the stop order. Always equals the
-            activation_price value submitted in the request."
+            activation_price value submitted in the request. Returned for stop
+            orders; omitted on other order shapes."
           example: "40000"
+    OcoOrderLeg:
+      type: object
+      description: "OCO order leg as returned by `/api/v4/oco-orders` and `/api/v4/order/oco-cancel`. Field names use snake_case (`post_only`, `activation_price`) — unlike the camelCase legs returned by `/api/v4/conditional-orders`."
+      properties:
+        orderId:
+          type: integer
+          description: Order identifier
+          example: 117703764514
+        clientOrderId:
+          type: string
+          description: Custom order identifier. Empty string if not specified
+          example: ""
+        market:
+          type: string
+          description: Market name
+          example: "BTC_USDT"
+        side:
+          type: string
+          description: Order side
+          enum: [buy, sell]
+          example: "buy"
+        type:
+          type: string
+          description: Order type
+          example: "margin stop limit"
+        timestamp:
+          type: number
+          description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
+          example: 1594605801.49815
+        dealMoney:
+          type: string
+          description: Executed amount in money
+          example: "0"
+        dealStock:
+          type: string
+          description: Executed amount in stock
+          example: "0"
+        amount:
+          type: string
+          description: Order amount
+          example: "2.241379"
+        left:
+          type: string
+          description: Unexecuted amount in stock
+          example: "2.241379"
+        dealFee:
+          type: string
+          description: Executed fee by deal
+          example: "0"
+        post_only:
+          type: boolean
+          description: Post-only flag
+          example: false
+        feeAsset:
+          type: string
+          description: "Currency ticker of the asset used to pay the trading fee. Omitted when empty."
+          example: "USDT"
+        status:
+          type: string
+          description: "Order status (for example `OPEN` for an active leg, `CANCELED` after cancellation)."
+          example: "OPEN"
+        stp:
+          type: string
+          description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value."
+          example: "no"
+        positionSide:
+          type: string
+          description: "Position side of the leg. Omitted when not set."
+          enum: [LONG, SHORT, BOTH]
+          example: "LONG"
+        reduceOnly:
+          type: boolean
+          description: "Reduce-only flag. When `true`, the leg can only reduce or close an existing position."
+          example: false
+        mtime:
+          type: number
+          description: Timestamp of order modification
+          example: 1662478154.941582
+        price:
+          type: string
+          description: Order price
+          example: "19928.79"
+        activation_price:
+          type: string
+          description: Activation price. Returned on the stop-loss leg
+          example: "29928.79"
+        activation_condition:
+          type: string
+          description: |
+            Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`. Returned on the stop-loss leg.
+          enum: [gte, lte]
+          example: "gte"
+        activated:
+          type: integer
+          description: Activation status (0 - not activated, 1 - activated). Returned on the stop-loss leg
+          example: 0
+    ConditionalOrderLeg:
+      type: object
+      description: "Conditional-order leg as returned by `/api/v4/conditional-orders`. Field names use camelCase (`postOnly`, `activationPrice`) — unlike the snake_case legs returned by `/api/v4/oco-orders` and `/api/v4/order/oco-cancel`; do not treat the two shapes as interchangeable."
+      properties:
+        orderId:
+          type: integer
+          description: Order identifier
+          example: 117703764514
+        clientOrderId:
+          type: string
+          description: Custom order identifier. Empty string if not specified
+          example: ""
+        market:
+          type: string
+          description: Market name
+          example: "BTC_USDT"
+        side:
+          type: string
+          description: Order side
+          enum: [buy, sell]
+          example: "buy"
+        type:
+          type: string
+          description: Order type
+          example: "margin stop limit"
+        timestamp:
+          type: number
+          description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
+          example: 1594605801.49815
+        dealMoney:
+          type: string
+          description: Executed amount in money
+          example: "0"
+        dealStock:
+          type: string
+          description: Executed amount in stock
+          example: "0"
+        amount:
+          type: string
+          description: Order amount
+          example: "2.241379"
+        left:
+          type: string
+          description: Unexecuted amount in stock
+          example: "2.241379"
+        dealFee:
+          type: string
+          description: Executed fee by deal
+          example: "0"
+        postOnly:
+          type: boolean
+          description: Post-only flag. Omitted when not set
+          example: false
+        status:
+          type: string
+          description: "Order status (for example `OPEN` for an active leg, `CANCELED` after cancellation)."
+          example: "OPEN"
+        stp:
+          type: string
+          description: "Self-trade prevention mode. Possible values: `no`, `cb`, `cn`, `co`. Always returned in abbreviated form, even when the request used a legacy value. Omitted when not set."
+          example: "no"
+        positionSide:
+          type: string
+          description: "Position side of the leg. Omitted when not set."
+          enum: [LONG, SHORT, BOTH]
+          example: "LONG"
+        reduceOnly:
+          type: boolean
+          description: "Reduce-only flag. When `true`, the leg can only reduce or close an existing position."
+          example: false
+        mtime:
+          type: number
+          description: Timestamp of order modification
+          example: 1662478154.941582
+        price:
+          type: string
+          description: Order price
+          example: "19928.79"
+        activationPrice:
+          type: string
+          description: Activation price. Returned on the stop-loss leg; omitted when not set
+          example: "29928.79"
+        activationCondition:
+          type: string
+          description: |
+            Trigger condition derived from `side` (response-only, cannot be overridden): `buy` → `gte`, `sell` → `lte`. Returned on the stop-loss leg; omitted when not set.
+          enum: [gte, lte]
+          example: "gte"
+        activated:
+          type: integer
+          description: Activation status (0 - not activated, 1 - activated). Omitted when not set
+          example: 0
     BulkLimitOrderResponse:
       type: array
       items:

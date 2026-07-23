@@ -26,6 +26,42 @@ Remove `ioc` when using `rpi`, or disable `rpi` when IOC behavior is required.
 
 ---
 
+## IOC and post-only
+
+Immediate-or-cancel requests taker execution with the unfilled remainder cancelled; post-only guarantees maker execution. The two flags request opposite behavior and cannot be combined.
+
+### Issue
+
+A request sets both `ioc=true` and `postOnly=true`.
+
+### Result
+
+The API rejects the request and returns error code `37`. The error payload is `{"ioc": ["Either IOC or PostOnly flag in true state is allowed."]}`.
+
+### Fix
+
+Set at most one of `ioc` or `postOnly` per order.
+
+---
+
+## RPI and post-only
+
+RPI orders apply post-only behavior automatically. An explicit `postOnly=true` on an RPI order is rejected.
+
+### Issue
+
+A request sets both `rpi=true` and `postOnly=true`.
+
+### Result
+
+The API rejects the request with a validation error.
+
+### Fix
+
+Send `rpi=true` without the `postOnly` flag. Post-only behavior is already guaranteed for RPI orders.
+
+---
+
 ## RPI flag without account permission
 
 Sending `rpi=true` from a private-API source requires the [RPI](/glossary#retail-price-improvement-rpi) flag to be enabled on the account.
@@ -77,3 +113,25 @@ The API rejects the request and returns error code `42`. The error payload is `{
 ### Fix
 
 Contact the account manager to enable the Retail flag. After enablement, retry the request.
+
+---
+
+## BBO role and explicit price
+
+The `bboRole` parameter (available on [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order), [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order) items, and [`POST /api/v4/order/stop_limit`](/api-reference/spot-trading/create-stop-limit-order)) tells the system to select the best bid/offer price instead of an explicit limit price: `1` = Queue method, `2` = Counterparty method.
+
+- `price` is required only when `bboRole` is not set. When `bboRole` is set, the BBO method determines the execution price.
+- `postOnly` is allowed only when `bboRole` is not set.
+- `ioc` can be combined with `bboRole` only under the Counterparty method (`2`).
+
+### Issue
+
+A request omits `price` without setting `bboRole`, or combines `bboRole` with `postOnly`, or combines `bboRole` under the Queue method (`1`) with `ioc`.
+
+### Result
+
+The API rejects the request with a validation error. When `price` is missing and `bboRole` is not set, the error payload names the `price` field (`"Price field is required."`).
+
+### Fix
+
+Provide an explicit `price`, or set `bboRole` and drop the parameters that conflict with the selected method.
