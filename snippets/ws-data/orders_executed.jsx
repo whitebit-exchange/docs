@@ -45,7 +45,7 @@ export const executedOrderObject = [
   { name: "ftime", type: "number", description: "Finished at in Unix time" },
   { name: "mtime", type: "number", description: "Modified at in Unix time" },
   { name: "market", type: "string", description: "Market" },
-  { name: "source", type: "string", description: "Source (e.g., web, api)" },
+  { name: "source", type: "string", description: "Order source. Values include `web`, `api`, `adl` (Auto-Deleveraging fill), and `liquidation` (the account's own position being liquidated); additional internal values may occur. See Identifying liquidation and ADL fills." },
   { name: "type", type: "integer", description: "Order type. See order types table." },
   { name: "side", type: "integer", enum: [1,2], description: "Side: 1=sell, 2=buy/bid" },
   { name: "post_only", type: "boolean", description: "Post only flag" },
