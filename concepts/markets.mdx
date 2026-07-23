@@ -37,7 +37,7 @@ WhiteBIT supports four market types, each using different account balances and l
 
 Public endpoints — no authentication required:
 
-- **Spot, Margin + TradFi futures markets:** `GET /api/v4/public/markets` — [API Reference](/api-reference/market-data/market-info)
+- **All markets (spot, margin, perpetual + TradFi futures):** `GET /api/v4/public/markets` — [API Reference](/api-reference/market-data/market-info)
 - **Perpetual futures markets:** `GET /api/v4/public/futures` — [API Reference](/api-reference/market-data/available-futures-markets-list)
 
 ## Key market fields
@@ -47,7 +47,7 @@ Each market returned by `GET /api/v4/public/markets` includes:
 | Field | Description |
 |-------|-------------|
 | `stock` | Base asset ticker (e.g., `BTC`) |
-| `money` | Quote asset ticker (e.g., `USDT`) |
+| `money` | Quote asset ticker (e.g., `USDT`); perpetual futures pairs report `USDT` |
 | `minAmount` | Minimum order quantity in the base asset |
 | `minTotal` | Minimum order total in the quote asset |
 | `makerFee` | Default maker fee rate (decimal) |
@@ -58,7 +58,7 @@ Each market returned by `GET /api/v4/public/markets` includes:
 
 ## Market statuses
 
-The `tradesEnabled` field indicates whether a market is actively accepting orders. Markets can be temporarily disabled by the platform without prior notice.
+The `tradesEnabled` field indicates whether a market is actively accepting orders. The `/api/v4/public/markets` response only includes markets enabled for trading, so a disabled market disappears from the list rather than appearing with `tradesEnabled: false`. Markets can be temporarily disabled by the platform without prior notice.
 
 For platform-wide maintenance status, call `GET /api/v4/public/platform/status` — [API Reference](/api-reference/market-data/maintenance-status).
 
