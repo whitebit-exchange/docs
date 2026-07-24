@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 23, 2026">
+## RPI maker fee premiums on Query Market Fees
+**New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**
+
+The Query Market Fees response now returns the RPI maker fee premium — an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` covers spot and margin markets; `futures_rpi_maker_fee_premium` covers futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. Both fields return `null` when the RPI order mode is not enabled for the account or when no premium is configured.
+
+<CardGroup cols={2}>
+  <Card title="Query market fees" href="/api-reference/spot-trading/query-market-fee" icon="percent" horizontal/>
+  <Card title="Glossary — Retail Price Improvement" href="/glossary#retail-price-improvement-rpi" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 13, 2026">
 ## Express Withdraw for B2B partners
 **New `POST /api/v4/main-account/express-withdraw/token` endpoint for B2B partners**
