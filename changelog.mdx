@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 28, 2026">
+## Closed-position PNL on Collateral Trading
+**New `POST /api/v4/collateral-account/positions/closed-pnl` endpoint**
+
+The Collateral Trading API now returns one aggregated profit-and-loss record per closed position — the same closed-position PNL the trading terminal shows. Each record carries `grossPnl` (realized PNL with trading fees already deducted), `netPnl` (`grossPnl` minus `totalFunding`), volume-weighted average entry and exit prices, total closed size, and informational fee totals. The optional `startDate`/`endDate` window filters by position close time, and a position opened before the window still returns complete lifetime aggregates. The `amount` field always returns `"0"` for closed positions.
+
+<CardGroup cols={2}>
+  <Card title="Closed-position PNL" href="/api-reference/collateral-trading/closed-position-pnl" icon="sack-dollar" horizontal/>
+  <Card title="Positions history" href="/api-reference/collateral-trading/positions-history" icon="clock-rotate-left" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 23, 2026">
 ## RPI maker fee premiums on Query Market Fees
 **New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**
