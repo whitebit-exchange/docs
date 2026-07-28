@@ -85,7 +85,7 @@ paths:
         </Note>
 
         <Note>
-        A market with an announced delisting carries the announced date in `delistedAt` and stays tradeable until the delisting runs. Once the delisting runs, the platform cancels the active orders on the market and drops the market from this response — see [Query delisting orders](/api-reference/spot-trading/query-delisting-orders) for the resulting spot order records. An announcement can be rescheduled or canceled, so treat `delistedAt` as the current plan rather than a settled fact and re-read the value on the next poll.
+        A market with an announced delisting carries the announced date in `delistedAt` and stays tradeable until the delisting runs. Once the delisting runs, the platform cancels the active orders on the market and drops the market from this response — [Query delisting orders](/api-reference/spot-trading/query-delisting-orders) is a signed request that returns the authenticated account's resulting spot order records. An announcement can be rescheduled or canceled, so treat `delistedAt` as the current plan rather than a settled fact and re-read the value on the next poll.
         </Note>
 
         <Warning>
@@ -187,7 +187,7 @@ paths:
                       type: integer
                       format: int64
                       nullable: true
-                      description: "Announced delisting date as a Unix timestamp in seconds. `null` when no delisting is announced for the market, which is the case for every actively listed market. The field is always present in the response."
+                      description: "Announced delisting date as a Unix timestamp in seconds. `null` when no delisting is announced for the market. The field is always present in the response."
                       example: 1786752000
         'default':
           description: Error response
