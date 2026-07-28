@@ -84,6 +84,10 @@ paths:
         TradFi futures markets are region-gated. Markets not available in a given region are omitted from the response entirely and do not appear under any other market type.
         </Note>
 
+        <Note>
+        A market with an announced delisting carries the announced date in `delistedAt` and stays tradeable until the delisting runs. Once the delisting runs, the platform cancels the active orders on the market and drops the market from this response — see [Query delisting orders](/api-reference/spot-trading/query-delisting-orders) for the resulting spot order records. An announcement can be rescheduled or canceled, so treat `delistedAt` as the current plan rather than a settled fact and re-read the value on the next poll.
+        </Note>
+
         <Warning>
         Rate limit 2000 requests/10 sec.
         </Warning>
@@ -116,6 +120,7 @@ paths:
                     - isCollateral
                     - type
                     - isTradFiFutures
+                    - delistedAt
                   properties:
                     name:
                       type: string
@@ -178,6 +183,12 @@ paths:
                       type: boolean
                       description: "Indicates whether the market is a traditional-finance (TradFi) futures market. Always paired with `type: tradfiFutures`. TradFi futures markets are region-gated and are omitted from the response entirely where not available."
                       example: false
+                    delistedAt:
+                      type: integer
+                      format: int64
+                      nullable: true
+                      description: "Announced delisting date as a Unix timestamp in seconds. `null` when no delisting is announced for the market, which is the case for every actively listed market. The field is always present in the response."
+                      example: 1786752000
         'default':
           description: Error response
           content:
