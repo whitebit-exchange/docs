@@ -15,7 +15,7 @@ WhiteBIT supports four market types, each using different account balances and l
 | **Spot** | 750+ | Trade | None (1×) | `BTC_USDT` |
 | **Margin** | Spot pairs | Collateral | Up to 10× | `BTC_USDT` |
 | **Futures** | 270+ perpetuals | Collateral | Up to 100× | `BTC_PERP` |
-| **TradFi Futures** | Region-gated | — | — | `AAPL_USD` |
+| **TradFi Futures** _(coming soon)_ | Region-gated | — | — | `AAPL_USD` |
 
 **Spot** — Direct buy/sell. Orders execute against the spot orderbook. Funds held in the [Trade balance](/concepts/balances).
 
@@ -23,7 +23,11 @@ WhiteBIT supports four market types, each using different account balances and l
 
 **Futures** — Perpetual contracts with up to 100× leverage. Pairs use the `_PERP` suffix (e.g., `BTC_PERP`). Funds held in the [Collateral balance](/concepts/balances). Hedge Mode allows simultaneous long and short positions.
 
-**TradFi Futures** — Futures markets on traditional-finance assets such as equities (e.g., `AAPL_USD`). Identified in the [markets response](/api-reference/market-data/market-info) by `type: tradfiFutures` and `isTradFiFutures: true`. Availability is region-gated — markets not available in a given region are omitted from `GET /api/v4/public/markets` entirely.
+**TradFi Futures** — Futures markets on traditional-finance assets such as equities (e.g., `AAPL_USD`). Once available, they will be identified in the [markets response](/api-reference/market-data/market-info) by `type: tradfiFutures` and `isTradFiFutures: true`, and availability will be region-gated — markets not available in a given region are omitted from `GET /api/v4/public/markets` entirely.
+
+<Note>
+  Coming soon: TradFi futures are not yet available and are not currently returned by `GET /api/v4/public/markets`.
+</Note>
 
 <Note>
   **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
@@ -37,7 +41,7 @@ WhiteBIT supports four market types, each using different account balances and l
 
 Public endpoints — no authentication required:
 
-- **All markets (spot, margin, perpetual + TradFi futures):** `GET /api/v4/public/markets` — [API Reference](/api-reference/market-data/market-info)
+- **All markets (spot, margin, perpetual; TradFi futures coming soon):** `GET /api/v4/public/markets` — [API Reference](/api-reference/market-data/market-info)
 - **Perpetual futures markets:** `GET /api/v4/public/futures` — [API Reference](/api-reference/market-data/available-futures-markets-list)
 
 ## Key market fields
