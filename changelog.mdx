@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 29, 2026">
+## Funding cap and floor on futures markets list
+**New `funding_cap` and `funding_floor` fields on `GET /api/v4/public/futures`**
+
+Each futures market entry now returns the bounds the funding rate can reach: `funding_cap` (upper) and `funding_floor` (lower). Use the fields to model worst-case funding costs in trading algorithms instead of hardcoding exchange-wide limits. Both fields are decimal strings served from the last successfully refreshed funding snapshot, so a temporary source outage does not drop the values; both return `null` only when no snapshot has been loaded since service start.
+
+<CardGroup cols={2}>
+  <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
+  <Card title="Funding history" href="/api-reference/collateral-trading/funding-history" icon="clock-rotate-left" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 23, 2026">
 ## RPI maker fee premiums on Query Market Fees
 **New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**

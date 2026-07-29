@@ -861,6 +861,8 @@ paths:
                     index_name: "Bitcoin"
                     index_currency: "BTC"
                     funding_rate: "0.000044889033693137"
+                    funding_cap: "0.0003"
+                    funding_floor: "-0.0003"
                     next_funding_rate_timestamp: "1660665600000"
                     brackets:
                       "1": 0
@@ -1525,6 +1527,22 @@ components:
             in real time until settlement occurs. See GET /api/v4/public/funding-history/{market}
             for historical funding rate records."
           example: "0.000044889033693137"
+        funding_cap:
+          type: string
+          nullable: true
+          description: "Upper bound the funding rate can reach for the market. Served from
+            the last successfully refreshed funding snapshot, so a temporary source outage
+            does not drop the field. Returns `null` only when no snapshot has been loaded
+            since service start."
+          example: "0.0003"
+        funding_floor:
+          type: string
+          nullable: true
+          description: "Lower bound the funding rate can reach for the market. Served from
+            the last successfully refreshed funding snapshot, so a temporary source outage
+            does not drop the field. Returns `null` only when no snapshot has been loaded
+            since service start."
+          example: "-0.0003"
         next_funding_rate_timestamp:
           type: string
           description: "Unix timestamp in milliseconds of the next funding settlement.
