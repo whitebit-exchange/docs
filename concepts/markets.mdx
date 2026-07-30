@@ -50,8 +50,8 @@ Each market returned by `GET /api/v4/public/markets` includes:
 | `money` | Quote asset ticker (e.g., `USDT`); perpetual futures pairs report `USDT` |
 | `minAmount` | Minimum order quantity in the base asset |
 | `minTotal` | Minimum order total in the quote asset |
-| `makerFee` | Default maker fee rate (decimal) |
-| `takerFee` | Default taker fee rate (decimal) |
+| `makerFee` | Default maker fee as a percentage value (`"0.1"` means 0.1%) |
+| `takerFee` | Default taker fee as a percentage value (`"0.1"` means 0.1%) |
 | `tradesEnabled` | Whether trading is active on the pair |
 | `stockPrec` | Maximum decimal places for base asset quantity |
 | `moneyPrec` | Maximum decimal places for quote asset amount |
@@ -59,6 +59,8 @@ Each market returned by `GET /api/v4/public/markets` includes:
 ## Market statuses
 
 The `tradesEnabled` field indicates whether a market is actively accepting orders. The `/api/v4/public/markets` response only includes markets enabled for trading, so a disabled market disappears from the list rather than appearing with `tradesEnabled: false`. Markets can be temporarily disabled by the platform without prior notice.
+
+The platform announces a permanent removal in advance instead. The market carries the announced delisting date in `delistedAt` — a Unix timestamp in seconds, `null` when no delisting is announced. The market keeps trading until the delisting runs, then the platform cancels the active orders and drops the market from the response. An announcement can be rescheduled or canceled, so re-read `delistedAt` on each poll.
 
 For platform-wide maintenance status, call `GET /api/v4/public/platform/status` — [API Reference](/api-reference/market-data/maintenance-status).
 

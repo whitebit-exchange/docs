@@ -74,7 +74,7 @@ paths:
     get:
       summary: Market Info
       description: |
-        The endpoint retrieves configuration and trading rules for all available spot, futures, and TradFi futures markets. Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee ratios, and order-size constraints for the market.
+        The endpoint retrieves configuration and trading rules for all available spot, futures, and TradFi futures markets. Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee rates, and order-size constraints for the market.
 
         <Note>
         Market configuration is reference data, re-synced from the database approximately every 10 seconds. Polling more frequently returns identical data. The cache is shared across all callers.
@@ -82,6 +82,10 @@ paths:
 
         <Note>
         TradFi futures markets are region-gated. Markets not available in a given region are omitted from the response entirely and do not appear under any other market type.
+        </Note>
+
+        <Note>
+        A market with an announced delisting carries the announced date in `delistedAt` and stays tradeable until the delisting runs. Once the delisting runs, the platform cancels the active orders on the market and drops the market from this response — [Query delisting orders](/api-reference/spot-trading/query-delisting-orders) is a signed request that returns the authenticated account's resulting spot order records. An announcement can be rescheduled or canceled, so treat `delistedAt` as the current plan rather than a settled fact and re-read the value on the next poll.
         </Note>
 
         <Warning>
@@ -116,6 +120,7 @@ paths:
                     - isCollateral
                     - type
                     - isTradFiFutures
+                    - delistedAt
                   properties:
                     name:
                       type: string
@@ -143,12 +148,12 @@ paths:
                       example: "4"
                     makerFee:
                       type: string
-                      description: "Default maker fee as a decimal ratio (e.g., `\"0.001\"` = 0.1%). Multiply by 100 to convert to a percentage."
-                      example: "0.001"
+                      description: "Default maker fee as a percentage value (e.g., `\"0.1\"` means 0.1%). Divide by 100 to convert to a decimal ratio. `GET /api/v4/public/assets` reports `maker_fee` in the same format."
+                      example: "0.1"
                     takerFee:
                       type: string
-                      description: "Default taker fee as a decimal ratio (e.g., `\"0.001\"` = 0.1%). Multiply by 100 to convert to a percentage."
-                      example: "0.001"
+                      description: "Default taker fee as a percentage value (e.g., `\"0.1\"` means 0.1%). Divide by 100 to convert to a decimal ratio. `GET /api/v4/public/assets` reports `taker_fee` in the same format."
+                      example: "0.1"
                     minAmount:
                       type: string
                       description: "Minimum order quantity in the base (stock) currency."
@@ -178,6 +183,12 @@ paths:
                       type: boolean
                       description: "Indicates whether the market is a traditional-finance (TradFi) futures market. Always paired with `type: tradfiFutures`. TradFi futures markets are region-gated and are omitted from the response entirely where not available."
                       example: false
+                    delistedAt:
+                      type: integer
+                      format: int64
+                      nullable: true
+                      description: "Announced delisting date as a Unix timestamp in seconds. `null` when no delisting is announced for the market. The field is always present in the response."
+                      example: 1786752000
         'default':
           description: Error response
           content:
@@ -1151,14 +1162,14 @@ components:
         maker_fee:
           type: string
           description: "Maker fee expressed as a direct percentage value (e.g., \"0.1\"
-            means 0.1%). Note: GET /api/v4/public/markets expresses the same fee as a decimal
-            ratio (e.g., \"0.001\" = 0.1%) — the formats differ between endpoints."
+            means 0.1%). GET /api/v4/public/markets reports the per-market `makerFee`
+            in the same format."
           example: "0.1"
         taker_fee:
           type: string
           description: "Taker fee expressed as a direct percentage value (e.g., \"0.1\"
-            means 0.1%). Note: GET /api/v4/public/markets expresses the same fee as a decimal
-            ratio (e.g., \"0.001\" = 0.1%) — the formats differ between endpoints."
+            means 0.1%). GET /api/v4/public/markets reports the per-market `takerFee`
+            in the same format."
           example: "0.1"
         min_deposit:
           type: string
