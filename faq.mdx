@@ -33,11 +33,10 @@ Nonce errors occur when timestamps or request ordering are invalid. To resolve:
 For details on nonce requirements, see the [Authentication guide](/api-reference/authentication). For full details on HMAC-SHA512 signing and nonce requirements, see [Authentication](/api-reference/authentication).
 </Accordion>
 
-<Accordion title="Smartplan endpoint 403 access errors">
-Smartplan endpoints are restricted to B2B partner services only. To gain access:
+<Accordion title="Lending (Smartplan) endpoint 403 access errors">
+Lending endpoints require B2B partner permissions. This applies to both Fixed (`/api/v4/main-account/smart/`) and Flex (`/api/v4/main-account/smart-flex/`) endpoints. Until access is granted, they return `403` with "You don't have permission to use this endpoint. Please contact support for more details". To gain access:
 
-- Contact [support@whitebit.com](mailto:support@whitebit.com)
-- Request permissions for Smartplan endpoints
+- Fill the institutional services form at [https://whitebit.com/institutional-services/b2b](https://whitebit.com/institutional-services/b2b)
 - Provide use case details
 
 For endpoint details, see the [Crypto Lending documentation](/api-reference/account-wallet/get-plans).

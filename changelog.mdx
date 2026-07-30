@@ -4,6 +4,52 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 29, 2026">
+## Funding cap and floor on futures markets list
+**New `funding_cap` and `funding_floor` fields on `GET /api/v4/public/futures`**
+
+Each futures market entry now returns the bounds that the funding rate can reach: `funding_cap` (upper) and `funding_floor` (lower). Use the fields to model worst-case funding costs in trading algorithms instead of hardcoding exchange-wide limits. Both fields are decimal strings served from the last successfully refreshed funding snapshot, so a temporary source outage does not drop the values; both return `null` only when no snapshot has been loaded since service start.
+
+<CardGroup cols={2}>
+  <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
+  <Card title="Funding history" href="/api-reference/market-data/funding-history" icon="clock-rotate-left" horizontal/>
+  </CardGroup>
+</Update>
+
+<Update label="July 28, 2026">
+## Delisting date on Market Info
+**`delistedAt` field on `GET /api/v4/public/markets`**
+
+Every market entry carries `delistedAt` — the announced delisting date as a Unix timestamp in seconds, or `null` when no delisting is announced. The field has been live since June 2026; this entry marks the point it became documented. A market with an announced delisting stays tradeable until the delisting runs; once the delisting runs, the platform cancels the active orders on the market and drops the market from the response. An announcement can be rescheduled or canceled, so read the value on each poll rather than caching the value for the lifetime of an integration.
+
+<CardGroup cols={2}>
+  <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
+  <Card title="Query delisting orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
+</CardGroup>  
+  
+## Closed-position PNL on Collateral Trading
+**New `POST /api/v4/collateral-account/positions/closed-pnl` endpoint**
+
+The Collateral Trading API now returns one aggregated profit-and-loss record per closed position — the same closed-position PNL the trading terminal shows. Each record carries `grossPnl` (realized PNL with trading fees already deducted), `netPnl` (`grossPnl` minus `totalFunding`), volume-weighted average entry and exit prices, total closed size, and informational fee totals. The optional `startDate`/`endDate` window filters by position close time, and a position opened before the window still returns complete lifetime aggregates. The `amount` field always returns `"0"` for closed positions.
+
+<CardGroup cols={2}>
+  <Card title="Closed-position PNL" href="/api-reference/collateral-trading/closed-position-pnl" icon="sack-dollar" horizontal/>
+  <Card title="Positions history" href="/api-reference/collateral-trading/positions-history" icon="clock-rotate-left" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="July 23, 2026">
+## RPI maker fee premiums on Query Market Fees
+**New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**
+
+The Query Market Fees response now returns the RPI maker fee premium — an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` covers spot and margin markets; `futures_rpi_maker_fee_premium` covers futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. Both fields return `null` when the RPI order mode is not enabled for the account or when no premium is configured.
+
+<CardGroup cols={2}>
+  <Card title="Query market fees" href="/api-reference/spot-trading/query-market-fee" icon="percent" horizontal/>
+  <Card title="Glossary — Retail Price Improvement" href="/glossary#retail-price-improvement-rpi" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 13, 2026">
 ## Express Withdraw for B2B partners
 **New `POST /api/v4/main-account/express-withdraw/token` endpoint for B2B partners**
@@ -73,7 +119,11 @@ The `travelRule` object on `POST /api/v4/main-account/withdraw` now uses a struc
 ## TradFi Futures markets on Market Info
 **New `tradfiFutures` market type and `isTradFiFutures` flag on `GET /api/v4/public/markets`**
 
-`GET /api/v4/public/markets` now returns traditional-finance (TradFi) futures markets — futures contracts on traditional financial assets such as equities (for example, `AAPL_USD`). A TradFi market carries `type: tradfiFutures` together with `isTradFiFutures: true`; both fields are always present on every market entry. Availability is region-gated: markets you are not eligible to trade are omitted from the response entirely and do not appear under any other market type.
+<Note>
+Coming soon: TradFi futures are not yet returned by the endpoint.
+</Note>
+
+Once live, `GET /api/v4/public/markets` will return traditional-finance (TradFi) futures markets — futures contracts on traditional financial assets such as equities (for example, `AAPL_USD`). A TradFi market will carry `type: tradfiFutures` together with `isTradFiFutures: true`. Availability is region-gated: markets you are not eligible to trade are omitted from the response entirely and do not appear under any other market type.
 
 <CardGroup cols={2}>
   <Card title="Market Info" href="/api-reference/market-data/market-info" icon="chart-line" horizontal/>
@@ -219,7 +269,7 @@ WhiteBIT futures markets now apply Auto-Deleveraging as the final stage of liqui
 
 **Integrator-relevant facts:**
 
-- ADL fills appear in standard order history with `source: "adl"` and `client_order_id: "adl_<order_id>"`. The `reduce_only` flag remains `false` on ADL inserts — use `source` to identify them.
+- ADL fills carry `source: "adl"` on the `ordersExecuted` WebSocket stream and a `client_order_id` of the form `adl_<order_id>_!`. Over REST order history — where the payload does not include `source` — match the `adl_` `client_order_id` prefix. The `reduce_only` flag remains `false` on ADL inserts, so do not use it for identification.
 - Pending reduce-only orders auto-cancel with the existing `AUTO_CANCELED_REDUCE_ONLY` status when ADL closes a counterparty position. No ADL-specific cancel status was introduced.
 - ADL Grade (0–4) indicates a position's place in the per-market ADL ranking, with Grade 4 corresponding to the asymptotic top 5% of ranked positions.
 

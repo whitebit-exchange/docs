@@ -253,8 +253,8 @@ const cancelOrderRequest = {
 <Note>
 **Important notes about order cancellation:**
 
-- Cancellation by `clientOrderId` takes priority over `orderId`
 - Use either `orderId` or `clientOrderId`, but not both in the same request
+- A request specifying both identifiers, or neither, returns a validation error
 </Note>
 ```json
 // Example response

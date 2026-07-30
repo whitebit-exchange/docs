@@ -28,9 +28,9 @@ info:
 
     Public V4 endpoints do not share a single error schema. Depending on the endpoint, an error arrives in one of three shapes (there is no `params` field on any public error):
 
-    - **Flat validation bag (HTTP 422)** — `{ "<field>": ["<message>"] }`. No envelope. Used by the market endpoints (`orderbook`, `orderbook/depth`, `trades`). Example: `{ "market": ["Market is not available."] }`. On `funding-history` the values are single strings rather than arrays.
+    - **Flat validation bag (HTTP 422)** — `{ "<field>": ["<message>"] }`. No envelope. Used by the market endpoints (`orderbook`, `orderbook/depth`, `trades`). Example: `{ "market": ["Market is not available."] }`. On `funding-history` most validation values are single strings rather than arrays; the market-not-available case and the upstream `error` key keep the array shape.
     - **Wrapped, HTTP 200 even on validation errors** — `{ "success": false, "message": { "<field>": ["<message>"] }, "result": null }`. Used by the V4 `kline` endpoint (not part of this portal — the documented Kline endpoint is V1).
-    - **Wrapped string message (HTTP 4xx)** — `{ "success": false, "message": "<string>", "errors": [] }`. Used by the margin/futures collateral subset of endpoints. Parameterless endpoints (`markets`, `ticker`, `assets`, `fee`) take no input and so produce no validation errors — they fail only at the infrastructure level below.
+    - **Wrapped string message (HTTP 4xx)** — `{ "success": false, "message": "<string>", "errors": [] }`. Used by the margin/futures collateral subset of endpoints, including the HTTP 451 regional-availability responses on `collateral/markets` and `futures`. Parameterless endpoints (`markets`, `ticker`, `assets`, `fee`) take no input and so produce no validation errors — they fail only at the infrastructure level below.
 
     Common failures are produced at the infrastructure layer, not by the application, and do not follow these shapes:
 
@@ -74,14 +74,18 @@ paths:
     get:
       summary: Market Info
       description: |
-        The endpoint retrieves configuration and trading rules for all available spot, futures, and TradFi futures markets. Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee ratios, and order-size constraints for the market.
+        The endpoint retrieves configuration and trading rules for all available spot and futures markets (TradFi futures markets are coming soon and are not yet returned). Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee ratios, and order-size constraints for the market.
 
         <Note>
         Market configuration is reference data, re-synced from the database approximately every 10 seconds. Polling more frequently returns identical data. The cache is shared across all callers.
         </Note>
 
         <Note>
-        TradFi futures markets are region-gated. Markets not available in a given region are omitted from the response entirely and do not appear under any other market type.
+        TradFi futures markets are coming soon and are not yet returned by this endpoint. Once available, they will be region-gated: markets not available in a given region are omitted from the response entirely and do not appear under any other market type.
+        </Note>
+
+        <Note>
+        A market with an announced delisting carries the announced date in `delistedAt` and stays tradeable until the delisting runs. Once the delisting runs, the platform cancels the active orders on the market and drops the market from this response — [Query delisting orders](/api-reference/spot-trading/query-delisting-orders) is a signed request that returns the authenticated account's resulting spot order records. An announcement can be rescheduled or canceled, so treat `delistedAt` as the current plan rather than a settled fact and re-read the value on the next poll.
         </Note>
 
         <Warning>
@@ -116,6 +120,7 @@ paths:
                     - isCollateral
                     - type
                     - isTradFiFutures
+                    - delistedAt
                   properties:
                     name:
                       type: string
@@ -127,7 +132,7 @@ paths:
                       example: SON
                     money:
                       type: string
-                      description: Ticker of money currency
+                      description: "Ticker of money currency. Perpetual futures markets report `USDT` as the money currency."
                       example: USD
                     stockPrec:
                       type: string
@@ -143,12 +148,12 @@ paths:
                       example: "4"
                     makerFee:
                       type: string
-                      description: "Default maker fee as a decimal ratio (e.g., `\"0.001\"` = 0.1%). Multiply by 100 to convert to a percentage."
-                      example: "0.001"
+                      description: "Default maker fee as a percentage value (e.g., `\"0.1\"` means 0.1%). Divide by 100 to convert to a decimal ratio. `GET /api/v4/public/assets` reports `maker_fee` in the same format."
+                      example: "0.1"
                     takerFee:
                       type: string
-                      description: "Default taker fee as a decimal ratio (e.g., `\"0.001\"` = 0.1%). Multiply by 100 to convert to a percentage."
-                      example: "0.001"
+                      description: "Default taker fee as a percentage value (e.g., `\"0.1\"` means 0.1%). Divide by 100 to convert to a decimal ratio. `GET /api/v4/public/assets` reports `taker_fee` in the same format."
+                      example: "0.1"
                     minAmount:
                       type: string
                       description: "Minimum order quantity in the base (stock) currency."
@@ -163,7 +168,7 @@ paths:
                       example: "10000000000"
                     tradesEnabled:
                       type: boolean
-                      description: Indicates whether trading is enabled
+                      description: "Indicates whether trading is enabled. The response includes only markets enabled for trading, so the value is always `true`."
                       example: true
                     isCollateral:
                       type: boolean
@@ -176,8 +181,14 @@ paths:
                       example: spot
                     isTradFiFutures:
                       type: boolean
-                      description: "Indicates whether the market is a traditional-finance (TradFi) futures market. Always paired with `type: tradfiFutures`. TradFi futures markets are region-gated and are omitted from the response entirely where not available."
+                      description: "Indicates whether the market is a traditional-finance (TradFi) futures market. Always paired with `type: tradfiFutures`. TradFi futures markets are coming soon and are not yet returned; once available they are region-gated and omitted from the response entirely where not available."
                       example: false
+                    delistedAt:
+                      type: integer
+                      format: int64
+                      nullable: true
+                      description: "Announced delisting date as a Unix timestamp in seconds. `null` when no delisting is announced for the market. The field is always present in the response."
+                      example: 1786752000
         'default':
           description: Error response
           content:
@@ -231,7 +242,7 @@ paths:
                       type: string
                       description: "Rolling 24-hour trading volume in the base currency."
                       example: "4723.286463"
-                    is_frozen:
+                    isFrozen:
                       type: boolean
                       description: "Indicates whether trading is disabled for the market pair."
                       example: false
@@ -247,7 +258,7 @@ paths:
                   last_price: "9164.09"
                   quote_volume: "43341942.90416876"
                   base_volume: "4723.286463"
-                  is_frozen: false
+                  isFrozen: false
                   change: "0.57"
         'default':
           description: Error response
@@ -390,11 +401,11 @@ paths:
         - name: level
           in: query
           required: false
-          description: "Aggregation level for price grouping. Level 0 applies no aggregation. Levels 1–5 provide increasing aggregation of the order book."
+          description: "Aggregation level for price grouping. Level 0 applies no aggregation. Levels 1–5 provide increasing aggregation of the order book; values up to 10 are accepted. Out-of-range values are clamped to the 0–10 range rather than rejected."
           schema:
             type: integer
             minimum: 0
-            maximum: 5
+            maximum: 10
             default: 0
             example: 2
       responses:
@@ -405,13 +416,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrderbookResponse'
         '422':
-          description: "Validation error. Returned when the `market` path parameter is unknown or not enabled for trading."
+          description: "Validation error. Returned when the `market` path parameter is unknown, missing, or not enabled for trading, or when `limit` or `level` is not an integer."
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicValidationError'
-              example:
-                market: ["Market is not available."]
+              examples:
+                marketNotAvailable:
+                  summary: Unknown or disabled market
+                  value: { "market": ["Market is not available."] }
+                levelNotInteger:
+                  summary: Non-integer level
+                  value: { "level": ["The level must be an integer."] }
 
   /api/v4/public/orderbook/depth/{market}:
     get:
@@ -456,7 +472,7 @@ paths:
     get:
       summary: Recent Trades
       description: |
-        The endpoint retrieves the [trades](/glossary#deal-trade) that have been executed recently on the requested [market](/glossary#market).
+        The endpoint retrieves the [trades](/glossary#deal-trade) that have been executed recently on the requested [market](/glossary#market). It returns up to the 100 most recent trades; the response size is fixed and there is no `limit` parameter.
 
         <Note>
         The API caches the response for 1 second
@@ -504,6 +520,7 @@ paths:
                     - base_volume
                     - trade_timestamp
                     - type
+                    - rpi
                   properties:
                     tradeID:
                       type: integer
@@ -544,25 +561,30 @@ paths:
                 - tradeID: 158056419
                   price: "9186.13"
                   quote_volume: "0.0021"
-                  base_volume: "0.0021"
+                  base_volume: "19.29"
                   trade_timestamp: 1594391747
                   type: "sell"
                   rpi: true
                 - tradeID: 158056416
                   price: "9186.13"
                   quote_volume: "0.002751"
-                  base_volume: "0.002751"
+                  base_volume: "25.27"
                   trade_timestamp: 1594391746
                   type: "sell"
                   rpi: false
         '422':
-          description: "Validation error. Returned when the `market` path parameter is unknown or not enabled for trading."
+          description: "Validation error. Returned when the `market` path parameter is unknown or not enabled for trading, or when the `type` query parameter is not `buy` or `sell`."
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicValidationError'
-              example:
-                market: ["Market is not available."]
+              examples:
+                marketNotAvailable:
+                  summary: Unknown or disabled market
+                  value: { "market": ["Market is not available."] }
+                invalidType:
+                  summary: Invalid type filter
+                  value: { "type": ["Type should be 'sell' or 'buy'."] }
 
   /api/v4/public/fee:
     get:
@@ -767,6 +789,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
                     nullable: true
@@ -777,6 +802,20 @@ paths:
                       type: string
                       description: "Market pair name in `BASE_QUOTE` format."
                     example: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
+              example:
+                success: true
+                message: null
+                result: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
+        '451':
+          description: "Returned when the service is not available in the caller's region."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV4'
+              example:
+                success: false
+                message: "api.margin.unavailable"
+                errors: []
 
   /api/v4/public/futures:
     get:
@@ -833,6 +872,8 @@ paths:
                     index_name: "Bitcoin"
                     index_currency: "BTC"
                     funding_rate: "0.000044889033693137"
+                    funding_cap: "0.0003"
+                    funding_floor: "-0.0003"
                     next_funding_rate_timestamp: "1660665600000"
                     brackets:
                       "1": 0
@@ -845,6 +886,16 @@ paths:
                       "100": 50
                     max_leverage: 100
                     funding_interval_minutes: 300
+        '451':
+          description: "Returned when the service is not available in the caller's region."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorV4'
+              example:
+                success: false
+                message: "api.futures.unavailable"
+                errors: []
 
   /api/v4/public/funding-history/{market}:
     get:
@@ -876,6 +927,7 @@ paths:
           description: "Market name (e.g., BTC_PERP)"
           schema:
             type: string
+            pattern: '^[A-Z0-9]+_[A-Z0-9]+$'
             example: BTC_PERP
         - name: startDate
           in: query
@@ -883,6 +935,7 @@ paths:
           description: Start timestamp in seconds
           schema:
             type: integer
+            minimum: 0
             example: 1752480000
         - name: endDate
           in: query
@@ -890,6 +943,7 @@ paths:
           description: End timestamp in seconds
           schema:
             type: integer
+            minimum: 0
             example: 1752537600
         - name: limit
           in: query
@@ -950,17 +1004,20 @@ paths:
                         The rate is computed before the actual settlement."
                       example: "1752508800"
         '422':
-          description: "Validation or upstream error. Field-keyed like the other public market endpoints, but on this endpoint each validation value is a single message string (not an array). The upstream-failure case uses an `error` key with an array value."
+          description: "Validation or upstream error. Field-keyed like the other public market endpoints. Most validation values (missing market, limit, offset, dates) are single message strings; the market-not-available case and the upstream-failure `error` key carry arrays of strings."
           content:
             application/json:
               schema:
                 type: object
                 additionalProperties: true
-                description: "Flat field-keyed error. Validation messages (market, limit, offset, dates) are single strings; the upstream-failure `error` value is an array of strings."
+                description: "Flat field-keyed error. Validation messages (missing market, limit, offset, dates) are single strings; the market-not-available and upstream-failure `error` values are arrays of strings."
               examples:
                 invalidMarket:
-                  summary: Unknown or missing market
+                  summary: Missing market
                   value: { "market": "market is required" }
+                marketNotAvailable:
+                  summary: Unknown market
+                  value: { "market": ["Market is not available."] }
                 invalidLimit:
                   summary: limit out of range
                   value: { "limit": "limit must be less than or equal to 100" }
@@ -1105,14 +1162,14 @@ components:
         maker_fee:
           type: string
           description: "Maker fee expressed as a direct percentage value (e.g., \"0.1\"
-            means 0.1%). Note: GET /api/v4/public/markets expresses the same fee as a decimal
-            ratio (e.g., \"0.001\" = 0.1%) — the formats differ between endpoints."
+            means 0.1%). GET /api/v4/public/markets reports the per-market `makerFee`
+            in the same format."
           example: "0.1"
         taker_fee:
           type: string
           description: "Taker fee expressed as a direct percentage value (e.g., \"0.1\"
-            means 0.1%). Note: GET /api/v4/public/markets expresses the same fee as a decimal
-            ratio (e.g., \"0.001\" = 0.1%) — the formats differ between endpoints."
+            means 0.1%). GET /api/v4/public/markets reports the per-market `takerFee`
+            in the same format."
           example: "0.1"
         min_deposit:
           type: string
@@ -1120,7 +1177,7 @@ components:
           example: "0.0001"
         max_deposit:
           type: string
-          description: "Max deposit amount; omitted if no limit, 0 if unlimited"
+          description: "Max deposit amount; 0 if unlimited"
           example: "0"
         currency_precision:
           type: integer
@@ -1167,7 +1224,7 @@ components:
               example: BTC
         limits:
           type: object
-          description: Currency limits by each network
+          description: "Currency limits by each network. May be absent from the response."
           properties:
             deposit:
               type: object
@@ -1455,8 +1512,8 @@ components:
           example: "23765.3"
         product_type:
           type: string
-          description: "Derivative product type for the market."
-          enum: [Perpetual, Futures, Options]
+          description: "Derivative product type for the market. Currently always `Perpetual`."
+          enum: [Perpetual]
           example: Perpetual
         open_interest:
           type: string
@@ -1481,6 +1538,22 @@ components:
             in real time until settlement occurs. See GET /api/v4/public/funding-history/{market}
             for historical funding rate records."
           example: "0.000044889033693137"
+        funding_cap:
+          type: string
+          nullable: true
+          description: "Upper bound that the funding rate can reach for the market. Served from
+            the last successfully refreshed funding snapshot, so a temporary source outage
+            does not drop the field. Returns `null` only when no snapshot has been loaded
+            since service start."
+          example: "0.0003"
+        funding_floor:
+          type: string
+          nullable: true
+          description: "Lower bound that the funding rate can reach for the market. Served from
+            the last successfully refreshed funding snapshot, so a temporary source outage
+            does not drop the field. Returns `null` only when no snapshot has been loaded
+            since service start."
+          example: "-0.0003"
         next_funding_rate_timestamp:
           type: string
           description: "Unix timestamp in milliseconds of the next funding settlement.
