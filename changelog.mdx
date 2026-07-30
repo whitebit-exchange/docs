@@ -4,6 +4,28 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 28, 2026">
+## Delisting date on Market Info
+**`delistedAt` field on `GET /api/v4/public/markets`**
+
+Every market entry carries `delistedAt` — the announced delisting date as a Unix timestamp in seconds, or `null` when no delisting is announced. The field has been live since June 2026; this entry marks the point it became documented. A market with an announced delisting stays tradeable until the delisting runs; once the delisting runs, the platform cancels the active orders on the market and drops the market from the response. An announcement can be rescheduled or canceled, so read the value on each poll rather than caching the value for the lifetime of an integration.
+
+<CardGroup cols={2}>
+  <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
+  <Card title="Query delisting orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
+</CardGroup>  
+  
+## Closed-position PNL on Collateral Trading
+**New `POST /api/v4/collateral-account/positions/closed-pnl` endpoint**
+
+The Collateral Trading API now returns one aggregated profit-and-loss record per closed position — the same closed-position PNL the trading terminal shows. Each record carries `grossPnl` (realized PNL with trading fees already deducted), `netPnl` (`grossPnl` minus `totalFunding`), volume-weighted average entry and exit prices, total closed size, and informational fee totals. The optional `startDate`/`endDate` window filters by position close time, and a position opened before the window still returns complete lifetime aggregates. The `amount` field always returns `"0"` for closed positions.
+
+<CardGroup cols={2}>
+  <Card title="Closed-position PNL" href="/api-reference/collateral-trading/closed-position-pnl" icon="sack-dollar" horizontal/>
+  <Card title="Positions history" href="/api-reference/collateral-trading/positions-history" icon="clock-rotate-left" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 23, 2026">
 ## RPI maker fee premiums on Query Market Fees
 **New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**
