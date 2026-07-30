@@ -13,6 +13,16 @@ Every market entry carries `delistedAt` — the announced delisting date as a Un
 <CardGroup cols={2}>
   <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
   <Card title="Query delisting orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
+</CardGroup>  
+  
+## Closed-position PNL on Collateral Trading
+**New `POST /api/v4/collateral-account/positions/closed-pnl` endpoint**
+
+The Collateral Trading API now returns one aggregated profit-and-loss record per closed position — the same closed-position PNL the trading terminal shows. Each record carries `grossPnl` (realized PNL with trading fees already deducted), `netPnl` (`grossPnl` minus `totalFunding`), volume-weighted average entry and exit prices, total closed size, and informational fee totals. The optional `startDate`/`endDate` window filters by position close time, and a position opened before the window still returns complete lifetime aggregates. The `amount` field always returns `"0"` for closed positions.
+
+<CardGroup cols={2}>
+  <Card title="Closed-position PNL" href="/api-reference/collateral-trading/closed-position-pnl" icon="sack-dollar" horizontal/>
+  <Card title="Positions history" href="/api-reference/collateral-trading/positions-history" icon="clock-rotate-left" horizontal/>
 </CardGroup>
 </Update>
 
