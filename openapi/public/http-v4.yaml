@@ -74,14 +74,14 @@ paths:
     get:
       summary: Market Info
       description: |
-        The endpoint retrieves configuration and trading rules for all available spot, futures, and TradFi futures markets. Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee rates, and order-size constraints for the market.
+        The endpoint retrieves configuration and trading rules for all available spot and futures markets (TradFi futures markets are coming soon and are not yet returned). Use the response to discover tradeable pairs, check minimum order sizes, and read fee schedules. Each entry includes precision settings, fee ratios, and order-size constraints for the market.
 
         <Note>
         Market configuration is reference data, re-synced from the database approximately every 10 seconds. Polling more frequently returns identical data. The cache is shared across all callers.
         </Note>
 
         <Note>
-        TradFi futures markets are region-gated. Markets not available in a given region are omitted from the response entirely and do not appear under any other market type.
+        TradFi futures markets are coming soon and are not yet returned by this endpoint. Once available, they will be region-gated: markets not available in a given region are omitted from the response entirely and do not appear under any other market type.
         </Note>
 
         <Note>
@@ -181,7 +181,7 @@ paths:
                       example: spot
                     isTradFiFutures:
                       type: boolean
-                      description: "Indicates whether the market is a traditional-finance (TradFi) futures market. Always paired with `type: tradfiFutures`. TradFi futures markets are region-gated and are omitted from the response entirely where not available."
+                      description: "Indicates whether the market is a traditional-finance (TradFi) futures market. Always paired with `type: tradfiFutures`. TradFi futures markets are coming soon and are not yet returned; once available they are region-gated and omitted from the response entirely where not available."
                       example: false
                     delistedAt:
                       type: integer
