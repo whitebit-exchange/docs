@@ -60,6 +60,8 @@ Each market returned by `GET /api/v4/public/markets` includes:
 
 The `tradesEnabled` field indicates whether a market is actively accepting orders. The `/api/v4/public/markets` response only includes markets enabled for trading, so a disabled market disappears from the list rather than appearing with `tradesEnabled: false`. Markets can be temporarily disabled by the platform without prior notice.
 
+The platform announces a permanent removal in advance instead. The market carries the announced delisting date in `delistedAt` — a Unix timestamp in seconds, `null` when no delisting is announced. The market keeps trading until the delisting runs, then the platform cancels the active orders and drops the market from the response. An announcement can be rescheduled or canceled, so re-read `delistedAt` on each poll.
+
 For platform-wide maintenance status, call `GET /api/v4/public/platform/status` — [API Reference](/api-reference/market-data/maintenance-status).
 
 ## What's Next
