@@ -725,9 +725,9 @@ Common synchronous rejections from `/fiat-deposit-url` and the recovery for each
 
 Create a fiat withdrawal using the same `POST /api/v4/main-account/withdraw` endpoint used for crypto, specifying a fiat ticker.
 
-The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Use fiat-specific tickers such as `EUR`, `UAH_IBAN`, `USD_VISAMASTER`, `EUR_VISAMASTER`.
+The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Use fiat-specific tickers such as `EUR`, `USD`, `USD_VISAMASTER`, `EUR_VISAMASTER`.
 
-The `beneficiary` object is required for fiat withdrawals with tickers `UAH_IBAN`, `USD_VISAMASTER`, `EUR_VISAMASTER`, `USD`, and `EUR`. Set `partialEnable` to `true` for increased maximum limits — the application must then handle status 18 ("Partially successful").
+The `beneficiary` object is required for fiat withdrawals with tickers `USD_VISAMASTER`, `EUR_VISAMASTER`, `USD`, and `EUR`. Set `partialEnable` to `true` for increased maximum limits — the application must then handle status 18 ("Partially successful").
 
 ### Beneficiary object fields
 
@@ -735,11 +735,10 @@ Sub-field requirements vary by ticker and provider. Verify the current contract 
 
 | Sub-field | Required for | Notes |
 |-----------|--------------|-------|
-| `firstName` | UAH_IBAN, USD_VISAMASTER, USD, EUR | — |
-| `lastName` | UAH_IBAN, USD_VISAMASTER, USD, EUR | — |
+| `firstName` | USD_VISAMASTER, USD, EUR | — |
+| `lastName` | USD_VISAMASTER, USD, EUR | — |
 | `email` | USD_VISAMASTER, EUR_VISAMASTER | — |
 | `code` | Provider-dependent | — |
-| `tin` | UAH_IBAN | 10-digit integer |
 | `phone` | VISAMASTER + USD/EUR | — |
 | `birthDate` | USD_VISAMASTER, EUR_VISAMASTER, MERCURYO | Format: `YYYY-MM-DD` |
 | `cardToken`, `cardTokenSave`, `fingerprintSession` | Card-tokenization flows | — |

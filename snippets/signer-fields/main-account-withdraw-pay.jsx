@@ -12,6 +12,6 @@ export const signerFields = [
   {"name":"network","type":"string","required":false,"description":"Cryptocurrency network. Available for multinetwork currencies. Example: OMNI ⚠️ Currency network should be taken from Asset Status endpoint response. Default for USDT is ERC20","example":"ERC20"},
   {"name":"partialEnable","type":"boolean","required":false,"description":"Optional parameter for FIAT withdrawals with increased Maximum Limit if set as \"true\". To use this parameter, the application must support \"Partially successful\" withdrawal stat…","example":"false"},
   {"name":"customerIp","type":"string","required":false,"description":"End-customer IP address forwarded to the fiat provider for antifraud checks before the withdrawal is processed. ⚠️ Required if currency ticker is USD or EUR with VISAMASTER prov…","example":"203.0.113.42"},
-  {"name":"beneficiary","type":"object","required":false,"description":"Beneficiary information data. Required if currency ticker is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"},
+  {"name":"beneficiary","type":"object","required":false,"description":"Beneficiary information data. Required if currency ticker is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"},
   {"name":"travelRule","type":"object","required":false,"description":"Travel Rule information data. Required if currency is crypto and the account is from EEA"},
 ];
