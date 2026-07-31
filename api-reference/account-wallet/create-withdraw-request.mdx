@@ -49,8 +49,8 @@ All fiat withdrawals require KYC verification. Ensure the account is verified be
 
 #### **Scenario 4: Basic Fiat Withdrawal**
 Standard fiat withdrawal via VISAMASTER provider.
-- **Required fields**: `ticker`, `amount`, `provider`, `uniqueId`
-- **Currencies**: UAH, USD, EUR, etc.
+- **Required fields**: `ticker`, `amount`, `provider`, `uniqueId`, plus a `beneficiary` object with `firstName` and `lastName`
+- **Currencies**: USD, EUR
 - **Use when**: Standard fiat withdrawal within normal limits
 - **USD/EUR with VISAMASTER**: also requires `customerIp` — the end-customer IP address forwarded to the provider for antifraud checks.
 
@@ -60,12 +60,13 @@ For withdrawals exceeding standard limits with "partially successful" status sup
 - **Use when**: Withdrawing larger amounts eligible for partial processing
 - **Important**: The application must handle "Partially successful" withdrawal status
 
-#### **Scenario 6: IBAN Transfers (UAH_IBAN)**
+#### **Scenario 6: IBAN Transfers (EUR)**
 Bank transfer withdrawals to IBAN accounts.
 - **Required fields**: Standard fields + `beneficiary` object with:
   - `firstName`, `lastName` (max 40 symbols, latin letters)
-  - `tin` (Tax Identification Number, 10 digits)
-- **Use when**: Withdrawing UAH to Ukrainian bank accounts via IBAN
+- **Destination**: the beneficiary IBAN goes in the `address` field
+- **Use when**: Withdrawing EUR to a bank account by IBAN
+- Take the active provider for EUR from the [Asset Status endpoint](/api-reference/market-data/asset-status-list)
 
 #### **Scenario 7: International Fiat (USD/EUR VISAMASTER)**
 Withdrawals with extended beneficiary information.
@@ -152,7 +153,7 @@ Missing a required memo will result in **permanent loss of funds** or significan
 
 Fiat withdrawals require the correct provider:
 - Check available providers via [Asset Status endpoint](/api-reference/market-data/asset-status-list)
-- Common providers: `VISAMASTER`, `VISAMASTER_PAYCORE`, `UAH_IBAN`
+- Common providers: `VISAMASTER`, `VISAMASTER_PAYCORE`, `SEPA_BCB_GROUP`
 - Provider availability depends on currency and region
 
 ---
