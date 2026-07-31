@@ -6668,8 +6668,8 @@ paths:
                       ftime:
                         type: number
                         description: "Unix timestamp when the order reached its final status
-                          (FILLED or CANCELLED). For partially-filled orders that are subsequently
-                          cancelled, the timestamp reflects the cancellation time, not the last fill time."
+                          (FILLED or CANCELED). For partially-filled orders that are subsequently
+                          canceled, the timestamp reflects the cancellation time, not the last fill time."
                         example: 1597486960.311332
                       dealFee:
                         type: string
@@ -6704,7 +6704,7 @@ paths:
                         description: "Stop/conditional orders only — comparison operator that decides when `activationPrice` is met. Absent for unconditional orders."
                         example: "<="
                       status:
-                        $ref: '#/components/schemas/OrderStatus'
+                        $ref: '#/components/schemas/OrderHistoryStatus'
                       feeAsset:
                         type: string
                         description: "Currency ticker of the asset used to pay the trading fee."
@@ -7353,13 +7353,18 @@ components:
   schemas:
     ActiveOrderStatus:
       type: string
-      description: "Order status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `PARTIALLY_FILLED` — partially executed, remainder still active. `CANCELLED` — canceled before full execution."
-      enum: [NEW, FILLED, PARTIALLY_FILLED, CANCELLED]
+      description: "Order status. `FILLED` — fully executed. `PARTIALLY_FILLED` — partially executed, remainder still active. `CANCELED` — canceled before full execution. REST uses the single-`L` spelling `CANCELED`; the double-`L` `CANCELLED` and the WebSocket-only `NEW` state are not returned by this API."
+      enum: [FILLED, PARTIALLY_FILLED, CANCELED]
       example: "FILLED"
     OrderStatus:
       type: string
-      description: "Order lifecycle status. `NEW` — accepted, not yet matched. `FILLED` — fully executed. `CANCELED` — canceled before execution. `PARTIAL_FILLED` — partially executed, remainder still active. `PARTIAL_CANCELED` — partially filled, remainder canceled. `CANCELED_TAKER_BAND` — partially filled up to the taker band limit, remainder canceled to protect against excessive order book slippage. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `AUTO_CANCELED_LIQUIDATION` — pending order auto-canceled because the associated position was force-liquidated. `CANCELED_STP` — order canceled by [Self-Trade Prevention](/platform/self-trade-prevention)."
+      description: "Order lifecycle status. `FILLED` — fully executed. `CANCELED` — canceled before execution. `PARTIALLY_FILLED` — partially executed, remainder still active. `CANCELED_TAKER_BAND` — partially filled up to the taker band limit, remainder canceled to protect against excessive order book slippage. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `AUTO_CANCELED_LIQUIDATION` — pending order auto-canceled because the associated position was force-liquidated. `CANCELED_STP` — order canceled by [Self-Trade Prevention](/platform/self-trade-prevention). REST returns the single-`L` spelling throughout; `NEW` and `PARTIAL_FILLED` are not REST values (`NEW` is WebSocket-only; the partially-filled state is `PARTIALLY_FILLED`)."
       example: "FILLED"
+    OrderHistoryStatus:
+      type: string
+      description: "Order status returned by this endpoint, in uppercase. `FILLED` — fully executed. `CANCELED` — canceled before full execution; the endpoint also returns `AUTO_CANCELED_MARGIN_EXCHANGE_BALANCE` (order auto-canceled on insufficient margin or exchange balance) collapsed into `CANCELED`. `AUTO_CANCELED_LIQUIDATION` — auto-canceled because the associated position was force-liquidated. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `CANCELED_STP` — canceled by [Self-Trade Prevention](/platform/self-trade-prevention). This endpoint returns a narrower, uppercase status set than the account's other order surfaces."
+      enum: [FILLED, CANCELED, AUTO_CANCELED_LIQUIDATION, AUTO_CANCELED_REDUCE_ONLY, CANCELED_STP]
+      example: "CANCELED"
     ExecutedDeal:
       type: object
       properties:
