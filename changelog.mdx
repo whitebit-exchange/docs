@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="July 30, 2026">
+## bankBic parameter for SEPA and bank-rail fiat withdrawals
+**New `bankBic` request parameter on `POST /api/v4/main-account/withdraw` and `POST /api/v4/main-account/withdraw-pay`**
+
+The withdrawal endpoints now accept a `bankBic` parameter carrying the beneficiary bank's BIC (SWIFT) code. It is required when the fiat provider is one of `SEPA`, `SEPA_CLEAR_JUNCTION`, `SEPA_BCB_GROUP`, `FINCI`, `ZEN`, or `BANKING_CIRCLE`, and identifies the destination bank for bank-rail payouts.
+
+<CardGroup cols={2}>
+  <Card title="Create Withdraw Request" href="/api-reference/account-wallet/create-withdraw-request" icon="money-bill-transfer" horizontal/>
+  <Card title="Create withdraw request (specific amount)" href="/api-reference/account-wallet/create-withdraw-request-with-specific-amount" icon="money-bill-transfer" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 29, 2026">
 ## Funding cap and floor on futures markets list
 **New `funding_cap` and `funding_floor` fields on `GET /api/v4/public/futures`**

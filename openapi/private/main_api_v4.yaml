@@ -1075,6 +1075,13 @@ paths:
 
                     ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER [provider](/glossary#provider).
                   example: "203.0.113.42"
+                bankBic:
+                  type: string
+                  description: |
+                    Beneficiary bank's BIC (SWIFT) code, identifying the destination bank for SEPA and other bank-rail [fiat](/glossary#fiat) withdrawals.
+
+                    ⚠️ Required if the fiat [provider](/glossary#provider) is one of: SEPA, SEPA_CLEAR_JUNCTION, SEPA_BCB_GROUP, FINCI, ZEN, BANKING_CIRCLE.
+                  example: "DEUTDEFF"
                 beneficiary:
                   type: object
                   description: |
@@ -1347,6 +1354,19 @@ paths:
                   customerIp: "203.0.113.42"
                   request: "{{request}}"
                   nonce: 1594297865000
+              fiatIban:
+                summary: Fiat IBAN transfer (EUR)
+                value:
+                  ticker: "EUR"
+                  amount: "500"
+                  address: "DE89370400440532013000"
+                  beneficiary:
+                    firstName: "Firstname"
+                    lastName: "Lastname"
+                  provider: "SEPA_BCB_GROUP"
+                  uniqueId: "24529046"
+                  request: "{{request}}"
+                  nonce: 1594297865000
               fiatVisamaster:
                 summary: Fiat USD/EUR VISAMASTER
                 value:
@@ -1360,6 +1380,20 @@ paths:
                     email: "john_doe@email.com"
                   provider: "USD_VISAMASTER"
                   uniqueId: "24529045"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              fiatSepa:
+                summary: Fiat SEPA / bank-rail (bankBic required)
+                value:
+                  ticker: "EUR"
+                  amount: "100"
+                  address: "DE89370400440532013000"
+                  provider: "SEPA"
+                  bankBic: "DEUTDEFF"
+                  beneficiary:
+                    firstName: "Firstname"
+                    lastName: "Lastname"
+                  uniqueId: "24529046"
                   request: "{{request}}"
                   nonce: 1594297865000
               travelRuleIndividualHosted:
@@ -8138,6 +8172,10 @@ components:
           type: string
           description: "End-customer IP address forwarded to the [fiat](/glossary#fiat) [provider](/glossary#provider) for antifraud checks before the withdrawal is processed. ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER [provider](/glossary#provider)."
           example: "203.0.113.42"
+        bankBic:
+          type: string
+          description: "Beneficiary bank's BIC (SWIFT) code, identifying the destination bank for SEPA and other bank-rail [fiat](/glossary#fiat) withdrawals. ⚠️ Required if the fiat [provider](/glossary#provider) is one of: SEPA, SEPA_CLEAR_JUNCTION, SEPA_BCB_GROUP, FINCI, ZEN, BANKING_CIRCLE."
+          example: "DEUTDEFF"
         beneficiary:
           type: object
           description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
