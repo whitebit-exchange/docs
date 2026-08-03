@@ -75,6 +75,12 @@ Withdrawals with extended beneficiary information.
 - **Use when**: Withdrawing USD or EUR via VISAMASTER_PAYCORE provider
 - **Currencies**: USD_VISAMASTER, EUR_VISAMASTER
 
+#### **Scenario 8: SEPA / Bank-Rail Transfers**
+Bank transfers to an IBAN via SEPA and related fiat providers.
+- **Required fields**: Standard fields + `provider` + `bankBic` (beneficiary bank's BIC/SWIFT code)
+- **Providers**: `SEPA`, `SEPA_CLEAR_JUNCTION`, `SEPA_BCB_GROUP`, `FINCI`, `ZEN`, `BANKING_CIRCLE`
+- **Use when**: Withdrawing EUR (or other fiat) to a bank account through a SEPA/bank-rail provider
+
 ---
 
 ## Amount and Fee Calculation
