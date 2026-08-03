@@ -6,9 +6,23 @@ description: "Integration guide for partner platforms that issue WhiteBIT API ke
 
 The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an authenticated WhiteBIT user without the user manually copying credentials between sites. The user authorizes the partner on the WhiteBIT consent screen, the WhiteBIT platform issues a partner-scoped API key, and the partner backend reads the API secret once through a Bearer-authenticated endpoint and persists it. The flow uses Authorization Code with PKCE (S256), a 4-hour access token without refresh, and partner-registered IP restrictions on the resulting key. See the [Fast API Key](/glossary#fast-api-key) glossary entry for the short definition.
 
+## Partner use cases
+
+The flow fits partners whose end users keep personal WhiteBIT accounts: WhiteBIT performs KYC and holds custody, and the partner operates on the user's account through the OAuth-issued key.
+
+- **Copy trading** — the copy-trading platform mirrors lead-trader positions into followers' accounts. Each follower connects a personal WhiteBIT account through the consent screen, and the partner platform places orders with the issued key; execution happens inside the follower's own account.
+- **Trading bots** — the service runs strategies on the user's account. The user approves the permission set on the consent screen — trading scopes for execution, with withdrawal remaining a separate, user-controlled grant behind an additional confirmation (see [Key permissions](#key-permissions)).
+- **Portfolio and aggregator apps** — the app aggregates balances and transaction history through a read-scoped key and places no orders.
+
+Partners operating accounts *for* customers — a dedicated sub-account per end customer under a partner master account — integrate via the [Broker Program](/guides/broker-guide) instead; the [Integration Paths](/guides/integration-paths) page maps all partner types. Whether [attribution](/guides/waas-guide) or commercial terms apply for own-account partners is confirmed with WhiteBIT during enrollment.
+
 ## Prerequisites
 
-- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `support@whitebit.com` to enroll a client; IP allowlist registration is coordinated on the same ticket once the OAuth API key feature is approved for your platform. The same channel applies to subsequent IP changes — there is no self-service endpoint today.
+<Note>
+  Partner enrollment is approval-gated. New partners apply via `institutional@whitebit.com` with the details listed under [How to apply](/guides/integration-paths#how-to-apply); a partner agreement and KYB review are part of onboarding. After approval, technical client setup proceeds via `support@whitebit.com` as described below.
+</Note>
+
+- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `support@whitebit.com` to enroll a client; IP allowlist registration is coordinated on the same ticket once the OAuth API key feature is approved for the partner platform. The same channel applies to subsequent IP changes — there is no self-service endpoint today.
 - End user with a WhiteBIT account, 2FA enabled, KYC passed, and operating in a region where the feature is available. The OAuth API key endpoints are available on the global server (`https://whitebit.com`) only.
 - Partner backend that supports HTTPS, server-side secret storage, and OAuth 2.0 Authorization Code with PKCE (S256).
 
@@ -104,7 +118,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 - The 50-key limit applies per account context — the main account and each sub-account each have an independent 50-key allowance, and the count includes both manually-created and OAuth-issued keys.
 - A user can have OAuth-issued keys from an unlimited number of partners.
 
-## What's Next
+## What's next
 
 <CardGroup cols={3}>
   <Card title="OAuth endpoint overview" icon="key" href="/api-reference/oauth/usage/overview">
