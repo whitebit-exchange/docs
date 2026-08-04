@@ -29,7 +29,7 @@ Adjacent scenarios route to separate guides:
 
 Fiat access is the second phase of [Institutional Onboarding](/institutional/onboarding) and is not automatic after KYB approval. Phase 1 (corporate account, KYB, API keys) enables crypto operations; Phase 2 adds EUR/SEPA capabilities through a fiat processing partner review, with source-of-funds documentation. WhiteBIT manages the fiat-partner onboarding on the applicant's behalf.
 
-**How to apply:** email **institutional@whitebit.com** with a description of the service. Include the registered legal entity (name, registration number, jurisdiction), licenses or registrations held, whether the scope is crypto-only or fiat as well, and the countries where the service operates. The full application question list is on the [Integration Paths](/guides/integration-paths#how-to-apply) page.
+**How to apply:** email `institutional@whitebit.com` with a description of the service. Include the registered legal entity (name, registration number, jurisdiction), licenses or registrations held, whether the scope is crypto-only or fiat as well, and the countries where the service operates. The full application question list is on the [Integration Paths](/guides/integration-paths#how-to-apply) page.
 
 <Note>
   Fiat deposits and withdrawals operate at the partner's **main account** (institutional fiat access). Per-end-user fiat rails are not a standard shipped capability; confirm any such requirement with WhiteBIT before designing around it.
@@ -39,11 +39,11 @@ Five capabilities in this guide carry a dedicated enablement gate:
 
 | Capability | Gate | Contact |
 |-----------|------|---------|
-| Fiat operations (Phase 2) | Institutional onboarding, fiat-partner review | institutional@whitebit.com |
+| Fiat operations (Phase 2) | Institutional onboarding, fiat-partner review | `institutional@whitebit.com` |
 | `fiat-deposit-url` endpoint | Per-account activation | WhiteBIT support, with the API key |
 | `successLink` / `failureLink` redirects | Feature activation and domain registration | WhiteBIT support |
-| Dedicated deposit addresses (`/create-new-address`) | Per-account permission | support@whitebit.com |
-| Travel Rule API | Per-account enablement | Account manager or institutional@whitebit.com |
+| Dedicated deposit addresses (`/create-new-address`) | Per-account permission | `support@whitebit.com` |
+| Travel Rule API | Per-account enablement | Account manager or `institutional@whitebit.com` |
 
 ## What the account manager confirms
 
@@ -161,7 +161,7 @@ sequenceDiagram
     Partner->>WhiteBIT: POST /api/v4/main-account/history (reconciliation)
 ```
 
-Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from support@whitebit.com. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
+Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from `support@whitebit.com`. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
 
 For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider.
 
@@ -214,7 +214,7 @@ Build handling for each of these before go-live:
 | SEPA deposit arrives without the `uniqueId` payment reference | The transfer cannot be matched to the deposit request automatically | Validate the reference field in the payment UX; unmatched settlements go through manual reconciliation with institutional support |
 | Deposit canceled (status 4 or 9) | The `deposit.canceled` webhook fires; canceled crypto deposits may be refundable | Trigger [`refund-deposit`](/api-reference/account-wallet/refund-deposit) with the transaction UUID; outcomes arrive as `refund.successful` or `refund.failed` |
 | Deposit unconfirmed by the user (status 5) | The transaction waits for manual confirmation on the platform | Notify the account operator; track the status via history polling |
-| Deposit frozen for AML review (status 21) | The record surfaces in the deposit history with the frozen status | Escalate to institutional@whitebit.com if the freeze persists |
+| Deposit frozen for AML review (status 21) | The record surfaces in the deposit history with the frozen status | Escalate to `institutional@whitebit.com` if the freeze persists |
 | Deposit held for Travel Rule (status 27/28) | No webhook fires for Travel Rule transitions; the hold surfaces via history polling | Submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise complete verification on the platform |
 | Partial fiat withdrawal (status 18, with `partialEnable`) | The withdrawal completes partially | Reconcile `requestAmount` against `processedAmount` and surface the remainder to operations |
 | Fiat withdrawal without KYC | The request fails validation with an account-verification error | Complete KYC, or arrange the exception-only override with the institutional team |
@@ -232,9 +232,9 @@ Build handling for each of these before go-live:
 
 ## Support and contacts
 
-- **Onboarding status, limits, and institutional matters:** institutional@whitebit.com, or the assigned account manager once onboarded.
+- **Onboarding status, limits, and institutional matters:** `institutional@whitebit.com`, or the assigned account manager once onboarded.
 - **Fiat endpoint enablement and access questions:** WhiteBIT support, with the API key included in the request.
-- **Dedicated deposit addresses:** support@whitebit.com.
+- **Dedicated deposit addresses:** `support@whitebit.com`.
 - **OTC block trading** for large conversions is part of the institutional catalog — see the [Institutional Overview](/institutional/overview).
 - **Self-service:** [help.whitebit.com](https://help.whitebit.com) for platform questions; this portal for API documentation.
 
