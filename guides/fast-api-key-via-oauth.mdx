@@ -19,10 +19,10 @@ Partners operating accounts *for* customers — a dedicated sub-account per end 
 ## Prerequisites
 
 <Note>
-  Partner enrollment is approval-gated. New partners apply via `institutional@whitebit.com` with the details listed under [How to apply](/guides/integration-paths#how-to-apply); a partner agreement and KYB review are part of onboarding. After approval, technical client setup proceeds via `support@whitebit.com` as described below.
+  Partner enrollment is approval-gated. New partners apply via `institutional@whitebit.com` with the details listed under [How to apply](/guides/integration-paths#how-to-apply); a partner agreement and KYB review are part of onboarding; client registration and the IP allowlist are then coordinated through the same channel, as described below.
 </Note>
 
-- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `support@whitebit.com` to enroll a client; IP allowlist registration is coordinated on the same ticket once the OAuth API key feature is approved for the partner platform. The same channel applies to subsequent IP changes — there is no self-service endpoint today.
+- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `institutional@whitebit.com` to enroll a client; IP allowlist registration is coordinated on the same ticket once the OAuth API key feature is approved for the partner platform. The same channel applies to subsequent IP changes — there is no self-service endpoint today.
 - End user with a WhiteBIT account, 2FA enabled, KYC passed, and operating in a region where the feature is available. The OAuth API key endpoints are available on the global server (`https://whitebit.com`) only.
 - Partner backend that supports HTTPS, server-side secret storage, and OAuth 2.0 Authorization Code with PKCE (S256).
 
@@ -76,6 +76,20 @@ If the user selects withdrawal permission, the consent modal adds a warning bloc
 
 After issuance the key behaves the same as a manually-created key with matching permissions. Trade and withdrawal endpoints are authorized by the HMAC signature on each request — see [Private HTTP API authentication](/api-reference/authentication). KYC for fiat withdrawals, the partner IP allowlist, AML and fraud monitoring, and withdrawal limits apply on every call.
 
+### API key types
+
+<Note>
+Named API key types are being introduced for the Fast API Key flow. The model below describes how key access is scoped once the types are available.
+</Note>
+
+A key's type sets the maximum permissions it can carry; the user chooses within that maximum on the consent screen. All three types require WhiteBIT approval — the flow is not available by default.
+
+- **Read-only** — read access to balances, orders, deals, and history. No fund movement.
+- **Trade** — read access plus order placement and cancellation, convert, and internal transfer between the user's own balances. Excludes external withdrawal.
+- **Custom** — a configurable type, and the only one that can include external withdrawal. Requires WhiteBIT approval and business verification (KYB) of the partner.
+
+To request Fast API Key access, contact `institutional@whitebit.com` with the intended use cases, the jurisdiction where the partner's legal entity is registered, and the licenses it holds. Partner KYB is part of the review.
+
 ## Lifecycle and revocation
 
 OAuth-issued API keys are revoked or deleted by any of the following events:
@@ -110,7 +124,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 - Use the exact registered `redirect_uri` — wildcards and open redirects are rejected.
 - Use Authorization Code with PKCE (S256) on every authorization request.
 - Rotate `apiSecret` by deleting and re-issuing keys. The secret cannot be retrieved a second time for an existing key.
-- The partner IP allowlist that the user cannot modify is set at enrollment via support. Coordinate IP updates with `support@whitebit.com` before rotating partner infrastructure.
+- The partner IP allowlist that the user cannot modify is set at enrollment via WhiteBIT. Coordinate IP updates with `institutional@whitebit.com` before rotating partner infrastructure.
 
 ## Limits
 
