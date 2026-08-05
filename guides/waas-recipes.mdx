@@ -1,0 +1,90 @@
+---
+title: "Wallet-as-a-Service Recipes"
+sidebarTitle: "WaaS Recipes"
+description: "Anchor use cases for Wallet-as-a-Service partners: per-user deposit addresses, reconciliation, payouts, and WhiteBIT Codes. Each recipe links to the guide and a runnable starter."
+icon: "sparkles"
+---
+
+Anchor use cases for **Wallet-as-a-Service** partners, on the managed sub-accounts model.
+Each recipe links to the integration guide and to the runnable Python starter.
+
+<Info>
+These are `private` (signed) endpoints, so they need an API key. The four use cases are functions
+in the [starter](https://github.com/tihran-voitov_wbt/waas-starter), built on the official SDK.
+The sub-account and payout flows require institutional onboarding (KYB); the WhiteBIT Codes flow
+works on a regular account without KYB (see the live demo below).
+</Info>
+
+<CardGroup cols={2}>
+  <Card title="Per-user deposit address" icon="wallet" href="/guides/waas-guide">
+    Create a sub-account per end user and assign a deposit address to reconcile funds against.
+    <br />**Endpoints:** `sub-account/create`, `main-account/create-new-address`
+  </Card>
+  <Card title="Reconcile deposits" icon="arrows-rotate" href="/guides/waas-guide">
+    Credit users from deposit webhooks, with history polling as the required fallback.
+    Deduplicate by `uniqueId`.
+    <br />**Endpoints:** `main-account/history` + webhooks
+  </Card>
+  <Card title="Payout / withdraw" icon="paper-plane" href="/guides/waas-guide">
+    Send a crypto payout to a user's address, with on-the-fly conversion where needed.
+    <br />**Endpoints:** `main-account/withdraw`
+  </Card>
+  <Card title="WhiteBIT Codes settlement" icon="ticket" href="/guides/waas-guide">
+    Move balance fee-free between accounts by creating and applying a WhiteBIT Code.
+    <br />**Endpoints:** `main-account/codes`, `main-account/codes/apply`
+  </Card>
+  <Card title="Payout with conversion" icon="right-left" href="/guides/waas-guide">
+    Hold one currency, pay out another: quote, confirm, then withdraw the converted asset.
+    <br />**Endpoints:** `convert/estimate`, `convert/confirm`, `main-account/withdraw`
+  </Card>
+  <Card title="Refund a canceled deposit" icon="rotate-left" href="/guides/waas-guide">
+    Return funds from a canceled deposit (status 4/9) to an address.
+    <br />**Endpoints:** `main-account/refund-deposit`
+  </Card>
+  <Card title="Exact-amount payout" icon="coins" href="/guides/waas-guide">
+    The receiver gets the exact amount; the fee is charged on top of the account balance.
+    <br />**Endpoints:** `main-account/withdraw-pay`
+  </Card>
+  <Card title="Multichain payout" icon="link" href="/guides/waas-guide">
+    Pay out an asset on any supported network via the `network` parameter.
+    <br />**Endpoints:** `main-account/withdraw`
+  </Card>
+</CardGroup>
+
+## Run the recipes
+
+Clone the [WaaS starter](https://github.com/tihran-voitov_wbt/waas-starter) and install:
+
+```
+pip install -r requirements.txt
+export WB_API_KEY=your_key WB_API_SECRET=your_secret
+```
+
+The use cases are functions the starter exposes via `import waas`, signed with the official SDK.
+The sub-account and payout flows need enablement (KYB); the WhiteBIT Codes flow runs without KYB.
+See the live demo below.
+
+## Demo
+
+<video controls width="100%">
+  <source src="/videos/waas-codes-demo.mp4" type="video/mp4" />
+</video>
+
+Live WhiteBIT Codes on a real balance: clone the starter, create a code for 1 USDT, and watch
+the main-account balance move. Real API calls, no mock.
+
+**To reproduce:** Python 3, clone the
+[starter](https://github.com/tihran-voitov_wbt/waas-starter), `pip install -r requirements.txt`,
+set `WB_API_KEY` / `WB_API_SECRET` (key with Codes permission), and run the demo. The USDT must be
+on the main account.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="WaaS integration guide" icon="book" href="/guides/waas-guide">
+    Integration models, payment flows, and compliance.
+  </Card>
+  <Card title="WaaS overview" icon="wallet" href="/guides/waas-overview">
+    What WaaS is and how to get started.
+  </Card>
+</CardGroup>
