@@ -1,0 +1,82 @@
+---
+title: "Wallet-as-a-Service"
+sidebarTitle: "Overview"
+description: "Put WhiteBIT behind a partner's product as the exchange, custody, and settlement backend. What WaaS provides, the integration models, and how to get started."
+icon: "wallet"
+---
+
+Wallet-as-a-Service (WaaS) lets a partner put WhiteBIT behind its own product as the exchange,
+custody, and settlement backend. This overview covers fit and model selection. For the technical
+integration, see the [Developer guide](/guides/waas-guide).
+
+<Tip>
+The [WaaS Recipes](/guides/waas-recipes) show runnable examples of deposit addresses,
+reconciliation, payouts, and settlement.
+</Tip>
+
+## What WaaS provides
+
+- A unique crypto deposit address per end user, with incoming funds reconciled by webhook.
+- Crypto and fiat payouts, including withdrawal with on-the-fly currency conversion.
+- Fee-free settlement between accounts with WhiteBIT Codes, or one-tap charges with Express Withdraw.
+- Fireblocks connectivity and built-in AML controls on deposit and withdrawal flows.
+
+## Choose an integration model
+
+<CardGroup cols={2}>
+  <Card title="Managed sub-accounts" icon="sitemap">
+    Each end user gets a sub-account under the partner's master account. **WhiteBIT verifies (KYC)
+    each user** and is the user's counterparty.
+  </Card>
+  <Card title="Attribution" icon="tag">
+    Each end user opens their **own** WhiteBIT account; the partner connects via an OAuth-issued
+    key. **WhiteBIT does the KYC.** Attribution / fee-share is arranged separately.
+  </Card>
+  <Card title="Sub-accounts with KYC reliance" icon="handshake">
+    Managed sub-accounts, but **WhiteBIT relies on the partner's KYC** of the end user. Requires a
+    compliance assessment and agreement.
+  </Card>
+</CardGroup>
+
+<Note>
+  A single pooled (omnibus) account for all users is not offered: pooled custody conflicts with
+  MiCA client-fund segregation and Travel Rule requirements. Each model above keeps segregated
+  sub-accounts, with a master account acting only as a settlement hub.
+</Note>
+
+Two questions place a partner: **(1)** does the end user hold their own WhiteBIT account, or does
+the partner manage accounts for them? **(2)** who runs KYC, WhiteBIT or the partner? The practical
+difference between the two sub-account models is who verifies the end users: with managed
+sub-accounts WhiteBIT does; with KYC reliance the partner does, and carries the
+identity-verification responsibility. The final choice and any compliance gate are confirmed with
+WhiteBIT.
+
+## Compliance at a glance
+
+- **Travel Rule (EEA and Turkey):** transfers must carry sender/recipient data. Inbound deposits
+  for EEA/Turkey accounts are held until verification completes; withdrawals carry a travel-rule
+  payload. See [Travel Rule](/concepts/travel-rule).
+- **MiCA (EEA):** some stablecoin operations are restricted for EEA users, which affects the
+  assets available to those users. See [Regulatory Compliance](/institutional/compliance).
+
+## How to apply
+
+1. Complete KYB as part of [Institutional Onboarding](/institutional/onboarding). Fiat access is a
+   separate second phase, not automatic after KYB.
+2. Create API keys and configure webhooks in the WhiteBIT dashboard.
+3. Request the enablement the model needs (sub-account and crypto-deposit enablement, per-user
+   deposit addresses) via the account manager or institutional@whitebit.com.
+4. Work through the [Go-Live Checklist](/best-practices/go-live-checklist) before real volume.
+
+To get started or discuss a model, contact institutional@whitebit.com or the account manager.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Developer guide" icon="code" href="/guides/waas-guide">
+    The technical integration: models, payment flows, compliance, and testing.
+  </Card>
+  <Card title="WaaS Recipes" icon="sparkles" href="/guides/waas-recipes">
+    Runnable examples with a starter repo.
+  </Card>
+</CardGroup>

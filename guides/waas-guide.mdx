@@ -1,0 +1,79 @@
+---
+title: "Wallet-as-a-Service integration"
+sidebarTitle: "Developer guide"
+description: "Technical integration for Wallet-as-a-Service partners: the models, payment and payout flows, compliance requirements, and testing."
+---
+
+<Note>
+**For developers.** This page covers the technical integration. For what WaaS is, the models at a
+business level, and how to apply, see the [WaaS overview](/guides/waas-overview).
+</Note>
+
+The three integration models are described in the
+[WaaS overview](/guides/waas-overview#choose-an-integration-model). This guide covers where to
+start for each and the flows they share.
+
+## Where to start per model
+
+| Model | Start here |
+|---|---|
+| Managed sub-accounts | [Broker Program](/guides/broker-guide) + [Sub-Accounts](/products/sub-accounts/overview) |
+| Attribution (own account + OAuth) | [Fast API Key via OAuth](/guides/fast-api-key-via-oauth) |
+| Sub-accounts with KYC reliance | [Broker Program](/guides/broker-guide) + [Institutional Onboarding](/institutional/onboarding) |
+
+## Payment and payout flows
+
+Fund-movement flows, with parameters and code examples, are in the
+[Payment Integration guide](/guides/payment-integration).
+
+A typical per-user cycle: create a deposit address for the user, the user sends funds on-chain,
+WhiteBIT confirms and fires the deposit webhooks, the partner credits the user, then withdraws or
+pays out to the user's address.
+
+Reconcile by webhook, and poll transaction history as a **required** fallback: webhook delivery is
+retried but has no replay, so an event can be missed and must be recovered by polling. Deduplicate
+by `uniqueId`. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
+[rate limits](/api-reference/rate-limits) apply per endpoint; sub-account limits are set per agreement.
+
+<Note>
+  Fiat deposit and withdrawal operate at the **master-account** level (institutional fiat access).
+  Per-end-user fiat rails are not a standard shipped capability; confirm any such requirement with
+  WhiteBIT first.
+</Note>
+
+<Warning>
+**Compliance requirements that affect the requests:**
+- EEA withdrawals require a `travelRule` object; in the sub-account models the partner submits it
+  for each sub-account withdrawal it initiates. Inbound EEA/Turkey deposits are held until
+  verification completes. See [Travel Rule](/concepts/travel-rule).
+- For EEA users, use USDC or EURI, not USDT. See [Regulatory Compliance](/institutional/compliance).
+</Warning>
+
+## More flows
+
+Beyond the core cycle, these are available (see [Recipes](/guides/waas-recipes) and the
+[Payment Integration guide](/guides/payment-integration) for parameters):
+
+- **Payout with conversion:** hold one currency, send another (`convert/estimate` -> `convert/confirm` -> `main-account/withdraw`).
+- **Exact-amount payout:** `main-account/withdraw-pay` charges the fee on top, so the receiver gets the exact amount.
+- **Multichain send:** withdraw an asset on any supported network via the `network` parameter.
+- **Refunds:** return a canceled deposit with `main-account/refund-deposit`.
+- **Travel Rule (programmatic):** submit originator data via `travel-rule/deposit/verification` and fetch the VASP list via `travel-rule/vasps` (EEA and Turkey). See [Travel Rule](/concepts/travel-rule).
+
+## Testing
+
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts,
+and check per-asset minimums via the [Asset Status](/api-reference/market-data/asset-status-list)
+endpoint first. The WhiteBIT Codes flow is a low-risk way to try a real signed call on a small
+amount (see [Recipes](/guides/waas-recipes)).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="WaaS Recipes" icon="sparkles" href="/guides/waas-recipes">
+    Runnable examples and the starter repo.
+  </Card>
+  <Card title="Payment Integration" icon="arrow-right-arrow-left" href="/guides/payment-integration">
+    Endpoint-level reference for every payment and payout flow.
+  </Card>
+</CardGroup>
