@@ -51,14 +51,12 @@ by `uniqueId`. See [Webhooks](/platform/webhook) for signatures and delivery sem
 
 ## More flows
 
-Beyond the core cycle, these are available (see [Recipes](/guides/waas-recipes) and the
-[Payment Integration guide](/guides/payment-integration) for parameters):
+Additional use cases (conversion payouts, refunds, exact-amount payouts, multichain payouts) are
+catalogued in [Recipes](/guides/waas-recipes), with the full parameter reference in the
+[Payment Integration guide](/guides/payment-integration).
 
-- **Payout with conversion:** hold one currency, send another (`convert/estimate` -> `convert/confirm` -> `main-account/withdraw`).
-- **Exact-amount payout:** `main-account/withdraw-pay` charges the fee on top, so the receiver gets the exact amount.
-- **Multichain send:** withdraw an asset on any supported network via the `network` parameter.
-- **Refunds:** return a canceled deposit with `main-account/refund-deposit`.
-- **Travel Rule (programmatic):** submit originator data via `travel-rule/deposit/verification` and fetch the VASP list via `travel-rule/vasps` (EEA and Turkey). See [Travel Rule](/concepts/travel-rule).
+**Travel Rule (programmatic):** submit originator data via `travel-rule/deposit/verification` and
+fetch the VASP list via `travel-rule/vasps` (EEA and Turkey). See [Travel Rule](/concepts/travel-rule).
 
 ## Testing
 
