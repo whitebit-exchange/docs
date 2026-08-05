@@ -68,17 +68,23 @@ See the live demo below.
 
 ## Demo
 
+Run it (needs a key with Codes permission and USDT on the main account):
+
+```
+git clone https://github.com/tihran-voitov_wbt/waas-starter.git
+cd waas-starter
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-demo.txt
+cp .env.example .env          # add WB_API_KEY / WB_API_SECRET
+python app.py                 # http://localhost:5004
+```
+
 <video controls width="100%">
   <source src="/videos/waas-codes-demo.mp4" type="video/mp4" />
 </video>
 
-Live WhiteBIT Codes on a real balance: clone the starter, create a code for 1 USDT, and watch
-the main-account balance move. Real API calls, no mock.
-
-**To reproduce:** Python 3, clone the
-[starter](https://github.com/tihran-voitov_wbt/waas-starter), `pip install -r requirements.txt`,
-set `WB_API_KEY` / `WB_API_SECRET` (key with Codes permission), and run the demo. The USDT must be
-on the main account.
+Live WhiteBIT Codes on a real balance: create a code for 1 USDT and watch the main-account balance
+move. Real API calls, no mock.
 
 ## What's next
 
