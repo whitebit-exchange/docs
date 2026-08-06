@@ -1,0 +1,139 @@
+---
+title: "On/Off-Ramp FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions on the WhiteBIT on/off-ramp integration: endpoint activation, SEPA deposit matching, withdrawal fee semantics, reconciliation, identifier casing, and EEA compliance."
+icon: "circle-question"
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+Answers to common questions on the WhiteBIT on/off-ramp integration. For the flows and code, see the [Developer guide](/guides/on-off-ramp-guide); for access, onboarding, and positioning, see the [Overview](/guides/on-off-ramp-overview).
+
+## Access and activation
+
+<AccordionGroup>
+<Accordion title="Fiat deposit URL permission errors">
+The `POST /api/v4/main-account/fiat-deposit-url` endpoint requires per-account activation and is not enabled by default. Contact WhiteBIT support and provide the API key to request access. Fiat operations also depend on completed Phase 2 institutional onboarding — see [Access and onboarding](/guides/on-off-ramp-overview#access-and-onboarding).
+</Accordion>
+
+<Accordion title="KYC requirement for fiat withdrawals">
+Fiat withdrawals require KYC verification; an account without KYC verification cannot process a fiat withdrawal. In exceptional, documented cases the institutional team can arrange a per-account override that permits fiat withdrawal without standard KYC. The override is exception-only, not a default capability — contact institutional@whitebit.com with the documented case. See [Fiat withdrawal](/guides/payment-integration#fiat-withdrawal).
+</Accordion>
+</AccordionGroup>
+
+## Fiat deposits
+
+<AccordionGroup>
+<Accordion title="SEPA deposit matching by payment reference">
+The `uniqueId` submitted in the `fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank transfer. WhiteBIT uses that string to match the incoming settlement to the original deposit request. If the end user omits or alters the reference, the deposit may settle unmatched and require manual reconciliation through institutional support. Validate the reference field in the payment UX. See [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
+</Accordion>
+
+<Accordion title="Provider value for SEPA EUR deposits">
+Take the request `provider` value from the [Asset Status](/api-reference/market-data/asset-status-list) response, and confirm the enabled provider for SEPA EUR deposits on the account with the account manager.
+
+{/* REVIEW — DEV-55: SEPA EUR deposit-side provider value is not documented in the spec (examples are UAH + VISAMASTER only; a UAH deposit probe returned IBAN_TRANSFER). Confirm the valid SEPA EUR deposit provider value(s) and the hosted-invoice rendering with dev before replacing this hedged answer with a concrete value. */}
+<Note>
+  The exact provider value for SEPA EUR deposits is confirmed per account during onboarding; read the current options from the [Asset Status](/api-reference/market-data/asset-status-list) response rather than hardcoding a value.
+</Note>
+</Accordion>
+
+<Accordion title="VISAMASTER Referer header requirement">
+For the VISAMASTER provider, the browser must send the `Referer` header when opening the invoice link. Messengers and email clients often strip the header, and without it WhiteBIT redirects the end user to the homepage instead of the payment provider. Test the redirect in the real delivery surface — mobile app, email link, or in-app web view — before go-live. See [Card-provider flows](/guides/payment-integration#card-provider-flows).
+</Accordion>
+
+<Accordion title="Fiat currencies not depositable via API">
+The API does not accept GEL or UAH_VISAMASTER deposits; those run through the WhiteBIT web interface. For every other fiat currency, check `can_deposit` in the [Asset Status](/api-reference/market-data/asset-status-list) response before generating an invoice.
+</Accordion>
+</AccordionGroup>
+
+## Fiat withdrawals
+
+<AccordionGroup>
+<Accordion title="Fee handling in /withdraw and /withdraw-pay">
+Both endpoints submit a withdrawal but differ in fee handling. `POST /api/v4/main-account/withdraw` treats `amount` as **including** the fee, so the recipient receives `amount - fee`. `POST /api/v4/main-account/withdraw-pay` charges the fee **on top**, so the recipient receives the exact amount specified. Select the endpoint that matches whether the specified amount is the debit or the credit.
+</Accordion>
+
+<Accordion title="Partial fiat withdrawals (status 18)">
+Setting `partialEnable: true` raises the maximum limit for fiat withdrawals. The withdrawal can then complete partially, surfacing as the `Partially successful` status (18). The application must reconcile `requestAmount` against `processedAmount` in the history record and surface the remainder to operations. See the [failure and exception paths](/guides/on-off-ramp-guide#failure-and-exception-paths).
+</Accordion>
+</AccordionGroup>
+
+## Reconciliation and monitoring
+
+<AccordionGroup>
+<Accordion title="Webhook delivery and replay behavior">
+Treat webhook delivery as best-effort. Failed deliveries are retried a small number of times spaced roughly an hour apart over a window of about one day, and there is no replay mechanism once that window closes. Pair webhooks with polling: query `POST /api/v4/main-account/history` (`transactionMethod: 1` for deposits, `2` for withdrawals) on a regular cycle, and deduplicate against received events. See [Webhooks](/platform/webhook) and the [reconciliation pattern](/guides/payment-integration#webhook-reconciliation).
+</Accordion>
+
+<Accordion title="Transaction identifier casing across the API">
+The identifier is named differently across the API surface:
+
+| Field | Where it appears | Meaning |
+|-------|-----------------|---------|
+| `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters |
+| `unique_id` | History filter and records | The deposit/withdraw identifier in history responses |
+| `transactionId` | `refund-deposit` request | Transaction UUID, sourced from the `deposit.canceled` webhook |
+| `transaction_id` | History records | System-wide transaction UUID, never reused |
+
+Match on the correct casing per surface when reconciling across webhooks, history, and refunds.
+</Accordion>
+
+<Accordion title="Webhook source IP allowlisting">
+Configure the webhook endpoint over HTTPS and authenticate each delivery by verifying the HMAC-SHA512 signature rather than by source IP. See [Webhooks](/platform/webhook) for the verification flow.
+
+{/* REVIEW — DEV-57: Outbound webhook delivery IPs are not documented on the portal. Confirm with dev/infra whether the delivery IPs are stable and publishable for allowlisting before adding a concrete list here. */}
+<Note>
+  Whether the outbound delivery IP addresses are stable and publishable for allowlisting is confirmed with the account manager; the portal does not publish a fixed list.
+</Note>
+</Accordion>
+
+<Accordion title="Fiat settlement timing">
+Settlement windows and cutoff behavior depend on the fiat rail in use, including weekends and holidays. The account manager confirms the applicable windows for the account during onboarding.
+
+{/* REVIEW — DEV-56: The "near-real-time / under 10 seconds" SEPA Instant claim from the source PDF is not confirmed as platform behavior. Do not add a fixed settlement time; confirm with the account-manager / product owner before publishing any figure. */}
+<Note>
+  No fixed settlement time is published; the timing for the specific rails enabled on the account is confirmed by the account manager.
+</Note>
+</Accordion>
+</AccordionGroup>
+
+## Conversion
+
+<AccordionGroup>
+<Accordion title="Convert across the fiat and crypto legs">
+In both on/off-ramp flows, fiat enters and exits through the fiat deposit and withdrawal endpoints, and conversion runs on the crypto side of the balance — request a quote with `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. The convert service routes balances internally; no manual Main↔Trade transfers are required. See [Convert](/platform/convert).
+
+{/* REVIEW — DEV-58: Whether /convert/estimate|confirm accept fiat tickers (e.g. EUR↔USDT) as the conversion leg is not documented either way (spec examples are crypto-only). Confirm with dev before documenting Convert as a direct fiat↔crypto bridge. */}
+<Note>
+  Whether Convert accepts a fiat ticker directly as the conversion leg is confirmed per account; the conversion pairs available to the account are set with the account manager.
+</Note>
+</Accordion>
+</AccordionGroup>
+
+## Compliance
+
+<AccordionGroup>
+<Accordion title="Travel Rule holds on inbound deposits (EEA and Turkey)">
+Inbound crypto deposits for EEA and Turkey accounts are held until Travel Rule verification completes — status 27 (awaiting originator data) and status 28 (data submitted, under review). No webhook fires for Travel Rule transitions, so the hold surfaces via history polling. Where the Travel Rule API is enabled, submit originator data through the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification); otherwise complete verification on the platform. See [Travel Rule](/concepts/travel-rule).
+</Accordion>
+
+<Accordion title="USDT alternatives for EEA accounts (MiCA)">
+Under MiCA, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT since December 30, 2024. Use USDC or EURI for the crypto leg. See [Regulatory Compliance](/institutional/compliance).
+</Accordion>
+</AccordionGroup>
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Overview" icon="arrow-right-arrow-left" href="/guides/on-off-ramp-overview">
+    Positioning, the two-phase access model, enablement gates, and how to apply.
+  </Card>
+  <Card title="Developer guide" icon="code" href="/guides/on-off-ramp-guide">
+    The on-ramp and off-ramp flows, code, reconciliation, and failure paths.
+  </Card>
+  <Card title="Payment Integration" icon="arrow-right-arrow-left" href="/guides/payment-integration">
+    Endpoint-level lifecycle reference: statuses, fees, fiat operations, refunds.
+  </Card>
+</CardGroup>
