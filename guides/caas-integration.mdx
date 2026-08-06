@@ -1,0 +1,146 @@
+---
+title: "Crypto-as-a-Service integration"
+sidebarTitle: "Integration"
+description: "How a CaaS integration is assembled from WhiteBIT's documented API building blocks."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+
+<Note>
+**For developers.** This page routes each CaaS capability to the guide that documents it. For what
+CaaS is, the segments it fits, and the path to launch, see the
+[CaaS overview](/guides/caas-overview).
+</Note>
+
+A CaaS integration is assembled from the same documented API surface used across WhiteBIT's B2B
+products. It does not restate the schemas — each linked guide carries the endpoint and field
+detail.
+
+<RegionBaseUrl />
+
+## Integration building blocks
+
+### Core API access
+
+- **REST and WebSocket.** 100+ authenticated REST endpoints and 14 public endpoints, plus WebSocket
+  market data and private account streams. Requests are signed with HMAC-SHA512 using the
+  `X-TXC-APIKEY`, `X-TXC-PAYLOAD`, and `X-TXC-SIGNATURE` headers. See
+  [First API Call](/guides/first-api-call).
+- **SDKs and tooling.** Official Go, Python, and PHP SDKs, plus an MCP server and a CLI for
+  AI-assisted integration. See [SDKs](/sdks) and [AI tools](/guides/use-with-ai).
+- **API keys.** Two-factor authentication is required before key creation; the secret is shown only
+  once at creation; up to 50 trusted IPs can be whitelisted per key; keys auto-deactivate after 14
+  days of inactivity and are revoked on an account password change, block, or freeze. See
+  [Authentication](/api-reference/authentication).
+- **Rate limits.** Limits are set per scope and per endpoint. See
+  [Rate limits](/api-reference/rate-limits) for current values rather than assuming a single figure.
+
+<Warning>
+API keys grant account access. Restrict each key to the minimum scope and to known IPs, and store
+secrets outside application code. See [Authentication](/api-reference/authentication).
+</Warning>
+
+### Wallets and payments
+
+- **Deposit addresses.** Generate a unique address per end user with
+  `POST /api/v4/main-account/create-new-address`; incoming funds are reconciled by webhook. See the
+  [Payment Integration guide](/guides/payment-integration) and the
+  [Wallet-as-a-Service developer guide](/guides/waas-guide).
+- **Withdrawals.** Fee-inclusive (`/withdraw`) and fee-on-top (`/withdraw-pay`) variants, plus
+  withdrawal after conversion using the Convert service — request a quote, confirm at the quoted
+  rate, then withdraw in the destination currency. See
+  [Payment Integration](/guides/payment-integration) and [Convert](/platform/convert).
+- **Fiat rails (EUR/SEPA).** Available after Phase 2 onboarding — API-generated deposit invoices and
+  SEPA withdrawals. See the [On/Off-Ramp guide](/guides/on-off-ramp-guide).
+- **WhiteBIT Codes.** Fee-free internal crypto transfers between WhiteBIT accounts, useful for
+  settlement flows. See [WhiteBIT Codes](/platform/whitebit-codes).
+- **Crypto Lending.** Fixed and Flex lending endpoints are restricted to B2B partners and require
+  access to be granted through the
+  [institutional services form](https://whitebit.com/institutional-services/b2b). See
+  [Crypto Lending](/products/lending/overview).
+
+### Account architecture
+
+- **Sub-accounts.** Create and manage thousands of separate accounts under one umbrella, each with
+  independent balances, API keys, and IP whitelists, with fee-free instant transfers between the
+  main account and its sub-accounts. See [Sub-Accounts](/products/sub-accounts/overview).
+- **Fast API Key via OAuth.** For flows where end users hold personal WhiteBIT accounts, a partner
+  can issue user-scoped API keys through the OAuth API key flow. New partner integrations use this
+  flow. See [Fast API Key via OAuth](/guides/fast-api-key-via-oauth) and the
+  [OAuth overview](/platform/oauth/overview).
+- **Trading and conversion.** Spot markets across 750+ pairs, and the Convert service for instant
+  conversion at a quoted rate without placing orders on the order book. See
+  [Convert](/platform/convert).
+
+<Note>
+The classic OAuth 2.0 Authorization Code Grant flow for direct account-data access is deprecated
+and will be removed on November 1, 2026. New integrations use the Fast API Key flow. See the
+[OAuth overview](/platform/oauth/overview).
+</Note>
+
+## Architecture alignment during onboarding
+
+The public documentation covers the API surface, but not the full dedicated-instance model behind
+CaaS. The items below define the integration architecture and are agreed and documented with
+WhiteBIT during onboarding, before development starts.
+
+- **Instance model** — how the dedicated, custom-branded instance relates to the public API
+  surface, and which base URL and credentials the environment uses.
+- **End-user account mapping** — how end customers map onto the WhiteBIT account model (for example,
+  one sub-account per end user, versus a pooled account with the partner's own internal ledger), and
+  the reconciliation and limit trade-offs of each.
+- **KYC and KYB split** — which party verifies end customers, at which levels, and how verification
+  status is exchanged between the partner and WhiteBIT.
+- **Data residency and privacy** — where end-customer data is processed and stored, and the Data
+  Processing Agreement (available via compliance@whitebit.com).
+- **Operational roles** — which staff hold which permissions (API key scopes, sub-account
+  administration, withdrawal approval).
+- **Support model** — support tiers, response targets, and incident channels beyond the public
+  status page.
+- **Fee and settlement terms.**
+
+<Note>
+There is no public sandbox. Integrate against the live API with minimum amounts, run a limited
+pilot cohort, then scale to production. The [Go-Live Checklist](/best-practices/go-live-checklist)
+gates each stage.
+</Note>
+
+## Operating the integration
+
+- **Webhooks.** Real-time notifications for deposits, withdrawals, code redemptions, and refunds,
+  verified with an HMAC-SHA512 signature. Pair webhooks with periodic history polling as a
+  reconciliation fallback. See [Webhooks](/platform/webhook).
+- **Monitoring.** [status.whitebit.com](https://status.whitebit.com) reports platform, API, and blog
+  status; [whitebit.com/system-page](https://whitebit.com/system-page) reports per-asset deposit,
+  withdrawal, and transfer availability.
+- **Testing.** WhiteBIT does not offer a public testnet. Test on the live API with minimum order
+  sizes and low-minimum assets; Demo Tokens are available for risk-free spot practice.
+- **Go-live.** Work through the [Go-Live Checklist](/best-practices/go-live-checklist) — covering
+  authentication, error handling, rate limits, compliance, WebSocket, webhooks, monitoring, and
+  testing.
+
+## Support
+
+- **Primary contact:** the assigned account manager, plus the support channels agreed during
+  onboarding.
+- **Programs and onboarding:** institutional@whitebit.com.
+- **Compliance, VASP, and DPA:** compliance@whitebit.com.
+- **Self-service:** [help.whitebit.com](https://help.whitebit.com) for platform questions;
+  docs.whitebit.com for API documentation.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="layer-group" href="/guides/caas-overview">
+    What CaaS is, who it is for, and the path to launch.
+  </Card>
+  <Card title="FAQ" icon="circle-question" href="/guides/caas-faq">
+    Common questions on scope, onboarding, regions, and support.
+  </Card>
+  <Card title="Institutional Onboarding" icon="clipboard-check" href="/institutional/onboarding">
+    KYB and the two-phase onboarding process.
+  </Card>
+  <Card title="Go-Live Checklist" icon="list-check" href="/best-practices/go-live-checklist">
+    Pre-launch verification across every integration concern.
+  </Card>
+</CardGroup>
