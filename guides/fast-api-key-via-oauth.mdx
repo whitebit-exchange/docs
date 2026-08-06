@@ -1,6 +1,6 @@
 ---
 title: "Fast API Key via OAuth"
-sidebarTitle: "Fast API Key via OAuth"
+sidebarTitle: "Fast API Key integration"
 description: "Integration guide for partner platforms that issue WhiteBIT API keys on behalf of users through the OAuth API key flow."
 ---
 
@@ -10,7 +10,7 @@ The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an a
 
 The flow fits partners whose end users keep personal WhiteBIT accounts: WhiteBIT performs KYC and holds custody, and the partner operates on the user's account through the OAuth-issued key.
 
-- **Copy trading** — the copy-trading platform mirrors lead-trader positions into followers' accounts. Each follower connects a personal WhiteBIT account through the consent screen, and the partner platform places orders with the issued key; execution happens inside the follower's own account.
+- **Copy trading** — the copy-trading platform mirrors lead-trader positions into followers' accounts. Each follower connects a personal WhiteBIT account through the consent screen, and the partner platform places orders with the issued key; execution happens inside the follower's own account. See the [Copy Trading guide](/guides/copy-trading) for the architecture and order-placement schema.
 - **Trading bots** — the service runs strategies on the user's account. The user approves the permission set on the consent screen — trading scopes for execution, with withdrawal remaining a separate, user-controlled grant behind an additional confirmation (see [Key permissions](#key-permissions)).
 - **Portfolio and aggregator apps** — the app aggregates balances and transaction history through a read-scoped key and places no orders.
 
