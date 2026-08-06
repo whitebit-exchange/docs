@@ -1,0 +1,77 @@
+---
+title: "Crypto-as-a-Service FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about WhiteBIT Crypto-as-a-Service: scope and delivery, onboarding and access, integration, security and compliance, and support."
+---
+
+Answers to common questions about WhiteBIT Crypto-as-a-Service (CaaS).
+
+## Scope and delivery
+
+### Delivery model
+
+CaaS is a white-label offering delivered as a dedicated, custom-branded instance integrated through the WhiteBIT API, with WhiteBIT operating the exchange, custody, and compliance infrastructure. See the [CaaS overview](/guides/caas-overview).
+
+### End-customer capabilities
+
+End customers can create crypto wallets, store crypto in institutional custody, buy and sell with fiat, and send and receive crypto. See [What end customers can do](/guides/caas-overview#what-end-customers-can-do).
+
+### CaaS and Wallet-as-a-Service
+
+CaaS is the full white-label exchange offering; Wallet-as-a-Service is the wallet and deposit-address building block that CaaS uses for end-customer wallets. See [Wallet-as-a-Service](/guides/waas-overview).
+
+## Onboarding and access
+
+### Onboarding phases
+
+Institutional onboarding has two phases: Phase 1 grants crypto operations access after KYC of the director or responsible person and KYB of the company; optional Phase 2 adds EUR/SEPA fiat access. See [Institutional Onboarding](/institutional/onboarding).
+
+### Crypto deposit enablement
+
+Crypto deposits are disabled by default on institutional accounts and cannot be enabled via API. Once enabled, the capability applies to the account and its sub-accounts. Request it through the assigned account manager or `institutional@whitebit.com`. See [Institutional Onboarding](/institutional/onboarding).
+
+### Fiat access via SEPA
+
+EUR/SEPA fiat access is added in Phase 2 of institutional onboarding and covers API-generated deposit invoices and SEPA withdrawals. See the [On/Off-Ramp guide](/guides/on-off-ramp-guide).
+
+### Crypto Lending access
+
+Fixed and Flex lending endpoints are restricted to B2B partners and return a permission error until access is granted. Request access through the [institutional services form](https://whitebit.com/institutional-services/b2b). See [Crypto Lending](/products/lending/overview).
+
+## Integration
+
+### API base URL and regions
+
+The global REST base URL is `https://whitebit.com`. Regional environment options are confirmed during onboarding. See [First API Call](/guides/first-api-call).
+
+### Test environment availability
+
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum order sizes and low-minimum assets; Demo Tokens are available for risk-free spot practice. See the [Go-Live Checklist](/best-practices/go-live-checklist).
+
+### OAuth and Fast API Key
+
+Partners issue user-scoped API keys through the OAuth-based Fast API Key flow. The classic OAuth 2.0 Authorization Code Grant flow for direct account-data access is deprecated and will be removed on November 1, 2026. See [Fast API Key via OAuth](/guides/fast-api-key-via-oauth).
+
+### Rate limits
+
+Rate limits are set per scope and per endpoint rather than as a single global value. See [Rate limits](/api-reference/rate-limits).
+
+## Security and compliance
+
+### Security certifications
+
+WhiteBIT holds ISO 27001, CCSS Level 3, and PCI DSS Level 1, audited by Hacken; 96% of platform digital assets are held in cold storage, with Fireblocks on the custody side. See [Regulatory Compliance](/institutional/compliance).
+
+### MiCA and Travel Rule for EEA end users
+
+For EEA users, MiCA restricts some stablecoin operations — USDT deposits, withdrawals, and WhiteBIT Codes are unavailable, and USDC and EURI are the documented alternatives. The Travel Rule governs crypto transfers for EEA and Turkey accounts. See [Regulatory Compliance](/institutional/compliance) and [Travel Rule](/concepts/travel-rule).
+
+### Data Processing Agreement
+
+A Data Processing Agreement (DPA) is available on request; WhiteBIT processes data in the European Union. Request it via `compliance@whitebit.com`. See [Regulatory Compliance](/institutional/compliance).
+
+## Support
+
+### Support contacts
+
+The assigned account manager is the primary contact. Programs and onboarding go to `institutional@whitebit.com`; compliance, VASP, and DPA matters go to `compliance@whitebit.com`. Platform questions are answered at [help.whitebit.com](https://help.whitebit.com), and API documentation is on docs.whitebit.com.

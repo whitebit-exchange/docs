@@ -1,28 +1,28 @@
 ---
 title: "Fast API Key via OAuth"
-sidebarTitle: "Fast API Key via OAuth"
+sidebarTitle: "Fast API Key integration"
 description: "Integration guide for partner platforms that issue WhiteBIT API keys on behalf of users through the OAuth API key flow."
 ---
 
-The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an authenticated WhiteBIT user without the user manually copying credentials between sites. The user authorizes the partner on the WhiteBIT consent screen, the WhiteBIT platform issues a partner-scoped API key, and the partner backend reads the API secret once through a Bearer-authenticated endpoint and persists it. The flow uses Authorization Code with PKCE (S256), a 4-hour access token without refresh, and partner-registered IP restrictions on the resulting key. See the [Fast API Key](/glossary#fast-api-key) glossary entry for the short definition.
+The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an authenticated WhiteBIT user without the user manually copying credentials between sites. The user authorizes the partner on the WhiteBIT consent screen, the WhiteBIT platform issues a partner-scoped API key, and the partner backend reads the API secret once through a Bearer-authenticated endpoint and persists it. The flow uses Authorization Code with PKCE (S256) and a 4-hour access token without refresh. See the [Fast API Key](/glossary#fast-api-key) glossary entry for the short definition.
 
 ## Partner use cases
 
 The flow fits partners whose end users keep personal WhiteBIT accounts: WhiteBIT performs KYC and holds custody, and the partner operates on the user's account through the OAuth-issued key.
 
-- **Copy trading** — the copy-trading platform mirrors lead-trader positions into followers' accounts. Each follower connects a personal WhiteBIT account through the consent screen, and the partner platform places orders with the issued key; execution happens inside the follower's own account.
+- **Copy trading** — the copy-trading platform mirrors lead-trader positions into followers' accounts. Each follower connects a personal WhiteBIT account through the consent screen, and the partner platform places orders with the issued key; execution happens inside the follower's own account. See the [Copy Trading guide](/guides/copy-trading) for the architecture and order-placement schema.
 - **Trading bots** — the service runs strategies on the user's account. The user approves the permission set on the consent screen — trading scopes for execution, with withdrawal remaining a separate, user-controlled grant behind an additional confirmation (see [Key permissions](#key-permissions)).
 - **Portfolio and aggregator apps** — the app aggregates balances and transaction history through a read-scoped key and places no orders.
 
-Partners operating accounts *for* customers — a dedicated sub-account per end customer under a partner master account — integrate via the [Broker Program](/guides/broker-guide) instead; the [Integration Paths](/guides/integration-paths) page maps all partner types. Whether [attribution](/guides/waas-guide) or commercial terms apply for own-account partners is confirmed with WhiteBIT during enrollment.
+Partners operating accounts *for* customers — a dedicated sub-account per end customer under a partner master account — integrate via the [Broker Program](/guides/broker-guide) instead; the [Integration Paths](/guides/integration-paths) page maps all partner types. Whether [attribution](/guides/waas-overview) or commercial terms apply for own-account partners is confirmed with WhiteBIT during enrollment.
 
 ## Prerequisites
 
 <Note>
-  Partner enrollment is approval-gated. New partners apply via `institutional@whitebit.com` with the details listed under [How to apply](/guides/integration-paths#how-to-apply); a partner agreement and KYB review are part of onboarding. After approval, technical client setup proceeds via `support@whitebit.com` as described below.
+  Partner enrollment is approval-gated. New partners apply via `institutional@whitebit.com` with the details listed under [How to apply](/guides/integration-paths#how-to-apply); a partner agreement and KYB review are part of onboarding; client registration is then coordinated through the same channel, as described below.
 </Note>
 
-- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs, partner IP allowlist). Contact `support@whitebit.com` to enroll a client; IP allowlist registration is coordinated on the same ticket once the OAuth API key feature is approved for the partner platform. The same channel applies to subsequent IP changes — there is no self-service endpoint today.
+- Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs). Contact `institutional@whitebit.com` to enroll a client; the OAuth API key feature must be approved for the partner platform before a `client_id` is issued.
 - End user with a WhiteBIT account, 2FA enabled, KYC passed, and operating in a region where the feature is available. The OAuth API key endpoints are available on the global server (`https://whitebit.com`) only.
 - Partner backend that supports HTTPS, server-side secret storage, and OAuth 2.0 Authorization Code with PKCE (S256).
 
@@ -49,17 +49,14 @@ Partners operating accounts *for* customers — a dedicated sub-account per end 
   <Step title="Exchange the code for an access token">
     POST to `/oauth2/token` with `client_id`, `client_secret`, `code`, and `code_verifier`. Receive a 4-hour OAuth access token. A refresh token is not issued — obtain a fresh authorization through a new consent flow when the access token expires.
   </Step>
-  <Step title="Receive the public api key">
-    The WhiteBIT frontend delivers the public `apiKey` string to the partner at consent completion. [PENDING: confirm with the WhiteBIT frontend team the exact delivery mechanism (callback parameter name and URL location). Update this step with the wire-level details once confirmed.] Persist the value in the same session that holds the OAuth access token.
-  </Step>
-  <Step title="Detect key creation and fetch externalId">
-    Call `GET /oauth2/api-key/info` with the OAuth access token. Wait until `exists=true` and `isEnabled=true`. Capture `externalId`. Poll with a short backoff (1–2 second intervals, total budget under 30 seconds) — the WhiteBIT frontend creates the key as part of the consent flow, so the value appears shortly after Step 5.
+  <Step title="Wait for the user to create the key, then fetch externalId">
+    After granting consent, the user creates the partner API key on WhiteBIT and confirms with two-factor authentication (a passkey or an authenticator-app code) — a key cannot be created without 2FA, and the partner does not call the creation endpoint. Poll `GET /oauth2/api-key/info` with the OAuth access token until `exists=true` and `isEnabled=true`, then capture `externalId` (short backoff, 1–2 second intervals, total budget under 30 seconds).
   </Step>
   <Step title="Retrieve the secret">
-    Call `GET /oauth2/api-key/{externalId}/secret`. Persist `(apiKey, apiSecret)` in encrypted server-side storage immediately. On `423 Locked`, retry with exponential backoff starting at 5–10 seconds, doubling per attempt, capped at 60 seconds, total budget 3–5 minutes. On `409 Conflict`, the secret has already been retrieved for this key — delete the key via `DELETE /oauth2/api-key/{externalId}` and restart the OAuth API key flow from Step 1.
+    Call `GET /oauth2/api-key/{externalId}/secret`. The response returns `apiSecret` exactly once; persist `(externalId, apiSecret)` in encrypted server-side storage immediately — `externalId` is the public key value sent in the `X-TXC-APIKEY` header. On `423 Locked`, retry with exponential backoff starting at 5–10 seconds, doubling per attempt, capped at 60 seconds, total budget 3–5 minutes. On `409 Conflict`, the secret has already been retrieved for this key — delete the key via `DELETE /oauth2/api-key/{externalId}` and restart the flow from the pre-check.
   </Step>
   <Step title="Use the key">
-    Sign V4 trade API requests with HMAC using the `(apiKey, apiSecret)` pair. The OAuth-issued key follows the same signing rules as a manually-created key. See [Private HTTP API authentication](/api-reference/authentication) for the canonical signing process.
+    Sign V4 trade API requests with HMAC: send `externalId` as the `X-TXC-APIKEY` value and use `apiSecret` for the signature. The OAuth-issued key follows the same signing rules as a manually-created key. See [Private HTTP API authentication](/api-reference/authentication) for the canonical signing process.
   </Step>
   <Step title="Delete when no longer needed">
     Call `DELETE /oauth2/api-key/{externalId}` to revoke the key. The platform sends a notification email to the user. The endpoint applies to active keys — disabled keys (post-inactivity) require user-initiated deletion from the WhiteBIT dashboard.
@@ -74,7 +71,21 @@ The partner reads the granted permission set through the `permissions` array on 
 
 If the user selects withdrawal permission, the consent modal adds a warning block and a confirmation checkbox before the user can accept. Step-up MFA is enforced after consent for every Fast API Key creation, regardless of which permissions were selected.
 
-After issuance the key behaves the same as a manually-created key with matching permissions. Trade and withdrawal endpoints are authorized by the HMAC signature on each request — see [Private HTTP API authentication](/api-reference/authentication). KYC for fiat withdrawals, the partner IP allowlist, AML and fraud monitoring, and withdrawal limits apply on every call.
+After issuance the key behaves the same as a manually-created key with matching permissions. Trade and withdrawal endpoints are authorized by the HMAC signature on each request — see [Private HTTP API authentication](/api-reference/authentication). KYC for fiat withdrawals, AML and fraud monitoring, and withdrawal limits apply on every call.
+
+### API key types
+
+<Note>
+Named API key types are being introduced for the Fast API Key flow. The model below describes how key access is scoped once the types are available.
+</Note>
+
+A key's type sets the maximum permissions it can carry; the user chooses within that maximum on the consent screen. All three types require WhiteBIT approval — the flow is not available by default.
+
+- **Read-only** — read access to balances, orders, deals, and history. No fund movement.
+- **Trade** — read access plus order placement and cancellation, convert, and internal transfer between the user's own balances. Excludes external withdrawal.
+- **Custom** — a configurable type, and the only one that can include external withdrawal. Requires WhiteBIT approval and business verification (KYB) of the partner.
+
+To request Fast API Key access, contact `institutional@whitebit.com` with the intended use cases, the jurisdiction where the partner's legal entity is registered, and the licenses it holds. Partner KYB is part of the review.
 
 ## Lifecycle and revocation
 
@@ -110,7 +121,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 - Use the exact registered `redirect_uri` — wildcards and open redirects are rejected.
 - Use Authorization Code with PKCE (S256) on every authorization request.
 - Rotate `apiSecret` by deleting and re-issuing keys. The secret cannot be retrieved a second time for an existing key.
-- The partner IP allowlist that the user cannot modify is set at enrollment via support. Coordinate IP updates with `support@whitebit.com` before rotating partner infrastructure.
+- IP restrictions on the key, when enabled, are the user's own control on their WhiteBIT account — exact-match addresses (ranges and subnets are not supported), applied to trade-API requests. The partner does not manage a key-level IP allowlist; if a user enables the restriction, have them whitelist the partner's egress addresses.
 
 ## Limits
 
