@@ -36,6 +36,43 @@ Partners operating accounts *for* customers — a dedicated sub-account per end 
 
 ## Integration flow
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant Partner as Partner backend
+    participant WhiteBIT
+
+    Partner->>WhiteBIT: GET /oauth2/api-key/info (pre-check)
+    WhiteBIT-->>Partner: (exists, isEnabled)
+    alt (true, true) — active key exists
+        Partner-->>User: Surface "an active API key already exists"
+    else (true, false) — disabled key exists
+        Partner-->>User: Ask the user to delete the disabled key from the WhiteBIT dashboard
+    else (false, false) — no key exists
+        Partner->>User: Redirect to the authorization URL (/auth/login)
+        User->>WhiteBIT: Authorize on consent screen, choose permissions, confirm with 2FA
+        WhiteBIT-->>Partner: Callback to redirect_uri with the authorization code
+        Partner->>WhiteBIT: POST /oauth2/token
+        WhiteBIT-->>Partner: access_token (4h, no refresh)
+        loop poll until exists and isEnabled
+            Partner->>WhiteBIT: GET /oauth2/api-key/info
+        end
+        WhiteBIT-->>Partner: externalId
+        Partner->>WhiteBIT: GET /oauth2/api-key/{externalId}/secret
+        alt 423 Locked
+            Note over Partner: Retry with backoff (5-10s, doubling, cap 60s)
+        else 409 Conflict
+            Partner->>WhiteBIT: DELETE /oauth2/api-key/{externalId}
+            Note over Partner: Restart from pre-check
+        else success
+            WhiteBIT-->>Partner: apiSecret (returned once)
+        end
+    end
+    Note over Partner,WhiteBIT: Partner signs V4 requests with HMAC using externalId + apiSecret
+```
+
+For the remaining failure modes (401, 403, 404) and both consent-screen error codes, see [Error handling](#error-handling) below.
+
 <Steps>
   <Step title="Pre-check">
     Call `GET /oauth2/api-key/info` before redirecting the user. Interpret the `(exists, isEnabled)` response using the decision matrix on the endpoint page: `(false, false)` proceeds to Step 2; `(true, true)` skips the flow and surfaces "an active API key already exists" to the user; `(true, false)` asks the user to delete the disabled key from the WhiteBIT dashboard first.

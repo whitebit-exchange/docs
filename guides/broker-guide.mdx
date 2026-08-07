@@ -71,6 +71,10 @@ Transfers between the master account and any sub-account are fee-free in both di
 
 The KYC branch is selected at creation via the `shareKyc` parameter: with `shareKyc: true` the sub-account shares the master account's verification and no separate customer KYC applies; with `shareKyc: false` (or omitted) the `email` field is required and the end customer completes verification individually.
 
+<Note>
+  Steps 2–3 apply to the dedicated-KYC branch (`shareKyc: false` or omitted). With `shareKyc: true`, the sub-account shares the master account's verification — skip directly to Step 4 (Fund the account and enable trading) once the sub-account is created.
+</Note>
+
 <Steps>
   <Step title="Create the sub-account">
     Call `POST /api/v4/sub-account/create` with `alias` and the `permissions` object (`spotEnabled`, `collateralEnabled`), plus `email` when `shareKyc` is `false` or omitted — [API Reference](/api-reference/sub-accounts/create-sub-account).
@@ -83,6 +87,9 @@ The KYC branch is selected at creation via the `shareKyc` parameter: with `share
   </Step>
   <Step title="Fund the account and enable trading">
     Transfer initial funds fee-free via `POST /api/v4/sub-account/transfer`, and create a dedicated API key via `POST /api/v4/sub-account/api-key/create` for customers needing direct API access.
+  </Step>
+  <Step title="Handle deposits and withdrawals">
+    Once crypto deposits are enabled for the account, the sub-account generates its own deposit address via the [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission. Sub-account withdrawals require master-account confirmation — see [Account architecture](#account-architecture) above for the unconfirmed-withdrawals list and confirm endpoints.
   </Step>
 </Steps>
 
