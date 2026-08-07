@@ -165,6 +165,10 @@ Reconcile the locally computed totals against the dashboard for each settlement 
 
 Fiat deposits and withdrawals (EUR/SEPA) operate at the partner's master-account level and require institutional fiat access — the second phase of [Institutional Onboarding](/institutional/onboarding), completed through a fiat processing partner review. Sub-accounts support crypto operations; sub-account balances are funded and collected through fee-free internal transfers with the master account. See [Payment Integration](/guides/payment-integration) for fiat endpoint details.
 
+## Testing before onboarding real customers
+
+WhiteBIT does not offer a public testnet or sandbox. Validate the full flow — sub-account creation, KYC, per-customer keys, funding, and a first trade — on the live API using a test sub-account and minimum order sizes. Activate Demo Tokens (`DBTC`/`DUSDT`) for risk-free spot practice on the `DBTC_DUSDT` pair, and check per-asset minimums via the [Asset Status](/api-reference/market-data/asset-status-list) endpoint before placing orders. Work through the [Go-Live Checklist](/best-practices/go-live-checklist) before onboarding real customers.
+
 ## Integration checklist
 
 - [ ] **Application** — application sent to `institutional@whitebit.com` with the [intake details](/guides/integration-paths#how-to-apply) and approved.

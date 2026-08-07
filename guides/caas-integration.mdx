@@ -59,6 +59,15 @@ secrets outside application code. See [Authentication](/api-reference/authentica
   [institutional services form](https://whitebit.com/institutional-services/b2b). See
   [Crypto Lending](/products/lending/overview).
 
+<Note>
+  **Travel Rule affects deposits and withdrawals for EEA and Turkey accounts** — the primary CaaS
+  segments (banks, EMIs, fintechs). Crypto withdrawals from those accounts carry a `travelRule`
+  object with beneficiary data, and inbound deposits are held until beneficiary verification
+  completes (statuses 27 and 28). The Travel Rule API for programmatic verification is enabled per
+  account via `institutional@whitebit.com`. See [Travel Rule](/concepts/travel-rule) and
+  [Regulatory Compliance](/institutional/compliance).
+</Note>
+
 ### Account architecture
 
 - **Sub-accounts.** Create and manage thousands of separate accounts under one umbrella, each with
