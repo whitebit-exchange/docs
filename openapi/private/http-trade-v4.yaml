@@ -4307,7 +4307,7 @@ paths:
 
         The `maker` and `taker` fields represent default spot trading fees. The `futures_maker` and `futures_taker` fields represent default futures trading fees. The `custom_fee` object lists per-market overrides, keyed by market name.
 
-        For accounts with the [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order mode enabled, the response returns non-null RPI maker fee premiums applied on top of the maker rates when RPI orders execute.
+        The `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields carry the [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) maker fee premiums applied on top of the maker rates when RPI orders execute. Both fields are always present and report the configured premium regardless of whether RPI order mode is enabled for the account — whether the account may actually submit RPI orders is a separate account setting.
 
         The system calculates the effective futures fee as the lower value between the user-specific custom fee and the market-specific fee.
 
@@ -4364,13 +4364,13 @@ paths:
                     type: string
                     nullable: true
                     description: |
-                      Additional maker fee percentage applied on top of the `maker` rate when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a spot or margin market. The effective RPI maker rate equals `maker` plus `rpi_maker_fee_premium`. The field returns `null` when the RPI order mode is not enabled for the account or when no premium is configured.
+                      Additional maker fee percentage applied on top of the `maker` rate when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a spot or margin market. The effective RPI maker rate equals `maker` plus `rpi_maker_fee_premium`. A value of `"0"` means the configured premium is zero; the field returns `null` when the platform supplies no spot or margin premium.
                     example: "0.015"
                   futures_rpi_maker_fee_premium:
                     type: string
                     nullable: true
                     description: |
-                      Additional maker fee percentage applied on top of the `futures_maker` rate when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a futures market. The effective futures RPI maker rate equals `futures_maker` plus `futures_rpi_maker_fee_premium`. The field returns `null` when the RPI order mode is not enabled for the account or when no premium is configured.
+                      Additional maker fee percentage applied on top of the `futures_maker` rate when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a futures market. The effective futures RPI maker rate equals `futures_maker` plus `futures_rpi_maker_fee_premium`. A value of `"0"` means the configured premium is zero; the field returns `null` when the platform supplies no futures premium.
                     example: "0.01"
                   custom_fee:
                     type: object
@@ -4394,6 +4394,134 @@ paths:
                       ETH_PERP:
                         taker: "0.055"
                         maker: "0.01"
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v4/market/fee/single:
+    post:
+      summary: Query Market Fee For A Single Market
+      operationId: getMarketFeeSingle
+      description: |
+        Returns the account's effective maker and taker fee for one market, together with the [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) maker fee premium that applies to that market. Use this endpoint when only one market matters; `POST /api/v4/market/fee` returns the account's default fees and every custom override at once.
+
+        The system resolves the effective fee in the following order: the market's own fee applies by default; when the account's default trading fee is lower than the market fee, the system returns the lower account fee; when the requested market has an assigned custom fee, that custom fee replaces both `maker` and `taker` outright.
+
+        **Premium field by market type**
+
+        On spot and margin markets the response carries the premium in `rpi_maker_fee_premium`, and `futures_rpi_maker_fee_premium` is `null`. On futures markets the response carries the premium in `futures_rpi_maker_fee_premium`; `rpi_maker_fee_premium` repeats the same futures value for backward compatibility and is deprecated for futures markets — read `futures_rpi_maker_fee_premium` instead.
+
+        Both premium fields are always present in the response. A premium of `"0"` means the configured premium is zero, while `null` means the platform supplied no premium for that fee type. The premium reflects the configured value regardless of whether RPI order mode is enabled for the account — whether the account may actually submit RPI orders is a separate account setting.
+
+        <Accordion title="Errors">
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["This field is required."]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not exist."]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Market Fee
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+              properties:
+                market:
+                  type: string
+                  description: "Market to return the fee for. The market must be a spot, margin, or futures market available for trading in the caller's region. Example: BTC_USDT"
+                  example: BTC_USDT
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  example: 1594297865000
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                x-fern-type-name: GetMarketFeeSingleResponse
+                properties:
+                  error:
+                    type: string
+                    nullable: true
+                    example: null
+                  taker:
+                    type: string
+                    description: Effective taker fee percentage for the requested market
+                    example: "0.1"
+                  maker:
+                    type: string
+                    description: Effective maker fee percentage for the requested market
+                    example: "0.1"
+                  rpi_maker_fee_premium:
+                    type: string
+                    nullable: true
+                    description: |
+                      Additional maker fee percentage applied on top of `maker` when an RPI order executes on a spot or margin market. The effective RPI maker rate equals `maker` plus this premium. On futures markets the field repeats `futures_rpi_maker_fee_premium` for backward compatibility and is deprecated. The field returns `null` when the platform supplies no spot or margin premium.
+                    example: "0.015"
+                  futures_rpi_maker_fee_premium:
+                    type: string
+                    nullable: true
+                    description: |
+                      Additional maker fee percentage applied on top of `maker` when an RPI order executes on a futures market. The field returns `null` for spot and margin markets, and when the platform supplies no futures premium.
+                    example: null
+              examples:
+                spot:
+                  summary: Spot market (BTC_USDT)
+                  value:
+                    error: null
+                    taker: "0.1"
+                    maker: "0.1"
+                    rpi_maker_fee_premium: "0.015"
+                    futures_rpi_maker_fee_premium: null
+                futures:
+                  summary: Futures market (BTC_PERP)
+                  value:
+                    error: null
+                    taker: "0.055"
+                    maker: "-0.02"
+                    rpi_maker_fee_premium: "0"
+                    futures_rpi_maker_fee_premium: "0"
         '422':
           description: Validation failed
           content:

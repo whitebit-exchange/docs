@@ -4,6 +4,23 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="August 6, 2026">
+## Single-market fee endpoint documented, and RPI premiums no longer depend on the account toggle
+**New reference page for `POST /api/v4/market/fee/single`, a `futures_rpi_maker_fee_premium` field on the single-market response, and a behavior change on both fee endpoints**
+
+`POST /api/v4/market/fee/single` returns the effective maker and taker fee for one market plus the applicable RPI maker fee premium. The endpoint was previously available but undocumented; the new reference page covers request, response, and error details.
+
+The single-market response gains `futures_rpi_maker_fee_premium`, which carries the premium for futures markets. `rpi_maker_fee_premium` continues to return the same value on futures markets for backward compatibility and is deprecated there — read `futures_rpi_maker_fee_premium` for futures markets. On spot and margin markets the premium stays in `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` is `null`.
+
+On both `POST /api/v4/market/fee` and `POST /api/v4/market/fee/single` the premium fields now report the configured premium regardless of whether RPI order mode is enabled for the account. Previously the fields returned `null` for accounts without RPI order mode, which made a zero premium indistinguishable from an unavailable option. A premium of `"0"` now means the configured premium is zero, and `null` means the platform supplied no premium. Whether an account may submit RPI orders remains a separate account setting and is unchanged.
+
+<CardGroup cols={2}>
+  <Card title="Query market fee for a single market" href="/api-reference/spot-trading/query-market-fee-single" icon="percent" horizontal/>
+  <Card title="Query market fees" href="/api-reference/spot-trading/query-market-fee" icon="percent" horizontal/>
+  <Card title="Glossary — Retail Price Improvement" href="/glossary#retail-price-improvement-rpi" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 30, 2026">
 ## bankBic parameter for SEPA and bank-rail fiat withdrawals
 **New `bankBic` request parameter on `POST /api/v4/main-account/withdraw` and `POST /api/v4/main-account/withdraw-pay`**
