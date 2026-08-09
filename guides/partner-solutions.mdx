@@ -1,0 +1,109 @@
+---
+title: "Partner Solutions"
+sidebarTitle: "Partner Solutions"
+description: "Route each partner type — brokers, market makers, payments, wallets, app builders, and institutions — to the right WhiteBIT integration path."
+pageType: "router"
+---
+
+import FeeShare from '/snippets/fee-share.mdx';
+import Certifications from '/snippets/certifications.mdx';
+
+WhiteBIT partners integrate through program funnels — one per partner type. Pick a partner type from the cards, or use the three structural questions to route an overlapping label. Each path leads to a program overview, an integration guide, and a program FAQ. Partner programs are approval-gated — see [How to apply](#how-to-apply).
+
+## Choose an integration path
+
+<CardGroup cols={2}>
+  <Card title="Brokers" icon="handshake" href="/guides/broker-overview">
+    Per-customer sub-accounts under a partner master — account isolation, per-customer API keys, and fee share on referred trading.
+  </Card>
+  <Card title="Market Makers" icon="chart-line" href="/guides/market-maker-overview">
+    Maker rebates, colocation infrastructure, and bulk-order capabilities through the Market-Making Program.
+  </Card>
+  <Card title="Payments & Fiat" icon="money-bill-transfer" href="/guides/payments-overview">
+    Deposits, payouts, and merchant flows — plus corporate on/off-ramp between fiat and crypto.
+  </Card>
+  <Card title="Wallets & White-label" icon="wallet" href="/guides/waas-overview">
+    Place WhiteBIT behind the partner product as the exchange, custody, and settlement backend.
+  </Card>
+  <Card title="App Builders" icon="mobile-screen" href="/guides/app-builders-overview">
+    Copy trading, trading bots, and portfolio apps built over users' own accounts via a partner-held API key.
+  </Card>
+  <Card title="Funds & Institutions" icon="building-columns" href="/institutional/overview">
+    OTC, portfolio margin, custody, and venue listings for funds, desks, banks, and exchanges.
+  </Card>
+</CardGroup>
+
+Partner labels overlap ("broker" alone covers two different architectures), so the fastest routing comes from three structural questions:
+
+1. **Account holding** — do end users hold personal WhiteBIT accounts, or does the partner operate accounts on the end users' behalf? Own accounts with a partner-held API key are **Model B** → [App Builders](/guides/app-builders-overview). Partner-operated [sub-accounts](/products/sub-accounts/overview) are **Model A** → [Brokers](/guides/broker-overview). Compare the two models on the [integration models](/concepts/integration-models) concept; undecided, or building a full backend → [Wallets & White-label](/guides/waas-overview).
+2. **Direction** — is the partner building on the WhiteBIT API, or proposing WhiteBIT integrate into an external platform or network? The latter is a partnership conversation — contact `institutional@whitebit.com` directly (see [Funds & Institutions](/institutional/overview)).
+3. **Scope** — trading, payments, or both? Payment and payout integrations route to [Payments & Fiat](/guides/payments-overview) regardless of the answers above.
+
+Common use cases mapped to a program:
+
+| Use case | Program |
+|----------|---------|
+| Copy trading, trading bots, portfolio apps (users keep own accounts) | [App Builders](/guides/app-builders-overview) |
+| Hosted customer accounts under a partner master (broker) | [Brokers](/guides/broker-overview) |
+| Wallets, neobanks, exchange front-ends (backend model selection) | [Wallets & White-label](/guides/waas-overview) |
+| Payment gateways, payouts, merchant flows | [Payments & Fiat](/guides/payments-overview) |
+| Corporate on/off-ramp (own-account fiat ↔ crypto) | [Payments & Fiat](/guides/payments-overview) |
+| Market making | [Market Makers](/guides/market-maker-overview) |
+| Price aggregators and market-data consumers (public data, no API key) | [Market Data](/products/market-data/overview) |
+| Order/execution management systems (OEMS) and connectivity networks listing WhiteBIT as a venue | [Funds & Institutions](/institutional/overview) |
+| Inviting WhiteBIT into an external platform or network | `institutional@whitebit.com` |
+
+## REST vs. WebSocket decision matrix
+
+| Use case | Recommended | Reason |
+|----------|------------|--------|
+| Live prices | WebSocket | Streaming push, no polling |
+| Orderbook depth | WebSocket | Real-time depth updates |
+| Place / modify / cancel orders | REST API | Request-response pattern with confirmation |
+| Monitor balances | WebSocket | Real-time balance updates |
+| Fetch historical trades | REST API | One-time queries, paginated |
+| Check open orders | REST or WebSocket | REST for on-demand; WebSocket for real-time |
+
+Combining REST for order management with WebSocket for market data is the most common integration pattern. See the [WebSocket API](/websocket/overview) for the available channels and the [API Reference](/api-reference/overview) for endpoint details.
+
+## How to apply
+
+Partner-program applications go to `institutional@whitebit.com` and are individually reviewed before provisioning. Including the following in the first message routes the application to the right team without extra clarification rounds:
+
+**About the company (all applicants):**
+
+1. Registered legal entity — full legal name, registration number, and jurisdiction (not a brand or product name).
+2. Licenses or registrations held, with the regulator and register reference. Unlicensed platforms qualify for models where WhiteBIT verifies end users directly; KYC reliance is separately gated — see the [Wallets & White-label](/guides/waas-overview) page for the eligibility conditions.
+3. Application capacity — the applicant's own behalf or on behalf of a client — and the intended contracting counterparty.
+
+**About the integration (all applicants):**
+
+4. Direction — building on the WhiteBIT API, or proposing WhiteBIT integrate into an external platform or network (the latter is a partnership conversation rather than an application).
+5. Intended account structure: (a) own main account only; (b) end users' own WhiteBIT accounts with a partner-held API key; (c) per-customer sub-accounts under the partner's master (main) account; (d) a pooled (omnibus) structure — a pooled account for end-user funds is not offered, but declaring the intent lets WhiteBIT propose the closest supported model (see [Wallets & White-label](/guides/waas-overview)).
+6. Scope — crypto only, or fiat as well, and at which level (partner account or end users).
+
+**About end users (partners serving end users):**
+
+7. The party performing end-user KYC — the partner or WhiteBIT — and, for partner-side KYC, the supervisory basis.
+8. The user population reached — direct clients, or customers of the partner's merchants or clients — and the business vertical.
+9. The countries where the service is offered or marketed, and the geo-gating approach (how the service restricts availability by user country or region).
+10. For sub-account requests: settlement topology — per-customer deposit addresses, or deposits and withdrawals concentrated at the master account with internal allocation.
+
+## Program terms and security
+
+Program terms — revenue share and eligibility — differ by program; the specific band and how the share is reported are on each program overview. Security certifications apply platform-wide.
+
+<FeeShare />
+
+<Certifications />
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Brokers" icon="handshake" href="/guides/broker-overview">
+    The most-integrated program — the starting point for operating customer accounts.
+  </Card>
+  <Card title="First API call" icon="rocket" href="/guides/first-api-call">
+    Make a public call, then add HMAC signing for authenticated endpoints.
+  </Card>
+</CardGroup>
