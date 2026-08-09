@@ -4,13 +4,16 @@ sidebarTitle: "Developer guide"
 description: "Technical integration for Wallet-as-a-Service partners: the models, payment and payout flows, compliance requirements, and testing."
 ---
 
+import PartnerEligibility from '/snippets/partner-eligibility.mdx';
+import FeeShare from '/snippets/fee-share.mdx';
+
 <Note>
 **For developers.** This page covers the technical integration. For what WaaS is, the models at a
 business level, and how to apply, see the [WaaS overview](/guides/waas-overview).
 </Note>
 
 The three integration models are described in the
-[WaaS overview](/guides/waas-overview#choose-an-integration-model). This guide covers where to
+[Integration models](/concepts/integration-models) concept. This guide covers where to
 start for each and the flows they share.
 
 ## Where to start per model
@@ -21,14 +24,37 @@ start for each and the flows they share.
 | Attribution (own account + OAuth) | [Fast API Key via OAuth](/guides/fast-api-key-via-oauth) |
 | Sub-accounts with KYC reliance | [Broker Program](/guides/broker-guide) + [Institutional Onboarding](/institutional/onboarding) |
 
+The KYC-reliance model has specific eligibility requirements:
+
+<PartnerEligibility />
+
+Commercial terms for the program:
+
+<FeeShare />
+
 ## Payment and payout flows
 
 Fund-movement flows, with parameters and code examples, are in the
-[Payment Integration guide](/guides/payment-integration).
+[Payment Integration guide](/guides/payment-integration). The per-user deposit and payout cycle:
 
-A typical per-user cycle: create a deposit address for the user, the user sends funds on-chain,
-WhiteBIT confirms and fires the deposit webhooks, the partner credits the user, then withdraws or
-pays out to the user's address.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Partner backend
+    participant U as End user
+    participant W as WhiteBIT
+    participant B as Blockchain
+
+    P->>W: POST /api/v4/main-account/create-new-address
+    W-->>P: Unique per-user deposit address
+    P->>U: Share deposit address
+    U->>B: Send funds on-chain
+    B-->>W: Deposit confirmed
+    W->>P: Deposit webhooks: deposit.accepted then deposit.processed
+    P->>P: Reconcile by uniqueId, credit the end user
+    P->>W: POST /api/v4/main-account/withdraw (EEA: with travelRule object)
+    W->>B: On-chain payout to the user's address
+```
 
 Reconcile by webhook, and poll transaction history as a **required** fallback: webhook delivery is
 retried but has no replay, so an event can be missed and must be recovered by polling. Deduplicate
