@@ -1,0 +1,57 @@
+---
+title: "Payments & Fiat"
+sidebarTitle: "Overview"
+description: "Move funds into and out of WhiteBIT programmatically — crypto deposits and payouts, fiat EUR/SEPA and card rails, merchant charges, and corporate on/off-ramp between fiat and crypto."
+pageType: "program-overview"
+program: "payments"
+---
+
+import TravelRuleNote from '/snippets/travel-rule-note.mdx';
+
+The Payments & Fiat program covers programmatic movement of funds into and out of WhiteBIT: crypto deposits and payouts, fiat rails over EUR/SEPA and card providers, instant off-chain merchant charges, and corporate on/off-ramp between fiat and crypto. It suits payment providers crediting end customers, merchants collecting payments, and businesses settling revenue over EUR rails.
+
+## What Payments & Fiat provides
+
+- **Crypto deposits** — a persistent or per-end-user deposit address, with incoming funds reconciled by webhook ([Payment Integration](/guides/payment-integration#deposit-address-generation)).
+- **Crypto and fiat payouts** — withdrawals that carry the fee inclusively or on top, with optional on-the-fly currency conversion ([Payment Integration](/guides/payment-integration#create-a-withdrawal)).
+- **Fiat rails** — EUR/SEPA bank transfers and card-provider checkout, added through institutional onboarding ([On/Off-Ramp guide](/guides/on-off-ramp-guide)).
+- **Merchant charges** — one-tap, off-chain settlement from a WhiteBIT user's balance with [Express Withdraw](/guides/payment-integration#express-withdraw-payments), and fee-free transfers with [WhiteBIT Codes](/platform/whitebit-codes).
+- **Reconciliation** — signed [webhooks](/platform/webhook) plus history polling keyed on client-side identifiers.
+
+## Who Payments & Fiat is for
+
+- **Payment providers** — assign a deposit address per end customer and credit accounts on confirmation.
+- **Merchants and platforms** — collect crypto payments from WhiteBIT users instantly and off-chain.
+- **Corporate on/off-ramp clients** — move company funds between fiat and crypto over EUR rails.
+
+## How it works
+
+Every flow authenticates with an HMAC-signed API key and reconciles against signed webhooks and history polling. Most crypto flows are available after standard account setup; some — Express Withdraw and dedicated per-user deposit addresses — require a separate per-account enablement, and fiat flows require completed [institutional onboarding](/institutional/onboarding) with approved fiat access (a separate second phase). The [Payment Integration guide](/guides/payment-integration) documents each flow — deposits, withdrawals, conversion, WhiteBIT Codes, and Express Withdraw — and the [On/Off-Ramp guide](/guides/on-off-ramp-guide) covers the corporate fiat ↔ crypto journey end to end.
+
+## Program terms
+
+Fee schedules and limits for fiat deposits and withdrawals are set per individual agreement and confirmed by the account manager during onboarding; the enabled currency and provider matrix is reported at runtime and reviewed at onboarding (see [what the account manager confirms](/guides/on-off-ramp-guide#what-the-account-manager-confirms)). Compliance obligations apply to cross-border transfers:
+
+<TravelRuleNote />
+
+{/* TODO: value gated on SME (SEPA) — the deposit-side SEPA provider and the bankBic example for
+    EUR fiat deposits. Scaffolded here; confirm with the payments SME before stating a provider
+    or a worked SEPA reference. See guides/on-off-ramp-guide.mdx and M8. */}
+
+## How to get started
+
+Build crypto flows against the [Payment Integration guide](/guides/payment-integration). For fiat rails, email `institutional@whitebit.com` with the registered legal entity, the licenses held, whether the scope is crypto-only or fiat as well, and the countries served, then complete [institutional onboarding](/institutional/onboarding). Clear the [Go-Live Checklist](/best-practices/go-live-checklist) before real volume.
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Integration" icon="code" href="/guides/payment-integration">
+    Deposits, withdrawals, conversion, WhiteBIT Codes, and Express Withdraw.
+  </Card>
+  <Card title="FAQ" icon="circle-question" href="/guides/payments-faq">
+    Access and enablement, SEPA, Travel Rule, and reconciliation.
+  </Card>
+  <Card title="On/Off-Ramp guide" icon="arrow-right-arrow-left" href="/guides/on-off-ramp-guide">
+    The corporate fiat ↔ crypto journey over EUR/SEPA rails.
+  </Card>
+</CardGroup>

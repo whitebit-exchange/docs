@@ -1,0 +1,53 @@
+---
+title: "App Builders"
+sidebarTitle: "Overview"
+description: "Build trading and portfolio apps over customers' own WhiteBIT accounts with a partner-held API key issued through the Fast API Key flow (Model B)."
+pageType: "program-overview"
+---
+{/* pageType only — no `program` funnel group. App Builders is a router into the Fast API Key
+    integration (under Brokers) and the Recipes, not a standalone three-page funnel
+    (RULES §3.6; guide-pages.md §11 "Funnel markers & completeness"). */}
+
+import FeeShare from '/snippets/fee-share.mdx';
+
+App Builders build over customers' own WhiteBIT accounts: each end user keeps a personal account and grants the partner a scoped API key through the [Fast API Key](/guides/fast-api-key-via-oauth) flow. WhiteBIT holds custody and performs identity verification; the partner acts within the permissions the user grants. This is WhiteBIT's [Model B](/concepts/integration-models), and it fits far more than brokers — any app that reads or trades on a user's own account.
+
+## What App Builders can build
+
+- **Portfolio and analytics apps** — read a user's balances and activity to present holdings, performance, and tax reporting ([Model B](/concepts/integration-models)).
+- **Trading bots and signal execution** — place orders on a user's account under a trade-scoped key ([building a trading bot](/guides/building-a-trading-bot)).
+- **Copy and social trading** — mirror a lead trader's orders into followers' own accounts ([Copy trading](/guides/copy-trading)).
+- **Charting and education tools** — add on-chart or in-app execution over the user's own account.
+
+## Who App Builders is for
+
+- **Read-only apps** — portfolio trackers and aggregators, tax and accounting tools, and referral apps that read a user's own activity without moving funds.
+- **Trade-execute apps** — trading bots, copy and social trading, charting with execution, algorithmic and quant platforms, and education platforms with in-app execution.
+
+## How it works
+
+The end user authorizes the partner on the WhiteBIT consent screen, which issues an OAuth-based API key scoped to the permissions the user selects — so partner access is bounded by the grant. Order placement and withdrawal are separate permissions; a trade-scoped key cannot move funds off the account. The [Fast API Key integration](/guides/fast-api-key-via-oauth) documents the authorization flow, and the [integration models](/concepts/integration-models) concept compares Model B with the partner-operated sub-account model (Model A).
+
+## Program terms
+
+Attribution and any fee-share for apps built on customers' own accounts are arranged separately from the account relationship, since the end user is a direct WhiteBIT customer.
+
+<FeeShare />
+
+## How to get started
+
+Review the [integration models](/concepts/integration-models) concept to confirm Model B is the right fit, then build against the [Fast API Key integration](/guides/fast-api-key-via-oauth). Partner enrollment and attribution go to `institutional@whitebit.com`.
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Fast API Key integration" icon="key" href="/guides/fast-api-key-via-oauth">
+    The OAuth API key flow for acting on customers' own accounts.
+  </Card>
+  <Card title="Copy trading" icon="copy" href="/guides/copy-trading">
+    Mirror a lead trader's orders into followers' own accounts.
+  </Card>
+  <Card title="Integration models" icon="sitemap" href="/concepts/integration-models">
+    Model A vs Model B — account holder, KYC, and best fit.
+  </Card>
+</CardGroup>

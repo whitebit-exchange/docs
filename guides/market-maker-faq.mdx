@@ -1,0 +1,60 @@
+---
+title: "Market-Making Program FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about the WhiteBIT Market-Making Program: eligibility and onboarding, program terms, colocation, and safety mechanisms."
+pageType: "program-faq"
+program: "market-makers"
+---
+
+Common questions about the WhiteBIT Market-Making Program.
+
+## Eligibility and onboarding
+
+### Market-Making Program eligibility
+
+The program is intended for professional liquidity providers, and access is arranged during onboarding. Apply by emailing `institutional@whitebit.com` with trading-volume history and target markets. See the [Market-Making Program overview](/guides/market-maker-overview).
+
+### Colocation access
+
+Colocation is provisioned by the dedicated account manager, who supplies the AWS region, availability zone, and connection endpoints during onboarding. See [Colocation](/platform/colocation).
+
+## Program terms
+
+### Maker-fee rebates
+
+Maker fees are tiered by 30-day rolling volume, with separate breakpoints for spot and futures; a negative maker fee is a rebate paid on filled maker orders. Rates and breakpoints change over time — see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program) and the [trading fees page](https://whitebit.com/trading-data/trading-fees).
+
+### Program benefits beyond fees
+
+The program adds colocation, a dedicated account manager, cross-marketing support, and sub-accounts for strategy separation. See the [overview](/guides/market-maker-overview).
+
+## Integration
+
+### Colocation endpoint coverage
+
+Colocation exposes a subset of the API — spot trading, collateral trading, and utility endpoints — reachable from inside the matching-engine zone; other endpoints use the standard API. See the [Market Maker integration guide](/guides/market-maker-guide#available-colocation-endpoints).
+
+### Bulk quoting
+
+Up to 20 limit orders can be placed in a single request for atomic quote-ladder placement, and orders can be requoted by client order identifier. See [Quoting strategy](/guides/market-maker-guide#quoting-strategy).
+
+## Safety mechanisms
+
+### Disconnect protection
+
+WhiteBIT provides no automatic cancel-on-disconnect; the per-market kill-switch is the safeguard. See [Monitoring and safety](/guides/market-maker-guide#monitoring-and-safety).
+
+### Self-trade prevention
+
+Two-sided quoters can match their own resting orders; the STP mode set at order placement determines which side is canceled. See [Self-Trade Prevention](/platform/self-trade-prevention).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="circle-info" href="/guides/market-maker-overview">
+    What the Market-Making Program provides and who it is for.
+  </Card>
+  <Card title="Integration" icon="code" href="/guides/market-maker-guide">
+    The quoting loop, colocation, and safety mechanisms.
+  </Card>
+</CardGroup>
