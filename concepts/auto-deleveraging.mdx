@@ -27,10 +27,10 @@ Order properties:
 
 Both the liquidation close order (on the liquidated account) and any ADL fills (on a counterparty account) arrive through the normal execution surfaces. The reliable discriminator differs by delivery channel:
 
-- **WebSocket — [`ordersExecuted`](/websocket/account-streams/orders-executed) stream.** Use the `source` field: `"liquidation"` when your own position is being liquidated, `"adl"` when your position is closed as the counterparty of another user's liquidation.
+- **WebSocket — [`ordersExecuted`](/websocket/account-streams/orders-executed) stream.** Use the `source` field: `"liquidation"` when the account's own position is being liquidated, `"adl"` when the account's position is closed as the counterparty of another user's liquidation.
 - **REST — order and executed history.** The history payloads do not include `source`. Match the `clientOrderId` prefix instead.
 
-|  | Liquidation (your own position) | ADL (as counterparty) |
+|  | Liquidation (account's own position) | ADL (as counterparty) |
 |--|--|--|
 | `source` (WebSocket) | `"liquidation"` | `"adl"` |
 | `clientOrderId` prefix | `liquidation_<orderId>_!` | `adl_<orderId>_!` |
@@ -38,7 +38,7 @@ Both the liquidation close order (on the liquidated account) and any ADL fills (
 | Terminal status | `FILLED`, or `PARTIALLY_FILLED` if book depth is insufficient | `FILLED` |
 
 <Note>
-Do not use `reduceOnly` to identify these fills — it remains `false` on ADL-inserted orders despite the position-reducing effect. When your own position is liquidated, your other pending orders on that market are swept with the `AUTO_CANCELED_LIQUIDATION` status.
+Do not use `reduceOnly` to identify these fills — it remains `false` on ADL-inserted orders despite the position-reducing effect. When the account's own position is liquidated, the account's other pending orders on that market are swept with the `AUTO_CANCELED_LIQUIDATION` status.
 </Note>
 
 ## How counterparties are selected
@@ -67,7 +67,7 @@ effective leverage  = |position size in money| / account equity
 
 Account equity refers to the user's collateral-account equity figure as defined in [Balances](/concepts/balances).
 
-Negative-Rating positions are still ranked and receive a Grade for the indicator (see [ADL Grade](#adl-grade)), but selection filters them out — only positive-Rating positions become ADL counterparties.
+Negative-Rating positions are still ranked and receive a Grade for the indicator (see [ADL Grade](#adl-grade)), but selection filters those positions out — only positive-Rating positions become ADL counterparties.
 
 ## Execution price
 

@@ -89,7 +89,7 @@ The `travelRule` object on `POST /api/v4/main-account/withdraw` now uses a struc
 Coming soon: TradFi futures are not yet returned by the endpoint.
 </Note>
 
-Once live, `GET /api/v4/public/markets` will return traditional-finance (TradFi) futures markets — futures contracts on traditional financial assets such as equities (for example, `AAPL_USD`). A TradFi market will carry `type: tradfiFutures` together with `isTradFiFutures: true`. Availability is region-gated: markets you are not eligible to trade are omitted from the response entirely and do not appear under any other market type.
+Once live, `GET /api/v4/public/markets` will return traditional-finance (TradFi) futures markets — futures contracts on traditional financial assets such as equities (for example, `AAPL_USD`). A TradFi market will carry `type: tradfiFutures` together with `isTradFiFutures: true`. Availability is region-gated: markets the account is not eligible to trade are omitted from the response entirely and do not appear under any other market type.
 
 <CardGroup cols={2}>
   <Card title="Market Info" href="/api-reference/market-data/market-info" icon="chart-line" horizontal/>
@@ -146,7 +146,7 @@ Partner platforms can now issue a WhiteBIT API key on behalf of a WhiteBIT user 
 ## Position History API update
 **Breaking change: `positionSide` field removed from Position History response**
 
-The `POST /api/v4/collateral-account/positions/history` endpoint no longer returns the `positionSide` field. Two new fields replace it: `side` (same enum as the removed field — `LONG`, `SHORT`, `BOTH`) and `isHedge` (a boolean indicating whether the position was opened in hedge mode). The combination lets you attribute closed-position records to a specific direction and account mode for P&L tracking, compliance reporting, and strategy reconstruction.
+The `POST /api/v4/collateral-account/positions/history` endpoint no longer returns the `positionSide` field. Two new fields replace it: `side` (same enum as the removed field — `LONG`, `SHORT`, `BOTH`) and `isHedge` (a boolean indicating whether the position was opened in hedge mode). The combination lets integrations attribute closed-position records to a specific direction and account mode for P&L tracking, compliance reporting, and strategy reconstruction.
 
 **Migration guide:**
 - Replace any reader of `positionSide` from `/positions/history` with `side`. The enum is unchanged: `LONG`, `SHORT`, `BOTH`.
