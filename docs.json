@@ -448,6 +448,7 @@
             "public": true,
             "icon": "rotate",
             "pages": [
+              "api-reference/convert/overview",
               "api-reference/convert/convert-estimate",
               "api-reference/convert/convert-confirm",
               "api-reference/convert/convert-history"
@@ -460,22 +461,40 @@
             "pages": [
               "api-reference/account-wallet/overview",
               {
-                "group": "Main Balance & Transfers",
+                "group": "Deposits",
+                "public": true,
+                "pages": [
+                  "api-reference/account-wallet/get-cryptocurrency-deposit-address",
+                  "api-reference/account-wallet/create-new-address-for-deposit",
+                  "api-reference/account-wallet/get-fiat-deposit-url",
+                  "api-reference/account-wallet/refund-deposit"
+                ]
+              },
+              {
+                "group": "Withdrawals",
+                "public": true,
+                "pages": [
+                  "api-reference/account-wallet/create-withdraw-request",
+                  "api-reference/account-wallet/create-withdraw-request-with-specific-amount",
+                  "api-reference/account-wallet/create-express-withdraw-token"
+                ]
+              },
+              {
+                "group": "Transfers",
                 "public": true,
                 "pages": [
                   "api-reference/account-wallet/main-balance",
-                  "api-reference/account-wallet/get-cryptocurrency-deposit-address",
-                  "api-reference/account-wallet/get-fiat-deposit-address",
-                  "api-reference/account-wallet/refund-deposit",
+                  "api-reference/account-wallet/transfer-between-balances",
+                  "api-reference/account-wallet/get-deposit-withdraw-history"
+                ]
+              },
+              {
+                "group": "Tokens",
+                "public": true,
+                "pages": [
                   "api-reference/account-wallet/issue-jwt-token",
                   "api-reference/account-wallet/profile-websocket-token",
-                  "api-reference/account-wallet/issue-card-token",
-                  "api-reference/account-wallet/create-withdraw-request",
-                  "api-reference/account-wallet/create-withdraw-request-with-specific-amount",
-                  "api-reference/account-wallet/create-express-withdraw-token",
-                  "api-reference/account-wallet/transfer-between-balances",
-                  "api-reference/account-wallet/get-deposit-withdraw-history",
-                  "api-reference/account-wallet/create-new-address-for-deposit"
+                  "api-reference/account-wallet/issue-card-token"
                 ]
               },
               {
@@ -590,6 +609,7 @@
             "public": true,
             "icon": "pickaxe",
             "pages": [
+              "api-reference/mining-pool/overview",
               "api-reference/mining-pool/create-mining-account",
               "api-reference/mining-pool/get-mining-accounts",
               "api-reference/mining-pool/pool-overview",
@@ -928,7 +948,11 @@
     },
     {
       "source": "/private/http-main-v4/get-fiat-deposit-address",
-      "destination": "/api-reference/account-wallet/get-fiat-deposit-address"
+      "destination": "/api-reference/account-wallet/get-fiat-deposit-url"
+    },
+    {
+      "source": "/api-reference/account-wallet/get-fiat-deposit-address",
+      "destination": "/api-reference/account-wallet/get-fiat-deposit-url"
     },
     {
       "source": "/private/http-main-v4/get-flex-investment-history",

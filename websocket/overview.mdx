@@ -261,6 +261,11 @@ Private channels require authorization. See [WebSocket Authentication](/websocke
   </Card>
 </CardGroup>
 
+## Who uses this
+
+- **Market makers** stream the real-time order book and fills — the public [Depth](/websocket/market-streams/depth) and [Book Ticker](/websocket/market-streams/book-ticker) channels plus the private [Deals](/websocket/account-streams/deals) account stream. See [Market Maker integration](/guides/market-maker-integration).
+- Any integration reading private account events (balances, orders, deals, positions) authorizes first — see [WebSocket Authentication](/websocket/authentication).
+
 ---
 
 ## Connection best practices
@@ -274,3 +279,7 @@ Reuse a single WebSocket connection for multiple subscriptions instead of openin
 - [API Reference Overview](/api-reference/overview) — Base URL, quickstart, and endpoint groups
 - [Market Streams](/websocket/market-streams/overview) — All public channels (kline, trades, depth, book ticker)
 - [Account Streams](/websocket/account-streams/overview) — Private channels for balances, orders, and positions
+
+## Used in these guides
+
+- [Partner Solutions](/guides/partner-solutions) — the partner router that maps use cases to programs.

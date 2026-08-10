@@ -30,6 +30,11 @@ Sell [order](#orders).
 A digital representation of value transferable, storable, or tradable electronically.
 </Accordion>
 
+<Accordion title="Attribution">
+
+In Model B (customers' own accounts), the mechanism that links an end user's WhiteBIT account and activity to the partner that onboarded the user, so fee-share and reporting apply without the partner holding the account. See [Integration models](/concepts/integration-models).
+</Accordion>
+
 <Accordion title="Auto-Deleveraging (ADL)">
 
 Final-stage liquidation mechanism on the futures market. Activates only when standard market liquidity cannot fully cover a liquidated position. Closes profitable counterparty positions on the opposite side at a calculated price, ensuring no user balance becomes negative. See [Auto-Deleveraging](/concepts/auto-deleveraging).
@@ -154,7 +159,7 @@ A gated B2B payment feature that charges a specific amount from a WhiteBIT user'
 
 <Accordion title="Fast API Key">
 
-An OAuth-issued WhiteBIT API key that a partner platform obtains on behalf of an end user through the OAuth API key consent flow, replacing manual key creation and copy-paste. The API secret is retrievable by the partner exactly once through a Bearer-authenticated endpoint, and the resulting key is restricted to the partner's registered IP ranges. See the [Fast API Key integration guide](/guides/fast-api-key-integration).
+An OAuth-issued WhiteBIT API key that a partner platform obtains on behalf of an end user through the OAuth API key consent flow, replacing manual key creation and copy-paste. The API secret is retrievable by the partner exactly once through a Bearer-authenticated endpoint. Any IP restriction on the key is the end user's own account-level control, not a partner-managed allowlist. See the [Fast API Key integration guide](/guides/fast-api-key-integration).
 </Accordion>
 
 <Accordion title="Fee">
@@ -310,6 +315,16 @@ A special identifier some cryptocurrency networks require for transactions. Depo
 Markets in Crypto-Assets. The European Union's regulatory framework for crypto-asset service providers. See [Regulatory Compliance](/institutional/compliance).
 </Accordion>
 
+<Accordion title="Model A">
+
+The partner-operated sub-account model: the partner creates and manages one WhiteBIT sub-account per end user under a master account and holds the sub-account API key. Used by brokers and managed-trading platforms. See [Integration models](/concepts/integration-models).
+</Accordion>
+
+<Accordion title="Model B">
+
+The customers'-own-accounts model: each end user holds a standalone WhiteBIT account and the partner connects through a [Fast API Key](#fast-api-key); WhiteBIT runs the KYC, and activity is linked to the partner by [attribution](#attribution). See [Integration models](/concepts/integration-models).
+</Accordion>
+
 <Accordion title="Money">
 
 The currency used to buy and sell [assets](#assets) on a trading platform.
@@ -337,6 +352,11 @@ An arbitrary number used only once in a request.
 <Accordion title="OCO orders">
 
 An OCO order combines a [limit order](#limit-order) with a [stop-limit](#stop-limit-order); only one executes. When one order fills, the platform automatically cancels the other.
+</Accordion>
+
+<Accordion title="Omnibus account">
+
+A single pooled account holding multiple end users' funds together. WhiteBIT does not offer a pooled omnibus model for partner integrations — pooled custody conflicts with MiCA client-fund segregation and Travel Rule requirements, so each model keeps segregated sub-accounts. See [Integration models](/concepts/integration-models).
 </Accordion>
 
 <Accordion title="One Triggers the Other (OTO)">

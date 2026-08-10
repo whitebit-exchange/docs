@@ -4,7 +4,7 @@ sidebarTitle: "Overview"
 description: "Overview of the WhiteBIT OAuth 2.0 endpoints, including the recommended OAuth API key flow for partner integrations."
 ---
 
-The OAuth 2.0 endpoints documented in this section cover three integration surfaces: authorization and token exchange, OAuth-issued API keys, and account read endpoints. Partner platforms that need to issue WhiteBIT API keys on behalf of users SHOULD use the OAuth API key flow — the flow replaces manual key creation and copy-paste with a consent-driven bootstrap that issues a partner-scoped key, restricts the key to the partner's registered IP ranges, and exposes the secret to the partner exactly once.
+The OAuth 2.0 endpoints documented in this section cover three integration surfaces: authorization and token exchange, OAuth-issued API keys, and account read endpoints. Partner platforms that need to issue WhiteBIT API keys on behalf of users SHOULD use the OAuth API key flow — the flow replaces manual key creation and copy-paste with a consent-driven bootstrap that issues a partner-scoped key and exposes the secret to the partner exactly once. Any IP restriction on the key is the end user's own account-level control, not a partner-managed allowlist.
 
 ## Endpoint groups
 
@@ -44,3 +44,7 @@ The OAuth API key endpoints (`/oauth2/api-key/*`) are available on the global se
   <Card title="Private HTTP API authentication" icon="signature" href="/api-reference/authentication" horizontal/>
   <Card title="Fast API Key (glossary)" icon="book" href="/glossary#fast-api-key" horizontal/>
 </CardGroup>
+
+## Used in these guides
+
+- [Fast API Key integration](/guides/fast-api-key-integration) — OAuth-issued API keys created on behalf of end users.

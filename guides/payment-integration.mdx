@@ -617,7 +617,7 @@ Generate fiat deposit invoices and submit fiat withdrawals once institutional fi
 Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For broker-managed sub-account fiat scope and constraints, see the [Broker Program guide](/guides/sub-account-integration).
 
 <Warning>
-  Fiat operations require completion of institutional onboarding including KYB (Know Your Business) verification and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until WhiteBIT explicitly approves fiat access.
+  Fiat operations require completion of institutional onboarding including business verification (KYB) and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until WhiteBIT explicitly approves fiat access.
 </Warning>
 
 The onboarding process has two phases: Phase 1 (crypto access via KYB) and Phase 2 (fiat access via fiat processing partner review). Fiat access is **not** automatic after KYB approval — a separate review process with the fiat processing partner is required.
@@ -628,7 +628,7 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
 
 <Steps>
   <Step title="Generate a deposit invoice">
-    Call `POST /api/v4/main-account/fiat-deposit-url` with the fiat ticker, amount, provider, and a partner-side `uniqueId`. The response contains a `url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-address) for the full specification.
+    Call `POST /api/v4/main-account/fiat-deposit-url` with the fiat ticker, amount, provider, and a partner-side `uniqueId`. The response contains a `url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-url) for the full specification.
   </Step>
   <Step title="Present the URL to the end user">
     The end user opens the returned URL and completes the payment with the provider or bank.
@@ -765,7 +765,7 @@ See [Institutional Onboarding](/institutional/onboarding) for the full fiat onbo
 
 | Endpoint | Purpose | API Reference |
 |----------|---------|---------------|
-| `POST /api/v4/main-account/fiat-deposit-url` | Generate a fiat deposit invoice | [Fiat Deposit URL](/api-reference/account-wallet/get-fiat-deposit-address) |
+| `POST /api/v4/main-account/fiat-deposit-url` | Generate a fiat deposit invoice | [Fiat Deposit URL](/api-reference/account-wallet/get-fiat-deposit-url) |
 | `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a fiat withdrawal | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |

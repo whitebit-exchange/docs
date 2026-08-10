@@ -160,7 +160,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 - Use the exact registered `redirect_uri` — wildcards and open redirects are rejected.
 - Use Authorization Code with PKCE (S256) on every authorization request.
 - Rotate `apiSecret` by deleting and re-issuing keys. The secret cannot be retrieved a second time for an existing key.
-- IP restrictions on the key, when enabled, are the user's own control on their WhiteBIT account — exact-match addresses (ranges and subnets are not supported), applied to trade-API requests. The partner does not manage a key-level IP allowlist; if a user enables the restriction, have them whitelist the partner's egress addresses.
+- IP restrictions on the key, when enabled, are the end user's own account-level control — exact-match addresses (ranges and subnets are not supported), applied to trade-API requests. The partner does not manage a key-level IP allowlist; a user who enables the restriction must add the partner's egress addresses to the allowlist.
 
 ## Limits
 
