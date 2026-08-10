@@ -19,7 +19,8 @@ Adjacent scenarios route to separate guides:
 
 ## What the integration provides
 
-- **Fiat deposits via API** — `POST /api/v4/main-account/fiat-deposit-url` returns a hosted payment URL for SEPA bank transfer or card checkout, per the providers enabled for the account. See [Fiat operations](/guides/payment-integration#fiat-deposit) in the Payment Integration guide.
+- **Fiat deposits via API** — `POST /api/v4/main-account/fiat-deposit-url` returns a hosted payment URL for the fiat providers enabled for the account. The documented example uses the VISAMASTER card provider; the deposit-side SEPA bank-transfer provider is confirmed per account during onboarding. See [Fiat operations](/guides/payment-integration#fiat-deposit) in the Payment Integration guide.
+{/* TODO: value gated on SME (SEPA) — confirm the deposit-side SEPA bank-transfer provider and flow; only card (VISAMASTER) deposit providers are documented on disk (on-off-ramp-02). */}
 - **Fiat withdrawals via API** — the same `POST /api/v4/main-account/withdraw` and `/withdraw-pay` endpoints used for crypto accept fiat tickers with a `beneficiary` object. EUR supports IBAN transfers (SEPA).
 - **Quoted-rate conversion** — `POST /api/v4/convert/estimate` returns a quote; `POST /api/v4/convert/confirm` executes it at the quoted rate. See [Convert](/platform/convert).
 - **The crypto leg** — deposit addresses, withdrawals, and the refund flow, documented in [Payment Integration](/guides/payment-integration).
@@ -163,7 +164,7 @@ sequenceDiagram
 
 Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from `support@whitebit.com`. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
 
-For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider.
+For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider. The EUR SEPA IBAN example below uses the `SEPA_BCB_GROUP` provider; that provider value and whether a `bankBic` sub-field is required are confirmed per account and are not documented in the public reference, so verify both with WhiteBIT before integration.
 
 An EUR IBAN transfer (SEPA) request body:
 
@@ -182,6 +183,7 @@ An EUR IBAN transfer (SEPA) request body:
   "nonce": 1594297865000
 }
 ```
+{/* TODO: value gated on SME (SEPA) — confirm the EUR SEPA IBAN withdrawal provider value (SEPA_BCB_GROUP) and whether bankBic is a required beneficiary sub-field for that provider; neither is in the public reference (on-off-ramp-01). */}
 
 - **Partial withdrawals.** `partialEnable: true` raises the maximum limit for fiat withdrawals; the application must then handle the `Partially successful` status (18) and reconcile `requestAmount` against `processedAmount` in the history record.
 - **KYC.** Fiat withdrawals require KYC verification. In exceptional, documented cases the institutional team can arrange a per-account override — see [Fiat withdrawal](/guides/payment-integration#fiat-withdrawal).

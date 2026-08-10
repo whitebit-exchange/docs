@@ -35,12 +35,14 @@ sequenceDiagram
 
 ## Permissions and scope
 
-Copy trading requires order placement and cancellation on the follower's account. Under the Fast API Key [API key types](/guides/fast-api-key-via-oauth#api-key-types), these operations map to the **Trade** type: read access plus order placement and cancellation, convert, and internal transfer between the follower's own balances. External withdrawal is excluded — external withdrawal is a separate, user-controlled grant behind an additional consent-screen confirmation and is not needed for copy trading.
+Copy trading requires order placement and cancellation on the follower's account. The follower selects the key's permissions on the WhiteBIT consent screen — the partner does not pass a permission set in the authorization request and cannot influence the follower's choice (see [Key permissions](/guides/fast-api-key-via-oauth#key-permissions)). To mirror orders, the follower must grant trade-level access: order placement and cancellation, convert, and internal transfer between the follower's own balances. External withdrawal is a separate, user-controlled grant behind an additional consent-screen confirmation and is not needed for copy trading.
+
+Named [API key types](/guides/fast-api-key-via-oauth#api-key-types) — Read-only, Trade, and Custom — are being introduced for the Fast API Key flow. Once available, the operations above map to the **Trade** type, which caps a key at trade-level access and excludes external withdrawal.
 
 The partner reads the permissions a follower actually granted from the `permissions` array on `GET /oauth2/api-key/info`, and branches on the locale-independent `name` value. See [Key permissions](/guides/fast-api-key-via-oauth#key-permissions) for the full permission model.
 
 <Warning>
-  The OAuth-issued key places live orders on the follower's account. Store each follower's `apiSecret` in encrypted server-side storage, and request only the Trade scope — external withdrawal is not required for copy trading. See the [Security checklist](/guides/fast-api-key-via-oauth#security-checklist).
+  The OAuth-issued key places live orders on the follower's account. Store each follower's `apiSecret` in encrypted server-side storage. The follower selects permissions on the consent screen — external withdrawal is not required for copy trading, so followers grant trade-level access only. See the [Security checklist](/guides/fast-api-key-via-oauth#security-checklist).
 </Warning>
 
 ## Order placement
@@ -106,14 +108,19 @@ Copy trading composes the Fast API Key management endpoints with the standard V4
 | Executed-order history, as a polling fallback | [Query executed order history](/api-reference/spot-trading/query-executed-order-history) (`POST /api/v4/trade-account/executed-history`) |
 | Trade-level deals for an order | [Query executed order deals](/api-reference/spot-trading/query-executed-order-deals) |
 
+<Note>
+  Subscribing to a follower's private WebSocket streams requires a WebSocket authentication token from `POST /api/v4/profile/websocket_token`. Confirm that an OAuth-issued key can obtain this token for the follower's account before making the WebSocket streams the primary fill-monitoring path; until then, poll [executed-order history](/api-reference/spot-trading/query-executed-order-history) as the reliable per-follower fallback.
+</Note>
+{/* TODO: confirm with Engineering whether an OAuth-issued key can call POST /api/v4/profile/websocket_token (and its 10 req/60s limit) — copytrading-03. */}
+
 ## Operational pitfalls
 
 Copy trading fans one lead trade out to many independent accounts, which introduces failure modes a single-account integration does not have.
 
 - **No batch or account selector.** The V4 trade API acts only on the account that owns the signing key. Mirroring one lead trade means one signed request per follower; no endpoint places an order across multiple accounts.
-- **Rate limits apply per account and per endpoint.** A large fan-out is many independent signed requests. Pace the requests and handle `429` with backoff — see [Rate limits](/api-reference/rate-limits).
+- **Rate limits apply per IP address, not per follower.** REST rate limits are enforced per IP — the default is 10,000 requests per 10 seconds, and `/trade-account/executed-history` allows 12,000 per 10 seconds. A backend that serves many followers from one IP shares a single budget across every follower's signed requests, so per-IP sharing — not a per-follower budget — is the fan-out constraint to design around. Pace requests across the window and handle `429` with backoff — see [Rate limits](/api-reference/rate-limits).
 - **Follower keys are revoked outside the partner's control.** An OAuth-issued key is revoked when the follower changes the account password or the account is blocked or frozen, and it is disabled after 14 days of inactivity. Signed requests then fail; re-run the consent flow to reissue. The OAuth access token used for key management lasts 4 hours with no refresh — obtain a new one through a fresh consent when it expires. See [Fast API Key via OAuth](/guides/fast-api-key-via-oauth).
-- **Permission grants vary per follower.** A follower can grant less than the Trade scope. Read the `permissions` array on `GET /oauth2/api-key/info` before mirroring, and skip followers without order-placement permission. External withdrawal is never required for copy trading — do not request it.
+- **Permission grants vary per follower.** The follower chooses permissions on the consent screen, so a follower can grant less than trade-level access. Read the `permissions` array on `GET /oauth2/api-key/info` before mirroring, and skip followers without order-placement permission. External withdrawal is never required for copy trading.
 - **Balances and market minimums differ per follower.** Size each mirrored order to the follower's own balance and the market's minimum order size. Expect per-follower rejections for insufficient balance and partial fills rather than uniform execution.
 - **Regional restrictions apply per follower.** For EEA followers, USDT deposits, withdrawals, and WhiteBIT Codes are unavailable under MiCA — USDC and EURI are the documented alternatives — which constrains how those followers are funded and which stablecoins they hold. Account for per-follower differences rather than assuming a uniform asset set. See [Regulatory Compliance](/institutional/compliance).
 - **Retries can double-place.** Set a `clientOrderId` on each mirrored order so a retried request reconciles to the same lead trade and follower instead of creating a duplicate.
@@ -131,9 +138,12 @@ There is no copy-specific endpoint. Copy trading is an orchestration of the [Fas
 
 A follower grants an OAuth-issued key on the WhiteBIT consent screen; the partner captures `externalId` and the one-time secret. To disconnect, revoke the key with `DELETE /oauth2/api-key/{externalId}` — the platform emails the follower on revocation.
 
+`DELETE` is authenticated with a Bearer access token that lasts 4 hours with no refresh, so revocation depends on holding a valid token: revoke during the follower's active session, or obtain a fresh token through a new consent flow. A dormant follower's key still winds down without action — an OAuth-issued key auto-deactivates after 14 days without API activity, and is revoked when the follower changes the account password or the account is blocked or frozen. If revoking a dormant follower's key without fresh consent is required, confirm the available management path with WhiteBIT.
+{/* TODO: confirm with Frontend/OAuth whether a partner can obtain a management token to revoke a dormant key without fresh follower interaction — copytrading-04. */}
+
 ### Per-follower fill tracking
 
-Subscribe to each follower's [Orders Executed](/websocket/account-streams/orders-executed) and [Deals](/websocket/account-streams/deals) account streams for real-time updates, or poll [Query executed order history](/api-reference/spot-trading/query-executed-order-history) as a fallback. Reconcile each fill to its lead trade and follower with the `clientOrderId` set at placement.
+Poll [Query executed order history](/api-reference/spot-trading/query-executed-order-history) for per-follower fills, and subscribe to each follower's [Orders Executed](/websocket/account-streams/orders-executed) and [Deals](/websocket/account-streams/deals) account streams for real-time updates where an OAuth-issued key can obtain a WebSocket token (see the monitoring note under [Endpoints](#endpoints)). Reconcile each fill to its lead trade and follower with the `clientOrderId` set at placement.
 
 ### Sandbox-free testing
 

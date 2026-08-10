@@ -5,6 +5,7 @@ description: "How a CaaS integration is assembled from WhiteBIT's documented API
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import TravelRuleNote from '/snippets/travel-rule-note.mdx';
 
 <Note>
 **For developers.** This page routes each CaaS capability to the guide that documents it. For what
@@ -58,6 +59,13 @@ secrets outside application code. See [Authentication](/api-reference/authentica
   access to be granted through the
   [institutional services form](https://whitebit.com/institutional-services/b2b). See
   [Crypto Lending](/products/lending/overview).
+
+<Note>
+**Travel Rule.** Deposits and withdrawals for EEA and Turkey accounts are subject to Travel Rule
+verification: inbound deposits are held until verification completes, and EEA crypto withdrawals
+carry a structured payload. <TravelRuleNote /> The Travel Rule API is enabled per account through
+institutional@whitebit.com; see [Regulatory Compliance](/institutional/compliance).
+</Note>
 
 ### Account architecture
 
