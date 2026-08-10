@@ -1,7 +1,9 @@
 ---
 title: "On/Off-Ramp Guide"
 description: "Integration guide for corporate on/off-ramp clients: fiat EUR/SEPA deposits and withdrawals via API, the conversion and crypto legs, reconciliation, and the enablement gate behind each step."
-sidebarTitle: "On/Off-Ramp Guide"
+sidebarTitle: "On/off-ramp integration"
+pageType: "integration"
+program: "payments"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
@@ -13,9 +15,15 @@ This guide serves companies that move corporate funds between fiat and digital a
 Adjacent scenarios route to separate guides:
 
 - The integration collects payments from end users or processes merchant flows — see [Payment Integration](/guides/payment-integration).
-- End customers hold dedicated accounts under a partner master account — see the [Broker Guide](/guides/broker-guide).
+- End customers hold dedicated accounts under a partner master account — see the [Broker Guide](/guides/sub-account-integration).
 - The backend model (sub-accounts, attribution, KYC reliance) is still open — see [Wallet-as-a-Service](/guides/waas-overview).
-- For the full partner-type map, see [Integration Paths](/guides/integration-paths).
+- For the full partner-type map, see [Partner Solutions](/guides/partner-solutions).
+
+## Prerequisites
+
+- **Completed [institutional onboarding](/institutional/onboarding) with approved fiat access** — a separate phase that is not automatic after KYB (see [Access and onboarding](#access-and-onboarding)).
+- **Per-account enablement gates** — the fiat deposit invoice endpoint, dedicated deposit addresses, and Express Withdraw are enabled per account; confirm each with the account manager (see [What the account manager confirms](#what-the-account-manager-confirms)).
+- **API access** — [HMAC-signed requests](/api-reference/authentication) on the main account.
 
 ## What the integration provides
 
@@ -30,7 +38,7 @@ Adjacent scenarios route to separate guides:
 
 Fiat access is the second phase of [Institutional Onboarding](/institutional/onboarding) and is not automatic after KYB approval. Phase 1 (corporate account, KYB, API keys) enables crypto operations; Phase 2 adds EUR/SEPA capabilities through a fiat processing partner review, with source-of-funds documentation. WhiteBIT manages the fiat-partner onboarding on the applicant's behalf.
 
-**How to apply:** email `institutional@whitebit.com` with a description of the service. Include the registered legal entity (name, registration number, jurisdiction), licenses or registrations held, whether the scope is crypto-only or fiat as well, and the countries where the service operates. The full application question list is on the [Integration Paths](/guides/integration-paths#how-to-apply) page.
+**How to apply:** email `institutional@whitebit.com` with a description of the service. Include the registered legal entity (name, registration number, jurisdiction), licenses or registrations held, whether the scope is crypto-only or fiat as well, and the countries where the service operates. The full application question list is on the [Partner Solutions](/guides/partner-solutions#how-to-apply) page.
 
 <Note>
   Fiat deposits and withdrawals operate at the partner's **main account** (institutional fiat access). Per-end-user fiat rails are not a standard shipped capability; confirm any such requirement with WhiteBIT before designing around it.

@@ -18,12 +18,14 @@ portal is built with [Mintlify](https://mintlify.com).
   and private account streams (balances, orders, positions).
 - **OAuth** — third-party account access flow and endpoint reference.
 - **Platform features** — colocation, self-trade prevention, webhooks, WhiteBIT
-  Codes, Convert.
+  Codes, Convert, Fireblocks.
 - **Product overviews & quickstarts** — Spot, Margin, Futures, Lending,
   Sub-Accounts, Mining Pool, Market Data.
-- **Integration guides** — first API call, trading bot, account monitoring,
-  payment integration, Fireblocks, market maker, broker.
-- **Institutional & B2B** — onboarding and compliance content.
+- **Partner Solutions** — partner funnels (Brokers, Market Makers, Payments &
+  Fiat, Wallets & White-label, App Builders, Funds & Institutions), plus a Get
+  started track (first API call, WebSocket quickstart).
+- **Recipes** — task guides: trading bot, price dashboard, copy trading,
+  account monitoring, WaaS recipes.
 - **Resources** — FAQ, glossary, SDKs, changelog.
 
 ### Who it's for

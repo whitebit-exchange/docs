@@ -1,7 +1,9 @@
 ---
 title: "Wallet-as-a-Service integration"
-sidebarTitle: "Developer guide"
+sidebarTitle: "Integration"
 description: "Technical integration for Wallet-as-a-Service partners: the models, payment and payout flows, compliance requirements, and testing."
+pageType: "integration"
+program: "waas"
 ---
 
 import PartnerEligibility from '/snippets/partner-eligibility.mdx';
@@ -16,13 +18,19 @@ The three integration models are described in the
 [Integration models](/concepts/integration-models) concept. This guide covers where to
 start for each and the flows they share.
 
+## Prerequisites
+
+- **Approved WaaS partner enrollment** — see the [WaaS overview](/guides/waas-overview) for what WaaS provides and how to apply.
+- **A chosen backend model** — managed sub-accounts, attribution, or KYC reliance; compare on the [integration models](/concepts/integration-models) concept.
+- **API access** — [HMAC-signed requests](/api-reference/authentication); per-user deposit addresses (`create-new-address`) enabled for the account.
+
 ## Where to start per model
 
 | Model | Start here |
 |---|---|
-| Managed sub-accounts | [Broker Program](/guides/broker-guide) + [Sub-Accounts](/products/sub-accounts/overview) |
-| Attribution (own account + OAuth) | [Fast API Key via OAuth](/guides/fast-api-key-via-oauth) |
-| Sub-accounts with KYC reliance | [Broker Program](/guides/broker-guide) + [Institutional Onboarding](/institutional/onboarding) |
+| Managed sub-accounts | [Broker Program](/guides/sub-account-integration) + [Sub-Accounts](/products/sub-accounts/overview) |
+| Attribution (own account + OAuth) | [Fast API Key via OAuth](/guides/fast-api-key-integration) |
+| Sub-accounts with KYC reliance | [Broker Program](/guides/sub-account-integration) + [Institutional Onboarding](/institutional/onboarding) |
 
 The KYC-reliance model has specific eligibility requirements:
 

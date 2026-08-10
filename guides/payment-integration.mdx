@@ -1,7 +1,9 @@
 ---
 title: "Payment Integration"
 description: "Crypto deposits, withdrawals, withdrawals with currency conversion, fiat operations (SEPA and card providers), WhiteBIT Codes, and Express Withdraw payments — status state machines, fee calculation, and webhook reconciliation."
-sidebarTitle: "Payment Integration"
+sidebarTitle: "Payment integration"
+pageType: "integration"
+program: "payments"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
@@ -612,7 +614,7 @@ Generate fiat deposit invoices and submit fiat withdrawals once institutional fi
 
 ## Prerequisites for fiat operations
 
-Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For broker-managed sub-account fiat scope and constraints, see the [Broker Program guide](/guides/broker-guide).
+Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For broker-managed sub-account fiat scope and constraints, see the [Broker Program guide](/guides/sub-account-integration).
 
 <Warning>
   Fiat operations require completion of institutional onboarding including KYB (Know Your Business) verification and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until WhiteBIT explicitly approves fiat access.
@@ -1146,7 +1148,7 @@ For balance endpoints, WebSocket account streams, and polling-interval guidance 
   <Card title="Security Best Practices" icon="shield-halved" href="/best-practices/security">
     API key management, IP whitelisting, and secret storage.
   </Card>
-  <Card title="On/Off-Ramp Guide" icon="arrow-right-arrow-left" href="/guides/on-off-ramp-guide">
+  <Card title="On/Off-Ramp Guide" icon="arrow-right-arrow-left" href="/guides/on-off-ramp-integration">
     Journey-level guide for corporate fiat ↔ crypto clients: onboarding gates, EUR/SEPA flows, and failure paths.
   </Card>
 </CardGroup>

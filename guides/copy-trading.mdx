@@ -7,7 +7,7 @@ description: "How a copy-trading platform mirrors a lead trader's orders into fo
 Copy trading is a partner use case, not a WhiteBIT product feature. A partner platform decides which orders to mirror and places each order, through an OAuth-issued API key, on the follower's own WhiteBIT account. Execution happens inside the follower's account.
 
 <Note>
-  This use case builds on the [Fast API Key via OAuth](/guides/fast-api-key-via-oauth) integration — the prerequisite flow for consent, key issuance, one-time secret retrieval, signing, and revocation. Complete that integration first. Copy-trading access is granted on top of an approved Fast API Key integration.
+  This use case builds on the [Fast API Key via OAuth](/guides/fast-api-key-integration) integration — the prerequisite flow for consent, key issuance, one-time secret retrieval, signing, and revocation. Complete that integration first. Copy-trading access is granted on top of an approved Fast API Key integration.
 </Note>
 
 ## Architecture
@@ -35,14 +35,14 @@ sequenceDiagram
 
 ## Permissions and scope
 
-Copy trading requires order placement and cancellation on the follower's account. The follower selects the key's permissions on the WhiteBIT consent screen — the partner does not pass a permission set in the authorization request and cannot influence the follower's choice (see [Key permissions](/guides/fast-api-key-via-oauth#key-permissions)). To mirror orders, the follower must grant trade-level access: order placement and cancellation, convert, and internal transfer between the follower's own balances. External withdrawal is a separate, user-controlled grant behind an additional consent-screen confirmation and is not needed for copy trading.
+Copy trading requires order placement and cancellation on the follower's account. The follower selects the key's permissions on the WhiteBIT consent screen — the partner does not pass a permission set in the authorization request and cannot influence the follower's choice (see [Key permissions](/guides/fast-api-key-integration#key-permissions)). To mirror orders, the follower must grant trade-level access: order placement and cancellation, convert, and internal transfer between the follower's own balances. External withdrawal is a separate, user-controlled grant behind an additional consent-screen confirmation and is not needed for copy trading.
 
-Named [API key types](/guides/fast-api-key-via-oauth#api-key-types) — Read-only, Trade, and Custom — are being introduced for the Fast API Key flow. Once available, the operations above map to the **Trade** type, which caps a key at trade-level access and excludes external withdrawal.
+Named [API key types](/guides/fast-api-key-integration#api-key-types) — Read-only, Trade, and Custom — are being introduced for the Fast API Key flow. Once available, the operations above map to the **Trade** type, which caps a key at trade-level access and excludes external withdrawal.
 
-The partner reads the permissions a follower actually granted from the `permissions` array on `GET /oauth2/api-key/info`, and branches on the locale-independent `name` value. See [Key permissions](/guides/fast-api-key-via-oauth#key-permissions) for the full permission model.
+The partner reads the permissions a follower actually granted from the `permissions` array on `GET /oauth2/api-key/info`, and branches on the locale-independent `name` value. See [Key permissions](/guides/fast-api-key-integration#key-permissions) for the full permission model.
 
 <Warning>
-  The OAuth-issued key places live orders on the follower's account. Store each follower's `apiSecret` in encrypted server-side storage. The follower selects permissions on the consent screen — external withdrawal is not required for copy trading, so followers grant trade-level access only. See the [Security checklist](/guides/fast-api-key-via-oauth#security-checklist).
+  The OAuth-issued key places live orders on the follower's account. Store each follower's `apiSecret` in encrypted server-side storage. The follower selects permissions on the consent screen — external withdrawal is not required for copy trading, so followers grant trade-level access only. See the [Security checklist](/guides/fast-api-key-integration#security-checklist).
 </Warning>
 
 ## Order placement
@@ -80,7 +80,7 @@ Full field list: [Create Limit Order](/api-reference/spot-trading/create-limit-o
 
 Copy trading composes the Fast API Key management endpoints with the standard V4 spot trading and monitoring endpoints. Every trade request acts on the account whose key signs it. A copy-trading backend calls the endpoints below, grouped by role.
 
-**Key management, per follower** (from the [Fast API Key flow](/guides/fast-api-key-via-oauth)):
+**Key management, per follower** (from the [Fast API Key flow](/guides/fast-api-key-integration)):
 
 | Purpose | Endpoint | Reference |
 |---------|----------|-----------|
@@ -119,7 +119,7 @@ Copy trading fans one lead trade out to many independent accounts, which introdu
 
 - **No batch or account selector.** The V4 trade API acts only on the account that owns the signing key. Mirroring one lead trade means one signed request per follower; no endpoint places an order across multiple accounts.
 - **Rate limits apply per IP address, not per follower.** REST rate limits are enforced per IP — the default is 10,000 requests per 10 seconds, and `/trade-account/executed-history` allows 12,000 per 10 seconds. A backend that serves many followers from one IP shares a single budget across every follower's signed requests, so per-IP sharing — not a per-follower budget — is the fan-out constraint to design around. Pace requests across the window and handle `429` with backoff — see [Rate limits](/api-reference/rate-limits).
-- **Follower keys are revoked outside the partner's control.** An OAuth-issued key is revoked when the follower changes the account password or the account is blocked or frozen, and it is disabled after 14 days of inactivity. Signed requests then fail; re-run the consent flow to reissue. The OAuth access token used for key management lasts 4 hours with no refresh — obtain a new one through a fresh consent when it expires. See [Fast API Key via OAuth](/guides/fast-api-key-via-oauth).
+- **Follower keys are revoked outside the partner's control.** An OAuth-issued key is revoked when the follower changes the account password or the account is blocked or frozen, and it is disabled after 14 days of inactivity. Signed requests then fail; re-run the consent flow to reissue. The OAuth access token used for key management lasts 4 hours with no refresh — obtain a new one through a fresh consent when it expires. See [Fast API Key via OAuth](/guides/fast-api-key-integration).
 - **Permission grants vary per follower.** The follower chooses permissions on the consent screen, so a follower can grant less than trade-level access. Read the `permissions` array on `GET /oauth2/api-key/info` before mirroring, and skip followers without order-placement permission. External withdrawal is never required for copy trading.
 - **Balances and market minimums differ per follower.** Size each mirrored order to the follower's own balance and the market's minimum order size. Expect per-follower rejections for insufficient balance and partial fills rather than uniform execution.
 - **Regional restrictions apply per follower.** For EEA followers, USDT deposits, withdrawals, and WhiteBIT Codes are unavailable under MiCA — USDC and EURI are the documented alternatives — which constrains how those followers are funded and which stablecoins they hold. Account for per-follower differences rather than assuming a uniform asset set. See [Regulatory Compliance](/institutional/compliance).
@@ -132,7 +132,7 @@ Common questions from copy-trading partners, beyond the eligibility and gating c
 
 ### Copy-trading API availability
 
-There is no copy-specific endpoint. Copy trading is an orchestration of the [Fast API Key](/guides/fast-api-key-via-oauth) flow and the standard spot order endpoints — the partner backend supplies the copy logic.
+There is no copy-specific endpoint. Copy trading is an orchestration of the [Fast API Key](/guides/fast-api-key-integration) flow and the standard spot order endpoints — the partner backend supplies the copy logic.
 
 ### Follower connection and revocation
 
@@ -156,7 +156,7 @@ Copy-trading access is approval-gated — it is not available by default and req
 ## What's next
 
 <CardGroup cols={2}>
-  <Card title="Fast API Key via OAuth" icon="key" href="/guides/fast-api-key-via-oauth">
+  <Card title="Fast API Key via OAuth" icon="key" href="/guides/fast-api-key-integration">
     The prerequisite flow: consent, key issuance, secret retrieval, signing, and revocation.
   </Card>
   <Card title="Create Limit Order" icon="file-lines" href="/api-reference/spot-trading/create-limit-order">
