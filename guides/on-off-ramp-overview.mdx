@@ -1,0 +1,94 @@
+---
+title: "On/Off-Ramp"
+sidebarTitle: "Overview"
+description: "Move corporate funds between fiat and crypto on WhiteBIT: what the on/off-ramp integration provides, who it serves, the two-phase access model, the enablement gates, and how to get onboarded."
+icon: "arrow-right-arrow-left"
+pageType: "program-overview"
+program: "on-off-ramp"
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+The WhiteBIT on/off-ramp integration serves companies that move corporate funds between fiat and digital assets — entities investing in crypto, and businesses settling revenue or payouts over EUR rails. It runs in both directions, fiat in to crypto out and crypto back to EUR, and all fiat operations run at the partner's main account. For the flows, code, and reconciliation, see the [Integration guide](/guides/on-off-ramp-integration).
+
+<Tip>
+  The [On/Off-Ramp FAQ](/guides/on-off-ramp-faq) answers the common questions on activation, SEPA matching, fee semantics, reconciliation, and compliance.
+</Tip>
+
+Adjacent scenarios route to separate guides:
+
+- The integration collects payments from end users or processes merchant flows — see [Payment Integration](/guides/payment-integration).
+- End customers hold dedicated accounts under a partner master account — see the [Broker Guide](/guides/sub-account-integration).
+- For the full partner-type map, see [Partner Solutions](/guides/partner-solutions).
+
+## What the integration provides
+
+- **Fiat deposits via API** — a hosted payment URL for SEPA bank transfer or card checkout, per the providers enabled for the account.
+- **Fiat withdrawals via API** — EUR payouts over IBAN (SEPA), plus card rails where enabled, each carrying a beneficiary record.
+- **Quoted-rate conversion** — a locked quote executed before the balance moves, so the rate is known up front.
+- **The crypto leg** — deposit addresses, withdrawals, and the refund flow.
+- **Reconciliation** — signed webhooks plus history polling with client-side identifiers.
+
+The [Integration guide](/guides/on-off-ramp-integration) documents each endpoint, the request bodies, and both directions.
+
+## Access and onboarding
+
+Fiat access is the second phase of [Institutional Onboarding](/institutional/onboarding) and is not automatic after KYB approval. Phase 1 (corporate account, KYB, API keys) enables crypto operations; Phase 2 adds EUR/SEPA capabilities after review by a fiat processing partner, with source-of-funds documentation. WhiteBIT manages the fiat-partner onboarding on the applicant's behalf.
+
+**How to apply:** email **institutional@whitebit.com** with a description of the service. Include the registered legal entity (name, registration number, jurisdiction), licenses or registrations held, whether the scope is crypto-only or fiat as well, and the countries where the service operates. The full application question list is on the [Partner Solutions](/guides/partner-solutions#how-to-apply) page.
+
+<Note>
+  Fiat deposits and withdrawals operate at the partner's **main account** (institutional fiat access). Per-end-user fiat rails are not a standard shipped capability; confirm any such requirement with WhiteBIT before designing around it.
+</Note>
+
+Five capabilities in the ramp integration carry a dedicated enablement gate:
+
+| Capability | Gate | Contact |
+|-----------|------|---------|
+| Fiat operations (Phase 2) | Institutional onboarding, fiat-partner review | institutional@whitebit.com |
+| `fiat-deposit-url` endpoint | Per-account activation | WhiteBIT support, with the API key |
+| `successLink` / `failureLink` redirects | Feature activation, domain validated | WhiteBIT support |
+| Dedicated deposit addresses (`/create-new-address`) | Per-account permission | support@whitebit.com |
+| Travel Rule API | Per-account enablement | Account manager or institutional@whitebit.com |
+
+## What the account manager confirms
+
+Fee and limit figures are set per individual agreement, so no numbers appear in these pages. During onboarding, the account manager confirms:
+
+- The fee schedule for fiat deposits and withdrawals applicable to the account.
+- Deposit and withdrawal limits, for both fiat and crypto.
+- The enabled currency and provider matrix. At runtime, [Asset Status](/api-reference/market-data/asset-status-list) reports the per-currency `can_deposit` / `can_withdraw` flags and the request `provider` values; the [Fee](/api-reference/market-data/fee) endpoint reports the fees and limits per fiat asset.
+- Settlement windows and cutoff behavior for the fiat rails in use, including weekends and holidays.
+- The conversion pairs available to the account.
+
+## Compliance essentials
+
+Compliance shapes which assets and flows are available to the account. The [Integration guide](/guides/on-off-ramp-integration) shows how each constraint affects requests; [Regulatory Compliance](/institutional/compliance) holds the full reference.
+
+- **MiCA (EEA):** EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT since December 30, 2024. Use USDC or EURI for the crypto leg. See [Regulatory Compliance](/institutional/compliance).
+- **Travel Rule (EEA and Turkey):** inbound crypto deposits are held until Travel Rule verification completes; crypto withdrawals carry a Travel Rule payload. See [Travel Rule](/concepts/travel-rule).
+- **Fiat KYC:** fiat withdrawals require KYC verification. In exceptional, documented cases the institutional team can arrange a per-account override.
+
+## Support and contacts
+
+- **Onboarding status, limits, and institutional matters:** institutional@whitebit.com, or the assigned account manager once onboarded.
+- **Fiat endpoint enablement and access questions:** WhiteBIT support, with the API key included in the request.
+- **Dedicated deposit addresses:** support@whitebit.com.
+- **OTC block trading** for large conversions is part of the institutional catalog — see the [Institutional Overview](/institutional/overview).
+- **Self-service:** [help.whitebit.com](https://help.whitebit.com) for platform questions; this portal for API documentation.
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Integration" icon="code" href="/guides/on-off-ramp-integration">
+    The on-ramp and off-ramp flows, code, reconciliation, and failure paths.
+  </Card>
+  <Card title="On/Off-Ramp FAQ" icon="circle-question" href="/guides/on-off-ramp-faq">
+    Activation, SEPA matching, fee semantics, reconciliation, and compliance questions.
+  </Card>
+  <Card title="Institutional Onboarding" icon="building" href="/institutional/onboarding">
+    The two-phase KYB and fiat access process with the document checklist.
+  </Card>
+</CardGroup>

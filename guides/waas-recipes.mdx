@@ -67,9 +67,20 @@ Each use case above maps to signed REST calls documented in the
 Python examples per endpoint. Before running any flow, create an API key with the required
 permissions and confirm the enablement prerequisites above apply to the account.
 
-A runnable Python starter that packages these flows into one clone-and-run project is planned.
+A fuller Python starter that packages every recipe into one clone-and-run project is planned; the WhiteBIT Codes flow below is runnable today.
 
 ## Demo
+
+Run it (needs a key with Codes permission and USDT on the main account):
+
+```
+git clone https://github.com/tihran-voitov_wbt/waas-starter.git
+cd waas-starter
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-demo.txt
+cp .env.example .env          # add WB_API_KEY / WB_API_SECRET
+python app.py                 # http://localhost:5004
+```
 
 <video controls width="100%">
   <source src="/videos/waas-codes-demo.mp4" type="video/mp4" />

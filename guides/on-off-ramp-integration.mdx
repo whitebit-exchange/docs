@@ -1,68 +1,30 @@
 ---
-title: "On/Off-Ramp Guide"
-description: "Integration guide for corporate on/off-ramp clients: fiat EUR/SEPA deposits and withdrawals via API, the conversion and crypto legs, reconciliation, and the enablement gate behind each step."
-sidebarTitle: "On/off-ramp integration"
+title: "On/Off-Ramp Integration Guide"
+description: "Technical integration for corporate on/off-ramp clients: the fiat EUR/SEPA and crypto flows in both directions, the conversion leg, code snippets, reconciliation, and the failure paths to handle before go-live."
+sidebarTitle: "Integration"
 pageType: "integration"
-program: "payments"
+program: "on-off-ramp"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-This guide serves companies that move corporate funds between fiat and digital assets on WhiteBIT — entities investing in crypto, and businesses settling revenue or payouts over EUR rails. It follows both directions, fiat in to crypto out and crypto back to EUR, and names the enablement gate behind each step. All fiat operations described here run at the partner's main account.
+<Note>
+  **For developers.** Fiat access is gated: it is the second phase of institutional onboarding and is not automatic after KYB. For positioning, the access gates, onboarding, and how to apply, see the [On/Off-Ramp overview](/guides/on-off-ramp-overview).
+</Note>
 
-Adjacent scenarios route to separate guides:
-
-- The integration collects payments from end users or processes merchant flows — see [Payment Integration](/guides/payment-integration).
-- End customers hold dedicated accounts under a partner master account — see the [Broker Guide](/guides/sub-account-integration).
-- The backend model (sub-accounts, attribution, KYC reliance) is still open — see [Wallet-as-a-Service](/guides/waas-overview).
-- For the full partner-type map, see [Partner Solutions](/guides/partner-solutions).
+All fiat operations run at the partner's main account, over v4 endpoints, in both directions: fiat in to crypto out, and crypto back to EUR. Each direction pairs a fiat leg with a conversion step and a crypto leg.
 
 ## Prerequisites
 
-- **Completed [institutional onboarding](/institutional/onboarding) with approved fiat access** — a separate phase that is not automatic after KYB (see [Access and onboarding](#access-and-onboarding)).
-- **Per-account enablement gates** — the fiat deposit invoice endpoint, dedicated deposit addresses, and Express Withdraw are enabled per account; confirm each with the account manager (see [What the account manager confirms](#what-the-account-manager-confirms)).
+- **Completed institutional onboarding with approved fiat access** — a separate, non-automatic phase after KYB; see [Access and onboarding](/guides/on-off-ramp-overview#access-and-onboarding) on the overview page.
+- **Per-account enablement gates** — the fiat deposit invoice endpoint, dedicated deposit addresses, and Express Withdraw are enabled per account; confirm each with the account manager.
 - **API access** — [HMAC-signed requests](/api-reference/authentication) on the main account.
 
-## What the integration provides
-
-- **Fiat deposits via API** — `POST /api/v4/main-account/fiat-deposit-url` returns a hosted payment URL for the fiat providers enabled for the account. The documented example uses the VISAMASTER card provider; the deposit-side SEPA bank-transfer provider is confirmed per account during onboarding. See [Fiat operations](/guides/payment-integration#fiat-deposit) in the Payment Integration guide.
-{/* TODO: value gated on SME (SEPA) — confirm the deposit-side SEPA bank-transfer provider and flow; only card (VISAMASTER) deposit providers are documented on disk (on-off-ramp-02). */}
-- **Fiat withdrawals via API** — the same `POST /api/v4/main-account/withdraw` and `/withdraw-pay` endpoints used for crypto accept fiat tickers with a `beneficiary` object. EUR supports IBAN transfers (SEPA).
-- **Quoted-rate conversion** — `POST /api/v4/convert/estimate` returns a quote; `POST /api/v4/convert/confirm` executes it at the quoted rate. See [Convert](/platform/convert).
-- **The crypto leg** — deposit addresses, withdrawals, and the refund flow, documented in [Payment Integration](/guides/payment-integration).
-- **Reconciliation** — signed [webhooks](/platform/webhook) plus history polling with client-side identifiers.
-
-## Access and onboarding
-
-Fiat access is the second phase of [Institutional Onboarding](/institutional/onboarding) and is not automatic after KYB approval. Phase 1 (corporate account, KYB, API keys) enables crypto operations; Phase 2 adds EUR/SEPA capabilities through a fiat processing partner review, with source-of-funds documentation. WhiteBIT manages the fiat-partner onboarding on the applicant's behalf.
-
-**How to apply:** email `institutional@whitebit.com` with a description of the service. Include the registered legal entity (name, registration number, jurisdiction), licenses or registrations held, whether the scope is crypto-only or fiat as well, and the countries where the service operates. The full application question list is on the [Partner Solutions](/guides/partner-solutions#how-to-apply) page.
-
-<Note>
-  Fiat deposits and withdrawals operate at the partner's **main account** (institutional fiat access). Per-end-user fiat rails are not a standard shipped capability; confirm any such requirement with WhiteBIT before designing around it.
-</Note>
-
-Five capabilities in this guide carry a dedicated enablement gate:
-
-| Capability | Gate | Contact |
-|-----------|------|---------|
-| Fiat operations (Phase 2) | Institutional onboarding, fiat-partner review | `institutional@whitebit.com` |
-| `fiat-deposit-url` endpoint | Per-account activation | WhiteBIT support, with the API key |
-| `successLink` / `failureLink` redirects | Feature activation and domain registration | WhiteBIT support |
-| Dedicated deposit addresses (`/create-new-address`) | Per-account permission | `support@whitebit.com` |
-| Travel Rule API | Per-account enablement | Account manager or `institutional@whitebit.com` |
-
-## What the account manager confirms
-
-Fee and limit figures are deliberately absent from this guide — each figure is set per individual agreement. During onboarding, the account manager confirms:
-
-- The fee schedule for fiat deposits and withdrawals applicable to the account.
-- Deposit and withdrawal limits, for both fiat and crypto.
-- The enabled currency and provider matrix. At runtime, [Asset Status](/api-reference/market-data/asset-status-list) reports per-currency `can_deposit` / `can_withdraw` flags, and the [Fee](/api-reference/market-data/fee) endpoint lists the payment providers available per fiat asset.
-- Settlement windows and cutoff behavior for the fiat rails in use, including weekends and holidays.
-- The conversion pairs available to the account.
+<Warning>
+  Since December 30, 2024, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT under MiCA. Use USDC or EURI for the crypto leg — see [Regulatory Compliance](/institutional/compliance).
+</Warning>
 
 ## On-ramp flow: fiat in, crypto out
 
@@ -148,11 +110,11 @@ For Go and PHP examples, see [SDKs](/sdks). The signing process is documented in
 Operational rules for the deposit leg:
 
 - **SEPA payment reference.** The `uniqueId` must appear in the SEPA payment-reference field of the bank transfer. If the end user omits or alters it, the deposit may settle unmatched and require manual reconciliation through institutional support — see [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
-- **Redirect links.** `successLink` and `failureLink` require feature activation, and the destination domain must be registered with WhiteBIT support before use. `returnLink` needs no activation.
+- **Redirect links.** `successLink` and `failureLink` require feature activation through WhiteBIT support, which validates the destination domain; `returnLink` needs no activation.
 - **Card flows.** For the VISAMASTER provider, the browser must send the `Referer` header when opening the invoice link; messengers and email clients often strip it — see [Card-provider flows](/guides/payment-integration#card-provider-flows).
 - **Web-only currencies.** The API does not accept GEL or UAH_VISAMASTER deposits; those run through the WhiteBIT web interface.
 
-To complete the on-ramp, convert the credited balance where needed — request a quote via `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. Honor the per-quote expiry returned in the response rather than assuming a fixed window. The convert service routes balances internally; no manual transfers between Main and Trade balances are required. The crypto withdrawal step is documented in [Crypto Withdrawals](/guides/payment-integration#create-a-withdrawal).
+To complete the on-ramp, reach the currency for the crypto withdrawal through Convert where a conversion is needed: request a quote via `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. Honor the per-quote expiry returned in the response rather than assuming a fixed window. The convert service routes balances internally; no manual transfers between Main and Trade balances are required. The conversion pairs available to the account — including whether a fiat balance converts directly — are confirmed with the account manager. The crypto withdrawal step is documented in [Crypto Withdrawals](/guides/payment-integration#create-a-withdrawal); for EEA accounts the crypto withdrawal carries a Travel Rule payload — see [Travel Rule](/concepts/travel-rule).
 
 ## Off-ramp flow: crypto in, fiat out
 
@@ -170,9 +132,9 @@ sequenceDiagram
     Partner->>WhiteBIT: POST /api/v4/main-account/history (reconciliation)
 ```
 
-Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from `support@whitebit.com`. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
+Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from support@whitebit.com. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
 
-For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider. The EUR SEPA IBAN example below uses the `SEPA_BCB_GROUP` provider; that provider value and whether a `bankBic` sub-field is required are confirmed per account and are not documented in the public reference, so verify both with WhiteBIT before integration.
+For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider. The EUR SEPA IBAN example below uses the `SEPA_BCB_GROUP` provider, one of the SEPA/bank-rail providers (`SEPA`, `SEPA_CLEAR_JUNCTION`, `SEPA_BCB_GROUP`, `FINCI`, `ZEN`, `BANKING_CIRCLE`) that requires a top-level `bankBic` field carrying the beneficiary bank's BIC/SWIFT code; the active provider for the account is confirmed via the [Asset Status](/api-reference/market-data/asset-status-list) endpoint or the account manager.
 
 An EUR IBAN transfer (SEPA) request body:
 
@@ -181,6 +143,7 @@ An EUR IBAN transfer (SEPA) request body:
   "ticker": "EUR",
   "amount": "500",
   "address": "DE89370400440532013000",
+  "bankBic": "DEUTDEFF",
   "beneficiary": {
     "firstName": "Firstname",
     "lastName": "Lastname"
@@ -191,13 +154,12 @@ An EUR IBAN transfer (SEPA) request body:
   "nonce": 1594297865000
 }
 ```
-{/* TODO: value gated on SME (SEPA) — confirm the EUR SEPA IBAN withdrawal provider value (SEPA_BCB_GROUP) and whether bankBic is a required beneficiary sub-field for that provider; neither is in the public reference (on-off-ramp-01). */}
 
 - **Partial withdrawals.** `partialEnable: true` raises the maximum limit for fiat withdrawals; the application must then handle the `Partially successful` status (18) and reconcile `requestAmount` against `processedAmount` in the history record.
 - **KYC.** Fiat withdrawals require KYC verification. In exceptional, documented cases the institutional team can arrange a per-account override — see [Fiat withdrawal](/guides/payment-integration#fiat-withdrawal).
 
 <Warning>
-  Withdrawals are irreversible once processed. Validate the destination details and amounts before submitting, and test the flow with minimum amounts first — WhiteBIT offers no public testnet or sandbox.
+  Withdrawals are irreversible once processed. Validate the destination details and amounts before submitting, and test the flow with minimum amounts first — no public testnet or sandbox is available.
 </Warning>
 
 ## Reconciliation and monitoring
@@ -224,38 +186,20 @@ Build handling for each of these before go-live:
 | SEPA deposit arrives without the `uniqueId` payment reference | The transfer cannot be matched to the deposit request automatically | Validate the reference field in the payment UX; unmatched settlements go through manual reconciliation with institutional support |
 | Deposit canceled (status 4 or 9) | The `deposit.canceled` webhook fires; canceled crypto deposits may be refundable | Trigger [`refund-deposit`](/api-reference/account-wallet/refund-deposit) with the transaction UUID; outcomes arrive as `refund.successful` or `refund.failed` |
 | Deposit unconfirmed by the user (status 5) | The transaction waits for manual confirmation on the platform | Notify the account operator; track the status via history polling |
-| Deposit frozen for AML review (status 21) | The record surfaces in the deposit history with the frozen status | Escalate to `institutional@whitebit.com` if the freeze persists |
+| Deposit frozen for AML review (status 21) | The record surfaces in the deposit history with the frozen status | Escalate to institutional@whitebit.com if the freeze persists |
 | Deposit held for Travel Rule (status 27/28) | No webhook fires for Travel Rule transitions; the hold surfaces via history polling | Submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise complete verification on the platform |
 | Partial fiat withdrawal (status 18, with `partialEnable`) | The withdrawal completes partially | Reconcile `requestAmount` against `processedAmount` and surface the remainder to operations |
 | Fiat withdrawal without KYC | The request fails validation with an account-verification error | Complete KYC, or arrange the exception-only override with the institutional team |
 | VISAMASTER invoice link opened without a `Referer` header | The end user lands on the WhiteBIT homepage instead of the payment provider | Test the redirect in the real delivery surface — messengers and email clients strip the header |
 
-## Compliance essentials
-
-<Warning>
-  Since December 30, 2024, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT under MiCA. Use USDC or EURI as alternatives — see [Regulatory Compliance](/institutional/compliance).
-</Warning>
-
-- **Travel Rule, deposits (EEA and Turkey):** inbound crypto deposits are held until Travel Rule verification completes (statuses 27/28). The Travel Rule API is available on request for programmatic originator-data submission.
-- **Travel Rule, withdrawals (EEA):** crypto withdrawals require a structured `travelRule` object (wallet type, beneficiary, and VASP data for hosted wallets); retrieve the VASP list via [`POST /api/v4/travel-rule/vasps`](/api-reference/travel-rule/get-vasps). See [Travel Rule](/concepts/travel-rule) for the submission flow.
-- **Fiat KYC:** fiat withdrawals require KYC verification, subject to the exception-only override described above.
-
-## Support and contacts
-
-- **Onboarding status, limits, and institutional matters:** `institutional@whitebit.com`, or the assigned account manager once onboarded.
-- **Fiat endpoint enablement and access questions:** WhiteBIT support, with the API key included in the request.
-- **Dedicated deposit addresses:** `support@whitebit.com`.
-- **OTC block trading** for large conversions is part of the institutional catalog — see the [Institutional Overview](/institutional/overview).
-- **Self-service:** [help.whitebit.com](https://help.whitebit.com) for platform questions; this portal for API documentation.
-
 ## What's next
 
 <CardGroup cols={3}>
+  <Card title="On/Off-Ramp FAQ" icon="circle-question" href="/guides/on-off-ramp-faq">
+    Activation, SEPA matching, fee semantics, reconciliation, and compliance questions.
+  </Card>
   <Card title="Payment Integration" icon="arrow-right-arrow-left" href="/guides/payment-integration">
     Endpoint-level lifecycle reference: statuses, fees, fiat operations, refunds.
-  </Card>
-  <Card title="Institutional Onboarding" icon="building" href="/institutional/onboarding">
-    The two-phase KYB and fiat access process with the document checklist.
   </Card>
   <Card title="Go-Live Checklist" icon="clipboard-check" href="/best-practices/go-live-checklist">
     Pre-production readiness verification for keys, webhooks, and compliance.

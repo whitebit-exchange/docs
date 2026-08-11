@@ -1075,36 +1075,36 @@ paths:
 
                     ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER [provider](/glossary#provider).
                   example: "203.0.113.42"
+                bankBic:
+                  type: string
+                  description: |
+                    Beneficiary bank's BIC (SWIFT) code, identifying the destination bank for SEPA and other bank-rail [fiat](/glossary#fiat) withdrawals.
+
+                    ⚠️ Required if the fiat [provider](/glossary#provider) is one of: SEPA, SEPA_CLEAR_JUNCTION, SEPA_BCB_GROUP, FINCI, ZEN, BANKING_CIRCLE.
+                  example: "DEUTDEFF"
                 beneficiary:
                   type: object
                   description: |
                     Beneficiary information.
 
-                    ⚠️ Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR.
+                    ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR.
 
-                    Per-field requirements vary by currency and provider. Card-related fields (`cardToken`, `card.*`, `cardTokenSave`, `fingerprintSession`) apply only to card-acquiring rails; bank-related fields (`bank.*`) apply to bank-rail withdrawals; `tin` is required for UAH_IBAN; `phone`, `email`, and `birthDate` are required for VISAMASTER/Mercuryo rails. See `/asset-status-list` for the active provider per currency.
+                    Per-field requirements vary by currency and provider. Card-related fields (`cardToken`, `card.*`, `cardTokenSave`, `fingerprintSession`) apply only to card-acquiring rails; bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for VISAMASTER/Mercuryo rails. See `/asset-status-list` for the active provider per currency.
                   properties:
                     firstName:
                       type: string
                       description: |
                         Beneficiary first name. Max length: 40 symbols, latin letters and special characters.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, USD, EUR
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, USD, EUR
                       example: "Firstname"
                     lastName:
                       type: string
                       description: |
                         Beneficiary last name. Max length: 40 symbols, latin letters and special characters.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, USD, EUR
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, USD, EUR
                       example: "Lastname"
-                    tin:
-                      type: integer
-                      description: |
-                        Beneficiary TAX payer number. Integer, 10 digits.
-
-                        ⚠️ Required if currency is UAH_IBAN.
-                      example: 1000000000
                     phone:
                       type: string
                       description: |
@@ -1343,15 +1343,6 @@ paths:
                   network: "ERC20"
                   request: "{{request}}"
                   nonce: 1594297865000
-              fiat:
-                summary: Fiat withdrawal
-                value:
-                  ticker: "UAH"
-                  amount: "100"
-                  provider: "VISAMASTER"
-                  uniqueId: "24529043"
-                  request: "{{request}}"
-                  nonce: 1594297865000
               fiatUsdVisamaster:
                 summary: Fiat USD/EUR with VISAMASTER (customerIp required)
                 value:
@@ -1363,29 +1354,17 @@ paths:
                   customerIp: "203.0.113.42"
                   request: "{{request}}"
                   nonce: 1594297865000
-              fiatPartial:
-                summary: Fiat with partial enable
-                value:
-                  ticker: "UAH"
-                  amount: "50000"
-                  address: "t6XIpyirkiLP+I++XHWfSeGrn5p38g=="
-                  provider: "VISAMASTER_PAYCORE"
-                  partialEnable: true
-                  uniqueId: "24529045"
-                  request: "{{request}}"
-                  nonce: 1594297865000
               fiatIban:
-                summary: Fiat IBAN currency
+                summary: Fiat IBAN transfer (EUR)
                 value:
-                  ticker: "UAH"
-                  amount: "50000"
-                  address: "UA213223130000026007233566001"
+                  ticker: "EUR"
+                  amount: "500"
+                  address: "DE89370400440532013000"
                   beneficiary:
                     firstName: "Firstname"
                     lastName: "Lastname"
-                    tin: 1000000000
-                  provider: "UAH_IBAN"
-                  uniqueId: "24529045"
+                  provider: "SEPA_BCB_GROUP"
+                  uniqueId: "24529046"
                   request: "{{request}}"
                   nonce: 1594297865000
               fiatVisamaster:
@@ -1401,6 +1380,20 @@ paths:
                     email: "john_doe@email.com"
                   provider: "USD_VISAMASTER"
                   uniqueId: "24529045"
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              fiatSepa:
+                summary: Fiat SEPA / bank-rail (bankBic required)
+                value:
+                  ticker: "EUR"
+                  amount: "100"
+                  address: "DE89370400440532013000"
+                  provider: "SEPA"
+                  bankBic: "DEUTDEFF"
+                  beneficiary:
+                    firstName: "Firstname"
+                    lastName: "Lastname"
+                  uniqueId: "24529046"
                   request: "{{request}}"
                   nonce: 1594297865000
               travelRuleIndividualHosted:
@@ -8179,9 +8172,13 @@ components:
           type: string
           description: "End-customer IP address forwarded to the [fiat](/glossary#fiat) [provider](/glossary#provider) for antifraud checks before the withdrawal is processed. ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER [provider](/glossary#provider)."
           example: "203.0.113.42"
+        bankBic:
+          type: string
+          description: "Beneficiary bank's BIC (SWIFT) code, identifying the destination bank for SEPA and other bank-rail [fiat](/glossary#fiat) withdrawals. ⚠️ Required if the fiat [provider](/glossary#provider) is one of: SEPA, SEPA_CLEAR_JUNCTION, SEPA_BCB_GROUP, FINCI, ZEN, BANKING_CIRCLE."
+          example: "DEUTDEFF"
         beneficiary:
           type: object
-          description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: UAH_IBAN, USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
+          description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
         travelRule:
           type: object
           description: "Travel Rule information data. Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)"

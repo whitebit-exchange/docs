@@ -12,7 +12,7 @@ import { endpointLimits } from '/snippets/concept-data/rate-limits.jsx';
 
 <RegionBaseUrl />
 
-The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, [colocation](/platform/colocation), and a 33-endpoint API subset reachable from inside the matching-engine zone.
+The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, [colocation](/platform/colocation), and a 35-endpoint API subset reachable from inside the matching-engine zone.
 
 ## Market-Making Program overview
 
@@ -51,16 +51,16 @@ Both REST API and WebSocket connections are available via colocation.
 Contact the designated account manager for connection details including base URLs and availability zone placement.
 
 <Warning>
-  Colocation endpoints are a SUBSET of the full WhiteBIT API. Only the 33 endpoints listed below are available via colocation infrastructure. All other API endpoints must be accessed through the standard public API.
+  Colocation endpoints are a SUBSET of the full WhiteBIT API. Only the 35 endpoints listed below are available via colocation infrastructure. All other API endpoints must be accessed through the standard public API.
 </Warning>
 
 See the [Colocation](/platform/colocation) page for additional infrastructure details.
 
 ## Available colocation endpoints
 
-The colocation infrastructure exposes 33 endpoints organized into three categories: spot trading (15), collateral trading for both Margin and Futures (14), and utility (4).
+The colocation infrastructure exposes 35 endpoints organized into three categories: spot trading (17), collateral trading for both Margin and Futures (14), and utility (4).
 
-### Spot trading (15 endpoints)
+### Spot trading (17 endpoints)
 
 | Endpoint | Description |
 |----------|-------------|
@@ -70,6 +70,8 @@ The colocation infrastructure exposes 33 endpoints organized into three categori
 | `POST /api/v4/trade-account/order/history` | Order history |
 | `POST /api/v4/orders` | Active orders list |
 | `POST /api/v4/order/cancel` | Cancel an order |
+| `POST /api/v4/order/cancel/bulk` | Cancel up to 100 orders in one request |
+| `POST /api/v4/order/cancel/all` | Cancel all open orders (optional `market` and `type` scope) |
 | `POST /api/v4/order/new` | Place a limit order |
 | `POST /api/v4/order/bulk` | Place up to 20 limit orders |
 | `POST /api/v4/order/modify` | Modify an existing order |
@@ -296,7 +298,7 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 **Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders cancelled when the timer lapses.
 
-**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is not part of the colocation endpoint subset — call it via the standard public API; the in-zone alternatives are per-order `order/cancel` and the kill-switch. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
+**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is available on colocation as well as through the standard public API. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
 
 <Tabs>
   <Tab title="curl">
