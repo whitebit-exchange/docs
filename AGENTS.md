@@ -34,6 +34,7 @@ their parent skill.
 | Ticket impl plan | `ai/skills/ticket-impl-plan/SKILL.md` | internal — invoked by dev-ticket-pipeline (Phases 3–4) |
 | Doc review pipeline | `ai/skills/doc-review-pipeline/SKILL.md` | **Automatic** — reviewing a doc page; not on quick edits |
 | Humanize review | `ai/skills/humanize-review/SKILL.md` | **Automatic** — Phase 0.6 of doc-review-pipeline for `guides/**`, `institutional/**`, `best-practices/**`, and `products/**`; AI-voice audit, findings only; skip via `--no-humanize` |
+| Writer review | `ai/skills/writer-review/SKILL.md` | **Automatic** — mandatory Phase 0 before doc-review-pipeline; skip only if the user explicitly says "skip writer-review" |
 | Humanize rewrite | `ai/skills/humanize-rewrite/SKILL.md` | **Automatic** — rewrite a guide, institutional, best-practices, or product page to remove AI-voice tells while preserving every style-guide rule |
 | Doc style review | `ai/skills/doc-style-review/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 1–2) |
 | Doc review plan | `ai/skills/doc-review-plan/SKILL.md` | internal — invoked by doc-review-pipeline (Phases 3–4) |
@@ -42,7 +43,7 @@ their parent skill.
 | Task execution | `ai/skills/task-execution/SKILL.md` | internal — invoked by dev-ticket-pipeline and doc-review-pipeline (Phase 5) |
 | Task completion review | `ai/skills/task-completion-review/SKILL.md` | **Automatic** — before committing; invoked by pipelines at Phase 6 |
 | Close-out session | `ai/skills/close-out-session/SKILL.md` | **User-triggered** — composite end-of-session ritual: TCR → autonomous `git add` → commit message. Body forbids auto-invoke; never runs `git commit` (RULES §2.2) |
-| Generate docs from spec | `ai/skills/generate-docs-from-spec/SKILL.md` | **Automatic** — new MDX from spec; not on edits to existing pages |
+| Generate docs from spec | `ai/skills/generate-docs-from-spec/SKILL.md` | **Automatic** — new MDX from a spec, **or** scaffolding a new partner-program funnel (overview→integration→FAQ) from the partner-templates (`guide-pages.md` §11, `RULES §3.6`); not on edits to existing pages |
 | Write commit message | `ai/skills/write-commit-message/SKILL.md` | **Command only** — the sole manually-invoked skill; the model never auto-runs it (RULES §2.2) |
 | Create initiative spec | `ai/skills/create-initiative-spec/SKILL.md` | **Automatic** — multi-phase work (DD-6 threshold) |
 | Cleanup after pipeline | `ai/skills/cleanup-after-pipeline/SKILL.md` | **Automatic** (invocation) — after any pipeline; still confirms before deleting `ai/inputs/` & `ai/outputs/` (audit-trail safeguard) |

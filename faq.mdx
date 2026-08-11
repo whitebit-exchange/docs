@@ -16,7 +16,7 @@ Rate limit 429 errors occur when an endpoint exceeds the rate limit. To resolve:
 - Check the specific rate limit value in the endpoint documentation
 - Implement rate limiting in code
 
-For more details, see the [API v4 overview](/api-reference/market-data/overview). For a dettrategies
+For more details, see the [API v4 overview](/api-reference/market-data/overview).
 </Accordion>
 
 <Accordion title="CORS errors on ticker endpoint">
@@ -34,7 +34,7 @@ For details on nonce requirements, see the [Authentication guide](/api-reference
 </Accordion>
 
 <Accordion title="Lending (Smartplan) endpoint 403 access errors">
-Lending endpoints require B2B partner permissions. This applies to both Fixed (`/api/v4/main-account/smart/`) and Flex (`/api/v4/main-account/smart-flex/`) endpoints. Until access is granted, they return `403` with "You don't have permission to use this endpoint. Please contact support for more details". To gain access:
+Lending endpoints require B2B partner permissions. This applies to both Fixed (`/api/v4/main-account/smart/`) and Flex (`/api/v4/main-account/smart-flex/`) endpoints. Until access is granted, these endpoints return `403` with the message `You don't have permission to use this endpoint. Please contact support for more details`. To gain access:
 
 - Fill the institutional services form at [https://whitebit.com/institutional-services/b2b](https://whitebit.com/institutional-services/b2b)
 - Provide use case details
@@ -70,7 +70,7 @@ For more details, see the [Trades channel documentation](/websocket/market-strea
 </Accordion>
 
 <Accordion title="Server locations and colocation regions">
-WhiteBIT offers colocation across EEA/EMEA and APAC regions. Colocation provides access to a subset of 35 trading endpoints. See [Colocation](/platform/colocation) for infrastructure details and the [Market Maker Guide](/guides/market-maker-guide) for the full endpoint list.
+WhiteBIT offers colocation across EEA/EMEA and APAC regions. Colocation provides access to a subset of 35 trading endpoints. See [Colocation](/platform/colocation) for infrastructure details and the [Market Maker Guide](/guides/market-maker-integration) for the full endpoint list.
 </Accordion>
 </AccordionGroup>
 
@@ -152,7 +152,7 @@ Each market has a minimum order amount (`minAmount`) and minimum order value (`m
 </Accordion>
 
 <Accordion title="Kill-switch for emergency order cancellation">
-The kill-switch automatically cancels all active orders after a configurable timeout. Activate via `POST /api/v4/order/kill-switch` with a `timeout` parameter (in seconds). Use `POST /api/v4/order/kill-switch/status` to check the current state. Designed as a safety mechanism for automated trading strategies. See the [Market Maker Guide](/guides/market-maker-guide) for usage patterns.
+The kill-switch automatically cancels all active orders after a configurable timeout. Activate via `POST /api/v4/order/kill-switch` with a `timeout` parameter (in seconds). Use `POST /api/v4/order/kill-switch/status` to check the current state. Designed as a safety mechanism for automated trading strategies. See the [Market Maker Guide](/guides/market-maker-integration) for usage patterns.
 </Accordion>
 
 <Accordion title="Bulk order limits">
@@ -200,7 +200,7 @@ API keys without IP address binding are automatically deactivated after 14 days 
 <Accordion title="High-frequency trading API optimization">
 Use WebSocket for real-time data, batch requests when possible, implement proper rate limiting, and cache frequently accessed data.
 
-For details, see the [WebSocket API](/websocket/market-streams/overview). For rate limit tiers and endpoint-specific limits, see [Rate Limits](/api-reference/rate-limits). For colocation infrastructure, see the [Market Maker Guide](/guides/market-maker-guide).
+For details, see the [WebSocket API](/websocket/market-streams/overview). For rate limit tiers and endpoint-specific limits, see [Rate Limits](/api-reference/rate-limits). For colocation infrastructure, see the [Market Maker Guide](/guides/market-maker-integration).
 </Accordion>
 
 <Accordion title="API disconnection handling">
@@ -235,7 +235,7 @@ Official SDKs are available for Go, Python, and PHP. Check the [SDKs page](/sdks
 </Accordion>
 
 <Accordion title="API access levels and prerequisites">
-Public endpoints (market data, tickers, orderbook) require no account or authentication. Private endpoints (trading, account management) require API keys — create them in account Settings. Institutional features (colocation, OTC, Broker Program) require [institutional onboarding](/institutional/onboarding). See [First API Call](/guides/first-api-call) for the recommended integration path.
+Public endpoints (market data, tickers, orderbook) require no account or authentication. Private endpoints (trading, account management) require API keys — create these keys in account Settings. Institutional features (colocation, OTC, Broker Program) require [institutional onboarding](/institutional/onboarding). See [First API Call](/guides/first-api-call) for the recommended integration path.
 </Accordion>
 </AccordionGroup>
 
@@ -264,11 +264,11 @@ testing, use minimum order sizes on the live API. See the
 </Accordion>
 
 <Accordion title="Regulatory licenses and certifications">
-WhiteBIT holds licenses in multiple EU jurisdictions and is audited by Hacken for security (ISO 27001, PCI DSS, CCSS). GDPR compliance is maintained for data processing. For specific VASP authorization details and jurisdiction information, contact institutional@whitebit.com. See [Regulatory Compliance](/institutional/compliance).
+WhiteBIT holds licenses in multiple EU jurisdictions and maintains ISO 27001, PCI DSS, and CCSS security certifications, with the CCSS Level 3 assessment conducted by Hacken. GDPR compliance is maintained for data processing. For specific VASP authorization details and jurisdiction information, contact institutional@whitebit.com. See [Regulatory Compliance](/institutional/compliance).
 </Accordion>
 
 <Accordion title="Colocation for low-latency trading">
-Colocation is available across EEA/EMEA and APAC regions. Access is limited to a subset of 35 trading endpoints. See [Colocation](/platform/colocation) for setup details and the [Market Maker Guide](/guides/market-maker-guide) for the full endpoint list.
+Colocation is available across EEA/EMEA and APAC regions. Access is limited to a subset of 35 trading endpoints. See [Colocation](/platform/colocation) for setup details and the [Market Maker Guide](/guides/market-maker-integration) for the full endpoint list.
 </Accordion>
 </AccordionGroup>
 
@@ -284,7 +284,7 @@ Since May 19, 2025, crypto withdrawals from EEA accounts require a `travelRule` 
 </Accordion>
 
 <Accordion title="Security certifications and audits">
-WhiteBIT is audited by Hacken. Certifications include ISO 27001, PCI DSS, and CCSS. GDPR is a regulation (not a certification) — WhiteBIT processes data in accordance with GDPR requirements. For audit reports or verification details, contact institutional@whitebit.com.
+WhiteBIT holds ISO 27001, PCI DSS, and CCSS security certifications, with the CCSS Level 3 assessment conducted by Hacken. GDPR is a regulation (not a certification) — WhiteBIT processes data in accordance with GDPR requirements. For audit reports or verification details, contact institutional@whitebit.com.
 </Accordion>
 </AccordionGroup>
 
@@ -294,7 +294,7 @@ WhiteBIT is audited by Hacken. Certifications include ISO 27001, PCI DSS, and CC
   <Card title="First API Call" icon="rocket" href="/guides/first-api-call">
     First steps for API integration — account setup, API keys, and the first authenticated call.
   </Card>
-  <Card title="Integration Paths" icon="signs-post" href="/guides/integration-paths">
+  <Card title="Partner Solutions" icon="signs-post" href="/guides/partner-solutions">
     Find the recommended integration path for market makers, brokers, bot platforms, wallet backends, payment providers, prop firms, and institutional clients.
   </Card>
 </CardGroup>

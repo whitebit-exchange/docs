@@ -1,7 +1,10 @@
 ---
 title: "Payment Integration"
 description: "Crypto deposits, withdrawals, withdrawals with currency conversion, fiat operations (SEPA and card providers), WhiteBIT Codes, and Express Withdraw payments — status state machines, fee calculation, and webhook reconciliation."
-sidebarTitle: "Payment Integration"
+sidebarTitle: "Integration"
+icon: "code"
+pageType: "integration"
+program: "payments"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
@@ -24,7 +27,7 @@ Before integrating any flow on this page:
 
 ## Use cases
 
-Four scenarios cover the most common partner integrations. Each closes with a link to the tab documenting the endpoints.
+Four scenarios cover the most common partner integrations. Each closes with a link to the section documenting the endpoints.
 
 ### UC1 — Payment provider with per-end-user deposit address
 
@@ -49,7 +52,7 @@ sequenceDiagram
     P->>P: Match by address / uniqueId → credit customer
 ```
 
-See the [Crypto Deposits tab](#deposit-address-generation) for endpoint detail.
+See [Deposit address generation](#deposit-address-generation) for endpoint detail.
 
 ### UC2 — EEA crypto withdrawal with Travel Rule
 
@@ -84,7 +87,7 @@ sequenceDiagram
     end
 ```
 
-See the [Crypto Withdrawals tab](#create-a-withdrawal) for endpoint detail.
+See [Create a withdrawal](#create-a-withdrawal) for endpoint detail.
 
 ### UC3 — Crypto payout with conversion
 
@@ -109,7 +112,7 @@ sequenceDiagram
     W->>P: webhook: withdraw.successful (terminal)
 ```
 
-See the [Withdrawal with Conversion tab](#conversion-in-the-withdrawal-flow) for endpoint detail.
+See [Conversion in the withdrawal flow](#conversion-in-the-withdrawal-flow) for endpoint detail.
 
 ### UC4 — Charge a WhiteBIT user's balance (Express Withdraw)
 
@@ -131,10 +134,11 @@ sequenceDiagram
     W-->>P: Funds credited, token marked used
 ```
 
-See the [Express Withdraw tab](#express-withdraw-payments) for endpoint detail.
+See [Express Withdraw payments](#express-withdraw-payments) for endpoint detail.
 
-<Tabs>
-  <Tab title="Crypto Deposits">
+## Crypto deposits
+
+Generate deposit addresses, track the deposit lifecycle, handle refunds, and clear Travel Rule holds.
 
 ## Deposit address generation
 
@@ -422,8 +426,9 @@ Since May 18, 2025, WhiteBIT places inbound crypto deposits for EEA and Turkey a
 
 See [Regulatory Compliance](/institutional/compliance) for the full Travel Rule reference. See the [Travel Rule help center article](https://help.whitebit.com/hc/en-gb/articles/24093241373341-Travel-Rule-Requirements-Updates-to-Crypto-Withdrawals-Interface-and-API) for the complete requirements.
 
-  </Tab>
-  <Tab title="Crypto Withdrawals">
+## Crypto withdrawals
+
+Submit crypto withdrawals, attach the Travel Rule payload for EEA accounts, and follow the withdrawal state machine and fee model.
 
 ## Create a withdrawal
 
@@ -441,8 +446,9 @@ Two withdrawal endpoints are available:
 </Warning>
 
 <Note>
-  **Internal-transfer routing:** When the destination `address` belongs to another WhiteBIT user, the platform routes the transfer as an internal off-chain transfer rather than an on-chain broadcast. Internal transfers are fee-free; the partner does not pay blockchain fees and the recipient sees the funds immediately. For partner-to-partner or master-to-sub-account settlement, consider [WhiteBIT Codes](#whitebit-codes-overview) for fee-free transfers without requiring the destination address.
+  **Internal-transfer routing:** When the destination `address` belongs to another WhiteBIT user, the platform may route the transfer as an internal off-chain transfer rather than an on-chain broadcast, in which case no blockchain fee applies and the recipient sees the funds immediately. This routing is not guaranteed for every destination — confirm the behavior with WhiteBIT for the specific flow before designing around fee-free instant settlement, or funds may settle on-chain with the standard fee. For deterministic fee-free settlement between known WhiteBIT accounts, use [WhiteBIT Codes](#whitebit-codes-overview) rather than relying on withdrawal auto-routing.
 </Note>
+{/* TODO: confirm with Engineering whether a withdrawal to a WhiteBIT-owned address routes as a fee-free internal transfer, and under what conditions — payment-01. */}
 
 **Required parameters:**
 
@@ -600,18 +606,19 @@ Using /withdraw-pay:  Sender pays  0.5004 BTC,  receiver gets 0.5 BTC
 | `POST /api/v4/main-account/fee` | Available currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
 <Note>
-  For withdrawals that include currency conversion before sending, see the Withdrawal with Conversion tab for the extended endpoint list.
+  For withdrawals that include currency conversion before sending, see [Withdrawal with conversion](#withdrawal-with-conversion) for the extended endpoint list.
 </Note>
 
-  </Tab>
-  <Tab title="Fiat Operations">
+## Fiat operations
+
+Generate fiat deposit invoices and submit fiat withdrawals once institutional fiat access is approved.
 
 ## Prerequisites for fiat operations
 
-Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For broker-managed sub-account fiat scope and constraints, see the [Broker Program guide](/guides/broker-guide).
+Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For broker-managed sub-account fiat scope and constraints, see the [Broker Program guide](/guides/sub-account-integration).
 
 <Warning>
-  Fiat operations require completion of institutional onboarding including KYB (Know Your Business) verification and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until WhiteBIT explicitly approves fiat access.
+  Fiat operations require completion of institutional onboarding including business verification (KYB) and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until WhiteBIT explicitly approves fiat access.
 </Warning>
 
 The onboarding process has two phases: Phase 1 (crypto access via KYB) and Phase 2 (fiat access via fiat processing partner review). Fiat access is **not** automatic after KYB approval — a separate review process with the fiat processing partner is required.
@@ -622,7 +629,7 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
 
 <Steps>
   <Step title="Generate a deposit invoice">
-    Call `POST /api/v4/main-account/fiat-deposit-url` with the fiat ticker, amount, provider, and a partner-side `uniqueId`. The response contains a `url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-address) for the full specification.
+    Call `POST /api/v4/main-account/fiat-deposit-url` with the fiat ticker, amount, provider, and a partner-side `uniqueId`. The response contains a `url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-url) for the full specification.
   </Step>
   <Step title="Present the URL to the end user">
     The end user opens the returned URL and completes the payment with the provider or bank.
@@ -687,7 +694,7 @@ The endpoint returns a URL that the end user opens to complete the fiat deposit.
   <Tab title="Python">
     ```python
     # Generate a fiat deposit invoice (provider value from Asset Status).
-    # The send_request() helper is defined in the Crypto Deposits tab.
+    # The send_request() helper is defined in the Crypto deposits section.
     response = send_request("/api/v4/main-account/fiat-deposit-url", {
         "ticker": "EUR",
         "provider": "PROVIDER",
@@ -758,14 +765,15 @@ See [Institutional Onboarding](/institutional/onboarding) for the full fiat onbo
 
 | Endpoint | Purpose | API Reference |
 |----------|---------|---------------|
-| `POST /api/v4/main-account/fiat-deposit-url` | Generate a fiat deposit invoice | [Fiat Deposit URL](/api-reference/account-wallet/get-fiat-deposit-address) |
+| `POST /api/v4/main-account/fiat-deposit-url` | Generate a fiat deposit invoice | [Fiat Deposit URL](/api-reference/account-wallet/get-fiat-deposit-url) |
 | `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a fiat withdrawal | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/fee` | Available currencies, providers, and limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
-  </Tab>
-  <Tab title="WhiteBIT Codes">
+## WhiteBIT Codes
+
+Move balance fee-free between WhiteBIT accounts by creating and applying codes.
 
 ## WhiteBIT Codes overview
 
@@ -889,8 +897,9 @@ The code lifecycle has two steps: create and apply.
   </Tab>
 </Tabs>
 
-  </Tab>
-  <Tab title="Express Withdraw">
+## Express Withdraw
+
+Charge a WhiteBIT user's balance in one confirmation with a single-use payment token.
 
 ## Express Withdraw payments
 
@@ -924,7 +933,7 @@ Create the token as close as possible to the moment of presenting it — the 90-
 
 ```python
 # Create an Express Withdraw payment token (single-use, valid 90 seconds).
-# The send_request() helper is defined in the Crypto Deposits tab.
+# The send_request() helper is defined in the Crypto deposits section.
 response = send_request("/api/v4/main-account/express-withdraw/token", {
     "ticker": "USDT",
     "amount": "25.50",
@@ -953,8 +962,9 @@ See the [endpoint page](/api-reference/account-wallet/create-express-withdraw-to
 - **Payer eligibility:** at confirmation the user must have withdrawals enabled, pass the standard withdrawal restriction checks, and hold a sufficient balance.
 - **Rate limits:** standard private-API limits apply — see [Rate Limits](/api-reference/rate-limits); the endpoint has no endpoint-specific limit.
 
-  </Tab>
-  <Tab title="Withdrawal with Conversion">
+## Withdrawal with conversion
+
+Convert the source currency before withdrawing, using the Convert service.
 
 ## Conversion in the withdrawal flow
 
@@ -987,7 +997,7 @@ When the currency held in Main balance differs from the currency the end user ne
     The `withdraw.successful` webhook fires when the withdrawal completes. See [Webhooks](/platform/webhook) for setup and signature verification.
   </Step>
   <Step title="Verify via history">
-    Query the history endpoint to confirm the withdrawal status. See the Crypto Withdrawals tab for the full status state machine.
+    Query the history endpoint to confirm the withdrawal status. See [Withdrawal status state machine](#withdrawal-status-state-machine) for the full status state machine.
 
     **Endpoint:** `POST /api/v4/main-account/history` — [API Reference](/api-reference/account-wallet/get-deposit-withdraw-history)
   </Step>
@@ -1035,7 +1045,7 @@ sequenceDiagram
     WB->>Partner: withdraw.successful webhook
 ```
 
-The critical-path call is the estimate — every later step reuses identifiers from its response. The Crypto Deposits tab defines the `send_request()` helper used below.
+The critical-path call is the estimate — every later step reuses identifiers from its response. The Crypto deposits section defines the `send_request()` helper used below.
 
 <Tabs>
   <Tab title="Python">
@@ -1086,9 +1096,6 @@ For Go and PHP examples, see [SDKs](/sdks).
 | Webhooks (`withdraw.successful`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/fee` | Currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
-
-  </Tab>
-</Tabs>
 
 ## Webhook reconciliation
 
@@ -1141,7 +1148,7 @@ For balance endpoints, WebSocket account streams, and polling-interval guidance 
   <Card title="Security Best Practices" icon="shield-halved" href="/best-practices/security">
     API key management, IP whitelisting, and secret storage.
   </Card>
-  <Card title="On/Off-Ramp Guide" icon="arrow-right-arrow-left" href="/guides/on-off-ramp-guide">
+  <Card title="On/Off-Ramp Guide" icon="arrow-right-arrow-left" href="/guides/on-off-ramp-integration">
     Journey-level guide for corporate fiat ↔ crypto clients: onboarding gates, EUR/SEPA flows, and failure paths.
   </Card>
 </CardGroup>

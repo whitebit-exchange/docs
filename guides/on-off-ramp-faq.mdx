@@ -3,19 +3,21 @@ title: "On/Off-Ramp FAQ"
 sidebarTitle: "FAQ"
 description: "Common questions on the WhiteBIT on/off-ramp integration: endpoint activation, SEPA deposit matching, withdrawal fee semantics, reconciliation, identifier casing, and EEA compliance."
 icon: "circle-question"
+pageType: "program-faq"
+program: "on-off-ramp"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Answers to common questions on the WhiteBIT on/off-ramp integration. For the flows and code, see the [Developer guide](/guides/on-off-ramp-guide); for access, onboarding, and positioning, see the [Overview](/guides/on-off-ramp-overview).
+Answers to common questions on the WhiteBIT on/off-ramp integration. For the flows and code, see the [Integration guide](/guides/on-off-ramp-integration); for access, onboarding, and positioning, see the [Overview](/guides/on-off-ramp-overview).
 
 ## Access and activation
 
 <AccordionGroup>
 <Accordion title="Fiat deposit URL permission errors">
-The `POST /api/v4/main-account/fiat-deposit-url` endpoint requires per-account activation and is not enabled by default. Contact WhiteBIT support and provide the API key to request access. Fiat operations also depend on completed Phase 2 institutional onboarding — see [Access and onboarding](/guides/on-off-ramp-overview#access-and-onboarding).
+The `POST /api/v4/main-account/fiat-deposit-url` endpoint requires per-account activation and is not enabled by default. Contact WhiteBIT support and provide the API key to request access. Fiat operations also depend on completed Phase 2 institutional onboarding — see [How to get started](/guides/on-off-ramp-overview#how-to-get-started).
 </Accordion>
 
 <Accordion title="KYC requirement for fiat withdrawals">
@@ -55,7 +57,7 @@ Both endpoints submit a withdrawal but differ in fee handling. `POST /api/v4/mai
 </Accordion>
 
 <Accordion title="Partial fiat withdrawals (status 18)">
-Setting `partialEnable: true` raises the maximum limit for fiat withdrawals. The withdrawal can then complete partially, surfacing as the `Partially successful` status (18). The application must reconcile `requestAmount` against `processedAmount` in the history record and surface the remainder to operations. See the [failure and exception paths](/guides/on-off-ramp-guide#failure-and-exception-paths).
+Setting `partialEnable: true` raises the maximum limit for fiat withdrawals. The withdrawal can then complete partially, surfacing as the `Partially successful` status (18). The application must reconcile `requestAmount` against `processedAmount` in the history record and surface the remainder to operations. See the [failure and exception paths](/guides/on-off-ramp-integration#failure-and-exception-paths).
 </Accordion>
 </AccordionGroup>
 
@@ -126,7 +128,7 @@ Under MiCA, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in U
   <Card title="Overview" icon="arrow-right-arrow-left" href="/guides/on-off-ramp-overview">
     Positioning, the two-phase access model, enablement gates, and how to apply.
   </Card>
-  <Card title="Developer guide" icon="code" href="/guides/on-off-ramp-guide">
+  <Card title="Integration" icon="code" href="/guides/on-off-ramp-integration">
     The on-ramp and off-ramp flows, code, reconciliation, and failure paths.
   </Card>
   <Card title="Payment Integration" icon="arrow-right-arrow-left" href="/guides/payment-integration">
