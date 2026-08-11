@@ -2,8 +2,9 @@
 title: "Fast API Key via OAuth"
 sidebarTitle: "Fast API Key integration"
 description: "Integration guide for partner platforms that issue WhiteBIT API keys on behalf of users through the OAuth API key flow."
+icon: "key"
 pageType: "integration"
-program: "brokers"
+program: "app-builders"
 ---
 
 The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an authenticated WhiteBIT user without the user manually copying credentials between sites. The user authorizes the partner on the WhiteBIT consent screen, the WhiteBIT platform issues a partner-scoped API key, and the partner backend reads the API secret once through a Bearer-authenticated endpoint and persists it. The flow uses Authorization Code with PKCE (S256) and a 4-hour access token without refresh. See the [Fast API Key](/glossary#fast-api-key) glossary entry for the short definition.
@@ -170,7 +171,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 
 ## What's next
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="OAuth endpoint overview" icon="key" href="/api-reference/oauth/usage/overview">
     Full list of OAuth endpoints in the API Reference, with required scopes per endpoint.
   </Card>
@@ -179,6 +180,9 @@ Two application-level error codes can surface during key creation on the WhiteBI
   </Card>
   <Card title="First API Call" icon="play" href="/guides/first-api-call">
     Sign a `POST /api/v4/main-account/balance` request with HMAC-SHA512 and read the response.
+  </Card>
+  <Card title="App Builders FAQ" icon="circle-question" href="/guides/app-builders-faq">
+    Key types, rate limits, revocation, onboarding, and compliance questions.
   </Card>
 </CardGroup>
 
