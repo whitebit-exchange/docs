@@ -91,7 +91,7 @@ The MCP server documented on this page enables **trading** via AI clients. For d
         What is the current BTC_USDT price?
         ```
 
-        If the WhiteBIT MCP server is connected, the AI client will call the tool and return live data.
+        If the WhiteBIT MCP server is connected, the AI client calls the tool and returns live data.
       </Step>
     </Steps>
   </Tab>
@@ -229,7 +229,7 @@ Generate API keys at [whitebit.com](https://whitebit.com) → **Profile** → **
 Never paste API keys directly into the AI conversation. Pass credentials as tool parameters at the start of a session. The server uses keys only to sign outgoing WhiteBIT API requests — keys are not stored, logged, or cached.
 </Warning>
 
-**How credentials work:** API keys are passed as parameters in each tool call. The AI client sends the credentials on behalf of the account holder when provided at the start of the conversation.
+**Credential handling:** API keys are passed as parameters in each tool call. The AI client sends the credentials on behalf of the account holder when provided at the start of the conversation.
 
 **Public market data tools** (market info, tickers, order book) query public endpoints. Pass `"public"` for both `api_key` and `secret_key` when only public data is needed.
 
