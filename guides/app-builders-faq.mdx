@@ -1,0 +1,95 @@
+---
+title: "App Builders FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about building over customers' own WhiteBIT accounts: key types and permissions, rate limits, revocation, onboarding, and compliance."
+icon: "circle-question"
+pageType: "program-faq"
+program: "app-builders"
+---
+
+Answers to common questions about building trading and portfolio apps over customers' own WhiteBIT accounts (Model B).
+
+## Scope and delivery
+
+### Delivery model
+
+App Builders build over customers' own WhiteBIT accounts: each end user keeps a personal account and grants the partner a scoped API key through the [Fast API Key](/guides/fast-api-key-integration) flow. WhiteBIT holds custody and performs KYC. See the [App Builders overview](/guides/app-builders-overview).
+
+### App Builders and the Broker Program
+
+App Builders is WhiteBIT's Model B — end users keep personal accounts. The Broker Program is Model A — the partner operates a dedicated sub-account per end customer instead. See [Integration models](/concepts/integration-models).
+
+## Copy trading
+
+### Copy-trading availability
+
+Copy trading is a partner use case built on the Fast API Key flow. Access is approval-gated — not available by default and subject to an internal review; attribution and commercial terms are confirmed with WhiteBIT at enrollment. See the [Copy Trading guide](/guides/copy-trading).
+
+### Order execution in copy trading
+
+The partner places orders with each follower's OAuth-issued key, and execution happens inside the follower's own account; the account acted on is determined by which key signs the request. See [Copy Trading architecture](/guides/copy-trading#architecture).
+
+## Integration
+
+### Key types and permissions
+
+A key's type sets its maximum permissions — Read-only, Trade, or Custom (the only type that can include external withdrawal, gated on WhiteBIT approval and partner KYB). The end user picks permissions within that maximum on the consent screen; the partner cannot influence the choice. See [Key permissions](/guides/fast-api-key-integration#key-permissions).
+
+### Rate limits with many end users behind one backend
+
+REST rate limits are enforced per IP address, not per end user. A backend serving many users from one IP shares a single request budget across every user's signed requests. Pace requests and handle `429` with backoff — see [Rate limits](/api-reference/rate-limits).
+
+### Key revocation
+
+An OAuth-issued key is revoked when the end user changes the account password, the account is blocked or frozen, or the key has no API activity for 14 days. Signed requests then fail; re-run the consent flow to reissue. See [Lifecycle and revocation](/guides/fast-api-key-integration#lifecycle-and-revocation).
+
+### Access token lifetime
+
+The OAuth access token used for key management lasts 4 hours with no refresh — obtain a new one through a fresh consent when it expires. See the [Integration flow](/guides/fast-api-key-integration#integration-flow).
+
+### Test environment availability
+
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum order sizes, or activate Demo Tokens (`DBTC`/`DUSDT`) for risk-free spot practice. See the [Go-Live Checklist](/best-practices/go-live-checklist).
+
+## Onboarding and access
+
+### Partner enrollment
+
+Partner enrollment is approval-gated. Apply via `institutional@whitebit.com` with the intended use cases; a partner agreement and KYB review are part of onboarding before a `client_id` is issued. See [Prerequisites](/guides/fast-api-key-integration#prerequisites).
+
+### Attribution and fee-share
+
+Attribution and any fee-share for apps built on customers' own accounts are arranged separately from the account relationship, since the end user is a direct WhiteBIT customer. See [Program terms](/guides/app-builders-overview#program-terms).
+
+## Compliance
+
+### Withdrawal permission and MFA
+
+Step-up MFA is enforced after consent for every Fast API Key creation, regardless of which permissions were selected. If the end user selects withdrawal permission, the consent screen adds an extra confirmation step. KYC, AML, and fraud monitoring apply on every call through the end user's own account status.
+
+### Regional restrictions
+
+The OAuth API key endpoints are available on the global server (`https://whitebit.com`) only. For EEA end users, MiCA restricts USDT deposits, withdrawals, and WhiteBIT Codes — USDC and EURI are the documented alternatives. See [Regulatory Compliance](/institutional/compliance).
+
+## Support
+
+### Support contacts
+
+Partner enrollment and attribution questions go to `institutional@whitebit.com`. Platform questions are answered at [help.whitebit.com](https://help.whitebit.com), and API documentation is on docs.whitebit.com.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="mobile-screen" href="/guides/app-builders-overview">
+    What App Builders can build, who it is for, and how to get started.
+  </Card>
+  <Card title="Fast API Key integration" icon="key" href="/guides/fast-api-key-integration">
+    The OAuth API key flow for acting on customers' own accounts.
+  </Card>
+  <Card title="Copy trading" icon="copy" href="/guides/copy-trading">
+    Mirror a lead trader's orders into followers' own accounts.
+  </Card>
+  <Card title="Partner FAQ" icon="circle-question" href="/guides/partner-faq">
+    Cross-cutting answers shared across programs — KYB, sandbox, fees, and rate limits.
+  </Card>
+</CardGroup>

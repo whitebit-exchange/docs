@@ -1,0 +1,66 @@
+---
+title: "Payments & Fiat FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about WhiteBIT payments and fiat: access and enablement, crypto and fiat flows, SEPA, Travel Rule, and reconciliation."
+icon: "circle-question"
+pageType: "program-faq"
+program: "payments"
+---
+
+Common questions about the WhiteBIT Payments & Fiat program.
+
+## Access and enablement
+
+### Access to fiat operations
+
+Fiat deposits and withdrawals require completed [institutional onboarding](/institutional/onboarding) with approved fiat access — a separate second phase that is not automatic after KYB. See the [On/Off-Ramp overview](/guides/on-off-ramp-overview#how-to-get-started).
+
+### Per-account activations
+
+Four capabilities are enabled per account rather than by default — the fiat deposit invoice endpoint, dedicated per-user deposit addresses, Express Withdraw, and Travel Rule API access. Request these capabilities through the account manager or `institutional@whitebit.com`. See the [enablement gates](/guides/on-off-ramp-overview#how-to-get-started).
+
+## Crypto flows
+
+### Persistent versus per-user deposit addresses
+
+A persistent address suits single-wallet and treasury setups; a fresh address per end customer suits payment providers that reconcile by address. See [Choosing between the two endpoints](/guides/payment-integration#unique-address-per-user).
+
+### Charging a WhiteBIT user off-chain
+
+Express Withdraw charges a specific amount from a WhiteBIT user's balance in one confirmation, settling as an instant off-chain transfer into the partner's Main balance. See [Express Withdraw payments](/guides/payment-integration#express-withdraw-payments).
+
+## Fiat and SEPA
+
+### SEPA payment reference
+
+The `uniqueId` submitted with the fiat deposit request must appear in the SEPA payment-reference field so the incoming settlement matches the original request. See [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
+
+### SEPA deposit provider and bank details
+
+The deposit-side SEPA provider for EUR fiat deposits and whether a `bankBic` sub-field is required are confirmed per account and are not documented in the public reference, so verify both with WhiteBIT during onboarding. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration) for the fiat deposit flow.
+
+## Compliance
+
+### Travel Rule for EEA and Turkey
+
+Inbound crypto deposits for EEA and Turkey accounts are held until Travel Rule verification completes, and crypto withdrawals from EEA accounts carry a Travel Rule payload. See [Travel Rule](/concepts/travel-rule).
+
+## Reconciliation
+
+### Matching deposits and withdrawals
+
+Reconciliation is webhook-driven with history polling as a fallback, deduplicated on the `uniqueId` carried in both paths. See [Webhook reconciliation](/guides/payment-integration#webhook-reconciliation).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="circle-info" href="/guides/payments-overview">
+    What the Payments & Fiat program provides and who it is for.
+  </Card>
+  <Card title="Integration" icon="code" href="/guides/payment-integration">
+    Deposits, withdrawals, conversion, WhiteBIT Codes, and Express Withdraw.
+  </Card>
+  <Card title="Partner FAQ" icon="circle-question" href="/guides/partner-faq">
+    Cross-cutting answers shared across programs — KYB, sandbox, fees, and rate limits.
+  </Card>
+</CardGroup>

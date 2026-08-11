@@ -1,7 +1,10 @@
 ---
-title: "On/Off-Ramp integration"
+title: "On/Off-Ramp Integration Guide"
 description: "Technical integration for corporate on/off-ramp clients: the fiat EUR/SEPA and crypto flows in both directions, the conversion leg, code snippets, reconciliation, and the failure paths to handle before go-live."
-sidebarTitle: "Developer guide"
+sidebarTitle: "Integration"
+icon: "code"
+pageType: "integration"
+program: "on-off-ramp"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
@@ -13,6 +16,12 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 </Note>
 
 All fiat operations run at the partner's main account, over v4 endpoints, in both directions: fiat in to crypto out, and crypto back to EUR. Each direction pairs a fiat leg with a conversion step and a crypto leg.
+
+## Prerequisites
+
+- **Completed institutional onboarding with approved fiat access** — a separate, non-automatic phase after KYB; see [How to get started](/guides/on-off-ramp-overview#how-to-get-started) on the overview page.
+- **Per-account enablement gates** — the fiat deposit invoice endpoint, dedicated deposit addresses, and Express Withdraw are enabled per account; confirm each with the account manager.
+- **API access** — [HMAC-signed requests](/api-reference/authentication) on the main account.
 
 <Warning>
   Since December 30, 2024, EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT under MiCA. Use USDC or EURI for the crypto leg — see [Regulatory Compliance](/institutional/compliance).
@@ -126,7 +135,7 @@ sequenceDiagram
 
 Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from support@whitebit.com. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
 
-For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider.
+For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider. The EUR SEPA IBAN example below uses the `SEPA_BCB_GROUP` provider, one of the SEPA/bank-rail providers (`SEPA`, `SEPA_CLEAR_JUNCTION`, `SEPA_BCB_GROUP`, `FINCI`, `ZEN`, `BANKING_CIRCLE`) that requires a top-level `bankBic` field carrying the beneficiary bank's BIC/SWIFT code; the active provider for the account is confirmed via the [Asset Status](/api-reference/market-data/asset-status-list) endpoint or the account manager.
 
 An EUR IBAN transfer (SEPA) request body:
 
@@ -135,6 +144,7 @@ An EUR IBAN transfer (SEPA) request body:
   "ticker": "EUR",
   "amount": "500",
   "address": "DE89370400440532013000",
+  "bankBic": "DEUTDEFF",
   "beneficiary": {
     "firstName": "Firstname",
     "lastName": "Lastname"

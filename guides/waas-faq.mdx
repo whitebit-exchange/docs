@@ -1,0 +1,91 @@
+---
+title: "Wallet-as-a-Service FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about WhiteBIT Wallet-as-a-Service: scope and delivery, integration models, onboarding and access, integration, and compliance."
+icon: "circle-question"
+pageType: "program-faq"
+program: "waas"
+---
+
+Answers to common questions about WhiteBIT Wallet-as-a-Service (WaaS).
+
+## Scope and delivery
+
+### Delivery model
+
+WaaS puts WhiteBIT behind the partner's own product as the exchange, custody, and settlement backend — a wallet and payments building block, not a full white-label exchange. See the [WaaS overview](/guides/waas-overview).
+
+### WaaS and Crypto-as-a-Service
+
+WaaS is the wallet and deposit-address building block; Crypto-as-a-Service is the full white-label exchange offering, and it uses the WaaS building block for end-customer wallets. See [Crypto-as-a-Service](/guides/caas-overview).
+
+## Integration models
+
+### Choosing a model
+
+Three models are available — managed sub-accounts, attribution, and sub-accounts with KYC reliance — split by who holds the end-user account and who performs KYC. See [Choose an integration model](/guides/waas-overview#choose-an-integration-model).
+
+### KYC reliance eligibility
+
+KYC reliance is gated: it requires a supervised, AML-obligated entity and an individual WhiteBIT Compliance assessment. See the [eligibility conditions](/guides/waas-integration#kyc-reliance-eligibility).
+
+### Pooled account
+
+A single pooled (omnibus) account for all end users is not offered, because pooled custody conflicts with client-fund segregation and Travel Rule requirements. See [why not a pooled account](/concepts/integration-models#why-not-a-pooled-account).
+
+## Onboarding and access
+
+### Onboarding phases
+
+Institutional onboarding has two phases: Phase 1 grants crypto operations access after KYB; optional Phase 2 adds EUR/SEPA fiat access. See [Institutional Onboarding](/institutional/onboarding).
+
+### Per-user deposit address enablement
+
+Per-user deposit addresses (`create-new-address`) are disabled by default. Request enablement through the account manager or `institutional@whitebit.com`. See the [Developer guide](/guides/waas-integration#prerequisites).
+
+### Crypto deposit enablement
+
+Crypto deposits are disabled by default on institutional accounts and cannot be enabled through the API. See [crypto deposit enablement](/guides/caas-faq#crypto-deposit-enablement).
+
+## Integration
+
+### Reconciliation approach
+
+Webhooks are the primary reconciliation channel; polling transaction history is a required fallback, since webhook delivery is retried but not replayed. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
+
+### Fiat operations scope
+
+Fiat deposit and withdrawal operate at the partner's master-account level, not per end user. Per-end-user fiat rails are not a standard shipped capability. See the [Developer guide](/guides/waas-integration).
+
+### Test environment availability
+
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts and check per-asset minimums via [Asset Status](/api-reference/market-data/asset-status-list); the WhiteBIT Codes flow in [WaaS Recipes](/guides/waas-recipes) is a low-risk way to try a real signed call.
+
+## Compliance
+
+### MiCA and Travel Rule for EEA end users
+
+For EEA users, MiCA restricts some stablecoin operations, and the Travel Rule governs EEA and Turkey transfers; both affect the assets and flows available to those end users. See [Regulatory Compliance](/institutional/compliance) and [Travel Rule](/concepts/travel-rule).
+
+## Support
+
+### Support contacts
+
+The assigned account manager is the primary contact. Programs and onboarding go to `institutional@whitebit.com`. Platform questions are answered at [help.whitebit.com](https://help.whitebit.com), and API documentation is on docs.whitebit.com.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="wallet" href="/guides/waas-overview">
+    What WaaS provides, the integration models, and how to apply.
+  </Card>
+  <Card title="Developer guide" icon="code" href="/guides/waas-integration">
+    The technical integration: models, payment flows, compliance, and testing.
+  </Card>
+  <Card title="WaaS Recipes" icon="sparkles" href="/guides/waas-recipes">
+    Runnable examples with a starter repo.
+  </Card>
+  <Card title="Partner FAQ" icon="circle-question" href="/guides/partner-faq">
+    Cross-cutting answers shared across programs — KYB, sandbox, fees, and rate limits.
+  </Card>
+</CardGroup>

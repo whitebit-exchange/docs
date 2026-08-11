@@ -2,9 +2,13 @@
 title: "Crypto-as-a-Service integration"
 sidebarTitle: "Integration"
 description: "How a CaaS integration is assembled from WhiteBIT's documented API building blocks."
+icon: "code"
+pageType: "integration"
+program: "caas"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import TravelRuleNote from '/snippets/travel-rule-note.mdx';
 
 <Note>
 **For developers.** This page routes each CaaS capability to the guide that documents it. For what
@@ -17,6 +21,12 @@ products. It does not restate the schemas — each linked guide carries the endp
 detail.
 
 <RegionBaseUrl />
+
+## Prerequisites
+
+- **A CaaS engagement scoped with WhiteBIT** — see the [CaaS overview](/guides/caas-overview) for what the model delivers and the path to launch.
+- **Architecture alignment** — the instance, branding, and asset scope agreed during onboarding (see [Architecture alignment during onboarding](#architecture-alignment-during-onboarding)).
+- **API access** — [HMAC-signed requests](/api-reference/authentication); each capability's endpoint and field detail lives in the linked product guide.
 
 ## Integration building blocks
 
@@ -45,13 +55,13 @@ secrets outside application code. See [Authentication](/api-reference/authentica
 - **Deposit addresses.** Generate a unique address per end user with
   `POST /api/v4/main-account/create-new-address`; incoming funds are reconciled by webhook. See the
   [Payment Integration guide](/guides/payment-integration) and the
-  [Wallet-as-a-Service developer guide](/guides/waas-guide).
+  [Wallet-as-a-Service developer guide](/guides/waas-integration).
 - **Withdrawals.** Fee-inclusive (`/withdraw`) and fee-on-top (`/withdraw-pay`) variants, plus
   withdrawal after conversion using the Convert service — request a quote, confirm at the quoted
   rate, then withdraw in the destination currency. See
   [Payment Integration](/guides/payment-integration) and [Convert](/platform/convert).
 - **Fiat rails (EUR/SEPA).** Available after Phase 2 onboarding — API-generated deposit invoices and
-  SEPA withdrawals. See the [On/Off-Ramp guide](/guides/on-off-ramp-guide).
+  SEPA withdrawals. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration).
 - **WhiteBIT Codes.** Fee-free internal crypto transfers between WhiteBIT accounts, useful for
   settlement flows. See [WhiteBIT Codes](/platform/whitebit-codes).
 - **Crypto Lending.** Fixed and Flex lending endpoints are restricted to B2B partners and require
@@ -59,14 +69,11 @@ secrets outside application code. See [Authentication](/api-reference/authentica
   [institutional services form](https://whitebit.com/institutional-services/b2b). See
   [Crypto Lending](/products/lending/overview).
 
-<Note>
-  **Travel Rule affects deposits and withdrawals for EEA and Turkey accounts** — the primary CaaS
-  segments (banks, EMIs, fintechs). Crypto withdrawals from those accounts carry a `travelRule`
-  object with beneficiary data, and inbound deposits are held until beneficiary verification
-  completes (statuses 27 and 28). The Travel Rule API for programmatic verification is enabled per
-  account via `institutional@whitebit.com`. See [Travel Rule](/concepts/travel-rule) and
-  [Regulatory Compliance](/institutional/compliance).
-</Note>
+Travel Rule affects deposits and withdrawals for EEA and Turkey accounts — the primary CaaS
+segments (banks, EMIs, fintechs). The Travel Rule API for programmatic verification is enabled per
+account via institutional@whitebit.com; see [Regulatory Compliance](/institutional/compliance).
+
+<TravelRuleNote />
 
 ### Account architecture
 
@@ -75,9 +82,9 @@ secrets outside application code. See [Authentication](/api-reference/authentica
   main account and its sub-accounts. See [Sub-Accounts](/products/sub-accounts/overview).
 - **Fast API Key via OAuth.** For flows where end users hold personal WhiteBIT accounts, a partner
   can issue user-scoped API keys through the OAuth API key flow. New partner integrations use this
-  flow. See [Fast API Key via OAuth](/guides/fast-api-key-via-oauth) and the
+  flow. See [Fast API Key via OAuth](/guides/fast-api-key-integration) and the
   [OAuth overview](/platform/oauth/overview).
-- **Trading and conversion.** Spot markets across 750+ pairs, and the Convert service for instant
+- **Trading and conversion.** Spot markets across 800+ pairs, and the Convert service for instant
   conversion at a quoted rate without placing orders on the order book. See
   [Convert](/platform/convert).
 
