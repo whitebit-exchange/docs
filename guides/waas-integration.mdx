@@ -27,13 +27,9 @@ start for each and the flows the models share.
 
 ## Where to start per model
 
-| Model | Start here |
-|---|---|
-| Managed sub-accounts | [Broker Program](/guides/sub-account-integration) + [Sub-Accounts](/products/sub-accounts/overview) |
-| Attribution (own account + OAuth) | [Fast API Key via OAuth](/guides/fast-api-key-integration) |
-| Sub-accounts with KYC reliance | [Broker Program](/guides/sub-account-integration) + [Institutional Onboarding](/institutional/onboarding) |
-
-The KYC-reliance model has specific eligibility requirements — see [KYC reliance eligibility](#kyc-reliance-eligibility) below.
+- **Managed sub-accounts.** WhiteBIT creates a dedicated sub-account per end user under the partner's master account and performs KYC on each one. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [Broker Program](/guides/sub-account-integration) guide for the full walkthrough — eligibility, per-customer API keys, and fee-share reconciliation.
+- **Attribution (own account + OAuth).** Each end user keeps a personal WhiteBIT account and grants the partner a scoped API key through the consent screen. Build against [Fast API Key via OAuth](/guides/fast-api-key-integration) for the authorization flow, key issuance, and permission scopes.
+- **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed model, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. Build with the same [Broker Program](/guides/sub-account-integration) guide; complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
 
 Commercial terms for the program:
 
