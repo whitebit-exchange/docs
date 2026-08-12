@@ -54,7 +54,11 @@ The Collateral Trading API now returns one aggregated profit-and-loss record per
 ## RPI maker fee premiums on Query Market Fees
 **New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**
 
-The Query Market Fees response now returns the RPI maker fee premium — an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` covers spot and margin markets; `futures_rpi_maker_fee_premium` covers futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. Both fields return `null` when the RPI order mode is not enabled for the account or when no premium is configured.
+<Note>
+Coming soon: these fields are not yet returned by the endpoint.
+</Note>
+
+Once live, the Query Market Fees response will return the RPI maker fee premium, an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` will cover spot and margin markets; `futures_rpi_maker_fee_premium` will cover futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. Both fields return `null` when the RPI order mode is not enabled for the account or when no premium is configured.
 
 <CardGroup cols={2}>
   <Card title="Query market fees" href="/api-reference/spot-trading/query-market-fee" icon="percent" horizontal/>
@@ -131,11 +135,7 @@ The `travelRule` object on `POST /api/v4/main-account/withdraw` now uses a struc
 ## TradFi Futures markets on Market Info
 **New `tradfiFutures` market type and `isTradFiFutures` flag on `GET /api/v4/public/markets`**
 
-<Note>
-Coming soon: TradFi futures are not yet returned by the endpoint.
-</Note>
-
-Once live, `GET /api/v4/public/markets` will return traditional-finance (TradFi) futures markets — futures contracts on traditional financial assets such as equities (for example, `AAPL_USD`). A TradFi market will carry `type: tradfiFutures` together with `isTradFiFutures: true`. Availability is region-gated: markets the account is not eligible to trade are omitted from the response entirely and do not appear under any other market type.
+`GET /api/v4/public/markets` returns traditional-finance (TradFi) futures markets, futures contracts on traditional financial assets such as equities (for example, `AAPL_USD`). A TradFi market carries `type: tradfiFutures` together with `isTradFiFutures: true`. Availability is region-gated: markets the account is not eligible to trade are omitted from the response entirely and do not appear under any other market type.
 
 <CardGroup cols={2}>
   <Card title="Market Info" href="/api-reference/market-data/market-info" icon="chart-line" horizontal/>
