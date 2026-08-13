@@ -12,9 +12,9 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 Coming soon: this field is not yet returned by the endpoint.
 </Note>
 
-Each futures market entry will carry `mark_price` — the fair value of the perpetual contract, derived from the underlying index price and the futures basis. Mark price, not `last_price`, is what a liquidation is evaluated against, so reading it lets an integration reproduce the distance to liquidation the platform itself measures instead of approximating it from the order book. The value is a decimal string from the latest premium index snapshot and is an empty string while no fresh snapshot is available for the market.
+Each futures market entry will carry `mark_price` — the fair value of the perpetual contract, derived from the underlying index price and the futures basis. Mark price, not `last_price`, is what a liquidation is evaluated against, so reading it lets an integration reproduce the distance to liquidation the platform itself measures instead of approximating it from the order book. The value is a decimal string taken from the latest premium index snapshot. While no fresh snapshot is available for the market, the field is returned as an empty string instead.
 
-The same release repoints `index_price` and `funding_rate` to that premium index source. Field names and the decimal-string format are unchanged, so no integration change is required. `index_price` now carries the index the contract actually tracks, falling back to the last traded price of the corresponding spot market while the index is unavailable.
+The same release repoints `index_price` and `funding_rate` to that premium index source. Field names and the decimal-string format are unchanged, so no integration change is required. `index_price` now carries the index the contract actually tracks; while the index is unavailable it falls back to the last traded price of the corresponding spot market, then to the last traded price of the futures market itself, and returns `"0"` when neither has traded.
 
 <CardGroup cols={2}>
   <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
