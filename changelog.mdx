@@ -4,6 +4,24 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="August 13, 2026">
+## Mark price on futures markets list
+**New `mark_price` field on `GET /api/v4/public/futures`**
+
+<Note>
+Coming soon: this field is not yet returned by the endpoint.
+</Note>
+
+Each futures market entry will carry `mark_price` — the fair value of the perpetual contract, derived from the underlying index price and the futures basis. Mark price, not `last_price`, is what liquidation and auto-deleveraging are evaluated against, so reading it lets an integration reproduce the distance to liquidation the platform itself measures instead of approximating it from the order book. The value is a decimal string from the latest premium index snapshot and is an empty string while no fresh snapshot is available for the market.
+
+The same release repoints `index_price` and `funding_rate` to that premium index source. Field names and the decimal-string format are unchanged, so no integration change is required. `index_price` now carries the index the contract actually tracks, falling back to the last traded price of the corresponding spot market while the index is unavailable.
+
+<CardGroup cols={2}>
+  <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
+  <Card title="Auto-deleveraging" href="/concepts/auto-deleveraging" icon="scale-unbalanced" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="July 30, 2026">
 ## bankBic parameter for SEPA and bank-rail fiat withdrawals
 **New `bankBic` request parameter on `POST /api/v4/main-account/withdraw` and `POST /api/v4/main-account/withdraw-pay`**
