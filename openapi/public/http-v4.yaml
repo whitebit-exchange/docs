@@ -823,7 +823,7 @@ paths:
       description: |
         The endpoint returns detailed information for all available futures markets. Use the response to read current pricing, open interest, funding rates, and leverage bracket configuration. Each entry includes the predicted next funding rate, settlement timestamps, and maximum allowed position sizes per leverage level.
 
-        Coming soon: the `mark_price` field is not yet returned by the endpoint. The same release repoints `index_price` and `funding_rate` to the premium index source that already drives liquidation and auto-deleveraging; field names and the decimal-string format are unchanged.
+        Coming soon: the `mark_price` field is not yet returned by the endpoint. The same release repoints `index_price` and `funding_rate` to the premium index source that already drives liquidation; field names and the decimal-string format are unchanged.
 
         <Note>
         The API caches the response for 1 second
@@ -1527,17 +1527,18 @@ components:
           type: string
           description: "Coming soon: this field is not yet returned by the endpoint. Fair value
             of the perpetual contract, derived from the underlying index price and the futures
-            basis. Mark price — not `last_price` — is what liquidation and auto-deleveraging
-            are evaluated against, so a temporary wick in the order book does not by itself
-            trigger a liquidation. Point-in-time value from the latest premium index snapshot;
-            returns an empty string while no fresh snapshot is available for the market."
+            basis. Mark price — not `last_price` — is what a liquidation is evaluated against,
+            so a temporary wick in the order book does not by itself trigger one. Point-in-time
+            value from the latest premium index snapshot; returns an empty string while no
+            fresh snapshot is available for the market."
           example: "24012.75"
         index_price:
           type: string
           description: "Price of the underlying index the contract tracks, taken from the same
-            premium index snapshot as `mark_price`. Falls back to the last traded price of the
-            corresponding spot market, and then of the futures market itself, while the index
-            is unavailable."
+            premium index snapshot as `mark_price`. While the index is unavailable the field
+            falls back to the last traded price of the corresponding spot market, then to the
+            last traded price of the futures market itself, and returns `\"0\"` when neither
+            has traded."
           example: "24019.25"
         index_name:
           type: string
