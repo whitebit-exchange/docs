@@ -633,7 +633,7 @@ The lifecycle, mapped to the sections above:
 
 1. **Center the grid** — fetch the market's `last_price` from [`GET /api/v4/public/ticker`](/api-reference/market-data/market-activity) and snap to the grid spacing.
 2. **Arm the kill-switch first** — activate the timer and start the [heartbeat refresh loop](#heartbeat-refresh-loop) before any order exists, so a crash mid-startup still cleans up.
-3. **Clean slate** — cancel leftovers from a previous run with `POST /api/v4/order/cancel/all` scoped to the market. The call removes every open spot order on the market, including manually placed ones.
+3. **Clean slate** — cancel leftovers from a previous run with `POST /api/v4/order/cancel/all` scoped to the market. The call removes every open order on the market regardless of type, including manually placed ones.
 4. **Place the grid** — buy levels below center, sell levels above, batched through the [bulk endpoint](#bulk-orders) in groups of 20. Track `orderId → {side, price, level}` in a local dict (`grid_orders` below).
 5. **Monitor and replace** — subscribe to the [account streams](#websocket-fill-monitoring); each fully executed grid order triggers an opposite order one level away.
 6. **Recover** — on disconnect, [reconnect with backoff](#reconnection-with-exponential-backoff), re-authorize, [reconcile](#state-reconciliation) against `POST /api/v4/orders` (a grid order missing from the server filled or was canceled during the gap), then re-subscribe.
@@ -670,7 +670,7 @@ async def handle_message(data):
 </Note>
 
 <Warning>
-  Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), and add proper logging. The startup `order/cancel/all` call removes every open spot order on the configured market — including orders placed manually — so run the bot on a dedicated account or sub-account.
+  Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), and add proper logging. The startup `order/cancel/all` call removes every open order on the configured market regardless of type, including orders placed manually, so run the bot on a dedicated account or sub-account.
 </Warning>
 
 ## What's next
