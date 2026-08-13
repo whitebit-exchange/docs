@@ -313,25 +313,25 @@ try {
 }
 ```
 
-## Example: Broker Implementation
+## Example: Account-operator implementation
 
-For the full Broker Program integration guide — program enrollment, sub-account setup,
-fee share model, and revenue monitoring — see [Broker Guide](/guides/sub-account-integration).
+For the full Embedded Trading integration guide — program enrollment, sub-account setup,
+fee share model, and revenue monitoring — see [Embedded Trading integration](/guides/sub-account-integration).
 
-<Card title="Broker Implementation Guide">
+<Card title="Account-operator implementation">
 
 
 **ClientOrderId Structure**
 
 Format:
 
-`   brk-{clientId}-{orderType}-{purpose}-{timestamp}   `
+`   acct-{clientId}-{orderType}-{purpose}-{timestamp}   `
 
-Example: `brk-ind123-limit-spot-1678234567`
+Example: `acct-ind123-limit-spot-1678234567`
 
 **Components:**
 
-- `brk`: Broker identifier prefix
+- `acct`: Account-operator prefix
 - `clientId`: Internal client identifier
 - `orderType`: Order type (market/limit)
 - `purpose`: Trading purpose/strategy
@@ -339,15 +339,15 @@ Example: `brk-ind123-limit-spot-1678234567`
 </Card>
 <CardGroup>
   <Card title="Individual Clients">
-    `brk-ind123-market-spot-1678234567`
+    `acct-ind123-market-spot-1678234567`
   </Card>
 
   <Card title="Corporate Clients">
-    `brk-corp789-limit-hedge-1678234567`
+    `acct-corp789-limit-hedge-1678234567`
   </Card>
 
   <Card title="Managed Portfolios">
-    `brk-port555-market-dca-1678234567`
+    `acct-port555-market-dca-1678234567`
   </Card>
 </CardGroup>
 
@@ -355,18 +355,18 @@ Example: `brk-ind123-limit-spot-1678234567`
 <CardGroup>
 <Card title="Spot Trading">
 
-`brk-ind123-market-spot-1678234567`
+`acct-ind123-market-spot-1678234567`
 </Card>
 <Card title="DCA Strategy">
 
-`brk-port555-market-dca-1678234567`
+`acct-port555-market-dca-1678234567`
 </Card>
 <Card title="Grid Trading">
 
-`brk-ind123-limit-grid-1678234567`
+`acct-ind123-limit-grid-1678234567`
 </Card>
 <Card title="Portfolio Rebalancing">
-`brk-port555-limit-rebal-1678234567`
+`acct-port555-limit-rebal-1678234567`
 </Card>
 </CardGroup>
 ### API Usage Example
@@ -378,51 +378,51 @@ const createClientOrder = {
   side: "buy",
   amount: "0.01",
   price: "40000",
-  clientOrderId: "brk-ind123-limit-spot-1678234567"
+  clientOrderId: "acct-ind123-limit-spot-1678234567"
 };
 
 // Query client's active orders
 const queryClientOrders = {
   market: "BTC_USDT",
-  clientOrderId: "brk-ind123-limit-spot-1678234567"
+  clientOrderId: "acct-ind123-limit-spot-1678234567"
 };
 
 // Cancel client's order using clientOrderId
 const cancelClientOrder = {
   market: "BTC_USDT",
-  clientOrderId: "brk-ind123-limit-spot-1678234567"
+  clientOrderId: "acct-ind123-limit-spot-1678234567"
 };
 
 // Get historical data for client orders
 const getClientOrderHistory = {
   market: "BTC_USDT",
-  clientOrderId: "brk-ind123-limit-spot-1678234567",
+  clientOrderId: "acct-ind123-limit-spot-1678234567",
   limit: 50,
   offset: 0
 };
 ```
 
-**This structured approach allows brokers to:**
+**This structured approach lets an account operator:**
 
 - Track orders for multiple clients
 - Identify order types and purposes
 - Maintain unique identifiers
 - Query and manage orders efficiently
 </Card>
-### Order Management for Brokers
+### Order management for account operators
 
 **Client Order Management**
 
 #### Cancelling Client Orders
 
-Brokers can efficiently cancel orders for any client using the structured clientOrderId:
+An account operator can efficiently cancel orders for any client using the structured clientOrderId:
 
 ```javascript
 // Function to cancel a client's order
 async function cancelClientOrder(clientId, orderPurpose, orderId) {
   const cancelRequest = {
     market: "BTC_USDT",
-    clientOrderId: `brk-${clientId}-limit-${orderPurpose}-${orderId}`
+    clientOrderId: `acct-${clientId}-limit-${orderPurpose}-${orderId}`
   };
 
   try {
@@ -446,19 +446,19 @@ The [Query Order History endpoint](/api-reference/spot-trading/query-executed-or
 // Exact lookup of one client order (single-order mode)
 const lookupClientOrder = {
   market: "BTC_USDT",
-  clientOrderId: "brk-ind123-limit-spot-1678234567"
+  clientOrderId: "acct-ind123-limit-spot-1678234567"
 };
 ```
 
 For reporting across many client orders, retrieve history in list mode — filtered by `market`, `startDate`, and `endDate` (Unix seconds) — and parse the structured identifiers client-side, as shown below.
 
-### Broker Analytics and Reporting
+### Analytics and reporting
 
-With structured clientOrderId patterns, brokers can reconstruct per-client reporting from order history without a separate order database — each ID segment maps to a report dimension:
+With structured clientOrderId patterns, an account operator can reconstruct per-client reporting from order history without a separate order database — each ID segment maps to a report dimension:
 
 | ID segment | Encodes | Analytics use |
 |------------|---------|---------------|
-| `brk` | Broker prefix | Separates broker flow from other orders |
+| `acct` | Account-operator prefix | Separates operator flow from other orders |
 | `clientId` | Internal client identifier | Groups orders and volume per client |
 | `orderType` | Order type (market/limit) | Order-type mix per client |
 | `purpose` | Trading purpose/strategy (spot, dca, grid, rebal) | Order count and volume per strategy |
@@ -468,11 +468,11 @@ The critical path is the parser — split the ID and validate its shape. Aggrega
 
 ```javascript
 // Parse clientOrderId back into its metadata segments
-// Format: brk-{clientId}-{orderType}-{purpose}-{timestamp}
+// Format: acct-{clientId}-{orderType}-{purpose}-{timestamp}
 function parseClientOrderId(clientOrderId) {
   const parts = clientOrderId.split('-');
-  if (parts.length !== 5 || parts[0] !== 'brk') {
-    throw new Error('Invalid broker clientOrderId format');
+  if (parts.length !== 5 || parts[0] !== 'acct') {
+    throw new Error('Invalid account-operator clientOrderId format');
   }
   return {
     clientId: parts[1],

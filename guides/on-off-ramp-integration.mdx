@@ -47,11 +47,12 @@ sequenceDiagram
   The `fiat-deposit-url` endpoint works on demand. Contact WhiteBIT support and provide the API key to get access to the functionality. Without activation, the endpoint returns a permission error.
 </Note>
 
-Generate a deposit invoice with a client-side `uniqueId` (any string up to 255 characters). The `ticker` must be a [fiat](/glossary#fiat) currency with `can_deposit: true`, and the `provider` value comes from the Asset Status response — see the [provider](/glossary#provider) glossary entry. A `customer` block is required for USD or EUR with the VISAMASTER provider:
+Generate a deposit invoice with a client-side `uniqueId` (any string up to 255 characters). The `ticker` must be a [fiat](/glossary#fiat) currency with `can_deposit: true`, and the `provider` value comes from the Asset Status response — see the [provider](/glossary#provider) glossary entry:
 
 <Tabs>
   <Tab title="curl">
     ```bash
+    # Generate a fiat deposit invoice (provider value from Asset Status)
     curl -X POST "https://whitebit.com/api/v4/main-account/fiat-deposit-url" \
       -H "Content-Type: application/json" \
       -H "X-TXC-APIKEY: YOUR_API_KEY" \
@@ -59,17 +60,9 @@ Generate a deposit invoice with a client-side `uniqueId` (any string up to 255 c
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
       -d '{
         "ticker": "EUR",
-        "provider": "VISAMASTER",
+        "provider": "PROVIDER",
         "amount": "100",
         "uniqueId": "deposit-2026-000123",
-        "customer": {
-          "firstName": "John",
-          "lastName": "Doe",
-          "email": "john_doe@email.com",
-          "birthDate": "1990-01-01",
-          "address": {"line1": "Martinez Campos 37", "city": "Madrid",
-                      "zipCode": "28010", "countryCode": "ES"}
-        },
         "request": "/api/v4/main-account/fiat-deposit-url",
         "nonce": 1594297865000
       }'
@@ -81,15 +74,12 @@ Generate a deposit invoice with a client-side `uniqueId` (any string up to 255 c
 
     API_KEY, API_SECRET = "YOUR_API_KEY", "YOUR_SECRET"
     endpoint = "/api/v4/main-account/fiat-deposit-url"
+    # provider value from the Asset Status response
     body = json.dumps({
         "ticker": "EUR",
-        "provider": "VISAMASTER",
+        "provider": "PROVIDER",
         "amount": "100",
         "uniqueId": "deposit-2026-000123",
-        "customer": {"firstName": "John", "lastName": "Doe",
-                     "email": "john_doe@email.com", "birthDate": "1990-01-01",
-                     "address": {"line1": "Martinez Campos 37", "city": "Madrid",
-                                 "zipCode": "28010", "countryCode": "ES"}},
         "request": endpoint,
         "nonce": int(time.time() * 1000),
     })
@@ -112,8 +102,8 @@ Operational rules for the deposit leg:
 
 - **SEPA payment reference.** The `uniqueId` must appear in the SEPA payment-reference field of the bank transfer. If the end user omits or alters it, the deposit may settle unmatched and require manual reconciliation through institutional support — see [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
 - **Redirect links.** `successLink` and `failureLink` require feature activation through WhiteBIT support, which validates the destination domain; `returnLink` needs no activation.
-- **Card flows.** For the VISAMASTER provider, the browser must send the `Referer` header when opening the invoice link; messengers and email clients often strip it — see [Card-provider flows](/guides/payment-integration#card-provider-flows).
-- **Web-only currencies.** The API does not accept GEL or UAH_VISAMASTER deposits; those run through the WhiteBIT web interface.
+- **Card flows.** Card funding (the VISAMASTER provider) requires a `customer` billing block, and the browser must send the `Referer` header when opening the invoice link — messengers and email clients often strip it. See [Card-provider flows](/guides/payment-integration#card-provider-flows).
+- **Web-only currencies.** Not every fiat ticker is depositable via API; confirm `can_deposit` in the [Asset Status](/api-reference/market-data/asset-status-list) response before generating an invoice, and route unsupported tickers through the WhiteBIT web interface.
 
 To complete the on-ramp, reach the currency for the crypto withdrawal through Convert where a conversion is needed: request a quote via `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. Honor the per-quote expiry returned in the response rather than assuming a fixed window. The convert service routes balances internally; no manual transfers between Main and Trade balances are required. The conversion pairs available to the account — including whether a fiat balance converts directly — are confirmed with the account manager. The crypto withdrawal step is documented in [Crypto Withdrawals](/guides/payment-integration#create-a-withdrawal); for EEA accounts the crypto withdrawal carries a Travel Rule payload — see [Travel Rule](/concepts/travel-rule).
 
