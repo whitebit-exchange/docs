@@ -615,7 +615,7 @@ Generate fiat deposit invoices and submit fiat withdrawals once institutional fi
 
 ## Prerequisites for fiat operations
 
-Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For broker-managed sub-account fiat scope and constraints, see the [Broker Program guide](/guides/sub-account-integration).
+Fiat deposit and withdrawal operations require completion of institutional onboarding with approved fiat access. **This flow applies to the institutional partner's master account.** For sub-account fiat scope and constraints under Embedded Trading, see the [Embedded Trading integration guide](/guides/sub-account-integration).
 
 <Warning>
   Fiat operations require completion of institutional onboarding including business verification (KYB) and fiat provider approval. See [Institutional Onboarding](/institutional/onboarding) for the full two-phase process. Fiat endpoints are not available until WhiteBIT explicitly approves fiat access.
@@ -667,7 +667,7 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
 | `expiresAfter` | integer | Invoice expiration in seconds. Maximum 86400 (24 hours). Accepted only for `provider: "VISAMASTER"` and `provider: "CHECKOUT"`. |
 
 <Note>
-  The API does not accept the `GEL` and `UAH_VISAMASTER` tickers. To deposit those currencies, use the WhiteBIT web interface.
+  Not every fiat ticker is depositable via API. Check `can_deposit` in the [Asset Status](/api-reference/market-data/asset-status-list) response before generating an invoice; tickers without API deposit support run through the WhiteBIT web interface.
 </Note>
 
 The endpoint returns a URL that the end user opens to complete the fiat deposit. Take the `provider` value for the currency from the [Asset Status](/api-reference/market-data/asset-status-list) response.

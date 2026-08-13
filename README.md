@@ -21,7 +21,7 @@ portal is built with [Mintlify](https://mintlify.com).
   Codes, Convert, Fireblocks.
 - **Product overviews & quickstarts** — Spot, Margin, Futures, Lending,
   Sub-Accounts, Mining Pool, Market Data.
-- **Partner Solutions** — partner funnels (Brokers, Market Makers, Payments &
+- **Partner Solutions** — partner funnels (Embedded Trading, Market Makers, Payments &
   Fiat, Wallets & White-label, App Builders, Funds & Institutions), plus a Get
   started track (first API call, WebSocket quickstart).
 - **Recipes** — task guides: trading bot, price dashboard, copy trading,
@@ -32,7 +32,7 @@ portal is built with [Mintlify](https://mintlify.com).
 
 - **Individual developers** building bots, scripts, and integrations against
   WhiteBIT.
-- **Institutional & B2B clients** — market makers, brokers, payment
+- **Institutional & B2B clients** — market makers, trading platforms, payment
   integrators, Fireblocks users.
 - **Partners and evaluators** assessing API capabilities before committing to
   integration work.
