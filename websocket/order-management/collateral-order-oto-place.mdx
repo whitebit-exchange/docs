@@ -1,0 +1,74 @@
+---
+title: Place OTO group
+tag: "WSS"
+description: "Place an entry order that arms its own exit on a margin or futures market with collateral_order_oto_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderOtoPlaceParams,
+  exCollateralOrderOtoPlaceRequest,
+  exCollateralOrderOtoPlaceResponse,
+} from '/snippets/ws-data/collateral_order_oto_place.jsx'
+
+<RegionBaseUrl />
+
+Place a One-Triggers-Other group: an entry order that, once it fills, automatically arms its own exit — a take-profit, a stop-loss, or an OCO pair of both. The exit needs no second request and survives a disconnect, which makes this the safer pattern for an unattended entry.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place OTO group
+
+### Request parameters
+
+The parameter shape breaks the pattern used by every other order method. The entry order is a nested object under `trigger_order`, carrying the full parameter set of whichever placement method `trigger_order_type` names. The exit is described by two bare prices at the top level rather than by nested order objects.
+
+<WsSchemaTable fields={collateralOrderOtoPlaceParams} />
+
+The `conditional_order_type` value decides which exit prices are required.
+
+| Exit type | Arms | Required prices |
+|-----------|------|-----------------|
+| `margin_market_oco` | Take-profit and stop-loss | Both `take_profit` and `stop_loss` |
+| `margin_take_profit`, `margin_limit` | Take-profit only | `take_profit` only — sending `stop_loss` is rejected |
+| `margin_stop_loss`, `margin_stop_limit` | Stop-loss only | `stop_loss` only — sending `take_profit` is rejected |
+
+Exit prices are relative to the entry. For a buy entry the take-profit sits above and the stop-loss below; for a sell entry the reverse. Both are checked against the price bands around the entry price, and a price outside those bands returns error `250`.
+
+<WsMessageExample data={exCollateralOrderOtoPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderOtoPlaceResponse} />
+
+The `result` object carries `type` `"oto"`, the group `id`, the echoed `conditional_order_type`, the two exit prices as `take_profit_price` and `stop_loss_price`, and the `trigger_order` as a full order object. See the [order object reference](/websocket/order-management/overview#order-object).
+
+<Warning>The exit legs do not exist yet. Until the entry fills, the exit legs hold no order ids and appear only as `take_profit_price` and `stop_loss_price`. Nothing can be cancelled or modified per leg during that window — cancel the whole group through [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) using the group id.</Warning>
+
+<Note>Two constraints on the entry. The `rpi` flag is not allowed inside `trigger_order`, and `margin_market_oco` is not a valid `trigger_order_type` — it works only as an exit.</Note>
+
+## Update frequency
+
+Client-initiated. The server answers each `collateral_order_oto_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the entry filling and the exit legs being created.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

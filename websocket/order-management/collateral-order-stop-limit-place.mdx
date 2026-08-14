@@ -1,0 +1,62 @@
+---
+title: Place margin stop-limit order
+tag: "WSS"
+description: "Place a margin or futures stop-limit order over the WhiteBIT WebSocket connection with collateral_order_stop_limit_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderStopLimitPlaceParams,
+  exCollateralOrderStopLimitPlaceRequest,
+  exCollateralOrderStopLimitPlaceResponse,
+} from '/snippets/ws-data/collateral_order_stop_limit_place.jsx'
+
+<RegionBaseUrl />
+
+Park a margin or futures limit order outside the order book. When the market reaches `activation_price`, the engine places a margin limit order at `price`. Until then the order holds `status` `OPEN` with `activated` `0`.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place margin stop-limit order
+
+### Request parameters
+
+<WsSchemaTable fields={collateralOrderStopLimitPlaceParams} />
+
+The trigger direction is not a parameter. The engine derives `activation_condition` by comparing `activation_price` to the market at placement: above the market yields `gte`, below yields `lte`.
+
+<WsMessageExample data={exCollateralOrderStopLimitPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderStopLimitPlaceResponse} />
+
+The `result` object adds the activation fields and the position fields to the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A margin stop-limit order reports `type` `9`.
+
+<Note>Cancel this order with [`order_cancel`](/websocket/order-management/order-cancel) by order id. The [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) method applies to OCO and OTO groups only, and returns error `6` for a plain stop order. A stop-limit order also cannot be modified once it belongs to a group — see [`order_modify`](/websocket/order-management/order-modify).</Note>
+
+## Update frequency
+
+Client-initiated. The server answers each `collateral_order_stop_limit_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the trigger firing.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

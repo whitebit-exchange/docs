@@ -1,0 +1,160 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Cancel All Orders
+  version: 1.0.0
+  description: |
+    Withdraw every order the authorized user holds on one market, filtered by trading type.
+
+    One market per call — no all-markets form exists, so flattening everything means looping
+    over the markets in use.
+
+    The result is an empty object. No list of cancelled orders comes back, and nothing matched
+    is not an error.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 1
+      message: order types must be an array
+      description: "The `type` parameter is not an array."
+    - code: 1
+      message: at least one order type should be specified
+      description: "The `type` array is empty."
+    - code: 1
+      message: invalid or duplicate order type
+      description: "The `type` array holds an unknown value or a repeated entry."
+    - code: 1
+      message: market does not exist
+      description: "The market name is unknown."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Bulk order cancellation channel
+    messages:
+      orderCancelAllRequest:
+        $ref: '#/components/messages/orderCancelAllRequest'
+      orderCancelAllResponse:
+        $ref: '#/components/messages/orderCancelAllResponse'
+
+operations:
+  sendOrderCancelAllRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderCancelAllRequest'
+
+  receiveOrderCancelAllResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderCancelAllResponse'
+
+components:
+  messages:
+    orderCancelAllRequest:
+      name: OrderCancelAllRequest
+      title: Cancel all orders
+      summary: Cancel every order on one market by trading type
+      payload:
+        $ref: '#/components/schemas/OrderCancelAllRequest'
+      examples:
+        - name: orderCancelAllTypes
+          summary: |
+            Cancel all types on one market with parameters:
+            - params[0]: object with market and the type array
+          payload:
+            id: 500085
+            method: order_cancel_all
+            params:
+              - market: ETH_USDT
+                type:
+                  - spot
+                  - futures
+                  - margin
+
+    orderCancelAllResponse:
+      name: OrderCancelAllResponse
+      title: Cancel All Orders Response
+      summary: Empty result object
+      payload:
+        $ref: '#/components/schemas/OrderCancelAllResponse'
+      examples:
+        - name: orderCancelAllAccepted
+          summary: Request accepted; the result carries no payload
+          payload:
+            id: 500085
+            result: {}
+            error: null
+
+  schemas:
+    OrderCancelAllRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: order_cancel_all
+          description: "Method name. Fixed value: `order_cancel_all`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/OrderCancelAllParams'
+          description: Array containing exactly one parameter object
+
+    OrderCancelAllParams:
+      type: object
+      required:
+        - market
+        - type
+      properties:
+        market:
+          type: string
+          description: "Market to clear. One market per call."
+          example: ETH_USDT
+        type:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items:
+            type: string
+            enum: ["spot", "margin", "futures"]
+          description: "Which order kinds to cancel — any non-empty combination of `spot`, `margin`, and `futures`. An empty array or a duplicate entry returns error `1`. Passing all three is safe on any market, because types that do not apply are simply not matched."
+
+    OrderCancelAllResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Empty object. No list of cancelled orders is returned, and nothing matched is not an error — re-query pending orders to confirm the outcome."
+        error:
+          type: "null"
+          description: Error object (null on success)

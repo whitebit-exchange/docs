@@ -1,0 +1,198 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Place Margin Take-Profit and Stop-Loss
+  version: 1.0.0
+  description: |
+    Attach a take-profit and a stop-loss to an existing margin or futures position.
+
+    The pair binds to the position rather than to an order. It carries no size of its own and
+    always exits whatever is open, which is why the legs come back with `amount` `"0"`.
+
+    Neither `side` nor `amount` is a parameter — the engine derives both from the position.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 104
+      message: margin position not exists
+      description: "No open position exists on the market to attach the pair to."
+    - code: 1
+      message: one of activations prices should be set
+      description: "Neither `take_profit_activation_price` nor `stop_loss_activation_price` was supplied. At least one is required."
+    - code: 105
+      message: wrong activation price for take profit
+      description: "The take-profit trigger sits on the wrong side of the market for the open position."
+    - code: 106
+      message: wrong activation price for stop loss
+      description: "The stop-loss trigger sits on the wrong side of the market for the open position."
+    - code: 151
+      message: wrong activation price for stop loss
+      description: "The stop-loss trigger sits on the wrong side of the current price."
+    - code: 153
+      message: can not place take profit
+      description: "A leg could not be created. Error `152` covers the same condition for the stop-loss leg."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Margin and futures position take-profit and stop-loss channel
+    messages:
+      collateralOrderTpslPlaceRequest:
+        $ref: '#/components/messages/collateralOrderTpslPlaceRequest'
+      collateralOrderTpslPlaceResponse:
+        $ref: '#/components/messages/collateralOrderTpslPlaceResponse'
+
+operations:
+  sendCollateralOrderTpslPlaceRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/collateralOrderTpslPlaceRequest'
+
+  receiveCollateralOrderTpslPlaceResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/collateralOrderTpslPlaceResponse'
+
+components:
+  messages:
+    collateralOrderTpslPlaceRequest:
+      name: CollateralOrderTpslPlaceRequest
+      title: Attach take-profit and stop-loss
+      summary: Attach a take-profit and stop-loss pair to an open position
+      payload:
+        $ref: '#/components/schemas/CollateralOrderTpslPlaceRequest'
+      examples:
+        - name: collateralOrderTpslPlaceLong
+          summary: |
+            Protect a long position with parameters:
+            - params[0]: object with the market and both activation prices
+          payload:
+            id: 500018
+            method: collateral_order_tpsl_place
+            params:
+              - market: BTC_PERP
+                stop_loss_activation_price: "63388.57"
+                take_profit_activation_price: "65319.18"
+                stp: "no"
+
+    collateralOrderTpslPlaceResponse:
+      name: CollateralOrderTpslPlaceResponse
+      title: Attach Take-Profit And Stop-Loss Response
+      summary: Two independent legs, no group id
+      payload:
+        $ref: '#/components/schemas/CollateralOrderTpslPlaceResponse'
+      examples:
+        - name: collateralOrderTpslPlaceAccepted
+          summary: Both legs armed on a long position; side 1 sells to close
+          payload:
+            id: 500018
+            result:
+              take_profit:
+                id: 2423735898205
+                market: BTC_PERP
+                type: 10
+                side: 1
+                reduce_only: false
+                position_side: BOTH
+                ctime: 1786452693.229424
+                activation_price: "65319.18"
+                activation_condition: gte
+                activated: 0
+                price: "0"
+                amount: "0"
+                left: "0"
+                status: OPEN
+              stop_loss:
+                id: 2423735898206
+                market: BTC_PERP
+                type: 10
+                side: 1
+                activation_price: "63388.57"
+                activation_condition: lte
+                activated: 0
+                price: "0"
+                amount: "0"
+                left: "0"
+                status: OPEN
+            error: null
+
+  schemas:
+    CollateralOrderTpslPlaceRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: collateral_order_tpsl_place
+          description: "Method name. Fixed value: `collateral_order_tpsl_place`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/CollateralOrderTpslPlaceParams'
+          description: Array containing exactly one parameter object
+
+    CollateralOrderTpslPlaceParams:
+      type: object
+      required:
+        - market
+      properties:
+        market:
+          type: string
+          description: "Market the position is open on. Without an open position the call fails with error `104`."
+          example: BTC_PERP
+        take_profit_activation_price:
+          type: string
+          description: "Trigger for the take-profit leg. On a long position it sits above the market. At least one of the two activation prices must be present."
+          example: "65319.18"
+        stop_loss_activation_price:
+          type: string
+          description: "Trigger for the stop-loss leg. On a long position it sits below the market. At least one of the two activation prices must be present."
+          example: "63388.57"
+        position_side:
+          type: string
+          enum: ["BOTH", "LONG", "SHORT"]
+          description: "Which position leg to protect in hedge mode; futures markets only. `BOTH` in one-way mode."
+        stp:
+          type: string
+          enum: ["no", "co", "cn", "cb"]
+          description: "Self-trade prevention mode: `no`=No Prevention, `co`=Cancel Oldest, `cn`=Cancel Newest, `cb`=Cancel Both. Defaults to `no` when omitted."
+
+    CollateralOrderTpslPlaceResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Object holding the `take_profit` and `stop_loss` legs. Unlike OCO and OTO there is no group id — the legs are independent orders, each reporting `type` `10` with `amount` `\"0\"`, meaning whatever the position holds at trigger time."
+        error:
+          type: "null"
+          description: Error object (null on success)

@@ -1,0 +1,191 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Place Spot Market Order
+  version: 1.0.0
+  description: |
+    Place a spot market order over the WebSocket connection.
+
+    A market order matches immediately against the order book at the available prices and
+    never rests. The response is already terminal.
+
+    The unit of `amount` depends on the side: [stock](/glossary#stock) on a sell,
+    [money](/glossary#money) on a buy. Use `order_market_stock_place` for stock sizing on
+    both sides.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 10
+      message: balance not enough
+      description: "The available spot balance does not cover the order."
+    - code: 11
+      message: amount too small
+      description: "The order is below the market `minAmount` or `minTotal`, measured against the opposite side best price."
+    - code: 12
+      message: not enough traders
+      description: "The order book is empty or too thin to execute any part of the order."
+    - code: 42
+      message: order slippage threshold
+      description: "The slippage guard stopped the order before it consumed the book further."
+    - code: 51
+      message: trading in the market is not allowed
+      description: "Trading is suspended, or the market runs in post-only mode — a market order is rejected there."
+    - code: 601
+      message: account is restricted from trading
+      description: "An account-level restriction blocks trading."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Spot market order placement channel
+    messages:
+      orderMarketPlaceRequest:
+        $ref: '#/components/messages/orderMarketPlaceRequest'
+      orderMarketPlaceResponse:
+        $ref: '#/components/messages/orderMarketPlaceResponse'
+
+operations:
+  sendOrderMarketPlaceRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderMarketPlaceRequest'
+
+  receiveOrderMarketPlaceResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderMarketPlaceResponse'
+
+components:
+  messages:
+    orderMarketPlaceRequest:
+      name: OrderMarketPlaceRequest
+      title: Place market order
+      summary: Place a spot market order
+      payload:
+        $ref: '#/components/schemas/OrderMarketPlaceRequest'
+      examples:
+        - name: orderMarketPlaceSell
+          summary: |
+            Place a sell market order with parameters:
+            - params[0]: order object with market, side, and amount in stock
+          payload:
+            id: 500003
+            method: order_market_place
+            params:
+              - market: ETH_USDT
+                side: sell
+                amount: "0.00108"
+                stp: "no"
+
+    orderMarketPlaceResponse:
+      name: OrderMarketPlaceResponse
+      title: Place Market Order Response
+      summary: Executed order object (status FILLED)
+      payload:
+        $ref: '#/components/schemas/OrderMarketPlaceResponse'
+      examples:
+        - name: orderMarketPlaceFilled
+          summary: Order matched in full on arrival
+          payload:
+            id: 500003
+            result:
+              id: 2423735871141
+              market: ETH_USDT
+              type: 2
+              side: 1
+              post_only: false
+              ioc: false
+              ctime: 1786452690.129261
+              mtime: 1786452690.129261
+              price: "0"
+              amount: "0.00108"
+              left: "0"
+              deal_stock: "0.00108"
+              deal_money: "2.0391048"
+              deal_fee: "0.0040782096"
+              client_order_id: ""
+              stp: "no"
+              status: FILLED
+            error: null
+
+  schemas:
+    OrderMarketPlaceRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: order_market_place
+          description: "Method name. Fixed value: `order_market_place`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/OrderMarketPlaceParams'
+          description: Array containing exactly one order parameter object
+
+    OrderMarketPlaceParams:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+      properties:
+        market:
+          type: string
+          description: "Spot market name. A futures market is rejected with error `1`."
+          example: ETH_USDT
+        side:
+          type: string
+          enum: ["buy", "sell"]
+          description: "Order side. The response reports the side numerically: `1` for sell, `2` for buy."
+        amount:
+          type: string
+          description: "Order size. Stock on a sell, money to spend on a buy. Validated against the market minimum amount and minimum notional using the opposite side best price."
+          example: "0.00108"
+        client_order_id:
+          type: string
+          description: "Custom client order id, echoed on the response. Must be unique among active orders — a collision returns error `43`."
+        stp:
+          type: string
+          enum: ["no", "co", "cn", "cb"]
+          description: "Self-trade prevention mode: `no`=No Prevention, `co`=Cancel Oldest, `cn`=Cancel Newest, `cb`=Cancel Both. Defaults to `no` when omitted."
+
+    OrderMarketPlaceResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Executed order. Returns the standard order object with `price` `\"0\"`, because a market order carries no limit price. A spot market order reports `type` `2`."
+        error:
+          type: "null"
+          description: Error object (null on success)

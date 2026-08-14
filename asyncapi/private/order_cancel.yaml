@@ -1,0 +1,169 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Cancel Order
+  version: 1.0.0
+  description: |
+    Cancel a single order over the WebSocket connection.
+
+    The method covers resting limit orders, plain conditional stop orders, and individual TPSL
+    legs, across spot, margin, and futures markets. The response is the full order object in its
+    final state.
+
+    OCO and OTO groups need `order_cancel_conditional` instead.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 6
+      message: order not found
+      description: "The order id is unknown, the order already finished, or a group id was passed. Cancel OCO and OTO groups with `order_cancel_conditional`."
+    - code: 1
+      message: order_id or client_order_id must be set for modify
+      description: "Neither identifier was supplied. The same message covers this method."
+    - code: 1
+      message: market does not exist
+      description: "The market name is unknown."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Order cancellation channel
+    messages:
+      orderCancelRequest:
+        $ref: '#/components/messages/orderCancelRequest'
+      orderCancelResponse:
+        $ref: '#/components/messages/orderCancelResponse'
+
+operations:
+  sendOrderCancelRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderCancelRequest'
+
+  receiveOrderCancelResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderCancelResponse'
+
+components:
+  messages:
+    orderCancelRequest:
+      name: OrderCancelRequest
+      title: Cancel order
+      summary: Cancel a single order by id or client order id
+      payload:
+        $ref: '#/components/schemas/OrderCancelRequest'
+      examples:
+        - name: orderCancelByOrderId
+          summary: |
+            Cancel by engine order id with parameters:
+            - params[0]: object with market and order_id
+          payload:
+            id: 500020
+            method: order_cancel
+            params:
+              - market: ETH_USDT
+                order_id: 2423735868673
+
+    orderCancelResponse:
+      name: OrderCancelResponse
+      title: Cancel Order Response
+      summary: Cancelled order object (status CANCELED)
+      payload:
+        $ref: '#/components/schemas/OrderCancelResponse'
+      examples:
+        - name: orderCancelCanceled
+          summary: Order cancelled; mtime advances while ctime stays at placement
+          payload:
+            id: 500020
+            result:
+              id: 2423735868673
+              market: ETH_USDT
+              type: 1
+              side: 2
+              post_only: false
+              ioc: false
+              ctime: 1786452689.828402
+              mtime: 1786452689.8643439
+              price: "1859.75"
+              amount: "0.00108"
+              left: "0.00108"
+              deal_stock: "0"
+              deal_money: "0"
+              deal_fee: "0"
+              client_order_id: ""
+              stp: "no"
+              status: CANCELED
+            error: null
+
+  schemas:
+    OrderCancelRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: order_cancel
+          description: "Method name. Fixed value: `order_cancel`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/OrderCancelParams'
+          description: Array containing exactly one parameter object
+
+    OrderCancelParams:
+      type: object
+      required:
+        - market
+      properties:
+        market:
+          type: string
+          description: "Market the order lives on. Required even when the order id is unambiguous, because it routes the call."
+          example: ETH_USDT
+        order_id:
+          type: integer
+          description: "Engine order id. Supply this or `client_order_id`."
+          example: 2423735868673
+        client_order_id:
+          type: string
+          description: "Client order id. Takes precedence when both identifiers are supplied. The response still reports the engine id, which confirms which order was cancelled."
+
+    OrderCancelResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Cancelled order as a standard order object with `status` `CANCELED`. The `mtime` field advances to the cancellation time while `ctime` stays at placement."
+        error:
+          type: "null"
+          description: Error object (null on success)

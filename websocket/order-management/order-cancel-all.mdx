@@ -1,0 +1,62 @@
+---
+title: Cancel all orders
+tag: "WSS"
+description: "Withdraw every order on one WhiteBIT market, filtered by trading type, with order_cancel_all."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderCancelAllParams,
+  exOrderCancelAllRequest,
+  exOrderCancelAllResponse,
+} from '/snippets/ws-data/order_cancel_all.jsx'
+
+<RegionBaseUrl />
+
+Withdraw every order the authorized account holds on one market, filtered by trading type. This is the kill-switch call for a shutdown sequence or an emergency stop.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Cancel all orders
+
+### Request parameters
+
+<WsSchemaTable fields={orderCancelAllParams} />
+
+One market per call — no all-markets form exists, so flattening an entire book of activity means looping over the markets in use. Passing all three trading types is safe on any market, because types that do not apply are simply not matched.
+
+<WsMessageExample data={exOrderCancelAllRequest} />
+
+### Response
+
+<WsMessageExample data={exOrderCancelAllResponse} />
+
+<Warning>The result is an empty object. No list of cancelled orders comes back, and nothing matched is not an error — an empty result is indistinguishable from a market that held no orders. Re-query pending orders, or watch [Orders Pending](/websocket/account-streams/orders-pending), to confirm what was actually withdrawn.</Warning>
+
+<Warning>Positions survive. This call covers resting and conditional orders on the market; an open position remains open, and only the orders protecting it are gone. Re-arm stops after a bulk cancel — see [`collateral_order_tpsl_place`](/websocket/order-management/collateral-order-tpsl-place) for position-tracking protection.</Warning>
+
+## Update frequency
+
+Client-initiated. The server answers each `order_cancel_all` request with a single response frame carrying the same `id`.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

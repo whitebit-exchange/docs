@@ -1,0 +1,165 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Cancel Conditional Order Group
+  version: 1.0.0
+  description: |
+    Cancel an OCO or OTO group in one call.
+
+    Pass the group id from the placement response and every leg is withdrawn atomically. The
+    response mirrors the placement response — same shape, same `type` value — with every leg
+    reporting `CANCELED`.
+
+    Plain stop orders and TPSL legs are not accepted here. Cancel those with `order_cancel`.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 6
+      message: order not found
+      description: "The id is unknown, the group already finished, or the id belongs to a plain stop order or a TPSL leg. Cancel those with `order_cancel`."
+    - code: 1
+      message: invalid argument
+      description: "The `order_id` parameter is missing. This method has no `client_order_id` form."
+    - code: 19
+      message: market is not margin market
+      description: "Groups exist on margin and futures markets only."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Conditional order group cancellation channel
+    messages:
+      orderCancelConditionalRequest:
+        $ref: '#/components/messages/orderCancelConditionalRequest'
+      orderCancelConditionalResponse:
+        $ref: '#/components/messages/orderCancelConditionalResponse'
+
+operations:
+  sendOrderCancelConditionalRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderCancelConditionalRequest'
+
+  receiveOrderCancelConditionalResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderCancelConditionalResponse'
+
+components:
+  messages:
+    orderCancelConditionalRequest:
+      name: OrderCancelConditionalRequest
+      title: Cancel conditional group
+      summary: Cancel an OCO or OTO group by group id
+      payload:
+        $ref: '#/components/schemas/OrderCancelConditionalRequest'
+      examples:
+        - name: orderCancelConditionalOco
+          summary: |
+            Cancel an OCO group with parameters:
+            - params[0]: object with market and the group order_id
+          payload:
+            id: 500021
+            method: order_cancel_conditional
+            params:
+              - market: BTC_PERP
+                order_id: 2423735892717
+
+    orderCancelConditionalResponse:
+      name: OrderCancelConditionalResponse
+      title: Cancel Conditional Group Response
+      summary: Group object with every leg CANCELED
+      payload:
+        $ref: '#/components/schemas/OrderCancelConditionalResponse'
+      examples:
+        - name: orderCancelConditionalCanceled
+          summary: Both legs cancelled in one atomic event, sharing one mtime
+          payload:
+            id: 500021
+            result:
+              type: oco
+              id: 2423735892717
+              stop_loss:
+                id: 2423735892718
+                type: 9
+                activation_price: "63370.99"
+                price: "62405.95"
+                mtime: 1786452692.7629499
+                status: CANCELED
+              take_profit:
+                id: 2423735892719
+                type: 7
+                price: "65301.08"
+                mtime: 1786452692.7629499
+                status: CANCELED
+            error: null
+
+  schemas:
+    OrderCancelConditionalRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: order_cancel_conditional
+          description: "Method name. Fixed value: `order_cancel_conditional`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/OrderCancelConditionalParams'
+          description: Array containing exactly one parameter object
+
+    OrderCancelConditionalParams:
+      type: object
+      required:
+        - market
+        - order_id
+      properties:
+        market:
+          type: string
+          description: "Market the group lives on."
+          example: BTC_PERP
+        order_id:
+          type: integer
+          description: "Group id — the top-level `id` from the OCO or OTO placement response, not a leg id. No `client_order_id` form exists for this method."
+          example: 2423735892717
+
+    OrderCancelConditionalResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Group object mirroring the placement response — same `type` value, `\"oco\"` or `\"oto\"` — with every leg reporting `status` `CANCELED`. All legs share one `mtime`, because the cancellation is a single atomic event."
+        error:
+          type: "null"
+          description: Error object (null on success)

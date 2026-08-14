@@ -1,0 +1,306 @@
+---
+title: Order Management
+sidebarTitle: Overview
+description: "Place, modify, and cancel spot, margin, and futures orders over the WhiteBIT WebSocket connection — conventions, shared enums, and the full error reference."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+The WebSocket transport carries order flow as well as market data and account streams. Twenty-one JSON-RPC methods place, modify, and cancel orders on spot, margin, and futures markets over the same connection used for subscriptions.
+
+This page holds the conventions shared by every order method: the request envelope, value formats, the shared enums, and the complete error reference. Each method page documents only its own request parameters and the behaviour specific to that method.
+
+## Authorization
+
+Every order method requires an authorized connection. Send `authorize` as the first frame after connecting — see [Authorize](/websocket/account-streams/authorize) for the token flow. An order method sent on an unauthorized connection is rejected with error `6`.
+
+Authorization holds for the lifetime of the connection. No re-authorization or refresh call exists.
+
+## Request and response envelope
+
+Order methods follow the JSON-RPC structure used across the WebSocket API, with one difference from the subscription channels: `params` carries a single object rather than positional values.
+
+**Client → server**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | INTEGER | Unique request identifier. The response echoes this value. |
+| `method` | STRING | Order method name, for example `order_limit_place`. |
+| `params` | ARRAY | Array holding exactly one object with the order parameters. |
+
+**Server → client**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | INTEGER | Matches the request `id`. |
+| `result` | OBJECT or NULL | Order object on success; `null` on failure. |
+| `error` | OBJECT or NULL | Error object on failure; `null` on success. |
+
+Exactly one of `result` and `error` carries meaning. Responses arrive interleaved with subscription pushes, which carry no `id`, so correlate each answer by `id` rather than by arrival order.
+
+## Decimal values are strings
+
+Every price, amount, and fee travels as a decimal string, which avoids floating-point rounding. The engine normalises trailing zeros on the way out: a price sent as `"1916.40"` returns as `"1916.4"`. Compare decimal values numerically, never by string equality.
+
+Timestamps are the exception. The `ctime` and `mtime` fields are JSON numbers — Unix seconds with a microsecond fraction.
+
+## Order methods
+
+**Spot markets**
+
+| Method | Type | Purpose |
+|--------|------|---------|
+| [`order_limit_place`](/websocket/order-management/order-limit-place) | `1` | Limit order resting in the order book |
+| [`order_market_place`](/websocket/order-management/order-market-place) | `2` | Market order, amount in money on buy |
+| [`order_market_stock_place`](/websocket/order-management/order-market-stock-place) | `202` | Market order, amount in stock on both sides |
+| [`order_stop_limit_place`](/websocket/order-management/order-stop-limit-place) | `3` | Limit order placed on trigger |
+| [`order_stop_market_place`](/websocket/order-management/order-stop-market-place) | `4` | Market order placed on trigger |
+| [`order_stop_market_stock_place`](/websocket/order-management/order-stop-market-stock-place) | `203` | Stop-market order sized in stock |
+| [`order_bbo_place`](/websocket/order-management/order-bbo-place) | `1` | Limit order priced from the best bid or offer |
+| [`order_stop_bbo_place`](/websocket/order-management/order-stop-bbo-place) | `3` | BBO order placed on trigger |
+
+**Margin and futures markets**
+
+| Method | Type | Purpose |
+|--------|------|---------|
+| [`collateral_order_limit_place`](/websocket/order-management/collateral-order-limit-place) | `7` | Margin limit order |
+| [`collateral_order_market_place`](/websocket/order-management/collateral-order-market-place) | `8` | Margin market order |
+| [`collateral_order_stop_limit_place`](/websocket/order-management/collateral-order-stop-limit-place) | `9` | Margin limit order placed on trigger |
+| [`collateral_order_stop_market_place`](/websocket/order-management/collateral-order-stop-market-place) | `10` | Margin market order placed on trigger |
+| [`collateral_order_bbo_place`](/websocket/order-management/collateral-order-bbo-place) | `7` | Margin order priced from the best bid or offer |
+| [`collateral_order_stop_bbo_place`](/websocket/order-management/collateral-order-stop-bbo-place) | `9` | Margin BBO order placed on trigger |
+| [`collateral_order_oco_place`](/websocket/order-management/collateral-order-oco-place) | group | Linked take-profit and stop-loss pair |
+| [`collateral_order_oto_place`](/websocket/order-management/collateral-order-oto-place) | group | Entry order that arms its own exit |
+| [`collateral_order_tpsl_place`](/websocket/order-management/collateral-order-tpsl-place) | `10` | Take-profit and stop-loss attached to a position |
+
+**All markets**
+
+| Method | Purpose |
+|--------|---------|
+| [`order_modify`](/websocket/order-management/order-modify) | Change size, price, or trigger of a live order |
+| [`order_cancel`](/websocket/order-management/order-cancel) | Cancel a single order |
+| [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) | Cancel an OCO or OTO group |
+| [`order_cancel_all`](/websocket/order-management/order-cancel-all) | Cancel every order on one market |
+
+The `collateral_*` family targets margin and futures markets and is rejected with error `19` on a spot-only market. A spot `order_*` method on a futures market is rejected with error `1`.
+
+## Order object
+
+Every placement, modification, and cancellation returns the same order object. Field-by-field descriptions are in [Orders Pending](/websocket/account-streams/orders-pending#order-object).
+
+Three groups of fields appear conditionally:
+
+- Conditional orders add `activation_price`, `activation_condition`, and `activated`.
+- Margin and futures orders add `reduce_only` and `position_side`.
+- Group placements return legs under `take_profit`, `stop_loss`, or `trigger_order` instead of a single flat object.
+
+The `activation_condition` field is derived by the engine rather than sent as a parameter. It reports `gte` when the activation price sits above the market at placement, and `lte` when below.
+
+<Note>The `side` field inverts between request and response. A request sends `"buy"` or `"sell"` as a string; the response reports `1` for sell and `2` for buy.</Note>
+
+## Order type codes
+
+The numeric `type` values are listed in the [order types](/websocket/account-streams/overview#order-types) table. Two notes on reading the codes: the same code can come from more than one method, because a BBO order becomes an ordinary limit order once it is priced; and a stop order that converts into a market or BBO order carries `price` `"0"` until it activates.
+
+## Order status
+
+| Status | Meaning |
+|--------|---------|
+| `OPEN` | Resting in the order book, or waiting for activation |
+| `PARTIALLY_FILLED` | Partly matched, remainder in `left` |
+| `FILLED` | Fully matched |
+| `CANCELED` | Cancelled by the client |
+| `CANCELED_STP` | Removed by self-trade prevention |
+| `CANCELED_TAKER_BAND` | Rejected by the taker price band |
+| `CANCELED_RPI` | Removed by Retail Price Improvement rules |
+| `AUTO_CANCELED_REDUCE_ONLY` | Reduce-only order with nothing left to reduce |
+| `AUTO_CANCELED_LIQUIDATION` | Removed while the position was liquidated |
+| `DELISTING` | Removed because the market was delisted |
+
+## Self-trade prevention
+
+The `stp` parameter decides what happens when an order would match against another order from the same account. It defaults to `no` when omitted.
+
+| Value | Alias | Behaviour on self-match |
+|-------|-------|-------------------------|
+| `no` | — | Prevention disabled |
+| `co` | `cancel_old` | Cancel the resting order and let the incoming order trade |
+| `cn` | `cancel_new` | Cancel the incoming order |
+| `cb` | `cancel_both` | Cancel both sides of the self-match |
+
+See [Self-Trade Prevention](/platform/self-trade-prevention) for the platform-level behaviour.
+
+## Shared enums
+
+| Field | Values |
+|-------|--------|
+| `side` (request) | `"buy"`, `"sell"` |
+| `side` (response) | `1` sell or ask, `2` buy or bid |
+| `bbo_role` | `1` maker or post-only, `2` taker |
+| `position_side` | `"BOTH"`, `"LONG"`, `"SHORT"` |
+| `activation_condition` | `"gte"`, `"lte"` |
+| `type` (`order_cancel_all`) | `"spot"`, `"margin"`, `"futures"` |
+
+## Execution flag combinations
+
+The execution flags constrain each other, and an illegal pair is rejected with error `1` rather than silently dropped.
+
+| Combination | Result |
+|-------------|--------|
+| `ioc` + `post_only` | Rejected — `flags: ioc=1 and post_only=1 can't be combined` |
+| `ioc` + `rpi` | Rejected — `flags: ioc=1 and rpi=1 can't be combined` |
+| `rpi` alone | Accepted — `rpi` implies `post_only` |
+| `post_only` + `bbo_role: 1` | Accepted — the maker role already implies post-only |
+| `post_only` + `bbo_role: 2` | Rejected — `wrong flags combination` |
+| `rpi` inside an OTO `trigger_order` | Rejected — `flags: rpi=1 can't be set for trigger in oto` |
+
+Only `order_limit_place` and `collateral_order_limit_place` accept `rpi`.
+
+While a market runs in post-only mode, only limit orders carrying the post-only flag are accepted; every market and stop method is rejected with error `51`. When trading is disabled entirely, all methods return error `51`.
+
+## Error codes
+
+A failure sets `result` to `null` and fills `error` with a numeric `code` and a `message`. Branch on the code and treat the message as diagnostic text that may change.
+
+```json
+{
+  "id": 500002,
+  "result": null,
+  "error": {
+    "code": 1,
+    "message": "invalid argument"
+  }
+}
+```
+
+Two codes are overloaded on this transport. Code `6` means order not found in a cancel or modify context, and authentication required when the connection has not authorized. Code `11` means amount too small on placement, and carries the authorization server message when authorization itself fails.
+
+<Warning>The numbering on this transport is independent of the REST error codes. The same number carries a different meaning on each surface — on the WebSocket transport `40` is `order is not post only` and `41` is `order is not ioc`, while the REST API uses its own codes for the equivalent conditions. Do not carry a code learned from [REST error responses](/api-reference/authentication#common-errors) over to this transport, or the reverse. Flag conflicts return code `1` here.</Warning>
+
+### Validation — code 1
+
+Every malformed request returns code `1`; the message identifies the field.
+
+| Message | Methods | Condition |
+|---------|---------|-----------|
+| `invalid argument` | All | Bad or missing request parameter |
+| `market is required`, `amount is required`, `price is required`, `activation_price is required` | Placement | A required field is absent |
+| `side is invalid` | Placement | `side` is neither `buy` nor `sell` |
+| `stp is invalid` | Placement | Not one of `no`, `co`, `cn`, `cb` or the equivalent long forms |
+| `market does not exist` | All | Unknown market name |
+| `the market is futures` | Spot `order_*` | Spot method on a futures market — use the `collateral_*` equivalent |
+| `the market is not margin or futures` | `collateral_*` | Collateral method on a spot-only market |
+| `bbo role must be an integer in range 1..2` | BBO methods | `bbo_role` outside `1`–`2`, or not an integer |
+| `wrong flags combination` | BBO methods | `post_only` sent together with `bbo_role: 2` |
+| `flags: ioc=1 and post_only=1 can't be combined` | Placement | Conflicting execution flags |
+| `flags: ioc=1 and rpi=1 can't be combined` | Placement | Conflicting execution flags |
+| `flags: rpi=1 can't be set for trigger in oto` | OTO | `rpi` inside `trigger_order` |
+| `position side can be used only with futures market` | `collateral_*` | `position_side` other than `BOTH` on a non-futures margin market |
+| `amount: precision is greater than N` | Placement | Value precision exceeds the market setting |
+| `amount * price must be <= X` | Placement | Order value above the maximum |
+| `unknown order type` | OTO | Bad `trigger_order_type` or `conditional_order_type` |
+| `trigger order can't be margin market OCO` | OTO | `margin_market_oco` used as the trigger type |
+| `take_profit and stop_loss are required` | OTO | An OCO exit is missing a price |
+| `only take_profit is required` | OTO | A take-profit-only exit was given a `stop_loss` |
+| `only stop_loss is required` | OTO | A stop-loss-only exit was given a `take_profit` |
+| `limit_client_order_id and stop_client_order_id cannot be equal` | OCO | The same client id on both legs |
+| `one of activations prices should be set` | TPSL | Neither trigger price supplied |
+| `order_id or client_order_id must be set for modify` | `order_modify`, `order_cancel` | Neither identifier supplied |
+| `at least price or amount or total or activation price should be specified` | `order_modify` | Nothing to change |
+| `amount and total cannot be specified simultaneously` | `order_modify` | Mutually exclusive parameters |
+| `order types must be an array`, `invalid or duplicate order type` | `order_cancel_all` | Bad `type` array |
+| `in post-only mode, only limit orders with the post-only flag are allowed` | Market and stop methods | Market is in post-only mode |
+
+### Engine rejections
+
+| Code | Message | Methods | Condition |
+|------|---------|---------|-----------|
+| `2` | `internal error` | All | Matching engine unreachable |
+| `3` | `service unavailable` | All | Downstream service down |
+| `4` | `method not found` | All | Method name typo |
+| `5` | `service timeout` | All | Engine did not answer in time |
+| `6` | `order not found`, `require authentication` | Cancel and modify; all | Unknown or already-finished order, or `authorize` was never called |
+| `7` | `too many requests` | All | Rate limit |
+| `8` | `unknown asset` | All | Asset not listed |
+| `9` | `unknown market` | All | Market not listed |
+| `10` | `balance not enough` | Placement | Insufficient spot balance |
+| `11` | `amount too small` | Placement | Below the market minimum amount or minimum notional |
+| `12` | `not enough traders` | Placement | Order book too thin to execute |
+| `13` | `order by taker price` | Spot placement | Post-only order would cross the spread |
+| `14` | `margin order by taker price` | `collateral_*` | Post-only margin order would cross |
+| `15`, `16` | `margin exchange stock/money not enough` | `collateral_*` | Exchange-side collateral shortfall |
+| `17` | `user margin balance not enough` | `collateral_*` | Insufficient collateral balance |
+| `19` | `market is not margin market` | `collateral_*` | Called on a spot-only market |
+| `40` | `order is not post only` | Placement | Market is in post-only mode |
+| `41` | `order is not ioc` | Placement | Market requires immediate-or-cancel |
+| `42` | `order slippage threshold` | Market placement | Slippage guard tripped |
+| `43` | `client order id already exists` | Placement | Duplicate `client_order_id` among active orders |
+| `51` | `trading in the market is not allowed` | All | Market suspended, or the market status blocks the method |
+
+### Conditional orders and positions
+
+| Code | Message | Methods | Condition |
+|------|---------|---------|-----------|
+| `101` | `activation price should not be equal to the last price` | Stop and conditional | Trigger equals the current last price |
+| `103` | `max num margin stop market orders` | Stop-market | Per-market conditional order cap reached |
+| `104` | `margin position not exists` | TPSL | No open position to attach to |
+| `105` | `wrong activation price for take profit` | TPSL, OTO | Take-profit trigger on the wrong side of the price |
+| `106` | `wrong activation price for stop loss` | TPSL, OTO | Stop-loss trigger on the wrong side of the price |
+| `108` | `wrong limit price for take profit` | OCO, OTO | Take-profit limit price inconsistent with its trigger |
+| `111` | `margin position is too big` | `collateral_*` | Position would exceed the size cap |
+| `112` | `margin pending orders value is too big` | `collateral_*` | Total pending margin order value exceeded |
+| `113` | `user position side change mode` | `collateral_*` | Hedge-mode switch in progress |
+| `114` | `order's position side does not match user's setting` | `collateral_*` | `position_side` sent without hedge mode, or mismatched |
+| `115` | `order would result in a new position in the opposite direction` | Reduce-only | Reduce-only order would flip the position |
+| `116` | `margin order with reduce only is rejected` | Reduce-only | Nothing to reduce on that side |
+| `150` | `take profit is not post only` | OCO | The take-profit leg would execute immediately — it must be maker |
+| `151` | `wrong activation price for stop loss` | OCO, TPSL | Stop-loss trigger on the wrong side of the current price |
+| `152`, `153` | `can not place stop loss / take profit` | Group placement | A leg could not be created |
+| `154` | `price is outside spread` | Placement | Price outside the allowed spread |
+| `155` | `conditional order modification` | `order_modify` | Target is an OCO or OTO leg — cancel the group instead |
+| `156` | `wrong order type` | `order_modify` | Order type cannot be modified |
+| `158`, `159` | `wrong activation price for limit order`, `wrong limit price for stop market order` | Conditional placement | Trigger and limit price inconsistent |
+| `160` | `tpsl order modification` | `order_modify` | Target is a TPSL leg |
+| `161` | `conditional order validation` | Group placement | Group failed consistency validation |
+| `162`–`164` | `wrong param total / amount / price` | `order_modify` | Modified value is invalid |
+| `200`, `201` | `unknown conditional / trigger order type in oto` | OTO | Bad type string |
+| `250` | `price must be >= X / <= Y` | Placement | Price outside the market price band |
+| `251` | `activation price is out of bands` | Stop placement | Activation price outside the maker price bands |
+
+### Account and rate limits
+
+| Code | Message | Condition |
+|------|---------|-----------|
+| `601` | `account is restricted from trading` | Account-level trading restriction |
+| `602` | `order contains forbidden flags` | A flag blocked for the account |
+| `10000` | `too many requests per period` | Per-user rate limit |
+| `10001` | `too many new orders per period` | New-order rate limit |
+
+See [WebSocket Rate Limits](/websocket/rate-limits) for connection and request limits.
+
+## Regional availability
+
+The region of the authorized connection decides which trading types — spot, margin, futures — and which individual markets are reachable. On this transport the region is carried by the authorization token; no per-request override exists.
+
+Region checks run before market and balance validation, so a region error masks any other problem with the request. When an order is rejected with one of the codes below, nothing else about it was evaluated.
+
+| Code | Message | Condition |
+|------|---------|-----------|
+| `10006` | `region is unknown or not supported` | The region does not permit order placement |
+| `10007` | `futures trading is not available in your region` | Futures disabled for the region |
+| `10008` | `margin trading is not available in your region` | Margin disabled for the region |
+| `10009` | `spot trading is not available in your region` | Spot disabled for the region |
+| `10010` | `this market is restricted in your region` | Market on the restricted list for the region |
+
+The available order types also vary by region. In the EU region the spot order types are restricted and margin and futures are unavailable — see [Order types — Regional restrictions](/concepts/order-types#regional-restrictions).
+
+## Related resources
+
+- [Authorize](/websocket/account-streams/authorize) — token flow required before any order method
+- [Orders Pending](/websocket/account-streams/orders-pending) — stream of order lifecycle events, and the order object reference
+- [Deals](/websocket/account-streams/deals) — stream of individual fills
+- [Order Types](/concepts/order-types) — order type concepts and regional restrictions
+- [WebSocket Rate Limits](/websocket/rate-limits) — connection limits, request limits, and standard error codes
+- [Spot Trading API](/api-reference/spot-trading/create-limit-order) — the REST equivalent of these methods

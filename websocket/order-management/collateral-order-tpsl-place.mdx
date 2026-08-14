@@ -1,0 +1,66 @@
+---
+title: Attach take-profit and stop-loss
+tag: "WSS"
+description: "Attach a take-profit and stop-loss pair to an open margin or futures position with collateral_order_tpsl_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderTpslPlaceParams,
+  exCollateralOrderTpslPlaceRequest,
+  exCollateralOrderTpslPlaceResponse,
+} from '/snippets/ws-data/collateral_order_tpsl_place.jsx'
+
+<RegionBaseUrl />
+
+Attach a take-profit and a stop-loss to an existing position rather than to an order. The pair tracks the position: it carries no size of its own and always exits whatever is open at trigger time, so a position that grows or shrinks afterwards stays covered.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Attach take-profit and stop-loss
+
+### Request parameters
+
+<WsSchemaTable fields={collateralOrderTpslPlaceParams} />
+
+Neither `side` nor `amount` appears among the parameters. The engine derives both from the open position, which is why the legs come back with `amount` `"0"`.
+
+At least one of the two activation prices must be present — sending neither returns error `1`. Supplying only one arms a take-profit or a stop-loss on its own. On a long position the take-profit trigger sits above the market and the stop-loss below; a price on the wrong side returns error `105` or `106`.
+
+<WsMessageExample data={exCollateralOrderTpslPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderTpslPlaceResponse} />
+
+The `result` object holds the `take_profit` and `stop_loss` legs, each reporting `type` `10`. See the [order object reference](/websocket/order-management/overview#order-object). In the example both legs show `side` `1` — a sell closes a long position — and `amount` `"0"`, meaning whatever the position holds when the trigger fires.
+
+<Warning>An open position is required. Without one the call fails with error `104`, so arm the pair after the entry fills rather than alongside it. For an entry that arms its own exit in a single request, use [`collateral_order_oto_place`](/websocket/order-management/collateral-order-oto-place) instead.</Warning>
+
+<Note>Cancellation differs from the group methods. The two legs are independent orders with separate ids, so cancel each one with [`order_cancel`](/websocket/order-management/order-cancel). A TPSL pair has no group id, and [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) does not apply. Modification is also unavailable — [`order_modify`](/websocket/order-management/order-modify) returns error `160` for a TPSL leg.</Note>
+
+## Update frequency
+
+Client-initiated. The server answers each `collateral_order_tpsl_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the protected position.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

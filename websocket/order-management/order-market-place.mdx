@@ -1,0 +1,64 @@
+---
+title: Place market order
+tag: "WSS"
+description: "Place a spot market order over the WhiteBIT WebSocket connection with order_market_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderMarketPlaceParams,
+  exOrderMarketPlaceRequest,
+  exOrderMarketPlaceResponse,
+} from '/snippets/ws-data/order_market_place.jsx'
+
+<RegionBaseUrl />
+
+Place a spot market order that matches immediately against the order book at the available prices. A market order never rests, so the response is already terminal — `FILLED` when the book absorbed the whole order, `PARTIALLY_FILLED` when it ran out first.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place market order
+
+### Request parameters
+
+<WsSchemaTable fields={orderMarketPlaceParams} />
+
+The unit of `amount` depends on the side, which is the one trap in this method. A sell sizes in [stock](/glossary#stock) — the base asset. A buy sizes in [money](/glossary#money) — the quote asset to spend. For stock sizing on both sides use [`order_market_stock_place`](/websocket/order-management/order-market-stock-place).
+
+The `post_only`, `ioc`, and `rpi` flags carry no meaning for a market order and are ignored.
+
+<WsMessageExample data={exOrderMarketPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exOrderMarketPlaceResponse} />
+
+The `result` object is the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A spot market order reports `type` `2` and `price` `"0"`, because it carries no limit price. Read the achieved cost from `deal_money` and the matched size from `deal_stock`.
+
+<Warning>A thin order book does not produce an error. When the book runs out before `amount` is exhausted, the status comes back `PARTIALLY_FILLED` with the unspent balance in `left`, and the order is not retained. Check `left` rather than assuming a full fill. An order book with no liquidity at all returns error `12`.</Warning>
+
+## Update frequency
+
+Client-initiated. The server answers each `order_market_place` request with a single response frame carrying the same `id`.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

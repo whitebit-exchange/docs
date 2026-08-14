@@ -1,0 +1,85 @@
+---
+title: Modify order
+tag: "WSS"
+description: "Change the size, price, or trigger of a live WhiteBIT order over the WebSocket connection with order_modify."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderModifyParams,
+  exOrderModifyRequest,
+  exOrderModifyResponse,
+} from '/snippets/ws-data/order_modify.jsx'
+
+<RegionBaseUrl />
+
+Change the size, price, or trigger of a live order without a separate cancel-and-replace round trip. The method works across spot, margin, and futures markets — no `collateral_` variant exists.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Modify order
+
+### Request parameters
+
+<WsSchemaTable fields={orderModifyParams} />
+
+The `market` parameter routes the call, so it stays required even when the order id alone would identify the order.
+
+Supply exactly one identifier — `order_id` or `client_order_id` — and at least one of `price`, `amount`, `total`, or `activation_price`. Omitted fields keep the previous values. Sending no change returns error `1`, and so does sending `amount` and `total` together, since the two express the same quantity in different units.
+
+<WsMessageExample data={exOrderModifyRequest} />
+
+### Response
+
+<WsMessageExample data={exOrderModifyResponse} />
+
+<Warning>The order id changes. Internally the engine cancels and re-places the order, so the result carries a new `id` and a fresh `ctime`, and the order loses its queue priority. Any client tracking orders by engine id must adopt the new one from this response.</Warning>
+
+The `client_order_id` value carries over to the replacement, which makes it the stabler handle for anything modified repeatedly. Modifying by client order id therefore needs no bookkeeping between calls:
+
+```json
+{
+  "market": "ETH_USDT",
+  "client_order_id": "pws_modify_1786452694082",
+  "amount": "0.00210"
+}
+```
+
+Moving a trigger works the same way — send `activation_price` on a conditional order, with or without a new `amount`:
+
+```json
+{
+  "market": "ETH_USDT",
+  "order_id": 2423735907974,
+  "activation_price": "1944.70",
+  "amount": "0.00105"
+}
+```
+
+<Note>Group legs cannot be modified. An OCO or OTO leg returns error `155`, and a TPSL leg returns error `160`. Cancel the group and place a new one instead — see [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) for OCO and OTO, and [`order_cancel`](/websocket/order-management/order-cancel) for TPSL legs.</Note>
+
+## Update frequency
+
+Client-initiated. The server answers each `order_modify` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancel-and-replace pair of events the modification produces.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).
