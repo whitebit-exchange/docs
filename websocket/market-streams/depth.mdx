@@ -27,7 +27,7 @@ import {
 } from '/snippets/ws-data/depth.jsx'
 import { RelatedResources } from '/snippets/RelatedResources.jsx'
 
-<RegionBaseUrl />
+<RegionBaseUrl protocol="wss" />
 
 Real-time order book data with support for both one-time snapshots and continuous subscription updates. Each update contains changed price levels (asks and bids) as `[price, amount]` tuples. The server pushes incremental deltas every 100ms; if 10 seconds pass without an emitted `depth_update` on this subscription, a full snapshot is sent as a keepalive. Use this channel to maintain a live local order book for trading logic or display.
 

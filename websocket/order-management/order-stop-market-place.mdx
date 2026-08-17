@@ -19,7 +19,7 @@ import {
   exOrderStopMarketPlaceResponse,
 } from '/snippets/ws-data/order_stop_market_place.jsx'
 
-<RegionBaseUrl />
+<RegionBaseUrl protocol="wss" />
 
 Fire a market order when the market reaches `activation_price`. Because the resulting order carries no limit price, `price` is reported as `"0"` both while the order waits and after it executes. This method trades price certainty for fill certainty — the opposite of [`order_stop_limit_place`](/websocket/order-management/order-stop-limit-place).
 
