@@ -1,0 +1,202 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Modify Order
+  version: 1.0.0
+  description: |
+    Change the size, price, or trigger of a live order over the WebSocket connection.
+
+    The method works across spot, margin, and futures markets — no `collateral_` variant
+    exists. The `market` parameter routes the call, so it is required even when the order id
+    alone would be unambiguous.
+
+    Internally the engine cancels and re-places the order, so the result carries a new `id`
+    and a fresh `ctime`, and the order loses its queue priority. The `client_order_id` value
+    carries over, which makes it the stabler handle for anything modified repeatedly.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 6
+      message: order not found
+      description: "The order id is unknown, or the order already finished."
+    - code: 1
+      message: order_id or client_order_id must be set for modify
+      description: "Neither identifier was supplied."
+    - code: 1
+      message: at least price or amount or total or activation price should be specified
+      description: "The request changes nothing."
+    - code: 1
+      message: amount and total cannot be specified simultaneously
+      description: "The `amount` and `total` parameters are mutually exclusive."
+    - code: 155
+      message: conditional order modification
+      description: "The target is an OCO or OTO leg. Cancel the group and place a new one instead."
+    - code: 160
+      message: tpsl order modification
+      description: "The target is a TPSL leg. Cancel the leg and attach a new pair instead."
+    - code: 156
+      message: wrong order type
+      description: "The order type cannot be modified."
+    - code: 162
+      message: wrong param total
+      description: "The new `total` value is invalid. Errors `163` and `164` cover `amount` and `price`."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Order modification channel
+    messages:
+      orderModifyRequest:
+        $ref: '#/components/messages/orderModifyRequest'
+      orderModifyResponse:
+        $ref: '#/components/messages/orderModifyResponse'
+
+operations:
+  sendOrderModifyRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderModifyRequest'
+
+  receiveOrderModifyResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderModifyResponse'
+
+components:
+  messages:
+    orderModifyRequest:
+      name: OrderModifyRequest
+      title: Modify order
+      summary: Change the size, price, or trigger of a live order
+      payload:
+        $ref: '#/components/schemas/OrderModifyRequest'
+      examples:
+        - name: orderModifyByOrderId
+          summary: |
+            Modify by engine order id with parameters:
+            - params[0]: object with market, order_id, and the new amount and price
+          payload:
+            id: 500019
+            method: order_modify
+            params:
+              - market: ETH_USDT
+                order_id: 2423735905491
+                amount: "0.00216"
+                price: "1831.41"
+
+    orderModifyResponse:
+      name: OrderModifyResponse
+      title: Modify Order Response
+      summary: Replacement order with a new id
+      payload:
+        $ref: '#/components/schemas/OrderModifyResponse'
+      examples:
+        - name: orderModifyReplaced
+          summary: Replacement order created with a new id and a fresh ctime
+          payload:
+            id: 500019
+            result:
+              id: 2423735905695
+              market: ETH_USDT
+              type: 1
+              side: 2
+              post_only: false
+              ioc: false
+              ctime: 1786452694.0623839
+              mtime: 1786452694.0623839
+              price: "1831.41"
+              amount: "0.00216"
+              left: "0.00216"
+              deal_stock: "0"
+              deal_money: "0"
+              deal_fee: "0"
+              client_order_id: ""
+              stp: "no"
+              status: OPEN
+            error: null
+
+  schemas:
+    OrderModifyRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: order_modify
+          description: "Method name. Fixed value: `order_modify`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/OrderModifyParams'
+          description: Array containing exactly one parameter object
+
+    OrderModifyParams:
+      type: object
+      required:
+        - market
+      properties:
+        market:
+          type: string
+          description: "Market the order lives on. Required even when the order id is unambiguous, because it routes the call."
+          example: ETH_USDT
+        order_id:
+          type: integer
+          description: "Engine order id. Supply this or `client_order_id`."
+          example: 2423735905491
+        client_order_id:
+          type: string
+          description: "Client order id. Preserved on the replacement order, so it keeps pointing at the live order. Supply this or `order_id`."
+        amount:
+          type: string
+          description: "New size in stock. Mutually exclusive with `total`."
+          example: "0.00216"
+        total:
+          type: string
+          description: "New size expressed in money. Mutually exclusive with `amount`."
+        price:
+          type: string
+          description: "New limit price."
+          example: "1831.41"
+        activation_price:
+          type: string
+          description: "New trigger price, for conditional orders."
+
+    OrderModifyResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Replacement order as a standard order object, carrying a new `id` and a fresh `ctime`. Omitted parameters keep their previous values."
+        error:
+          type: "null"
+          description: Error object (null on success)

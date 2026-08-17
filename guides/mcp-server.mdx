@@ -64,18 +64,18 @@ The MCP server documented on this page enables **trading** via AI clients. For d
         | OpenAI Codex | `~/.codex/config.toml` |
         | OpenClaw | `~/.openclaw/openclaw.json` |
 
-        Existing configs are updated in place — other MCP servers you have configured are not affected.
+        Existing configs are updated in place — other configured MCP servers are not affected.
       </Step>
       <Step title="Start the MCP server">
-        The MCP server is started automatically by your AI client — there is no separate server process to run manually. Under the hood, the setup command registered the following as the server entry in each config:
+        The MCP server is started automatically by the AI client — there is no separate server process to run manually. Under the hood, the setup command registered the following as the server entry in each config:
 
         ```bash
         uvx whitebit-mcp
         ```
 
-        Your AI client will execute this command on startup and keep the server running in the background as long as the client is open.
+        The AI client executes this command on startup and keeps the server running in the background as long as the client is open.
       </Step>
-      <Step title="Restart your AI client">
+      <Step title="Restart the AI client">
         Restart the AI client so it picks up the new config and launches the server.
 
         - **Claude Desktop** — quit and reopen the app
@@ -85,13 +85,13 @@ The MCP server documented on this page enables **trading** via AI clients. For d
         - **OpenClaw** — restart the agent
       </Step>
       <Step title="Verify the connection">
-        Ask your AI client something like:
+        Ask the AI client something like:
 
         ```text
         What is the current BTC_USDT price?
         ```
 
-        If the WhiteBIT MCP server is connected, the AI client will call the tool and return live data.
+        If the WhiteBIT MCP server is connected, the AI client calls the tool and returns live data.
       </Step>
     </Steps>
   </Tab>
@@ -123,7 +123,7 @@ The MCP server documented on this page enables **trading** via AI clients. For d
     docker compose down
     ```
 
-    Then follow the [Connect an AI client](#connect-an-ai-client) section below to register the server in your AI tool.
+    Then follow the [Connect an AI client](#connect-an-ai-client) section below to register the server in the AI tool.
   </Tab>
   <Tab title="Without Docker">
     ```bash
@@ -133,13 +133,13 @@ The MCP server documented on this page enables **trading** via AI clients. For d
 
     The server listens on `http://0.0.0.0:8000`. Use port `8000` in place of `8080` in all client configurations below.
 
-    Then follow the [Connect an AI client](#connect-an-ai-client) section below to register the server in your AI tool.
+    Then follow the [Connect an AI client](#connect-an-ai-client) section below to register the server in the AI tool.
   </Tab>
 </Tabs>
 
 ## Connect an AI client
 
-Skip this section if you used the auto-setup tab above — your AI clients are already configured.
+Skip this section if the auto-setup tab above was used — the AI clients are already configured.
 
 <Tabs>
   <Tab title="Claude Code">
@@ -229,7 +229,7 @@ Generate API keys at [whitebit.com](https://whitebit.com) → **Profile** → **
 Never paste API keys directly into the AI conversation. Pass credentials as tool parameters at the start of a session. The server uses keys only to sign outgoing WhiteBIT API requests — keys are not stored, logged, or cached.
 </Warning>
 
-**How credentials work:** API keys are passed as parameters in each tool call. The AI client sends the credentials on behalf of the account holder when provided at the start of the conversation.
+**Credential handling:** API keys are passed as parameters in each tool call. The AI client sends the credentials on behalf of the account holder when provided at the start of the conversation.
 
 **Public market data tools** (market info, tickers, order book) query public endpoints. Pass `"public"` for both `api_key` and `secret_key` when only public data is needed.
 

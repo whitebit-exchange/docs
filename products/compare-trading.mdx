@@ -8,7 +8,7 @@ Not sure which trading product to integrate? Use the comparison below to match t
 
 ## Which product is right for this use case?
 
-- **No leverage needed** — Use [Spot Trading](/products/spot/overview). Direct asset ownership, no liquidation risk, 750+ pairs.
+- **No leverage needed** — Use [Spot Trading](/products/spot/overview). Direct asset ownership, no liquidation risk, 800+ spot pairs.
 - **Leverage on spot pairs, simpler risk model** — Use [Margin Trading](/products/margin/overview). Up to 10x leverage on spot pairs (e.g., `BTC_USDT`). No funding rates, no Hedge Mode.
 - **Perpetual contracts, higher leverage, funding rate mechanics** — Use [Futures Trading](/products/futures/overview). Up to 100x leverage on perpetual pairs (e.g., `BTC_PERP`), Hedge Mode for simultaneous long/short positions, periodic funding rate settlement.
 
@@ -22,7 +22,7 @@ Not sure which trading product to integrate? Use the comparison below to match t
 | Maintenance Margin Rate | — | 3% for 1x–10x | 3% for 1x–10x |
 | Hedge Mode | No | No | Yes — long + short on the same pair simultaneously |
 | Funding rates | No | No | Yes — periodic settlement between longs and shorts |
-| Available pairs | 750+ | Spot pairs with collateral enabled | 270+ perpetual pairs |
+| Available pairs | 800+ | Spot pairs with collateral enabled | 270+ perpetual pairs |
 | Balance required | [Trade balance](/concepts/balances) | [Collateral balance](/concepts/balances) | [Collateral balance](/concepts/balances) |
 | API endpoints | Spot Trading (`/api/v4/order/new`, etc.) | Collateral (`/api/v4/order/collateral/`) | Same collateral endpoints — pair name routes the order |
 | Kill-switch | Yes | No | No |
@@ -45,7 +45,7 @@ All endpoints under `/api/v4/order/collateral/` and `/api/v4/collateral-account/
 
 <CardGroup cols={3}>
   <Card title="Spot Trading" icon="arrow-right-arrow-left" href="/products/spot/overview">
-    750+ pairs, 6 order types, kill-switch, bulk orders. No leverage.
+    800+ spot pairs, 6 order types, kill-switch, bulk orders. No leverage.
   </Card>
   <Card title="Margin Trading" icon="chart-line" href="/products/margin/overview">
     Up to 10x leverage on spot pairs using the Collateral account.

@@ -1,0 +1,60 @@
+---
+title: Place margin stop-market order
+tag: "WSS"
+description: "Place a margin or futures stop-market order over the WhiteBIT WebSocket connection with collateral_order_stop_market_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderStopMarketPlaceParams,
+  exCollateralOrderStopMarketPlaceRequest,
+  exCollateralOrderStopMarketPlaceResponse,
+} from '/snippets/ws-data/collateral_order_stop_market_place.jsx'
+
+<RegionBaseUrl />
+
+Fire a margin market order when the market reaches `activation_price`. This is the workhorse protective stop: because `amount` is [stock](/glossary#stock), a stop that closes a position takes the position size directly.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place margin stop-market order
+
+### Request parameters
+
+<WsSchemaTable fields={collateralOrderStopMarketPlaceParams} />
+
+<WsMessageExample data={exCollateralOrderStopMarketPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderStopMarketPlaceResponse} />
+
+The `result` object adds the activation fields and the position fields to the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A margin stop-market order reports `type` `10` with `price` `"0"`.
+
+<Warning>A per-market ceiling limits how many stop-market orders one account can hold. Reaching it returns error `103` — cancel an existing stop before placing another. For a stop that tracks the position size automatically rather than a fixed amount, use [`collateral_order_tpsl_place`](/websocket/order-management/collateral-order-tpsl-place) instead.</Warning>
+
+## Update frequency
+
+This method is client-initiated: the server answers each `collateral_order_stop_market_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the trigger firing.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

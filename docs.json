@@ -53,21 +53,63 @@
             ]
           },
           {
-            "group": "Integration Guides",
+            "group": "Get started",
             "public": true,
-            "icon": "book",
+            "icon": "rocket",
             "pages": [
-              "guides/integration-paths",
-              "guides/building-a-trading-bot",
-              "guides/building-a-price-dashboard",
-              "guides/market-maker-guide",
+              "guides/first-api-call",
+              "guides/websocket-quickstart"
+            ]
+          },
+          {
+            "group": "Partner Solutions",
+            "public": true,
+            "icon": "handshake",
+            "pages": [
+              "guides/partner-solutions",
+              {
+                "group": "Embedded Trading",
+                "public": true,
+                "pages": [
+                  "guides/embedded-trading-overview",
+                  "guides/sub-account-integration",
+                  "guides/embedded-trading-faq"
+                ]
+              },
+              {
+                "group": "On/Off-Ramp",
+                "public": true,
+                "pages": [
+                  "guides/on-off-ramp-overview",
+                  "guides/on-off-ramp-integration",
+                  "guides/on-off-ramp-faq"
+                ]
+              },
+              {
+                "group": "Market Makers",
+                "public": true,
+                "pages": [
+                  "guides/market-maker-overview",
+                  "guides/market-maker-integration",
+                  "guides/market-maker-faq"
+                ]
+              },
+              {
+                "group": "Payments & Fiat",
+                "public": true,
+                "pages": [
+                  "guides/payments-overview",
+                  "guides/payment-integration",
+                  "guides/payments-faq"
+                ]
+              },
               {
                 "group": "Wallet-as-a-Service",
                 "public": true,
                 "pages": [
                   "guides/waas-overview",
-                  "guides/waas-guide",
-                  "guides/waas-recipes"
+                  "guides/waas-integration",
+                  "guides/waas-faq"
                 ]
               },
               {
@@ -80,50 +122,36 @@
                 ]
               },
               {
-                "group": "Broker",
+                "group": "App Builders",
                 "public": true,
                 "pages": [
-                  "guides/broker-overview",
-                  "guides/broker-guide",
-                  "guides/fast-api-key-via-oauth",
-                  "guides/copy-trading",
-                  "guides/broker-faq"
+                  "guides/app-builders-overview",
+                  "guides/fast-api-key-integration",
+                  "guides/app-builders-faq"
                 ]
               },
               {
-                "group": "On/Off-Ramp",
+                "group": "Funds & Institutions",
                 "public": true,
                 "pages": [
-                  "guides/on-off-ramp-overview",
-                  "guides/on-off-ramp-guide",
-                  "guides/on-off-ramp-faq"
+                  "institutional/overview",
+                  "institutional/onboarding",
+                  "institutional/compliance"
                 ]
               },
-              {
-                "group": "Quick Start",
-                "public": true,
-                "pages": [
-                  "guides/first-api-call",
-                  "guides/websocket-quickstart"
-                ]
-              },
-              {
-                "group": "Trading Guides",
-                "public": true,
-                "pages": [
-                  "guides/client-order-id",
-                  "guides/order-parameter-rules"
-                ]
-              },
-              {
-                "group": "Business Integration",
-                "public": true,
-                "pages": [
-                  "guides/payment-integration",
-                  "guides/account-monitoring",
-                  "guides/fireblocks"
-                ]
-              }
+              "guides/partner-faq"
+            ]
+          },
+          {
+            "group": "Recipes",
+            "public": true,
+            "icon": "book-open-cover",
+            "pages": [
+              "guides/building-a-trading-bot",
+              "guides/building-a-price-dashboard",
+              "guides/copy-trading",
+              "guides/account-monitoring",
+              "guides/waas-recipes"
             ]
           },
           {
@@ -194,6 +222,7 @@
               "platform/self-trade-prevention",
               "platform/convert",
               "platform/whitebit-codes",
+              "guides/fireblocks",
               {
                 "group": "OAuth",
                 "public": true,
@@ -215,17 +244,10 @@
               "concepts/matching-engine",
               "concepts/balances",
               "concepts/auto-deleveraging",
-              "concepts/travel-rule"
-            ]
-          },
-          {
-            "group": "Institutional & B2B",
-            "public": true,
-            "icon": "building",
-            "pages": [
-              "institutional/overview",
-              "institutional/onboarding",
-              "institutional/compliance"
+              "concepts/travel-rule",
+              "concepts/integration-models",
+              "guides/client-order-id",
+              "guides/order-parameter-rules"
             ]
           },
           {
@@ -428,6 +450,7 @@
             "public": true,
             "icon": "rotate",
             "pages": [
+              "api-reference/convert/overview",
               "api-reference/convert/convert-estimate",
               "api-reference/convert/convert-confirm",
               "api-reference/convert/convert-history"
@@ -440,22 +463,40 @@
             "pages": [
               "api-reference/account-wallet/overview",
               {
-                "group": "Main Balance & Transfers",
+                "group": "Deposits",
+                "public": true,
+                "pages": [
+                  "api-reference/account-wallet/get-cryptocurrency-deposit-address",
+                  "api-reference/account-wallet/create-new-address-for-deposit",
+                  "api-reference/account-wallet/get-fiat-deposit-url",
+                  "api-reference/account-wallet/refund-deposit"
+                ]
+              },
+              {
+                "group": "Withdrawals",
+                "public": true,
+                "pages": [
+                  "api-reference/account-wallet/create-withdraw-request",
+                  "api-reference/account-wallet/create-withdraw-request-with-specific-amount",
+                  "api-reference/account-wallet/create-express-withdraw-token"
+                ]
+              },
+              {
+                "group": "Transfers",
                 "public": true,
                 "pages": [
                   "api-reference/account-wallet/main-balance",
-                  "api-reference/account-wallet/get-cryptocurrency-deposit-address",
-                  "api-reference/account-wallet/get-fiat-deposit-address",
-                  "api-reference/account-wallet/refund-deposit",
+                  "api-reference/account-wallet/transfer-between-balances",
+                  "api-reference/account-wallet/get-deposit-withdraw-history"
+                ]
+              },
+              {
+                "group": "Tokens",
+                "public": true,
+                "pages": [
                   "api-reference/account-wallet/issue-jwt-token",
                   "api-reference/account-wallet/profile-websocket-token",
-                  "api-reference/account-wallet/issue-card-token",
-                  "api-reference/account-wallet/create-withdraw-request",
-                  "api-reference/account-wallet/create-withdraw-request-with-specific-amount",
-                  "api-reference/account-wallet/create-express-withdraw-token",
-                  "api-reference/account-wallet/transfer-between-balances",
-                  "api-reference/account-wallet/get-deposit-withdraw-history",
-                  "api-reference/account-wallet/create-new-address-for-deposit"
+                  "api-reference/account-wallet/issue-card-token"
                 ]
               },
               {
@@ -570,6 +611,7 @@
             "public": true,
             "icon": "pickaxe",
             "pages": [
+              "api-reference/mining-pool/overview",
               "api-reference/mining-pool/create-mining-account",
               "api-reference/mining-pool/get-mining-accounts",
               "api-reference/mining-pool/pool-overview",
@@ -663,6 +705,50 @@
               "websocket/account-streams/margin-positions-events",
               "websocket/account-streams/borrows",
               "websocket/account-streams/borrows-events"
+            ]
+          },
+          {
+            "group": "Order Management",
+            "public": true,
+            "icon": "pen-to-square",
+            "pages": [
+              "websocket/order-management/overview",
+              {
+                "group": "Spot Orders",
+                "pages": [
+                  "websocket/order-management/order-limit-place",
+                  "websocket/order-management/order-market-place",
+                  "websocket/order-management/order-market-stock-place",
+                  "websocket/order-management/order-stop-limit-place",
+                  "websocket/order-management/order-stop-market-place",
+                  "websocket/order-management/order-stop-market-stock-place",
+                  "websocket/order-management/order-bbo-place",
+                  "websocket/order-management/order-stop-bbo-place"
+                ]
+              },
+              {
+                "group": "Margin & Futures Orders",
+                "pages": [
+                  "websocket/order-management/collateral-order-limit-place",
+                  "websocket/order-management/collateral-order-market-place",
+                  "websocket/order-management/collateral-order-stop-limit-place",
+                  "websocket/order-management/collateral-order-stop-market-place",
+                  "websocket/order-management/collateral-order-bbo-place",
+                  "websocket/order-management/collateral-order-stop-bbo-place",
+                  "websocket/order-management/collateral-order-oco-place",
+                  "websocket/order-management/collateral-order-oto-place",
+                  "websocket/order-management/collateral-order-tpsl-place"
+                ]
+              },
+              {
+                "group": "Managing Orders",
+                "pages": [
+                  "websocket/order-management/order-modify",
+                  "websocket/order-management/order-cancel",
+                  "websocket/order-management/order-cancel-conditional",
+                  "websocket/order-management/order-cancel-all"
+                ]
+              }
             ]
           }
         ]
@@ -908,7 +994,11 @@
     },
     {
       "source": "/private/http-main-v4/get-fiat-deposit-address",
-      "destination": "/api-reference/account-wallet/get-fiat-deposit-address"
+      "destination": "/api-reference/account-wallet/get-fiat-deposit-url"
+    },
+    {
+      "source": "/api-reference/account-wallet/get-fiat-deposit-address",
+      "destination": "/api-reference/account-wallet/get-fiat-deposit-url"
     },
     {
       "source": "/private/http-main-v4/get-flex-investment-history",
@@ -1333,6 +1423,46 @@
     {
       "source": "/public/websocket/market-statistics-for-current-day-utc",
       "destination": "/websocket/market-streams/market-today"
+    },
+    {
+      "source": "/guides/broker-guide",
+      "destination": "/guides/sub-account-integration"
+    },
+    {
+      "source": "/guides/broker-overview",
+      "destination": "/guides/embedded-trading-overview"
+    },
+    {
+      "source": "/guides/broker-faq",
+      "destination": "/guides/embedded-trading-faq"
+    },
+    {
+      "source": "/guides/fast-api-key-via-oauth",
+      "destination": "/guides/fast-api-key-integration"
+    },
+    {
+      "source": "/guides/market-maker-guide",
+      "destination": "/guides/market-maker-integration"
+    },
+    {
+      "source": "/guides/on-off-ramp-guide",
+      "destination": "/guides/on-off-ramp-integration"
+    },
+    {
+      "source": "/guides/waas-guide",
+      "destination": "/guides/waas-integration"
+    },
+    {
+      "source": "/guides/integration-paths",
+      "destination": "/guides/partner-solutions"
+    },
+    {
+      "source": "/guides/platforms-overview",
+      "destination": "/guides/waas-overview"
+    },
+    {
+      "source": "/guides/platforms-faq",
+      "destination": "/guides/waas-faq"
     }
   ]
 }

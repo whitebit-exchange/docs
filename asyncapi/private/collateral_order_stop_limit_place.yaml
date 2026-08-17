@@ -1,0 +1,211 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Place Margin Stop-Limit Order
+  version: 1.0.0
+  description: |
+    Place a margin or futures stop-limit order over the WebSocket connection.
+
+    The order waits outside the order book until the market reaches `activation_price`. On
+    activation the engine places a margin limit order at `price`.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 19
+      message: market is not margin market
+      description: "The method was called on a spot-only market. Use the spot `order_*` equivalent there."
+    - code: 101
+      message: activation price should not be equal to the last price
+      description: "The activation price equals the current last price. Move the trigger to either side of it."
+    - code: 158
+      message: wrong activation price for limit order
+      description: "The trigger price and the limit price are inconsistent."
+    - code: 251
+      message: activation price is out of bands
+      description: "The activation price falls outside the maker price bands."
+    - code: 114
+      message: order's position side does not match user's setting
+      description: "`position_side` was sent without hedge mode enabled, or does not match the account setting."
+    - code: 116
+      message: margin order with reduce only is rejected
+      description: "The order carries `reduce_only` but nothing is open on that side."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Margin and futures stop-limit order placement channel
+    messages:
+      collateralOrderStopLimitPlaceRequest:
+        $ref: '#/components/messages/collateralOrderStopLimitPlaceRequest'
+      collateralOrderStopLimitPlaceResponse:
+        $ref: '#/components/messages/collateralOrderStopLimitPlaceResponse'
+
+operations:
+  sendCollateralOrderStopLimitPlaceRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/collateralOrderStopLimitPlaceRequest'
+
+  receiveCollateralOrderStopLimitPlaceResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/collateralOrderStopLimitPlaceResponse'
+
+components:
+  messages:
+    collateralOrderStopLimitPlaceRequest:
+      name: CollateralOrderStopLimitPlaceRequest
+      title: Place margin stop-limit order
+      summary: Place a margin or futures stop-limit order
+      payload:
+        $ref: '#/components/schemas/CollateralOrderStopLimitPlaceRequest'
+      examples:
+        - name: collateralOrderStopLimitPlaceBuy
+          summary: |
+            Place a buy stop-limit order with parameters:
+            - params[0]: order object with market, side, amount, price, and activation_price
+          payload:
+            id: 500012
+            method: collateral_order_stop_limit_place
+            params:
+              - market: BTC_PERP
+                side: buy
+                amount: "0.001"
+                price: "66263.38"
+                activation_price: "65298.38"
+                stp: "no"
+
+    collateralOrderStopLimitPlaceResponse:
+      name: CollateralOrderStopLimitPlaceResponse
+      title: Place Margin Stop-Limit Order Response
+      summary: Accepted conditional order (status OPEN, not activated)
+      payload:
+        $ref: '#/components/schemas/CollateralOrderStopLimitPlaceResponse'
+      examples:
+        - name: collateralOrderStopLimitPlaceAccepted
+          summary: Order waiting for the trigger, activation_condition derived as gte
+          payload:
+            id: 500012
+            result:
+              id: 2423735883777
+              market: BTC_PERP
+              type: 9
+              side: 2
+              post_only: false
+              ioc: false
+              reduce_only: false
+              position_side: BOTH
+              ctime: 1786452691.8434091
+              mtime: 1786452691.8434091
+              activation_price: "65298.38"
+              activation_condition: gte
+              activated: 0
+              price: "66263.38"
+              amount: "0.001"
+              left: "0.001"
+              deal_stock: "0"
+              deal_money: "0"
+              deal_fee: "0"
+              client_order_id: ""
+              stp: "no"
+              status: OPEN
+            error: null
+
+  schemas:
+    CollateralOrderStopLimitPlaceRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: collateral_order_stop_limit_place
+          description: "Method name. Fixed value: `collateral_order_stop_limit_place`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/CollateralOrderStopLimitPlaceParams'
+          description: Array containing exactly one order parameter object
+
+    CollateralOrderStopLimitPlaceParams:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - activation_price
+        - price
+      properties:
+        market:
+          type: string
+          description: "Margin or futures market name. A spot-only market is rejected with error `19`."
+          example: BTC_PERP
+        side:
+          type: string
+          enum: ["buy", "sell"]
+          description: "Order side. The response reports the side numerically: `1` for sell, `2` for buy."
+        amount:
+          type: string
+          description: "Order size in stock, at the market stock precision."
+          example: "0.001"
+        activation_price:
+          type: string
+          description: "Trigger price. The engine sets `activation_condition` to `gte` when the trigger sits above the market at placement, and `lte` when below."
+          example: "65298.38"
+        price:
+          type: string
+          description: "Limit price of the margin order created on activation."
+          example: "66263.38"
+        reduce_only:
+          type: boolean
+          description: "Restrict the order to shrinking an existing position."
+        position_side:
+          type: string
+          enum: ["BOTH", "LONG", "SHORT"]
+          description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode."
+        client_order_id:
+          type: string
+          description: "Custom client order id, echoed on the response. Must be unique among active orders — a collision returns error `43`."
+        stp:
+          type: string
+          enum: ["no", "co", "cn", "cb"]
+          description: "Self-trade prevention mode applied to the order created on activation. Defaults to `no` when omitted."
+
+    CollateralOrderStopLimitPlaceResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Accepted conditional order with the activation and position fields present. A margin stop-limit order reports `type` `9` and `activated` `0` until the trigger fires."
+        error:
+          type: "null"
+          description: Error object (null on success)

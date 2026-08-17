@@ -1,0 +1,74 @@
+---
+title: "Partner FAQ"
+sidebarTitle: "Partner FAQ"
+description: "Cross-cutting questions common to every WhiteBIT partner program: onboarding and KYB, authentication and OAuth, test environments, fees, and rate limits."
+icon: "circle-question"
+pageType: "program-faq"
+---
+{/* Consolidated cross-program FAQ — not tied to one funnel, so it carries no `program` key.
+    Program-specific questions live on each program's own FAQ. */}
+
+Questions common to every WhiteBIT partner program. For program-specific questions, see the FAQ on each program funnel.
+
+## Onboarding and eligibility
+
+### Partner onboarding and KYB
+
+Partner programs are approval-gated: every application is individually reviewed, and institutional onboarding completes KYB of the company plus KYC of the responsible person before provisioning. See [Institutional Onboarding](/institutional/onboarding).
+
+### Where to apply
+
+Program applications go to `institutional@whitebit.com` with the registered legal entity, licenses held, the intended account structure, who performs end-customer verification, and the countries served. The full intake list is on [Partner Solutions](/guides/partner-solutions#how-to-apply).
+
+### Choosing an integration path
+
+Partner labels overlap, so routing is by structure: who holds the end user's account and who performs verification. See [Partner Solutions](/guides/partner-solutions) and the [integration models](/concepts/integration-models) concept.
+
+## Authentication
+
+### Primary authentication method
+
+The primary method is an HMAC-SHA512-signed API key, sent with the `X-TXC-APIKEY`, `X-TXC-PAYLOAD`, and `X-TXC-SIGNATURE` headers. See [First API Call](/guides/first-api-call).
+
+### Acting on a customer's own account
+
+Partners act on a customer's own account through the OAuth-based [Fast API Key](/guides/fast-api-key-integration) flow, which issues a user-scoped key from the WhiteBIT consent screen.
+
+### OAuth status
+
+Fast API Key is live. The classic OAuth 2.0 Authorization Code Grant flow for direct account-data access is deprecated and scheduled for removal on November 1, 2026. See [OAuth 2.0](/platform/oauth/overview).
+
+## Test environments
+
+### Sandbox availability
+
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum order sizes and low-minimum assets; Demo Tokens are available for risk-free spot practice. See the [Go-Live Checklist](/best-practices/go-live-checklist).
+
+## Fees and terms
+
+### Program fees and revenue share
+
+Fee schedules and revenue-share terms are set per program and agreed individually during onboarding; the applicable figures are on each program overview and the canonical program pages. See [Partner Solutions](/guides/partner-solutions#program-terms-and-security).
+
+## Rate limits
+
+### How rate limits are applied
+
+Rate limits are set per scope and per endpoint rather than as a single global value, and are counted per IP address. See [Rate Limits](/api-reference/rate-limits).
+
+## Regions and base URL
+
+### API base URL
+
+The global REST base URL is `https://whitebit.com`. Regional environment options are confirmed during onboarding. See [First API Call](/guides/first-api-call).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Partner Solutions" icon="compass" href="/guides/partner-solutions">
+    Route to the right program funnel.
+  </Card>
+  <Card title="First API call" icon="rocket" href="/guides/first-api-call">
+    Make a public call, then add HMAC signing for authenticated endpoints.
+  </Card>
+</CardGroup>

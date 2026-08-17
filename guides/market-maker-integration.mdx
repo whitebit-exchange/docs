@@ -1,7 +1,10 @@
 ---
 title: "Market Maker Integration Guide"
 description: "Guide for professional market makers — Market-Making Program terms, colocation setup, available endpoints, quoting strategy, and safety mechanisms."
-sidebarTitle: "Market Maker Guide"
+sidebarTitle: "Integration"
+icon: "code"
+pageType: "integration"
+program: "market-makers"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
@@ -25,6 +28,12 @@ Rates and volume breakpoints change over time and are not duplicated here. For c
 - Cross-marketing support
 - [Sub-accounts](/products/sub-accounts/overview) for strategy separation
 - Access to [Liquidity Provision program](https://whitebit.com/m/liquidity-provision) for non-MM liquidity partnerships
+
+## Prerequisites
+
+- **Approved Market-Making Program enrollment** — contact `institutional@whitebit.com` with trading-volume history and target markets (see [How to apply](#how-to-apply)); the [Market-Making overview](/guides/market-maker-overview) covers program terms.
+- **Colocation connection details** — provisioned by the account manager for latency-sensitive strategies (see [Colocation setup](#colocation-setup)).
+- **API access** — [HMAC-signed requests](/api-reference/authentication).
 
 ## Colocation setup
 
@@ -114,7 +123,7 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
 
 **Bulk vs individual:** bulk reduces wire and auth overhead and gives atomic same-timestamp placement of a quote ladder. The bulk response only returns once every leg in the batch is processed. Pipelined individual orders give faster per-leg acknowledgment for clients optimized for that pattern. Use bulk for atomic quote refreshes and less-optimized clients; use individual orders when lowest per-leg ack latency matters most.
 
-**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. They remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/spot-trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
+**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. RPI orders remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/spot-trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
@@ -219,7 +228,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 
 | Channel | Carries | Recovery model | Where to learn the protocol |
 |---|---|---|---|
-| `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates; detect gaps via the `past_update_id` chain on deltas (keepalive snapshots are full resets, not gaps) | [WS Quickstart — Subscribe to orderbook depth](/guides/websocket-quickstart#subscribe-to-orderbook-depth) |
+| `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates; detect gaps via the `past_update_id` chain on deltas (keepalive snapshots are full resets, not gaps) | [Depth channel](/websocket/market-streams/depth) |
 | `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders. Track RPI quotes via the private active-orders state. |
 | `balanceSpot` | Available + frozen balances per asset | Query-then-subscribe (`balanceSpot_request` then `balanceSpot_subscribe`) | [WS Quickstart — State recovery](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `ordersPending` | Active order state transitions: placed, partially filled, canceled | Query first (`ordersPending_request` or REST `POST /api/v4/orders`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
@@ -232,7 +241,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 | `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives shortly after subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `marginPositionsEvents` | Position-change events (open, update, close, liquidation) | Event-only — pair with `positions` for complete state | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 
-**Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/guides/websocket-quickstart#authenticate-for-private-channels) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/guides/websocket-quickstart#subscribe-to-orderbook-depth)). To stop quoting on one pair without disrupting the others, send `depth_unsubscribe` or `bookTicker_unsubscribe` with that market name in `params` — only that market's feed drops; an empty array unsubscribes from all markets on the stream.
+**Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/websocket/authentication) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/websocket/market-streams/depth)). To stop quoting on one pair without disrupting the others, send `depth_unsubscribe` or `bookTicker_unsubscribe` with that market name in `params` — only that market's feed drops; an empty array unsubscribes from all markets on the stream.
 
 ```json
 [
@@ -331,7 +340,7 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 Contact **institutional@whitebit.com** with trading volume history and target markets. The dedicated account manager provides colocation connection details — AWS region, availability zone, and connection endpoints — during onboarding.
 
-## What's Next
+## What's next
 
 <CardGroup cols={3}>
   <Card title="Colocation" icon="server" href="/platform/colocation">

@@ -1,7 +1,10 @@
 ---
 title: "Fast API Key via OAuth"
-sidebarTitle: "Fast API Key integration"
+sidebarTitle: "Integration"
 description: "Integration guide for partner platforms that issue WhiteBIT API keys on behalf of users through the OAuth API key flow."
+icon: "key"
+pageType: "integration"
+program: "app-builders"
 ---
 
 The OAuth API key flow lets a partner platform issue a WhiteBIT API key for an authenticated WhiteBIT user without the user manually copying credentials between sites. The user authorizes the partner on the WhiteBIT consent screen, the WhiteBIT platform issues a partner-scoped API key, and the partner backend reads the API secret once through a Bearer-authenticated endpoint and persists it. The flow uses Authorization Code with PKCE (S256) and a 4-hour access token without refresh. See the [Fast API Key](/glossary#fast-api-key) glossary entry for the short definition.
@@ -14,12 +17,12 @@ The flow fits partners whose end users keep personal WhiteBIT accounts: WhiteBIT
 - **Trading bots** — the service runs strategies on the user's account. The user approves the permission set on the consent screen — trading scopes for execution, with withdrawal remaining a separate, user-controlled grant behind an additional confirmation (see [Key permissions](#key-permissions)).
 - **Portfolio and aggregator apps** — the app aggregates balances and transaction history through a read-scoped key and places no orders.
 
-Partners operating accounts *for* customers — a dedicated sub-account per end customer under a partner master account — integrate via the [Broker Program](/guides/broker-guide) instead; the [Integration Paths](/guides/integration-paths) page maps all partner types. Whether [attribution](/guides/waas-overview) or commercial terms apply for own-account partners is confirmed with WhiteBIT during enrollment.
+Partners operating accounts *for* customers — a dedicated sub-account per end customer under a partner master account — integrate via [Embedded Trading](/guides/embedded-trading-overview) instead; the [Partner Solutions](/guides/partner-solutions) page maps all partner types. Whether [attribution](/guides/waas-overview) or commercial terms apply for own-account partners is confirmed with WhiteBIT during enrollment.
 
 ## Prerequisites
 
 <Note>
-  Partner enrollment is approval-gated. New partners apply via `institutional@whitebit.com` with the details listed under [How to apply](/guides/integration-paths#how-to-apply); a partner agreement and KYB review are part of onboarding; client registration is then coordinated through the same channel, as described below.
+  Partner enrollment is approval-gated. New partners apply via `institutional@whitebit.com` with the details listed under [How to apply](/guides/partner-solutions#how-to-apply); a partner agreement and KYB review are part of onboarding; client registration is then coordinated through the same channel, as described below.
 </Note>
 
 - Partner-registered OAuth2 client (`client_id`, `client_secret`, redirect URIs). Contact `institutional@whitebit.com` to enroll a client; the OAuth API key feature must be approved for the partner platform before a `client_id` is issued.
@@ -35,6 +38,43 @@ Partners operating accounts *for* customers — a dedicated sub-account per end 
 | `DELETE` | [`/oauth2/api-key/{externalId}`](/api-reference/oauth/usage/api-key-delete) | Bearer | `apikeys.delete` | Delete a partner-owned key |
 
 ## Integration flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Partner as Partner backend
+    participant WhiteBIT
+
+    Partner->>WhiteBIT: GET /oauth2/api-key/info (pre-check)
+    WhiteBIT-->>Partner: (exists, isEnabled)
+    alt (true, true) — active key exists
+        Partner-->>User: Surface "an active API key already exists"
+    else (true, false) — disabled key exists
+        Partner-->>User: Ask the user to delete the disabled key from the WhiteBIT dashboard
+    else (false, false) — no key exists
+        Partner->>User: Redirect to the authorization URL (/auth/login)
+        User->>WhiteBIT: Authorize on consent screen, choose permissions, confirm with 2FA
+        WhiteBIT-->>Partner: Callback to redirect_uri with the authorization code
+        Partner->>WhiteBIT: POST /oauth2/token
+        WhiteBIT-->>Partner: access_token (4h, no refresh)
+        loop poll until exists and isEnabled
+            Partner->>WhiteBIT: GET /oauth2/api-key/info
+        end
+        WhiteBIT-->>Partner: externalId
+        Partner->>WhiteBIT: GET /oauth2/api-key/{externalId}/secret
+        alt 423 Locked
+            Note over Partner: Retry with backoff (5-10s, doubling, cap 60s)
+        else 409 Conflict
+            Partner->>WhiteBIT: DELETE /oauth2/api-key/{externalId}
+            Note over Partner: Restart from pre-check
+        else success
+            WhiteBIT-->>Partner: apiSecret (returned once)
+        end
+    end
+    Note over Partner,WhiteBIT: Partner signs V4 requests with HMAC using externalId + apiSecret
+```
+
+For the remaining failure modes (401, 403, 404) and both consent-screen error codes, see [Error handling](#error-handling) below.
 
 <Steps>
   <Step title="Pre-check">
@@ -121,7 +161,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 - Use the exact registered `redirect_uri` — wildcards and open redirects are rejected.
 - Use Authorization Code with PKCE (S256) on every authorization request.
 - Rotate `apiSecret` by deleting and re-issuing keys. The secret cannot be retrieved a second time for an existing key.
-- IP restrictions on the key, when enabled, are the user's own control on their WhiteBIT account — exact-match addresses (ranges and subnets are not supported), applied to trade-API requests. The partner does not manage a key-level IP allowlist; if a user enables the restriction, have them whitelist the partner's egress addresses.
+- IP restrictions on the key, when enabled, are the end user's own account-level control — exact-match addresses (ranges and subnets are not supported), applied to trade-API requests. The partner does not manage a key-level IP allowlist; a user who enables the restriction must add the partner's egress addresses to the allowlist.
 
 ## Limits
 
@@ -131,7 +171,7 @@ Two application-level error codes can surface during key creation on the WhiteBI
 
 ## What's next
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="OAuth endpoint overview" icon="key" href="/api-reference/oauth/usage/overview">
     Full list of OAuth endpoints in the API Reference, with required scopes per endpoint.
   </Card>
@@ -140,6 +180,9 @@ Two application-level error codes can surface during key creation on the WhiteBI
   </Card>
   <Card title="First API Call" icon="play" href="/guides/first-api-call">
     Sign a `POST /api/v4/main-account/balance` request with HMAC-SHA512 and read the response.
+  </Card>
+  <Card title="App Builders FAQ" icon="circle-question" href="/guides/app-builders-faq">
+    Key types, rate limits, revocation, onboarding, and compliance questions.
   </Card>
 </CardGroup>
 

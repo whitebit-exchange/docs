@@ -1,0 +1,208 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Place Margin OTO Order
+  version: 1.0.0
+  description: |
+    Place a One-Triggers-Other group on a margin or futures market.
+
+    An entry order arms its own exit: once the entry fills, the engine creates a take-profit,
+    a stop-loss, or an OCO pair of both.
+
+    The parameter shape differs from the other methods. The entry order is a nested object
+    under `trigger_order`, carrying the full parameter set of whichever placement method
+    `trigger_order_type` names. The exit is described by two bare prices at the top level.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 1
+      message: unknown order type
+      description: "The `trigger_order_type` or `conditional_order_type` value is not recognised."
+    - code: 1
+      message: trigger order can't be margin market OCO
+      description: "`margin_market_oco` was used as the trigger type. It is valid only as an exit."
+    - code: 1
+      message: take_profit and stop_loss are required
+      description: "An OCO exit needs both prices."
+    - code: 1
+      message: "flags: rpi=1 can not be set for trigger in oto"
+      description: "The `rpi` flag is not allowed inside `trigger_order`."
+    - code: 105
+      message: wrong activation price for take profit
+      description: "The take-profit price sits on the wrong side of the entry price."
+    - code: 106
+      message: wrong activation price for stop loss
+      description: "The stop-loss price sits on the wrong side of the entry price."
+    - code: 250
+      message: price must be >= X / <= Y
+      description: "An exit price falls outside the price bands around the entry price."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Margin and futures OTO group placement channel
+    messages:
+      collateralOrderOtoPlaceRequest:
+        $ref: '#/components/messages/collateralOrderOtoPlaceRequest'
+      collateralOrderOtoPlaceResponse:
+        $ref: '#/components/messages/collateralOrderOtoPlaceResponse'
+
+operations:
+  sendCollateralOrderOtoPlaceRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/collateralOrderOtoPlaceRequest'
+
+  receiveCollateralOrderOtoPlaceResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/collateralOrderOtoPlaceResponse'
+
+components:
+  messages:
+    collateralOrderOtoPlaceRequest:
+      name: CollateralOrderOtoPlaceRequest
+      title: Place OTO group
+      summary: Place an entry order that arms its own exit
+      payload:
+        $ref: '#/components/schemas/CollateralOrderOtoPlaceRequest'
+      examples:
+        - name: collateralOrderOtoPlaceBuyWithOcoExit
+          summary: |
+            Place a buy entry with an OCO exit:
+            - params[0]: group object with the nested trigger_order and the two exit prices
+          payload:
+            id: 500017
+            method: collateral_order_oto_place
+            params:
+              - trigger_order_type: margin_limit
+                trigger_order:
+                  market: BTC_PERP
+                  side: buy
+                  amount: "0.001"
+                  price: "63370.99"
+                  stp: "no"
+                conditional_order_type: margin_market_oco
+                take_profit: "66266.12"
+                stop_loss: "62405.95"
+
+    collateralOrderOtoPlaceResponse:
+      name: CollateralOrderOtoPlaceResponse
+      title: Place OTO Group Response
+      summary: Group id with the entry order and the exit prices
+      payload:
+        $ref: '#/components/schemas/CollateralOrderOtoPlaceResponse'
+      examples:
+        - name: collateralOrderOtoPlaceAccepted
+          summary: Entry order resting; the exit legs do not exist yet
+          payload:
+            id: 500017
+            result:
+              type: oto
+              id: 2423735895134
+              conditional_order_type: margin_market_oco
+              take_profit_price: "66266.12"
+              stop_loss_price: "62405.95"
+              trigger_order:
+                id: 2423735895135
+                market: BTC_PERP
+                type: 7
+                side: 2
+                post_only: false
+                ioc: false
+                reduce_only: false
+                position_side: BOTH
+                ctime: 1786452692.945421
+                mtime: 1786452692.945421
+                price: "63370.99"
+                amount: "0.001"
+                left: "0.001"
+                deal_stock: "0"
+                deal_money: "0"
+                deal_fee: "0"
+                client_order_id: ""
+                stp: "no"
+                status: OPEN
+            error: null
+
+  schemas:
+    CollateralOrderOtoPlaceRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: collateral_order_oto_place
+          description: "Method name. Fixed value: `collateral_order_oto_place`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/CollateralOrderOtoPlaceParams'
+          description: Array containing exactly one group parameter object
+
+    CollateralOrderOtoPlaceParams:
+      type: object
+      required:
+        - trigger_order_type
+        - trigger_order
+        - conditional_order_type
+      properties:
+        trigger_order_type:
+          type: string
+          enum: ["margin_limit", "margin_market", "margin_stop_limit", "margin_stop_market", "margin_bbo", "margin_stop_bbo"]
+          description: "Kind of entry order. `margin_market_oco` is not a valid trigger type."
+        trigger_order:
+          type: object
+          description: "Parameters of the entry order, exactly as the named method takes them — `market`, `side`, `amount`, plus `price`, `activation_price`, or `bbo_role` as that method requires. The `rpi` flag is not allowed here."
+        conditional_order_type:
+          type: string
+          enum: ["margin_market_oco", "margin_take_profit", "margin_limit", "margin_stop_loss", "margin_stop_limit"]
+          description: "Kind of exit. `margin_market_oco` arms both sides. `margin_take_profit` and `margin_limit` arm a take-profit only. `margin_stop_loss` and `margin_stop_limit` arm a stop-loss only."
+        take_profit:
+          type: string
+          description: "Exit price on the profitable side. Required for take-profit and OCO exits, and rejected for stop-loss-only exits."
+          example: "66266.12"
+        stop_loss:
+          type: string
+          description: "Exit price on the losing side. Required for stop-loss and OCO exits, and rejected for take-profit-only exits."
+          example: "62405.95"
+
+    CollateralOrderOtoPlaceResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Group object carrying `type` `\"oto\"`, the group `id`, the echoed `conditional_order_type`, the `take_profit_price` and `stop_loss_price` values, and the `trigger_order` as a full order object. The exit legs hold no order ids until the entry fills."
+        error:
+          type: "null"
+          description: Error object (null on success)
