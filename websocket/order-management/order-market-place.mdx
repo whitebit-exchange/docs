@@ -51,11 +51,11 @@ The `post_only`, `ioc`, and `rpi` flags carry no meaning for a market order and 
 
 The `result` object is the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A spot market order reports `type` `2` and `price` `"0"`, because it carries no limit price. Read the achieved cost from `deal_money` and the matched size from `deal_stock`.
 
-<Warning>A thin order book does not produce an error. When the book runs out before `amount` is exhausted, the status comes back `PARTIALLY_FILLED` with the unspent balance in `left`, and the order is not retained. Check `left` rather than assuming a full fill. An order book with no liquidity at all returns error `12`.</Warning>
+<Warning>A thin order book does not produce an error. When the book runs out before `amount` is exhausted, the status comes back `PARTIALLY_FILLED` with the unspent balance in `left`, and the order is not retained. Check `left` rather than assuming a full fill; an order book with no liquidity at all returns error `12`.</Warning>
 
 ## Update frequency
 
-Client-initiated. The server answers each `order_market_place` request with a single response frame carrying the same `id`.
+This method is client-initiated: the server answers each `order_market_place` request with a single response frame carrying the same `id`.
 
 ## Error codes
 

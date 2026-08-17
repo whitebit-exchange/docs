@@ -8,9 +8,9 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-The WebSocket transport carries order flow as well as market data and account streams. Twenty-one JSON-RPC methods place, modify, and cancel orders on spot, margin, and futures markets over the same connection used for subscriptions.
+The WebSocket transport carries order flow as well as market data and account streams. The transport exposes 21 JSON-RPC methods that place, modify, and cancel orders on spot, margin, and futures markets over the same connection used for subscriptions.
 
-This page holds the conventions shared by every order method: the request envelope, value formats, the shared enums, and the complete error reference. Each method page documents only its own request parameters and the behaviour specific to that method.
+This page holds the conventions shared by every order method: the request envelope, value formats, the shared enums, and the complete error reference. Each method page documents only its own request parameters and the behavior specific to that method.
 
 ## Authorization
 
@@ -38,11 +38,11 @@ Order methods follow the JSON-RPC structure used across the WebSocket API, with 
 | `result` | OBJECT or NULL | Order object on success; `null` on failure. |
 | `error` | OBJECT or NULL | Error object on failure; `null` on success. |
 
-Exactly one of `result` and `error` carries meaning. Responses arrive interleaved with subscription pushes, which carry no `id`, so correlate each answer by `id` rather than by arrival order.
+Exactly one of `result` and `error` carries meaning. Responses arrive interleaved with subscription pushes, which carry no `id`, so correlate each answer by `id` rather than by arrival order. The same operations are available over REST — see [Create Limit Order](/api-reference/spot-trading/create-limit-order) for the equivalent endpoint family.
 
 ## Decimal values are strings
 
-Every price, amount, and fee travels as a decimal string, which avoids floating-point rounding. The engine normalises trailing zeros on the way out: a price sent as `"1916.40"` returns as `"1916.4"`. Compare decimal values numerically, never by string equality.
+Every price, amount, and fee travels as a decimal string, which avoids floating-point rounding. The engine normalizes trailing zeros on the way out: a price sent as `"1916.40"` returns as `"1916.4"`. Compare decimal values numerically, never by string equality.
 
 Timestamps are the exception. The `ctime` and `mtime` fields are JSON numbers — Unix seconds with a microsecond fraction.
 
@@ -102,7 +102,7 @@ The `activation_condition` field is derived by the engine rather than sent as a 
 
 ## Order type codes
 
-The numeric `type` values are listed in the [order types](/websocket/account-streams/overview#order-types) table. Two notes on reading the codes: the same code can come from more than one method, because a BBO order becomes an ordinary limit order once it is priced; and a stop order that converts into a market or BBO order carries `price` `"0"` until it activates.
+The numeric `type` values are listed in the [order types](/websocket/account-streams/overview#order-types) table. Three notes on reading the codes: the same code can come from more than one method, because a BBO order becomes an ordinary limit order once it is priced; a TPSL leg is internally a margin stop-market order, so `collateral_order_tpsl_place` reports `type` `10` alongside `collateral_order_stop_market_place`; and a stop order that converts into a market or BBO order carries `price` `"0"` until it activates.
 
 ## Order status
 
@@ -111,7 +111,7 @@ The numeric `type` values are listed in the [order types](/websocket/account-str
 | `OPEN` | Resting in the order book, or waiting for activation |
 | `PARTIALLY_FILLED` | Partly matched, remainder in `left` |
 | `FILLED` | Fully matched |
-| `CANCELED` | Cancelled by the client |
+| `CANCELED` | Canceled by the client |
 | `CANCELED_STP` | Removed by self-trade prevention |
 | `CANCELED_TAKER_BAND` | Rejected by the taker price band |
 | `CANCELED_RPI` | Removed by Retail Price Improvement rules |
@@ -123,14 +123,14 @@ The numeric `type` values are listed in the [order types](/websocket/account-str
 
 The `stp` parameter decides what happens when an order would match against another order from the same account. It defaults to `no` when omitted.
 
-| Value | Alias | Behaviour on self-match |
+| Value | Alias | Behavior on self-match |
 |-------|-------|-------------------------|
 | `no` | — | Prevention disabled |
 | `co` | `cancel_old` | Cancel the resting order and let the incoming order trade |
 | `cn` | `cancel_new` | Cancel the incoming order |
 | `cb` | `cancel_both` | Cancel both sides of the self-match |
 
-See [Self-Trade Prevention](/platform/self-trade-prevention) for the platform-level behaviour.
+See [Self-Trade Prevention](/platform/self-trade-prevention) for the platform-level behavior.
 
 ## Shared enums
 
@@ -177,11 +177,11 @@ A failure sets `result` to `null` and fills `error` with a numeric `code` and a 
 
 Two codes are overloaded on this transport. Code `6` means order not found in a cancel or modify context, and authentication required when the connection has not authorized. Code `11` means amount too small on placement, and carries the authorization server message when authorization itself fails.
 
-<Warning>The numbering on this transport is independent of the REST error codes. The same number carries a different meaning on each surface — on the WebSocket transport `40` is `order is not post only` and `41` is `order is not ioc`, while the REST API uses its own codes for the equivalent conditions. Do not carry a code learned from [REST error responses](/api-reference/authentication#common-errors) over to this transport, or the reverse. Flag conflicts return code `1` here.</Warning>
+<Warning>The numbering on this transport is independent of the REST error codes. The same number carries a different meaning on each surface — on the WebSocket transport `40` is `order is not post only` and `41` is `order is not ioc`, while the REST API uses its own codes for the equivalent conditions. Do not carry a code learned from [REST error responses](/api-reference/authentication#common-errors) over to this transport, or the reverse.</Warning>
 
 ### Validation — code 1
 
-Every malformed request returns code `1`; the message identifies the field.
+Every malformed request returns code `1`; the message identifies the parameter.
 
 | Message | Methods | Condition |
 |---------|---------|-----------|
@@ -210,8 +210,7 @@ Every malformed request returns code `1`; the message identifies the field.
 | `order_id or client_order_id must be set for modify` | `order_modify`, `order_cancel` | Neither identifier supplied |
 | `at least price or amount or total or activation price should be specified` | `order_modify` | Nothing to change |
 | `amount and total cannot be specified simultaneously` | `order_modify` | Mutually exclusive parameters |
-| `order types must be an array`, `invalid or duplicate order type` | `order_cancel_all` | Bad `type` array |
-| `in post-only mode, only limit orders with the post-only flag are allowed` | Market and stop methods | Market is in post-only mode |
+| `order types must be an array`, `at least one order type should be specified`, `invalid or duplicate order type` | `order_cancel_all` | Bad `type` array |
 
 ### Engine rejections
 
@@ -232,12 +231,12 @@ Every malformed request returns code `1`; the message identifies the field.
 | `14` | `margin order by taker price` | `collateral_*` | Post-only margin order would cross |
 | `15`, `16` | `margin exchange stock/money not enough` | `collateral_*` | Exchange-side collateral shortfall |
 | `17` | `user margin balance not enough` | `collateral_*` | Insufficient collateral balance |
-| `19` | `market is not margin market` | `collateral_*` | Called on a spot-only market |
-| `40` | `order is not post only` | Placement | Market is in post-only mode |
+| `19` | `market is not margin market` | `collateral_*`, `order_cancel_conditional` | Called on a spot-only market |
+| `40` | `order is not post only` | Limit placement without `post_only` | Market is in post-only mode |
 | `41` | `order is not ioc` | Placement | Market requires immediate-or-cancel |
 | `42` | `order slippage threshold` | Market placement | Slippage guard tripped |
 | `43` | `client order id already exists` | Placement | Duplicate `client_order_id` among active orders |
-| `51` | `trading in the market is not allowed` | All | Market suspended, or the market status blocks the method |
+| `51` | `trading in the market is not allowed` | All | Market suspended, or the market status blocks the method — including every market and stop method while the market runs in post-only mode |
 
 ### Conditional orders and positions
 
@@ -303,4 +302,3 @@ The available order types also vary by region. In the EU region the spot order t
 - [Deals](/websocket/account-streams/deals) — stream of individual fills
 - [Order Types](/concepts/order-types) — order type concepts and regional restrictions
 - [WebSocket Rate Limits](/websocket/rate-limits) — connection limits, request limits, and standard error codes
-- [Spot Trading API](/api-reference/spot-trading/create-limit-order) — the REST equivalent of these methods

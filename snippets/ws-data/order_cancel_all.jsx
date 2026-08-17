@@ -22,7 +22,7 @@ export const orderCancelAllParams = [
 
 export const orderCancelAllResponse = [
   { name: "id", type: "integer", required: true, description: "Request identifier matching the request" },
-  { name: "result", type: "object", required: true, description: "Empty object. No list of cancelled orders is returned, and nothing matched is not an error — re-query pending orders to confirm the outcome." },
+  { name: "result", type: "object", required: true, description: "Empty object. No list of canceled orders is returned, and nothing matched is not an error — re-query pending orders to confirm the outcome." },
   { name: "error", type: "null", required: true, description: "Error object (null on success)" },
 ];
 

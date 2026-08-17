@@ -21,7 +21,7 @@ import {
 
 <RegionBaseUrl />
 
-Cancel an OCO or OTO group in one call. Pass the group id from the placement response and every leg is withdrawn atomically, which removes the risk of a half-cancelled pair leaving one exit armed.
+Cancel an OCO or OTO group in one call. Pass the group id from the placement response and every leg is withdrawn atomically, which removes the risk of a half-canceled pair leaving one exit armed.
 
 <WsChannelOverview operations={channelOperations} />
 
@@ -39,11 +39,11 @@ Cancel an OCO or OTO group in one call. Pass the group id from the placement res
 
 <WsSchemaTable fields={orderCancelConditionalParams} />
 
-The `order_id` value is the group id — the top-level `id` from the [OCO](/websocket/order-management/collateral-order-oco-place) or [OTO](/websocket/order-management/collateral-order-oto-place) placement response, not a leg id. This method has no `client_order_id` form, so the group id must be retained from placement.
+The `order_id` value is the group id — the `id` inside `result` on the [OCO](/websocket/order-management/collateral-order-oco-place) or [OTO](/websocket/order-management/collateral-order-oto-place) placement response, next to the `type` value. It is neither a leg id nor the frame-level `id`, which only echoes the request. This method has no `client_order_id` form, so the group id must be retained from placement.
 
 <WsMessageExample data={exOrderCancelConditionalRequest} />
 
-Cancelling an OTO group uses the same request shape and returns `type` `"oto"` with the `trigger_order` reporting `CANCELED`:
+Canceling an OTO group uses the same request shape and returns `type` `"oto"` with the `trigger_order` reporting `CANCELED`:
 
 ```json
 {
@@ -62,7 +62,7 @@ The response mirrors the placement response — same shape, same `type` value �
 
 ## Update frequency
 
-Client-initiated. The server answers each `order_cancel_conditional` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancellation events for each leg.
+This method is client-initiated: the server answers each `order_cancel_conditional` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancellation events for each leg.
 
 ## Error codes
 

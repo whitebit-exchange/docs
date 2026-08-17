@@ -8,9 +8,9 @@ info:
     The pair consists of a limit take-profit leg and a stop-limit stop-loss leg, of which only
     one can execute. When either leg fills, the other is withdrawn.
 
-    One request produces three identifiers: the top-level `id` is the group id, and each leg
-    carries its own order id. Cancel the pair through `order_cancel_conditional` using the
-    group id — the leg ids serve for tracking fills.
+    One request produces three identifiers. The group id is the `id` inside `result`, next to
+    `type: "oco"`; each leg carries its own order id. Cancel the pair through
+    `order_cancel_conditional` using the group id — the leg ids serve for tracking fills.
   x-auth-required: true
   x-rate-limits:
     connections-per-minute: 1000

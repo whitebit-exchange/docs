@@ -84,11 +84,6 @@ export const channelMeta = {
       "description": "The market requires immediate-or-cancel orders."
     },
     {
-      "code": 43,
-      "message": "client order id already exists",
-      "description": "Another active order already uses the same `client_order_id`."
-    },
-    {
       "code": 51,
       "message": "trading in the market is not allowed",
       "description": "Trading on the market is suspended, or the market status blocks this method."

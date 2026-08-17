@@ -21,7 +21,7 @@ import {
 
 <RegionBaseUrl />
 
-Place a margin or futures limit order that rests in the order book until it is matched or cancelled. This is the counterpart of [`order_limit_place`](/websocket/order-management/order-limit-place), and like its spot twin it is the only method in the `collateral_*` family that accepts `rpi`.
+Place a margin or futures limit order that rests in the order book until it is matched or canceled. This is the counterpart of [`order_limit_place`](/websocket/order-management/order-limit-place), and like its spot twin it is the only method in the `collateral_*` family that accepts `rpi`.
 
 <WsChannelOverview operations={channelOperations} />
 
@@ -55,7 +55,7 @@ The `result` object is the standard order object plus `reduce_only` and `positio
 
 ## Update frequency
 
-Client-initiated. The server answers each `collateral_order_limit_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the resulting position.
+This method is client-initiated: the server answers each `collateral_order_limit_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the resulting position.
 
 ## Error codes
 

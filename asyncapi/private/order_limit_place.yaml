@@ -6,7 +6,7 @@ info:
     Place a spot limit order over the WebSocket connection.
 
     A limit order rests in the order book at the specified price until it is matched or
-    cancelled. This method accepts the full spot execution-flag set, including `rpi`.
+    canceled. This method accepts the full spot execution-flag set, including `rpi`.
 
     The connection must be authorized before any order method is called — see
     [Authorize](/websocket/account-streams/authorize).
@@ -36,9 +36,6 @@ info:
     - code: 41
       message: order is not ioc
       description: "The market requires immediate-or-cancel orders."
-    - code: 43
-      message: client order id already exists
-      description: "Another active order already uses the same `client_order_id`."
     - code: 51
       message: trading in the market is not allowed
       description: "Trading on the market is suspended, or the market status blocks this method."
@@ -171,7 +168,7 @@ components:
       properties:
         market:
           type: string
-          description: "Spot [market](/glossary#market) name. A futures market is rejected with error `1`."
+          description: "Spot market name. A futures market is rejected with error `1`."
           example: ETH_USDT
         side:
           type: string
@@ -179,11 +176,11 @@ components:
           description: "Order side. The response reports the side numerically: `1` for sell, `2` for buy."
         amount:
           type: string
-          description: "Order size in [stock](/glossary#stock), at the market stock precision. Must clear both `minAmount` and `minTotal`."
+          description: "Order size in stock, at the market stock precision. Must clear both `minAmount` and `minTotal`."
           example: "0.00108"
         price:
           type: string
-          description: "Limit price in [money](/glossary#money), at the market money precision. Validated against the maker and taker price bands for the given side."
+          description: "Limit price in money, at the market money precision. Validated against the maker and taker price bands for the given side."
           example: "1859.75"
         client_order_id:
           type: string
@@ -191,7 +188,6 @@ components:
         stp:
           type: string
           enum: ["no", "co", "cn", "cb"]
-          default: "no"
           description: "Self-trade prevention mode: `no`=No Prevention, `co`=Cancel Oldest, `cn`=Cancel Newest, `cb`=Cancel Both. Defaults to `no` when omitted."
         post_only:
           type: boolean

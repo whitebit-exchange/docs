@@ -21,7 +21,7 @@ import {
 
 <RegionBaseUrl />
 
-Place a spot limit order that rests in the order book until it is matched or cancelled. Among the spot placement methods, `order_limit_place` accepts the full execution-flag set, including Retail Price Improvement. The response returns the accepted order in its initial state — `OPEN` for an order that rests, `FILLED` or `PARTIALLY_FILLED` when the order matches on arrival.
+Place a spot limit order that rests in the order book until it is matched or canceled. Among the spot placement methods, `order_limit_place` accepts the full execution-flag set, including Retail Price Improvement. The response returns the accepted order in its initial state — `OPEN` for an order that rests, `FILLED` or `PARTIALLY_FILLED` when the order matches on arrival.
 
 <WsChannelOverview operations={channelOperations} />
 
@@ -34,8 +34,6 @@ Place a spot limit order that rests in the order book until it is matched or can
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
-
-Order placement is additionally bounded by a new-order limit. Exceeding it returns error `10001` while the general request limit returns error `10000`.
 
 ## Place limit order
 
@@ -55,7 +53,7 @@ Prices and amounts are decimal strings, not numbers. Precision above the market 
 
 The `result` object is the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A limit order reports `type` `1`.
 
-Two response conventions are worth noting. The `side` field inverts against the request: the request sends `"buy"` or `"sell"` as a string, while the response reports `1` for sell and `2` for buy. Trailing zeros are normalised on the way out, so a price sent as `"1916.40"` returns as `"1916.4"` — compare decimal values numerically, never by string equality.
+Two response conventions apply. The `side` field inverts against the request: the request sends `"buy"` or `"sell"` as a string, while the response reports `1` for sell and `2` for buy. Trailing zeros are normalized on the way out, so a price sent as `"1916.40"` returns as `"1916.4"` — compare decimal values numerically, never by string equality.
 
 Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to follow the order after placement, and to [Deals](/websocket/account-streams/deals) for its individual fills.
 
@@ -67,7 +65,7 @@ While a market runs in post-only mode, only limit orders carrying the post-only 
 
 ## Update frequency
 
-Client-initiated. The server answers each `order_limit_place` request with a single response frame carrying the same `id`. Responses may arrive interleaved with subscription pushes, which carry no `id`, so correlate answers by `id` rather than by arrival order.
+This method is client-initiated: the server answers each `order_limit_place` request with a single response frame carrying the same `id`. Responses may arrive interleaved with subscription pushes, which carry no `id`, so correlate answers by `id` rather than by arrival order.
 
 ## Error codes
 

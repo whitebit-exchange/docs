@@ -88,7 +88,7 @@ components:
         $ref: '#/components/schemas/OrderCancelConditionalResponse'
       examples:
         - name: orderCancelConditionalCanceled
-          summary: Both legs cancelled in one atomic event, sharing one mtime
+          summary: Both legs canceled in one atomic event, sharing one mtime
           payload:
             id: 500021
             result:
@@ -144,7 +144,7 @@ components:
           example: BTC_PERP
         order_id:
           type: integer
-          description: "Group id — the top-level `id` from the OCO or OTO placement response, not a leg id. No `client_order_id` form exists for this method."
+          description: "Group id — the `id` inside `result` on the OCO or OTO placement response, next to the `type` value. Neither a leg id nor the frame-level `id`, which only echoes the request. No `client_order_id` form exists for this method."
           example: 2423735892717
 
     OrderCancelConditionalResponse:

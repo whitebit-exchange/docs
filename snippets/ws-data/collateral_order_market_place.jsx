@@ -80,6 +80,11 @@ export const channelMeta = {
       "code": 111,
       "message": "margin position is too big",
       "description": "The resulting position would exceed the size cap for the market."
+    },
+    {
+      "code": 114,
+      "message": "order's position side does not match user's setting",
+      "description": "`position_side` was sent without hedge mode enabled, or does not match the account setting."
     }
   ]
 };

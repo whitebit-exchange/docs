@@ -53,11 +53,11 @@ The `result` object holds the `take_profit` and `stop_loss` legs, each reporting
 
 <Warning>An open position is required. Without one the call fails with error `104`, so arm the pair after the entry fills rather than alongside it. For an entry that arms its own exit in a single request, use [`collateral_order_oto_place`](/websocket/order-management/collateral-order-oto-place) instead.</Warning>
 
-<Note>Cancellation differs from the group methods. The two legs are independent orders with separate ids, so cancel each one with [`order_cancel`](/websocket/order-management/order-cancel). A TPSL pair has no group id, and [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) does not apply. Modification is also unavailable — [`order_modify`](/websocket/order-management/order-modify) returns error `160` for a TPSL leg.</Note>
+<Note>Cancellation differs from the group methods. The two legs are independent orders with separate ids, so cancel each one with [`order_cancel`](/websocket/order-management/order-cancel). A TPSL pair has no group id, so [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) does not apply; separately, [`order_modify`](/websocket/order-management/order-modify) returns error `160` for a TPSL leg.</Note>
 
 ## Update frequency
 
-Client-initiated. The server answers each `collateral_order_tpsl_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the protected position.
+This method is client-initiated: the server answers each `collateral_order_tpsl_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the protected position.
 
 ## Error codes
 

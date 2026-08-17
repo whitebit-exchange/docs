@@ -17,7 +17,7 @@ export const orderCancelConditionalRequest = [
 
 export const orderCancelConditionalParams = [
   { name: "market", type: "string", required: true, description: "Market the group lives on." },
-  { name: "order_id", type: "integer", required: true, description: "Group id — the top-level `id` from the OCO or OTO placement response, not a leg id. No `client_order_id` form exists for this method." },
+  { name: "order_id", type: "integer", required: true, description: "Group id — the `id` inside `result` on the OCO or OTO placement response, next to the `type` value. Neither a leg id nor the frame-level `id`, which only echoes the request. No `client_order_id` form exists for this method." },
 ];
 
 export const orderCancelConditionalResponse = [

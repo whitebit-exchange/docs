@@ -18,19 +18,19 @@ export const orderCancelRequest = [
 export const orderCancelParams = [
   { name: "market", type: "string", required: true, description: "Market the order lives on. Required even when the order id is unambiguous, because it routes the call." },
   { name: "order_id", type: "integer", description: "Engine order id. Supply this or `client_order_id`." },
-  { name: "client_order_id", type: "string", description: "Client order id. Takes precedence when both identifiers are supplied. The response still reports the engine id, which confirms which order was cancelled." },
+  { name: "client_order_id", type: "string", description: "Client order id. Takes precedence when both identifiers are supplied. The response still reports the engine id, which confirms which order was canceled." },
 ];
 
 export const orderCancelResponse = [
   { name: "id", type: "integer", required: true, description: "Request identifier matching the request" },
-  { name: "result", type: "object", required: true, description: "Cancelled order as a standard order object with `status` `CANCELED`. The `mtime` field advances to the cancellation time while `ctime` stays at placement." },
+  { name: "result", type: "object", required: true, description: "Canceled order as a standard order object with `status` `CANCELED`. The `mtime` field advances to the cancellation time while `ctime` stays at placement." },
   { name: "error", type: "null", required: true, description: "Error object (null on success)" },
 ];
 
 // ── Channel operations ──────────────────────────────────────────────────────
 
 export const channelOperations = [
-  { name: "Cancel order", send: "order_cancel", receive: "Cancelled order object (status CANCELED)", push: null },
+  { name: "Cancel order", send: "order_cancel", receive: "Canceled order object (status CANCELED)", push: null },
 ];
 
 // ── Channel metadata ────────────────────────────────────────────────────────

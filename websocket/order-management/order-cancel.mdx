@@ -43,7 +43,7 @@ The `market` parameter routes the call, so it stays required even when the order
 
 <WsMessageExample data={exOrderCancelRequest} />
 
-Cancelling by client order id follows the same shape:
+Canceling by client order id follows the same shape:
 
 ```json
 {
@@ -64,7 +64,7 @@ The `result` object is the standard order object with `status` `CANCELED` — se
 
 ## Update frequency
 
-Client-initiated. The server answers each `order_cancel` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancellation event.
+This method is client-initiated: the server answers each `order_cancel` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancellation event.
 
 ## Error codes
 

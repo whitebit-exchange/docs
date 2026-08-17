@@ -68,11 +68,6 @@ export const channelMeta = {
       "code": 51,
       "message": "trading in the market is not allowed",
       "description": "Trading is suspended, or the market runs in post-only mode — a market order is rejected there."
-    },
-    {
-      "code": 601,
-      "message": "account is restricted from trading",
-      "description": "An account-level restriction blocks trading."
     }
   ]
 };
