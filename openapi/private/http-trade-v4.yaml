@@ -6541,9 +6541,9 @@ paths:
                   example: 4986126152
                 status:
                   type: string
-                  enum: [ALL, FILLED, CANCELED, PARTIALLY_FILLED]
+                  enum: [ALL, FILLED, CANCELED, PARTIALLY_FILLED, MAINTENANCE]
                   default: ALL
-                  description: "Filter list-mode results by order status. Ignored when `orderId` or `clientOrderId` is supplied."
+                  description: "Filter list-mode results by order status. Ignored when `orderId` or `clientOrderId` is supplied. `MAINTENANCE` returns only the orders the platform canceled during planned market maintenance; those orders are not part of the `CANCELED` result set, which covers user and automatic cancellations."
                   example: "FILLED"
                 startDate:
                   type: integer
@@ -6690,6 +6690,24 @@ paths:
                     positionSide: "BOTH"
                     rpi: false
                     reduceOnly: false
+                  - amount: "0.05"
+                    price: "39000"
+                    type: "limit"
+                    id: 4986126890
+                    clientOrderId: ""
+                    side: "buy"
+                    ctime: 1597486100.100011
+                    ftime: 1597486700.400022
+                    dealFee: "0"
+                    dealStock: "0"
+                    dealMoney: "0"
+                    postOnly: false
+                    ioc: false
+                    status: "maintenance"
+                    feeAsset: "USDT"
+                    positionSide: "BOTH"
+                    rpi: false
+                    reduceOnly: false
         '400':
           description: Inner validation failed
           content:
@@ -6707,12 +6725,12 @@ paths:
 
   /api/v4/trade-account/order/history/query:
     post:
-      summary: Query delisting orders
+      summary: Query delisting and maintenance orders
       operationId: getDelistingOrderHistory
       description: |
-        The endpoint returns the authenticated account's delisting-related order history from the order-history index. The response combines two categories of orders, each identified by the `delistingKind` field: reverse close orders that the platform generates when a market is delisted (`delistingKind` = `reverse`, `clientOrderId` prefixed with `delisting-`), and active orders canceled at the moment of delisting (`delistingKind` = `canceled`). The endpoint returns a flat array sorted by `finishAt` descending, then `id` descending.
+        The endpoint returns the authenticated account's delisting- and maintenance-related order history from the order-history index. The response combines three categories of orders: reverse close orders that the platform generates when a market is delisted (`delistingKind` = `reverse`, `clientOrderId` prefixed with `delisting-`), active orders canceled at the moment of delisting (`delistingKind` = `canceled`), and orders canceled when a market entered planned maintenance (response `status` = `maintenance`, `delistingKind` empty). The endpoint returns a flat array sorted by `finishAt` descending, then `id` descending.
 
-        Set the `status` parameter to narrow the response: `filled` returns only reverse close orders that reached the `filled` outcome, and `delisting` returns only orders canceled during delisting. Omit `status` to return both categories merged in a single array.
+        Set the `status` parameter to narrow the response: `filled` returns only reverse close orders that reached the `filled` outcome, `delisting` returns only orders canceled during delisting, and `maintenance` returns only orders canceled during planned market maintenance. Omit `status` to return all three categories merged in a single array.
 
         <Note>
         The endpoint supports pagination via `limit` (default: 500, max: 500) and `offset` (default: 0); the sum of `offset` and `limit` must not exceed 10000. A response that returns fewer than `limit` records indicates the last page.
@@ -6740,12 +6758,12 @@ paths:
               properties:
                 market:
                   type: string
-                  description: "Trading pair to filter by. Format: `BASE_QUOTE` (e.g., `BTC_USDT`), matching the pattern `^[A-Z0-9]+_[A-Z0-9]+$`. Omit to retrieve delisting orders across all markets."
+                  description: "Trading pair to filter by. Format: `BASE_QUOTE` (e.g., `BTC_USDT`), matching the pattern `^[A-Z0-9]+_[A-Z0-9]+$`. Omit to retrieve records across all markets."
                   example: "BTC_USDT"
                 status:
                   type: string
-                  enum: [filled, delisting]
-                  description: "Category filter — distinct from the response `status` field. `filled` returns only reverse close orders (`clientOrderId` prefixed with `delisting-`), which carry `delistingKind` = `reverse` and response `status` = `filled`. `delisting` returns only orders canceled at delisting, which carry `delistingKind` = `canceled` and response `status` = `canceled`. Omit to return both categories merged."
+                  enum: [filled, delisting, maintenance]
+                  description: "Category filter — distinct from the response `status` field. `filled` returns only reverse close orders (`clientOrderId` prefixed with `delisting-`), which carry `delistingKind` = `reverse` and response `status` = `filled`. `delisting` returns only orders canceled at delisting, which carry `delistingKind` = `canceled` and response `status` = `canceled`. `maintenance` returns only orders canceled during planned market maintenance, which carry response `status` = `maintenance` and an empty `delistingKind`. Omit to return all three categories merged."
                   example: "filled"
                 startDate:
                   type: integer
@@ -6777,7 +6795,7 @@ paths:
                   example: 1594297865000
       responses:
         '200':
-          description: Successful response - returns a flat array of delisting-related orders sorted by `finishAt` descending, then `id` descending. Returns an empty array when no delisting orders match the filters.
+          description: Successful response - returns a flat array of delisting- and maintenance-related orders sorted by `finishAt` descending, then `id` descending. Returns an empty array when no records match the filters.
           content:
             application/json:
               schema:
@@ -6840,12 +6858,12 @@ paths:
                       example: "USDT"
                     status:
                       type: string
-                      description: "Execution outcome in lowercase. Reverse close orders that filled return `filled`. Orders canceled during delisting return `canceled`."
+                      description: "Execution outcome in lowercase. Reverse close orders that filled return `filled`. Orders canceled during delisting return `canceled`. Orders canceled during planned market maintenance return `maintenance`."
                       example: "filled"
                     delistingKind:
                       type: string
-                      enum: [reverse, canceled]
-                      description: "Delisting category discriminator. `reverse` marks a reverse close order generated by the platform. `canceled` marks an active order canceled at the moment of delisting."
+                      enum: [reverse, canceled, ""]
+                      description: "Delisting category discriminator. `reverse` marks a reverse close order generated by the platform. `canceled` marks an active order canceled at the moment of delisting. The field is always present and carries an empty string for records that are not delisting-related, which is the case for maintenance cancellations — read `status` to identify those."
                       example: "reverse"
               example:
                 - id: 2287000111222
@@ -6878,6 +6896,21 @@ paths:
                   feeAsset: "USDT"
                   status: "filled"
                   delistingKind: "reverse"
+                - id: 2288100455333
+                  clientOrderId: "user-custom-id-9"
+                  createdAt: 1778090000.000000
+                  finishAt: 1778090400.000000
+                  market: "ETH_USDT"
+                  side: "buy"
+                  type: "limit"
+                  price: "2450.0000000000"
+                  amount: "1.5000000000"
+                  dealStock: "0.0000000000"
+                  dealMoney: "0.0000000000"
+                  fee: "0.0000000000"
+                  feeAsset: "USDT"
+                  status: "maintenance"
+                  delistingKind: ""
         '400':
           description: Inner validation failed
           content:
@@ -7339,8 +7372,8 @@ components:
       example: "FILLED"
     OrderHistoryStatus:
       type: string
-      description: "Order status returned by this endpoint, in uppercase. `FILLED` — fully executed. `CANCELED` — canceled before full execution; the endpoint also returns `AUTO_CANCELED_MARGIN_EXCHANGE_BALANCE` (order auto-canceled on insufficient margin or exchange balance) collapsed into `CANCELED`. `AUTO_CANCELED_LIQUIDATION` — auto-canceled because the associated position was force-liquidated. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `CANCELED_STP` — canceled by [Self-Trade Prevention](/platform/self-trade-prevention). This endpoint returns a narrower, uppercase status set than the account's other order surfaces."
-      enum: [FILLED, CANCELED, AUTO_CANCELED_LIQUIDATION, AUTO_CANCELED_REDUCE_ONLY, CANCELED_STP]
+      description: "Order status returned by this endpoint. Every value is uppercase except `maintenance`, which is returned in lowercase. `FILLED` — fully executed. `CANCELED` — canceled before full execution; the endpoint also returns `AUTO_CANCELED_MARGIN_EXCHANGE_BALANCE` (order auto-canceled on insufficient margin or exchange balance) collapsed into `CANCELED`. `AUTO_CANCELED_LIQUIDATION` — auto-canceled because the associated position was force-liquidated. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `CANCELED_STP` — canceled by [Self-Trade Prevention](/platform/self-trade-prevention). `maintenance` — canceled by the platform when the market entered planned maintenance; never collapsed into `CANCELED`, so an integration that treats cancellations as user-initiated must handle this value separately. This endpoint returns a narrower status set than the account's other order surfaces."
+      enum: [FILLED, CANCELED, AUTO_CANCELED_LIQUIDATION, AUTO_CANCELED_REDUCE_ONLY, CANCELED_STP, maintenance]
       example: "CANCELED"
     ExecutedDeal:
       type: object
