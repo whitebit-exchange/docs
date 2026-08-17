@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="August 17, 2026">
+## Price and quantity steps on Market Info
+**New `tickSize` and `stepSize` fields on `GET /api/v4/public/markets`**
+
+Every market entry now carries `tickSize` — the minimal price step a limit order price must be a multiple of — and `stepSize` — the minimal quantity step an order amount must be a multiple of. Both are decimal strings passed through verbatim from the trade engine, so the values follow a precision change on the market automatically. Use the fields for pre-trade validation of order price and amount instead of deriving steps from `moneyPrec`/`stockPrec`. Either field is an empty string when the engine does not provide the value for the market, so handle the empty string before parsing.
+
+<CardGroup cols={2}>
+  <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
+  <Card title="Markets & Trading Pairs" href="/concepts/markets" icon="chart-line" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="August 13, 2026">
 ## Mark price on futures markets list
 **New `mark_price` field on `GET /api/v4/public/futures`**
