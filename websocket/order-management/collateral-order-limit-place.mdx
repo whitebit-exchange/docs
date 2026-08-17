@@ -1,0 +1,64 @@
+---
+title: Place margin limit order
+tag: "WSS"
+description: "Place a margin or futures limit order over the WhiteBIT WebSocket connection with collateral_order_limit_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderLimitPlaceParams,
+  exCollateralOrderLimitPlaceRequest,
+  exCollateralOrderLimitPlaceResponse,
+} from '/snippets/ws-data/collateral_order_limit_place.jsx'
+
+<RegionBaseUrl />
+
+Place a margin or futures limit order that rests in the order book until it is matched or canceled. This is the counterpart of [`order_limit_place`](/websocket/order-management/order-limit-place), and like its spot twin it is the only method in the `collateral_*` family that accepts `rpi`.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place margin limit order
+
+### Request parameters
+
+<WsSchemaTable fields={collateralOrderLimitPlaceParams} />
+
+Two parameters set this family apart from the spot methods. The `reduce_only` flag restricts the order to shrinking an existing position, and `position_side` selects the position leg in hedge mode. Both are described in [Margin & Futures orders](/websocket/order-management/overview#order-methods).
+
+Across the whole `collateral_*` family `amount` is [stock](/glossary#stock) on both sides. Leverage and margin come from the account collateral configuration and are not order parameters — see [Margin Trading](/products/margin/overview) and [Futures](/products/futures/overview).
+
+<WsMessageExample data={exCollateralOrderLimitPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderLimitPlaceResponse} />
+
+The `result` object is the standard order object plus `reduce_only` and `position_side` — see the [order object reference](/websocket/order-management/overview#order-object). A margin limit order reports `type` `7`.
+
+<Warning>Hedge mode governs `position_side`. Sending a value other than `BOTH` without hedge mode enabled returns error `114`, and a switch in progress returns error `113`. On a non-futures margin market any value other than `BOTH` is rejected with error `1`.</Warning>
+
+## Update frequency
+
+This method is client-initiated: the server answers each `collateral_order_limit_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the resulting position.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

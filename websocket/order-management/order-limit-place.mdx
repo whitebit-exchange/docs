@@ -1,0 +1,74 @@
+---
+title: Place limit order
+tag: "WSS"
+description: "Place a spot limit order over the WhiteBIT WebSocket connection with order_limit_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderLimitPlaceParams,
+  exOrderLimitPlaceRequest,
+  exOrderLimitPlaceResponse,
+} from '/snippets/ws-data/order_limit_place.jsx'
+
+<RegionBaseUrl />
+
+Place a spot limit order that rests in the order book until it is matched or canceled. Among the spot placement methods, `order_limit_place` accepts the full execution-flag set, including Retail Price Improvement. The response returns the accepted order in its initial state — `OPEN` for an order that rests, `FILLED` or `PARTIALLY_FILLED` when the order matches on arrival.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+<Warning>Spot limit orders are not available in the EU region — see [Order types — Regional restrictions](/concepts/order-types#regional-restrictions). On this transport the region is carried by the authorization token and cannot be set per request; a rejection returns error `10009` or `10010` rather than an HTTP status.</Warning>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place limit order
+
+### Request parameters
+
+The `params` array carries exactly one element: an object holding the order parameters. Unlike the subscription channels, positional parameters are not used.
+
+<WsSchemaTable fields={orderLimitPlaceParams} />
+
+Prices and amounts are decimal strings, not numbers. Precision above the market setting is rejected with error `1`; consult `stockPrec` and `moneyPrec` via `GET /api/v4/public/markets`.
+
+<WsMessageExample data={exOrderLimitPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exOrderLimitPlaceResponse} />
+
+The `result` object is the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A limit order reports `type` `1`.
+
+Two response conventions apply. The `side` field inverts against the request: the request sends `"buy"` or `"sell"` as a string, while the response reports `1` for sell and `2` for buy. Trailing zeros are normalized on the way out, so a price sent as `"1916.40"` returns as `"1916.4"` — compare decimal values numerically, never by string equality.
+
+Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to follow the order after placement, and to [Deals](/websocket/account-streams/deals) for its individual fills.
+
+## Execution flags
+
+Among the spot placement methods, only `order_limit_place` accepts `rpi`. The flags constrain each other: `ioc` combines with neither `post_only` nor `rpi`, and `rpi` implies `post_only`. An illegal pair is rejected with error `1` rather than silently dropped — the full matrix is in [Order Management](/websocket/order-management/overview#execution-flag-combinations).
+
+While a market runs in post-only mode, only limit orders carrying the post-only flag are accepted; a market or stop method on the same market is rejected with error `51`.
+
+## Update frequency
+
+This method is client-initiated: the server answers each `order_limit_place` request with a single response frame carrying the same `id`. Responses may arrive interleaved with subscription pushes, which carry no `id`, so correlate answers by `id` rather than by arrival order.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

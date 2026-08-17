@@ -1,0 +1,201 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Place Spot BBO Order
+  version: 1.0.0
+  description: |
+    Place a spot limit order priced from the current best bid or offer.
+
+    The client chooses the role and the engine chooses the price, which removes the need to
+    read the order book first. The `bbo_role` parameter decides which side of the spread is
+    used: `1` (maker) prices at the own-side best and sets `post_only`, while `2` (taker)
+    prices at the opposite-side best and crosses the spread immediately.
+
+    The response is an ordinary limit order reporting `type` `1`. The resolved price records
+    where the order landed — no re-pegging happens as the order book moves.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 1
+      message: bbo role must be an integer in range 1..2
+      description: "The `bbo_role` value is outside `1`–`2`, or is not an integer."
+    - code: 1
+      message: wrong flags combination
+      description: "`post_only` was sent together with `bbo_role: 2`. The taker role cannot be post-only."
+    - code: 12
+      message: not enough traders
+      description: "The order book has no quote on the required side, so the order cannot be priced."
+    - code: 13
+      message: order by taker price
+      description: "A maker-role order would cross the spread."
+    - code: 51
+      message: trading in the market is not allowed
+      description: "Trading is suspended, or the market status blocks this method."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Spot BBO order placement channel
+    messages:
+      orderBboPlaceRequest:
+        $ref: '#/components/messages/orderBboPlaceRequest'
+      orderBboPlaceResponse:
+        $ref: '#/components/messages/orderBboPlaceResponse'
+
+operations:
+  sendOrderBboPlaceRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderBboPlaceRequest'
+
+  receiveOrderBboPlaceResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderBboPlaceResponse'
+
+components:
+  messages:
+    orderBboPlaceRequest:
+      name: OrderBboPlaceRequest
+      title: Place BBO order
+      summary: Place a spot order priced from the best bid or offer
+      payload:
+        $ref: '#/components/schemas/OrderBboPlaceRequest'
+      examples:
+        - name: orderBboPlaceMakerBuy
+          summary: |
+            Place a maker-role buy order with parameters:
+            - params[0]: order object with market, side, amount, and bbo_role
+          payload:
+            id: 500008
+            method: order_bbo_place
+            params:
+              - market: ETH_USDT
+                side: buy
+                amount: "0.00108"
+                bbo_role: 1
+                stp: "no"
+
+    orderBboPlaceResponse:
+      name: OrderBboPlaceResponse
+      title: Place BBO Order Response
+      summary: Accepted limit order priced at the best bid
+      payload:
+        $ref: '#/components/schemas/OrderBboPlaceResponse'
+      examples:
+        - name: orderBboPlaceAccepted
+          summary: Maker role resolved the price to the best bid and set post_only
+          payload:
+            id: 500008
+            result:
+              id: 2423735877878
+              market: ETH_USDT
+              type: 1
+              side: 2
+              post_only: true
+              ioc: false
+              ctime: 1786452691.0242541
+              mtime: 1786452691.0242541
+              price: "1888.06"
+              amount: "0.00108"
+              left: "0.00108"
+              deal_stock: "0"
+              deal_money: "0"
+              deal_fee: "0"
+              client_order_id: ""
+              stp: "no"
+              status: OPEN
+            error: null
+
+  schemas:
+    OrderBboPlaceRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: order_bbo_place
+          description: "Method name. Fixed value: `order_bbo_place`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/OrderBboPlaceParams'
+          description: Array containing exactly one order parameter object
+
+    OrderBboPlaceParams:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - bbo_role
+      properties:
+        market:
+          type: string
+          description: "Spot market name. A futures market is rejected with error `1`."
+          example: ETH_USDT
+        side:
+          type: string
+          enum: ["buy", "sell"]
+          description: "Order side. The response reports the side numerically: `1` for sell, `2` for buy."
+        amount:
+          type: string
+          description: "Order size in stock, at the market stock precision."
+          example: "0.00108"
+        bbo_role:
+          type: integer
+          enum: [1, 2]
+          description: "Pricing role. `1` maker — price at the own-side best and set `post_only`. `2` taker — price at the opposite-side best and cross the spread. Any other value is rejected with error `1`."
+        ioc:
+          type: boolean
+          description: "Immediate-or-cancel — cancel the unmatched remainder instead of resting it."
+        post_only:
+          type: boolean
+          description: "Accepted only together with `bbo_role: 1`, which already implies it. Sending it with `bbo_role: 2` is rejected as a wrong flag combination."
+        client_order_id:
+          type: string
+          description: "Custom client order id, echoed on the response. Must be unique among active orders — a collision returns error `43`."
+        stp:
+          type: string
+          enum: ["no", "co", "cn", "cb"]
+          description: "Self-trade prevention mode: `no`=No Prevention, `co`=Cancel Oldest, `cn`=Cancel Newest, `cb`=Cancel Both. Defaults to `no` when omitted."
+
+    OrderBboPlaceResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Accepted order. Returns an ordinary limit order reporting `type` `1` — no BBO marker is kept. The `price` field holds the resolved price, and `post_only` is `true` for the maker role."
+        error:
+          type: "null"
+          description: Error object (null on success)

@@ -1,0 +1,66 @@
+---
+title: Place OCO group
+tag: "WSS"
+description: "Place a linked take-profit and stop-loss pair on a margin or futures market with collateral_order_oco_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderOcoPlaceParams,
+  exCollateralOrderOcoPlaceRequest,
+  exCollateralOrderOcoPlaceResponse,
+} from '/snippets/ws-data/collateral_order_oco_place.jsx'
+
+<RegionBaseUrl />
+
+Place two linked orders — a limit take-profit and a stop-limit stop-loss — of which only one can execute. When either leg fills, the engine withdraws the other. Both legs point the same way, because both exit the same position.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place OCO group
+
+### Request parameters
+
+<WsSchemaTable fields={collateralOrderOcoPlaceParams} />
+
+Three prices define the pair, and the relative position of each one matters. On a sell group, `price` — the take-profit limit — sits above the market, while `activation_price` — the stop-loss trigger — sits below it. The `stop_limit_price` value goes beyond `activation_price`, so the stop-loss leg still fills after the trigger fires.
+
+Note the naming asymmetry: the response keys the legs as `take_profit` and `stop_loss`, but there is no plain `client_order_id` parameter — only the two per-leg forms, `limit_client_order_id` and `stop_client_order_id`.
+
+<WsMessageExample data={exCollateralOrderOcoPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderOcoPlaceResponse} />
+
+One request produces three identifiers. The group id is the `id` inside `result`, next to `type: "oco"` — not the frame-level `id`, which only echoes the request. Each leg carries its own order id. Each leg is a full order object — the take-profit reports `type` `7`, the stop-loss `type` `9`. See the [order object reference](/websocket/order-management/overview#order-object). Timestamps, deal counters, and `stp` are elided in the example above for length.
+
+<Warning>Cancel the pair through [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) using the group id. Passing a leg id there, or the group id to [`order_cancel`](/websocket/order-management/order-cancel), returns error `6`. The leg ids serve for tracking fills, not for cancellation.</Warning>
+
+<Note>The take-profit leg must rest as a maker order. A `price` that would cross the spread and execute immediately is rejected with error `150`, which makes an over-tight take-profit the most common cause of a failed OCO placement.</Note>
+
+## Update frequency
+
+This method is client-initiated: the server answers each `collateral_order_oco_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe either leg filling and the other being withdrawn.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

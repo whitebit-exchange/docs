@@ -1,0 +1,69 @@
+---
+title: Place BBO order
+tag: "WSS"
+description: "Place a spot limit order priced from the current best bid or offer with order_bbo_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderBboPlaceParams,
+  exOrderBboPlaceRequest,
+  exOrderBboPlaceResponse,
+} from '/snippets/ws-data/order_bbo_place.jsx'
+
+<RegionBaseUrl />
+
+Place a spot limit order priced from the current best bid or offer, which removes the need to read the order book before quoting. The client picks the role and the engine picks the price.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place BBO order
+
+### Request parameters
+
+<WsSchemaTable fields={orderBboPlaceParams} />
+
+The `bbo_role` parameter decides which side of the spread supplies the price.
+
+| Role | Price source | Effect |
+|------|-------------|--------|
+| `1` maker | Own-side best — the best bid for a buy | Adds liquidity; `post_only` is set implicitly |
+| `2` taker | Opposite-side best — the best ask for a buy | Crosses the spread and matches immediately |
+
+Sending `post_only` together with `bbo_role: 2` is rejected as a wrong flag combination, because a taker order cannot be post-only. With `bbo_role: 1` the flag is redundant but accepted.
+
+<WsMessageExample data={exOrderBboPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exOrderBboPlaceResponse} />
+
+The response is an ordinary limit order reporting `type` `1` — no BBO marker survives placement. The `price` field records where the order landed. See the [order object reference](/websocket/order-management/overview#order-object).
+
+<Warning>No re-pegging happens. The price is resolved once, at placement, and the order then behaves like any other resting limit order as the order book moves away from it. Re-quoting requires canceling and placing again, or [`order_modify`](/websocket/order-management/order-modify).</Warning>
+
+## Update frequency
+
+This method is client-initiated: the server answers each `order_bbo_place` request with a single response frame carrying the same `id`.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

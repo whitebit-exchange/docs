@@ -1,0 +1,71 @@
+---
+title: Cancel conditional group
+tag: "WSS"
+description: "Cancel an OCO or OTO order group in one call with order_cancel_conditional."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderCancelConditionalParams,
+  exOrderCancelConditionalRequest,
+  exOrderCancelConditionalResponse,
+} from '/snippets/ws-data/order_cancel_conditional.jsx'
+
+<RegionBaseUrl />
+
+Cancel an OCO or OTO group in one call. Pass the group id from the placement response and every leg is withdrawn atomically, which removes the risk of a half-canceled pair leaving one exit armed.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Cancel conditional group
+
+### Request parameters
+
+<WsSchemaTable fields={orderCancelConditionalParams} />
+
+The `order_id` value is the group id — the `id` inside `result` on the [OCO](/websocket/order-management/collateral-order-oco-place) or [OTO](/websocket/order-management/collateral-order-oto-place) placement response, next to the `type` value. It is neither a leg id nor the frame-level `id`, which only echoes the request. This method has no `client_order_id` form, so the group id must be retained from placement.
+
+<WsMessageExample data={exOrderCancelConditionalRequest} />
+
+Canceling an OTO group uses the same request shape and returns `type` `"oto"` with the `trigger_order` reporting `CANCELED`:
+
+```json
+{
+  "market": "BTC_PERP",
+  "order_id": 2423735895134
+}
+```
+
+### Response
+
+<WsMessageExample data={exOrderCancelConditionalResponse} />
+
+The response mirrors the placement response — same shape, same `type` value — with every leg reporting `status` `CANCELED`. All legs share one `mtime`, because the cancellation is a single atomic event.
+
+<Warning>Groups only. A plain stop order or a TPSL leg passed here returns error `6` — cancel those with [`order_cancel`](/websocket/order-management/order-cancel). Conversely, a group id passed to `order_cancel` also returns error `6`, so the two methods are not interchangeable.</Warning>
+
+## Update frequency
+
+This method is client-initiated: the server answers each `order_cancel_conditional` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancellation events for each leg.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).
