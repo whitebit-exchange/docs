@@ -6703,7 +6703,7 @@ paths:
                     dealMoney: "0"
                     postOnly: false
                     ioc: false
-                    status: "maintenance"
+                    status: "MAINTENANCE"
                     feeAsset: "USDT"
                     positionSide: "BOTH"
                     rpi: false
@@ -7372,8 +7372,8 @@ components:
       example: "FILLED"
     OrderHistoryStatus:
       type: string
-      description: "Order status returned by this endpoint. Every value is uppercase except `maintenance`, which is returned in lowercase. `FILLED` — fully executed. `CANCELED` — canceled before full execution; the endpoint also returns `AUTO_CANCELED_MARGIN_EXCHANGE_BALANCE` (order auto-canceled on insufficient margin or exchange balance) collapsed into `CANCELED`. `AUTO_CANCELED_LIQUIDATION` — auto-canceled because the associated position was force-liquidated. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `CANCELED_STP` — canceled by [Self-Trade Prevention](/platform/self-trade-prevention). `maintenance` — canceled by the platform when the market entered planned maintenance; never collapsed into `CANCELED`, so an integration that treats cancellations as user-initiated must handle this value separately. This endpoint returns a narrower status set than the account's other order surfaces."
-      enum: [FILLED, CANCELED, AUTO_CANCELED_LIQUIDATION, AUTO_CANCELED_REDUCE_ONLY, CANCELED_STP, maintenance]
+      description: "Order status returned by this endpoint, in uppercase. `FILLED` — fully executed. `CANCELED` — canceled before full execution; the endpoint also returns `AUTO_CANCELED_MARGIN_EXCHANGE_BALANCE` (order auto-canceled on insufficient margin or exchange balance) collapsed into `CANCELED`. `AUTO_CANCELED_LIQUIDATION` — auto-canceled because the associated position was force-liquidated. `AUTO_CANCELED_REDUCE_ONLY` — pending reduce-only order auto-canceled because the associated position was closed. `CANCELED_STP` — canceled by [Self-Trade Prevention](/platform/self-trade-prevention). `MAINTENANCE` — canceled by the platform when the market entered planned maintenance; never collapsed into `CANCELED`, so an integration that treats cancellations as user-initiated must handle this value separately. This endpoint returns a narrower, uppercase status set than the account's other order surfaces."
+      enum: [FILLED, CANCELED, AUTO_CANCELED_LIQUIDATION, AUTO_CANCELED_REDUCE_ONLY, CANCELED_STP, MAINTENANCE]
       example: "CANCELED"
     ExecutedDeal:
       type: object

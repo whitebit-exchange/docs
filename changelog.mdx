@@ -10,9 +10,9 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 
 When a market enters planned maintenance, the platform cancels the orders that are open on it. Those orders now carry a dedicated `maintenance` status on both order-history endpoints, so an integration can tell a maintenance cancellation from one the user or a risk rule triggered.
 
-`POST /api/v4/trade-account/order/history` accepts `MAINTENANCE` as the `status` filter and returns `maintenance` in the response. The value is the one lowercase entry in an otherwise uppercase status set. Maintenance cancellations are no longer reported as `CANCELED`, so the `CANCELED` filter excludes maintenance records.
+`POST /api/v4/trade-account/order/history` accepts `MAINTENANCE` as the `status` filter and returns `MAINTENANCE` in the response, matching the uppercase status set of that endpoint. Maintenance cancellations are no longer reported as `CANCELED`, so the `CANCELED` filter excludes maintenance records.
 
-`POST /api/v4/trade-account/order/history/query` accepts `maintenance` as the `status` filter and returns the same value in the response `status` field. Maintenance records carry an empty `delistingKind`, so the `status` field is the discriminator, and a request that omits `status` returns maintenance records next to the delisting records.
+`POST /api/v4/trade-account/order/history/query` accepts `maintenance` as the `status` filter and returns the same lowercase value in the response `status` field, matching the lowercase outcomes of that endpoint. Maintenance records carry an empty `delistingKind`, so the `status` field is the discriminator, and a request that omits `status` returns maintenance records next to the delisting records.
 
 <CardGroup cols={2}>
   <Card title="Query executed orders" href="/api-reference/spot-trading/query-executed-orders" icon="list-check" horizontal/>
