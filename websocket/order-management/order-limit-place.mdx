@@ -19,7 +19,7 @@ import {
   exOrderLimitPlaceResponse,
 } from '/snippets/ws-data/order_limit_place.jsx'
 
-<RegionBaseUrl />
+<RegionBaseUrl protocol="wss" />
 
 Place a spot limit order that rests in the order book until it is matched or canceled. Among the spot placement methods, `order_limit_place` accepts the full execution-flag set, including Retail Price Improvement. The response returns the accepted order in its initial state — `OPEN` for an order that rests, `FILLED` or `PARTIALLY_FILLED` when the order matches on arrival.
 

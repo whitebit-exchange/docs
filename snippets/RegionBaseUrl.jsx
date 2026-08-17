@@ -1,4 +1,4 @@
-export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
+export const RegionBaseUrl = ({ className = "", showBaseUrl = true, protocol = "https" }) => {
     // Mintlify provides React globally; destructure inside the component —
     // snippet files must start with `export` or the export fails to resolve
     const { useState, useEffect, useRef } = React;
@@ -212,26 +212,35 @@ export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
         };
     }, [region]);
 
-    const apiBaseUrl = region === "eu" ? "https://whitebit.eu" : "https://whitebit.com";
+    const apiBaseUrl = protocol === "wss"
+        ? (region === "eu" ? "wss://api.whitebit.eu/ws" : "wss://api.whitebit.com/ws")
+        : (region === "eu" ? "https://whitebit.eu" : "https://whitebit.com");
+    const baseUrlLabel = protocol === "wss" ? "WebSocket URL" : "Base URL";
 
     // Compliance hold (2026-07-14): render the Global base URL only, no toggle.
-    // region is pinned to "com" above, so apiBaseUrl is https://whitebit.com.
+    // region is pinned to "com" above, so apiBaseUrl is https://whitebit.com (or the wss equivalent).
     if (!EU_ENABLED) {
         if (!showBaseUrl) return null;
         return (
             <div className={`flex items-center gap-2 flex-wrap my-4 region-toggle-component ${className}`}>
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">
-                    Base URL
+                    {baseUrlLabel}
                 </span>
                 <span className="text-sm text-gray-400">:</span>
-                <a
-                    href={apiBaseUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-mono text-primary dark:text-primary-light hover:underline"
-                >
-                    {apiBaseUrl}
-                </a>
+                {protocol === "wss" ? (
+                    <code className="text-sm font-mono text-primary dark:text-primary-light">
+                        {apiBaseUrl}
+                    </code>
+                ) : (
+                    <a
+                        href={apiBaseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-primary dark:text-primary-light hover:underline"
+                    >
+                        {apiBaseUrl}
+                    </a>
+                )}
             </div>
         );
     }
@@ -241,7 +250,7 @@ export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
     return (
         <div className={`flex items-center gap-2 flex-wrap my-4 region-toggle-component ${className}`}>
             <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">
-                Base URL
+                {baseUrlLabel}
             </span>
             <span className="text-sm text-gray-400">(</span>
             <div className="inline-flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 border border-gray-200 dark:border-gray-700">
@@ -268,14 +277,20 @@ export const RegionBaseUrl = ({ className = "", showBaseUrl = true }) => {
             {showBaseUrl && (
                 <>
                     <span className="text-sm text-gray-400">:</span>
-                    <a
-                        href={apiBaseUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-mono text-primary dark:text-primary-light hover:underline"
-                    >
-                        {apiBaseUrl}
-                    </a>
+                    {protocol === "wss" ? (
+                        <code className="text-sm font-mono text-primary dark:text-primary-light">
+                            {apiBaseUrl}
+                        </code>
+                    ) : (
+                        <a
+                            href={apiBaseUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-mono text-primary dark:text-primary-light hover:underline"
+                        >
+                            {apiBaseUrl}
+                        </a>
+                    )}
                 </>
             )}
         </div>
