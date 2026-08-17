@@ -4406,33 +4406,21 @@ paths:
       summary: Query Market Fee For A Single Market
       operationId: getMarketFeeSingle
       description: |
-        Returns the account's effective maker and taker fee for one market, together with the [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) maker fee premium that applies to that market. Use this endpoint when only one market matters; `POST /api/v4/market/fee` returns the account's default fees and every custom override at once.
+        Returns the account's effective maker and taker fee for one market. Use this endpoint when only one market matters; `POST /api/v4/market/fee` returns the account's default fees and every custom override at once.
 
-        The system resolves the effective fee in the following order: the market's own fee applies by default; when the account's default trading fee is lower than the market fee, the system returns the lower account fee; when the requested market has an assigned custom fee, that custom fee replaces both `maker` and `taker` outright.
+        The response reports the fee that applies to the requested market — the market's own fee, the account's default trading fee when the default is lower than the market fee, or the custom fee assigned for the market.
 
-        **Premium field by market type**
-
-        On spot and margin markets the response carries the premium in `rpi_maker_fee_premium`, and `futures_rpi_maker_fee_premium` is `null`. On futures markets the response carries the premium in `futures_rpi_maker_fee_premium`; `rpi_maker_fee_premium` repeats the same futures value for backward compatibility and is deprecated for futures markets — read `futures_rpi_maker_fee_premium` instead.
-
-        Both premium fields are always present in the response. A premium of `"0"` means the configured premium is zero, while `null` means the platform supplied no premium for that fee type. The premium reflects the configured value regardless of whether RPI order mode is enabled for the account — whether the account may actually submit RPI orders is a separate account setting.
+        Coming soon: the RPI maker fee premium fields (`rpi_maker_fee_premium`, `futures_rpi_maker_fee_premium`) are not yet returned by the endpoint. Once live, `rpi_maker_fee_premium` carries the [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) premium on spot and margin markets, and `futures_rpi_maker_fee_premium` carries it on futures markets, where `rpi_maker_fee_premium` repeats the futures value for backward compatibility and is deprecated — read `futures_rpi_maker_fee_premium` for futures markets.
 
         <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["This field is required."]
-          }
-        }
-        ```
+        A missing `market` field and an unknown market both fail with code `30` on the `market` field. A market that exists but is not available for trading in the caller's region fails with code `31`.
 
         ```json
         {
           "code": 30,
           "message": "Validation failed",
           "errors": {
-            "market": ["Market is not exist."]
+            "market": ["Market field is required."]
           }
         }
         ```
@@ -4499,14 +4487,14 @@ paths:
                     type: string
                     nullable: true
                     description: |
-                      Additional maker fee percentage applied on top of `maker` when an RPI order executes on a spot or margin market. The effective RPI maker rate equals `maker` plus this premium. On futures markets the field repeats `futures_rpi_maker_fee_premium` for backward compatibility and is deprecated. The field returns `null` when the platform supplies no spot or margin premium.
+                      Coming soon: this field is not yet returned by the endpoint. Additional maker fee percentage applied on top of `maker` when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a spot or margin market. The effective RPI maker rate equals `maker` plus this premium. On futures markets the field repeats `futures_rpi_maker_fee_premium` for backward compatibility and is deprecated — read `futures_rpi_maker_fee_premium` instead. The field returns `null` when the RPI order mode is not enabled for the account or when no premium is configured.
                     example: "0.015"
                   futures_rpi_maker_fee_premium:
                     type: string
                     nullable: true
                     description: |
-                      Additional maker fee percentage applied on top of `maker` when an RPI order executes on a futures market. The field returns `null` for spot and margin markets, and when the platform supplies no futures premium.
-                    example: null
+                      Coming soon: this field is not yet returned by the endpoint. Additional maker fee percentage applied on top of `maker` when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a futures market. The effective RPI maker rate equals `maker` plus this premium. The field returns `null` on spot and margin markets, when the RPI order mode is not enabled for the account, or when no premium is configured.
+                    example: "0.01"
               examples:
                 spot:
                   summary: Spot market (BTC_USDT)
@@ -4514,16 +4502,12 @@ paths:
                     error: null
                     taker: "0.1"
                     maker: "0.1"
-                    rpi_maker_fee_premium: "0.015"
-                    futures_rpi_maker_fee_premium: null
                 futures:
                   summary: Futures market (BTC_PERP)
                   value:
                     error: null
                     taker: "0.055"
                     maker: "-0.02"
-                    rpi_maker_fee_premium: "0"
-                    futures_rpi_maker_fee_premium: "0"
         '422':
           description: Validation failed
           content:
