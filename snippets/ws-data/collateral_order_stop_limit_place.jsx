@@ -22,7 +22,7 @@ export const collateralOrderStopLimitPlaceParams = [
   { name: "activation_price", type: "string", required: true, description: "Trigger price. The engine sets `activation_condition` to `gte` when the trigger sits above the market at placement, and `lte` when below." },
   { name: "price", type: "string", required: true, description: "Limit price of the margin order created on activation." },
   { name: "reduce_only", type: "boolean", description: "Restrict the order to shrinking an existing position." },
-  { name: "position_side", type: "string", enum: ["BOTH","LONG","SHORT"], description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode." },
+  { name: "position_side", type: "string", enum: ["BOTH","LONG","SHORT"], description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Optional at the request layer but functionally required in hedge mode — omitting it, or sending `BOTH`, is rejected with error `114`." },
   { name: "client_order_id", type: "string", description: "Custom client order id, echoed on the response. Must be unique among active orders — a collision returns error `43`." },
   { name: "stp", type: "string", enum: ["no","co","cn","cb"], description: "Self-trade prevention mode applied to the order created on activation. Defaults to `no` when omitted." },
 ];
@@ -71,7 +71,7 @@ export const channelMeta = {
     {
       "code": 114,
       "message": "order's position side does not match user's setting",
-      "description": "`position_side` was sent without hedge mode enabled, or does not match the account setting."
+      "description": "`position_side` was sent (as non-`BOTH`) without hedge mode enabled, or was omitted or sent as `BOTH` while hedge mode is enabled, or otherwise does not match the account setting."
     },
     {
       "code": 116,

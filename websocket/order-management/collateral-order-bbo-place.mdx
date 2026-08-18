@@ -54,10 +54,6 @@ The response is an ordinary margin limit order reporting `type` `7` — no BBO m
 
 <Warning>No re-pegging happens. The price is resolved once, at placement, and the order then behaves like any other resting limit order as the order book moves away from it.</Warning>
 
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_bbo_place` request with a single response frame carrying the same `id`.
-
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />

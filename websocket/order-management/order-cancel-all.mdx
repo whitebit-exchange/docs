@@ -49,10 +49,6 @@ One market per call — no all-markets form exists, so flattening an entire book
 
 <Warning>Positions survive. This call covers resting and conditional orders on the market; an open position remains open, and only the orders protecting it are gone. Re-arm stops after a bulk cancel — see [`collateral_order_tpsl_place`](/websocket/order-management/collateral-order-tpsl-place) for position-tracking protection.</Warning>
 
-## Update frequency
-
-This method is client-initiated: the server answers each `order_cancel_all` request with a single response frame carrying the same `id`.
-
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />

@@ -72,10 +72,6 @@ Moving a trigger works the same way — send `activation_price` on a conditional
 
 <Note>Group legs cannot be modified. An OCO or OTO leg returns error `155`, and a TPSL leg returns error `160`. Cancel the group and place a new one instead — see [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) for OCO and OTO, and [`order_cancel`](/websocket/order-management/order-cancel) for TPSL legs.</Note>
 
-## Update frequency
-
-This method is client-initiated: the server answers each `order_modify` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancel-and-replace pair of events the modification produces.
-
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />

@@ -53,10 +53,6 @@ One request produces three identifiers. The group id is the `id` inside `result`
 
 <Note>The take-profit leg must rest as a maker order. A `price` that would cross the spread and execute immediately is rejected with error `150`, which makes an over-tight take-profit the most common cause of a failed OCO placement.</Note>
 
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_oco_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe either leg filling and the other being withdrawn.
-
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />

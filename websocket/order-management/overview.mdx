@@ -250,7 +250,7 @@ Every malformed request returns code `1`; the message identifies the parameter.
 | `111` | `margin position is too big` | `collateral_*` | Position would exceed the size cap |
 | `112` | `margin pending orders value is too big` | `collateral_*` | Total pending margin order value exceeded |
 | `113` | `user position side change mode` | `collateral_*` | Hedge-mode switch in progress |
-| `114` | `order's position side does not match user's setting` | `collateral_*` | `position_side` sent without hedge mode, or mismatched |
+| `114` | `order's position side does not match user's setting` | `collateral_*` | `position_side` sent (as non-`BOTH`) without hedge mode, omitted or sent as `BOTH` while hedge mode is enabled, or otherwise mismatched |
 | `115` | `order would result in a new position in the opposite direction` | Reduce-only | Reduce-only order would flip the position |
 | `116` | `margin order with reduce only is rejected` | Reduce-only | Nothing to reduce on that side |
 | `150` | `take profit is not post only` | OCO | The take-profit leg would execute immediately — it must be maker |

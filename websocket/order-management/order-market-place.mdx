@@ -49,10 +49,6 @@ The `post_only`, `ioc`, and `rpi` flags carry no meaning for a market order and 
 
 The `result` object is the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A spot market order reports `type` `2` and `price` `"0"`, because it carries no limit price. Read the achieved cost from `deal_money` and the matched size from `deal_stock`.
 
-## Update frequency
-
-This method is client-initiated: the server answers each `order_market_place` request with a single response frame carrying the same `id`.
-
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />

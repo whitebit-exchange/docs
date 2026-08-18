@@ -59,10 +59,6 @@ Among the spot placement methods, only `order_limit_place` accepts `rpi`. The fl
 
 While a market runs in post-only mode, only limit orders carrying the post-only flag are accepted; a market or stop method on the same market is rejected with error `51`.
 
-## Update frequency
-
-This method is client-initiated: the server answers each `order_limit_place` request with a single response frame carrying the same `id`. Responses may arrive interleaved with subscription pushes, which carry no `id`, so correlate answers by `id` rather than by arrival order.
-
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />
