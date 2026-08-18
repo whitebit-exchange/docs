@@ -1,0 +1,50 @@
+---
+title: "Market-Making Program"
+sidebarTitle: "Overview"
+description: "What the WhiteBIT Market-Making Program provides for professional liquidity providers — maker-fee rebates, colocation, and the trading capabilities used to quote at scale."
+icon: "chart-line"
+pageType: "program-overview"
+program: "market-makers"
+---
+
+The WhiteBIT Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates tiered by trading volume, [colocation](/platform/colocation) inside the matching-engine zone, and the trading capabilities a quoting engine relies on. This overview covers fit, capabilities, and program terms; the integration detail lives on the [Market Maker integration guide](/guides/market-maker-integration).
+
+## What the Market-Making Program provides
+
+- **Maker-fee rebates** — negative maker fees paid on filled maker orders, tiered by 30-day rolling volume with separate spot and futures tiers ([trading fees](https://whitebit.com/trading-data/trading-fees)).
+- **Colocation** — low-latency REST and WebSocket access from AWS infrastructure co-located with the matching engine ([details](/platform/colocation)).
+- **Bulk and atomic quoting** — place a full quote ladder in a single request and requote by client order identifier ([integration guide](/guides/market-maker-integration)).
+- **Safety mechanisms** — a per-market kill-switch for unattended operation and [Self-Trade Prevention](/platform/self-trade-prevention) for two-sided quotes.
+- **Strategy isolation** — [sub-accounts](/products/sub-accounts/overview) with independent balances and API keys, and fee-free transfers between the master account and sub-accounts.
+
+## Who the Market-Making Program is for
+
+- **Professional market makers** — firms providing two-sided liquidity across spot and perpetual markets.
+- **Proprietary trading firms** — desks running latency-sensitive strategies that benefit from colocation.
+- **Quantitative and algorithmic desks** — teams operating automated quoting and hedging systems at scale.
+
+## How it works
+
+A market maker streams orderbook and balance data over WebSocket, places and requotes orders over REST, and protects the book with a per-market kill-switch. [WebSocket order placement](/guides/market-maker-integration#placing-and-canceling-orders-over-websocket) arrives September 2, 2026 (global platform only) as an alternative to the REST order endpoints. The program adds maker-fee rebates on top of the standard trading surface and, for latency-sensitive strategies, colocation inside the matching-engine zone. The [Market Maker integration guide](/guides/market-maker-integration) documents the quoting loop, the colocation endpoint subset, and the WebSocket channels end to end.
+
+## Program terms
+
+Maker-fee rebates are tiered by 30-day rolling volume, with separate breakpoints for spot and futures. Rates and volume breakpoints change over time and are not restated here — the current schedule is on the [Market-Making Program page](https://institutional.whitebit.com/market-making-program), the [trading fees page](https://whitebit.com/trading-data/trading-fees), and the [VIP program](https://whitebit.com/vip-program). The applicable tier and any additional terms — including colocation and the dedicated account manager — are confirmed individually during onboarding.
+
+## How to get started
+
+Contact `institutional@whitebit.com` with trading-volume history and target markets. The dedicated account manager provides colocation connection details — AWS region, availability zone, and connection endpoints — during onboarding. Then build against the [Market Maker integration guide](/guides/market-maker-integration).
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Integration" icon="code" href="/guides/market-maker-integration">
+    The quoting loop, colocation endpoint subset, kill-switch, and WebSocket channels.
+  </Card>
+  <Card title="FAQ" icon="circle-question" href="/guides/market-maker-faq">
+    Eligibility, program terms, colocation, and safety mechanisms.
+  </Card>
+  <Card title="Colocation" icon="server" href="/platform/colocation">
+    Low-latency infrastructure co-located with the matching engine.
+  </Card>
+</CardGroup>

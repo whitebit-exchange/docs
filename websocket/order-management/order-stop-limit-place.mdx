@@ -1,0 +1,61 @@
+---
+title: Place stop-limit order
+tag: "WSS"
+description: "Place a spot stop-limit order that becomes a limit order on trigger, with order_stop_limit_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderStopLimitPlaceParams,
+  exOrderStopLimitPlaceRequest,
+  exOrderStopLimitPlaceResponse,
+} from '/snippets/ws-data/order_stop_limit_place.jsx'
+
+<RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
+
+Park a limit order outside the order book. When the market reaches `activation_price`, the engine places a limit order at `price`. Until then the order holds `status` `OPEN` with `activated` `0`, and consumes no balance beyond the reservation for the pending order.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place stop-limit order
+
+### Request parameters
+
+<WsSchemaTable fields={orderStopLimitPlaceParams} />
+
+The two prices serve different purposes and are validated independently. `activation_price` decides when the order fires; `price` decides where the resulting limit order sits. Placing `price` past the trigger makes the resulting order marketable, which is a deliberate pattern for an exit that must fill rather than rest.
+
+The trigger direction is not a parameter. The engine derives `activation_condition` by comparing `activation_price` to the market at placement: above the market yields `gte`, below yields `lte`.
+
+<WsMessageExample data={exOrderStopLimitPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exOrderStopLimitPlaceResponse} />
+
+The `result` object adds the conditional fields — `activation_price`, `activation_condition`, and `activated` — to the standard order object. See the [order object reference](/websocket/order-management/overview#order-object). A spot stop-limit order reports `type` `3`.
+
+<Note>Cancel a stop-limit order with [`order_cancel`](/websocket/order-management/order-cancel) by order id. The [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) method applies to OCO and OTO groups only and returns error `6` for a plain stop order.</Note>
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

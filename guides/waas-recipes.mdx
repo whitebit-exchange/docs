@@ -1,0 +1,107 @@
+---
+title: "Wallet-as-a-Service Recipes"
+sidebarTitle: "WaaS Recipes"
+description: "Anchor use cases for Wallet-as-a-Service partners: per-user deposit addresses, reconciliation, payouts, and WhiteBIT Codes. Each recipe links to the guide and API reference that document its endpoints."
+icon: "sparkles"
+---
+
+Anchor use cases for **Wallet-as-a-Service** partners, on the managed sub-accounts model.
+Each recipe links to the guide and API reference that document its endpoints. This is a curated
+selection of common use cases, not the full API surface; for every endpoint and parameter, see the
+[Developer guide](/guides/waas-integration) and the [Payment Integration guide](/guides/payment-integration).
+
+<Info>
+These are `private` (signed) endpoints, so each call needs an API key. Enablement prerequisites
+vary by flow:
+
+- **Sub-account and payout flows** require institutional onboarding (KYB).
+- **Per-user deposit addresses** (`main-account/create-new-address`) are disabled by default —
+  request access via `support@whitebit.com`.
+- **Sub-account crypto deposits** are disabled by default — request enablement through the assigned
+  account manager or `institutional@whitebit.com`.
+- **WhiteBIT Codes** work on a regular account without KYB (see the live demo below).
+
+A runnable Python starter that packages these flows is planned.
+</Info>
+
+<CardGroup cols={2}>
+  <Card title="Per-user deposit address" icon="wallet" href="/guides/payment-integration#unique-address-per-user">
+    Create a sub-account per end user and assign a deposit address to reconcile funds against.
+    <br />**Endpoints:** `sub-account/create`, `main-account/create-new-address`
+  </Card>
+  <Card title="Reconcile deposits" icon="arrows-rotate" href="/guides/payment-integration#webhook-reconciliation">
+    Credit users from deposit webhooks, with history polling as the required fallback.
+    Deduplicate by `uniqueId`.
+    <br />**Endpoints:** `main-account/history` + webhooks
+  </Card>
+  <Card title="Payout / withdraw" icon="paper-plane" href="/guides/payment-integration#create-a-withdrawal">
+    Send a crypto payout to a user's address, with on-the-fly conversion where needed.
+    <br />**Endpoints:** `main-account/withdraw`
+  </Card>
+  <Card title="WhiteBIT Codes settlement" icon="ticket" href="/platform/whitebit-codes">
+    Move balance fee-free between accounts by creating and applying a WhiteBIT Code.
+    <br />**Endpoints:** `main-account/codes`, `main-account/codes/apply`
+  </Card>
+  <Card title="Payout with conversion" icon="right-left" href="/guides/payment-integration#conversion-in-the-withdrawal-flow">
+    Hold one currency, pay out another: quote, confirm, then withdraw the converted asset.
+    <br />**Endpoints:** `convert/estimate`, `convert/confirm`, `main-account/withdraw`
+  </Card>
+  <Card title="Refund a canceled deposit" icon="rotate-left" href="/guides/payment-integration#refund-flow">
+    Return funds from a canceled deposit (status 4/9) to an address.
+    <br />**Endpoints:** `main-account/refund-deposit`
+  </Card>
+  <Card title="Exact-amount payout" icon="coins" href="/guides/payment-integration#create-a-withdrawal">
+    The receiver gets the exact amount; the fee is charged on top of the account balance.
+    <br />**Endpoints:** `main-account/withdraw-pay`
+  </Card>
+  <Card title="Multichain payout" icon="link" href="/api-reference/account-wallet/create-withdraw-request">
+    Pay out an asset on any supported network via the `network` parameter.
+    <br />**Endpoints:** `main-account/withdraw`
+  </Card>
+</CardGroup>
+
+## Run the recipes
+
+Each use case above maps to signed REST calls documented in the
+[Payment Integration guide](/guides/payment-integration), which carries copy-pasteable cURL and
+Python examples per endpoint. Before running any flow, create an API key with the required
+permissions and confirm the enablement prerequisites above apply to the account.
+
+A fuller Python starter that packages every recipe into one clone-and-run project is planned; the WhiteBIT Codes flow below is runnable today.
+
+## Demo
+
+Run it (needs a key with Codes permission and USDT on the main account):
+
+```
+git clone https://github.com/tihran-voitov_wbt/waas-starter.git
+cd waas-starter
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-demo.txt
+cp .env.example .env          # add WB_API_KEY / WB_API_SECRET
+python app.py                 # http://localhost:5004
+```
+
+<video controls width="100%">
+  <source src="/videos/waas-codes-demo.mp4" type="video/mp4" />
+</video>
+
+Live WhiteBIT Codes on a real balance: create a code for 1 USDT with
+`POST /api/v4/main-account/codes` and apply it with `POST /api/v4/main-account/codes/apply`, then
+watch the main-account balance move. Real API calls, no mock.
+
+**To reproduce:** use an API key with WhiteBIT Codes permission on an account that holds the USDT
+on its main balance, then call the create and apply endpoints — see
+[WhiteBIT Codes](/platform/whitebit-codes) and the [create](/api-reference/account-wallet/create-code)
+and [apply](/api-reference/account-wallet/apply-code) references.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="WaaS integration guide" icon="book" href="/guides/waas-integration">
+    Integration models, payment flows, and compliance.
+  </Card>
+  <Card title="WaaS overview" icon="wallet" href="/guides/waas-overview">
+    What WaaS is and how to get started.
+  </Card>
+</CardGroup>

@@ -15,6 +15,11 @@ description: "Comprehensive glossary of trading terms, cryptocurrency concepts, 
 An indicator value from 0 to 4 reflecting a position's place in the per-market [Auto-Deleveraging](#auto-deleveraging-adl) ranking. Higher Grade signals higher likelihood of selection as an ADL counterparty. Grade 4 corresponds to the asymptotic top 5% of the ranked list. See [ADL Grade](/concepts/auto-deleveraging#adl-grade).
 </Accordion>
 
+<Accordion title="AML">
+
+Anti-Money Laundering. Controls and checks to detect and prevent money laundering. WhiteBIT runs AML checks on deposit and withdrawal flows.
+</Accordion>
+
 <Accordion title="Ask">
 
 Sell [order](#orders).
@@ -23,6 +28,11 @@ Sell [order](#orders).
 <Accordion title="Assets">
 
 A digital representation of value transferable, storable, or tradable electronically.
+</Accordion>
+
+<Accordion title="Attribution">
+
+In Model B (customers' own accounts), the mechanism that links an end user's WhiteBIT account and activity to the partner that onboarded the user, so fee-share and reporting apply without the partner holding the account. See [Integration models](/concepts/integration-models).
 </Accordion>
 
 <Accordion title="Auto-Deleveraging (ADL)">
@@ -149,7 +159,7 @@ A gated B2B payment feature that charges a specific amount from a WhiteBIT user'
 
 <Accordion title="Fast API Key">
 
-An OAuth-issued WhiteBIT API key that a partner platform obtains on behalf of an end user through the OAuth API key consent flow, replacing manual key creation and copy-paste. The API secret is retrievable by the partner exactly once through a Bearer-authenticated endpoint, and the resulting key is restricted to the partner's registered IP ranges. See the [Fast API Key integration guide](/guides/fast-api-key-via-oauth).
+An OAuth-issued WhiteBIT API key that a partner platform obtains on behalf of an end user through the OAuth API key consent flow, replacing manual key creation and copy-paste. The API secret is retrievable by the partner exactly once through a Bearer-authenticated endpoint. Any IP restriction on the key is the end user's own account-level control, not a partner-managed allowlist. See the [Fast API Key integration guide](/guides/fast-api-key-integration).
 </Accordion>
 
 <Accordion title="Fee">
@@ -190,6 +200,11 @@ An automated strategy that places [limit orders](#limit-order) at fixed price in
 ## H
 
 <AccordionGroup>
+<Accordion title="Hedge mode">
+
+An account-level setting for collateral trading accounts that allows simultaneous long and short [positions](#position-side) on the same market; when disabled, the account operates in one-way mode. Toggling requires zero open positions. See [Collateral account hedge mode](/api-reference/collateral-trading/collateral-account-hedge-mode) and [Update collateral account hedge mode](/api-reference/collateral-trading/update-collateral-account-hedge-mode).
+</Accordion>
+
 <Accordion title="High-frequency trading (HFT)">
 
 An automated trading strategy involving executing a large number of [orders](#orders) at extremely high speeds, typically utilizing [colocation](#colocation) services to minimize [latency](#latency).
@@ -218,6 +233,16 @@ Restricting an API key to accept requests only from pre-approved IP addresses, w
 <Accordion title="Kill-switch timer">
 
 A function to cancel all [orders](#orders) on a specific market automatically when the timer expires. Each timer covers a single market and can be restricted to spot, margin, or futures order types.
+</Accordion>
+
+<Accordion title="KYB">
+
+Know Your Business. Verification of a business entity's identity and ownership, the corporate counterpart of [KYC](#kyc). Part of [Institutional Onboarding](/institutional/onboarding).
+</Accordion>
+
+<Accordion title="KYC">
+
+Know Your Customer. Identity verification of an individual customer before trading or withdrawing.
 </Accordion>
 </AccordionGroup>
 
@@ -290,6 +315,21 @@ The core system of an exchange pairing buy and sell [orders](#orders). In [coloc
 A special identifier some cryptocurrency networks require for transactions. Depositing and withdrawing some cryptocurrencies, such as Ripple (XRP) and Stellar (XLM), requires specifying a memo.
 </Accordion>
 
+<Accordion title="MiCA">
+
+Markets in Crypto-Assets. The European Union's regulatory framework for crypto-asset service providers. See [Regulatory Compliance](/institutional/compliance).
+</Accordion>
+
+<Accordion title="Model A">
+
+The partner-operated sub-account model: the partner creates and manages one WhiteBIT sub-account per end user under a master account and holds the sub-account API key. Used by account operators and managed-trading platforms. See [Integration models](/concepts/integration-models).
+</Accordion>
+
+<Accordion title="Model B">
+
+The customers'-own-accounts model: each end user holds a standalone WhiteBIT account and the partner connects through a [Fast API Key](#fast-api-key); WhiteBIT runs the KYC, and activity is linked to the partner by [attribution](#attribution). See [Integration models](/concepts/integration-models).
+</Accordion>
+
 <Accordion title="Money">
 
 The currency used to buy and sell [assets](#assets) on a trading platform.
@@ -317,6 +357,11 @@ An arbitrary number used only once in a request.
 <Accordion title="OCO orders">
 
 An OCO order combines a [limit order](#limit-order) with a [stop-limit](#stop-limit-order); only one executes. When one order fills, the platform automatically cancels the other.
+</Accordion>
+
+<Accordion title="Omnibus account">
+
+A single pooled account holding multiple end users' funds together. WhiteBIT does not offer a pooled omnibus model for partner integrations — pooled custody conflicts with MiCA client-fund segregation and Travel Rule requirements, so each model keeps segregated sub-accounts. See [Integration models](/concepts/integration-models).
 </Accordion>
 
 <Accordion title="One Triggers the Other (OTO)">
@@ -354,6 +399,11 @@ See [Market](#market)
 A type of [derivative](#derivative) contract for trading cryptocurrencies with no expiration date and daily rollover.
 </Accordion>
 
+<Accordion title="PNL">
+
+Profit and loss on a position. `grossPnl` is the realized profit and loss before funding, with trading fees already deducted; `netPnl` is `grossPnl` minus total funding. See [Closed-position PNL](/api-reference/collateral-trading/closed-position-pnl).
+</Accordion>
+
 <Accordion title="Position side">
 Defines the position direction for a trade when hedge mode is enabled, and only for [perpetual futures](#perpetual-futures) trading [Market](#market).
 "LONG": Represents a long (buy) position.
@@ -368,7 +418,7 @@ The number of digits to the right of the decimal point.
 
 <Accordion title="Price-time priority">
 
-The order-matching rule used by the [matching engine](#matching-engine): better-priced [orders](#orders) fill first, and orders resting at the same price fill in the sequence they reached the engine.
+The order-matching rule used by the [matching engine](#matching-engine): better-priced [orders](#orders) fill first, and orders resting at the same price fill in the sequence of arrival at the engine.
 </Accordion>
 
 <Accordion title="Provider">
@@ -400,7 +450,7 @@ RPI orders use post-only behavior by design. An RPI order does not support the I
 
 **Fees**
 
-RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use the `Query Market Fees` endpoint to retrieve effective fees.
+RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use [`Query Market Fees`](/api-reference/spot-trading/query-market-fee) to retrieve account-wide fees, or [`Query Market Fee For A Single Market`](/api-reference/spot-trading/query-market-fee-single) to retrieve the effective fee for one market.
 </Accordion>
 
 <Accordion title="Retail flag">

@@ -1,0 +1,68 @@
+---
+title: "Market-Making Program FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about the WhiteBIT Market-Making Program: eligibility and onboarding, program terms, colocation, and safety mechanisms."
+icon: "circle-question"
+pageType: "program-faq"
+program: "market-makers"
+---
+
+Common questions about the WhiteBIT Market-Making Program.
+
+## Eligibility and onboarding
+
+### Market-Making Program eligibility
+
+The program is intended for professional liquidity providers, and access is arranged during onboarding. Apply by emailing `institutional@whitebit.com` with trading-volume history and target markets. See the [Market-Making Program overview](/guides/market-maker-overview).
+
+### Colocation access
+
+Colocation is provisioned by the dedicated account manager, who supplies the AWS region, availability zone, and connection endpoints during onboarding. See [Colocation](/platform/colocation).
+
+## Program terms
+
+### Maker-fee rebates
+
+Maker fees are tiered by 30-day rolling volume, with separate breakpoints for spot and futures; a negative maker fee is a rebate paid on filled maker orders. Rates and breakpoints change over time — see the [Market-Making Program page](https://institutional.whitebit.com/market-making-program) and the [trading fees page](https://whitebit.com/trading-data/trading-fees).
+
+### Program benefits beyond fees
+
+The program adds colocation, a dedicated account manager, cross-marketing support, and sub-accounts for strategy separation. See the [overview](/guides/market-maker-overview).
+
+## Integration
+
+### Colocation endpoint coverage
+
+Colocation exposes a subset of the API — spot trading, collateral trading, and utility endpoints — reachable from inside the matching-engine zone; other endpoints use the standard API. See the [Market Maker integration guide](/guides/market-maker-integration#available-colocation-endpoints).
+
+### Bulk quoting
+
+Up to 20 limit orders can be placed in a single request for atomic quote-ladder placement, and orders can be requoted by client order identifier. See [Quoting strategy](/guides/market-maker-integration#quoting-strategy).
+
+### Placing and canceling orders over WebSocket
+
+From September 2, 2026 (global platform only), orders can be placed, modified, and canceled over the same authorized WebSocket connection that carries market data, as an alternative to the REST order endpoints. REST stays preferred for atomic bulk quote-ladder placement and the kill-switch deadman timer; the socket suits low-latency single-order placement on one connection. See [Placing and canceling orders over WebSocket](/guides/market-maker-integration#placing-and-canceling-orders-over-websocket).
+
+## Safety mechanisms
+
+### Disconnect protection
+
+WhiteBIT provides no automatic cancel-on-disconnect; the per-market kill-switch is the safeguard. See [Monitoring and safety](/guides/market-maker-integration#monitoring-and-safety).
+
+### Self-trade prevention
+
+Two-sided quoters can match resting orders on the same account; the STP mode set at order placement determines which side is canceled. See [Self-Trade Prevention](/platform/self-trade-prevention).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="circle-info" href="/guides/market-maker-overview">
+    What the Market-Making Program provides and who it is for.
+  </Card>
+  <Card title="Integration" icon="code" href="/guides/market-maker-integration">
+    The quoting loop, colocation, and safety mechanisms.
+  </Card>
+  <Card title="Partner FAQ" icon="circle-question" href="/guides/partner-faq">
+    Cross-cutting answers shared across programs — KYB, sandbox, fees, and rate limits.
+  </Card>
+</CardGroup>

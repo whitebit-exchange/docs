@@ -85,7 +85,7 @@ paths:
         </Note>
 
         <Note>
-        A market with an announced delisting carries the announced date in `delistedAt` and stays tradeable until the delisting runs. Once the delisting runs, the platform cancels the active orders on the market and drops the market from this response — [Query delisting orders](/api-reference/spot-trading/query-delisting-orders) is a signed request that returns the authenticated account's resulting spot order records. An announcement can be rescheduled or canceled, so treat `delistedAt` as the current plan rather than a settled fact and re-read the value on the next poll.
+        A market with an announced delisting carries the announced date in `delistedAt` and stays tradeable until the delisting runs. Once the delisting runs, the platform cancels the active orders on the market and drops the market from this response — [Query delisting and maintenance orders](/api-reference/spot-trading/query-delisting-orders) is a signed request that returns the authenticated account's resulting spot order records. An announcement can be rescheduled or canceled, so treat `delistedAt` as the current plan rather than a settled fact and re-read the value on the next poll.
         </Note>
 
         <Warning>
@@ -121,6 +121,8 @@ paths:
                     - type
                     - isTradFiFutures
                     - delistedAt
+                    - tickSize
+                    - stepSize
                   properties:
                     name:
                       type: string
@@ -189,6 +191,14 @@ paths:
                       nullable: true
                       description: "Announced delisting date as a Unix timestamp in seconds. `null` when no delisting is announced for the market. The field is always present in the response."
                       example: 1786752000
+                    tickSize:
+                      type: string
+                      description: "Minimal price step a limit order price must be a multiple of. Passed through verbatim from the trade engine; an empty string when the engine does not provide the value for the market. From September 18, 2026, an order price that is not a multiple of this value is rejected."
+                      example: "0.01"
+                    stepSize:
+                      type: string
+                      description: "Minimal quantity step an order amount must be a multiple of. Passed through verbatim from the trade engine; an empty string when the engine does not provide the value for the market. From September 18, 2026, an order amount that is not a multiple of this value is rejected."
+                      example: "0.001"
         'default':
           description: Error response
           content:
@@ -823,6 +833,8 @@ paths:
       description: |
         The endpoint returns detailed information for all available futures markets. Use the response to read current pricing, open interest, funding rates, and leverage bracket configuration. Each entry includes the predicted next funding rate, settlement timestamps, and maximum allowed position sizes per leverage level.
 
+        The `mark_price` field reports the fair value of the perpetual contract. `index_price` and `funding_rate` are sourced from the premium index that already drives liquidation; field names and the decimal-string format are unchanged.
+
         <Note>
         The API caches the response for 1 second
         </Note>
@@ -868,6 +880,7 @@ paths:
                     low: "23765.3"
                     product_type: "Perpetual"
                     open_interest: "6000"
+                    mark_price: "24012.75"
                     index_price: "24019.25"
                     index_name: "Bitcoin"
                     index_currency: "BTC"
@@ -1520,9 +1533,22 @@ components:
           description: "Current open interest in contracts (point-in-time snapshot, not a
             24-hour delta or volume)."
           example: "6000"
+        mark_price:
+          type: string
+          description: "Fair value
+            of the perpetual contract, derived from the underlying index price and the futures
+            basis. Mark price — not `last_price` — is what a liquidation is evaluated against,
+            so a temporary wick in the order book does not by itself trigger one. Point-in-time
+            value from the latest premium index snapshot; returns an empty string while no
+            fresh snapshot is available for the market."
+          example: "24012.75"
         index_price:
           type: string
-          description: Underlying index price
+          description: "Price of the underlying index the contract tracks, taken from the same
+            premium index snapshot as `mark_price`. While the index is unavailable the field
+            falls back to the last traded price of the corresponding spot market, then to the
+            last traded price of the futures market itself, and returns `\"0\"` when neither
+            has traded."
           example: "24019.25"
         index_name:
           type: string

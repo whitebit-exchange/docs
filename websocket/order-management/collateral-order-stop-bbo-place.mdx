@@ -1,0 +1,57 @@
+---
+title: Place margin stop-BBO order
+tag: "WSS"
+description: "Place a margin or futures stop order that becomes a BBO order with collateral_order_stop_bbo_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderStopBboPlaceParams,
+  exCollateralOrderStopBboPlaceRequest,
+  exCollateralOrderStopBboPlaceResponse,
+} from '/snippets/ws-data/collateral_order_stop_bbo_place.jsx'
+
+<RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
+
+Park a margin or futures order that turns into a BBO order when the market reaches `activation_price`. The order waits as `type` `9` with `price` `"0"`, then prices itself from the order book once the trigger fires.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place margin stop-BBO order
+
+### Request parameters
+
+<WsSchemaTable fields={collateralOrderStopBboPlaceParams} />
+
+<WsMessageExample data={exCollateralOrderStopBboPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderStopBboPlaceResponse} />
+
+The `result` object adds the activation fields and the position fields to the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). The order reports `type` `9` with `price` `"0"` while it waits.
+
+<Warning>The maker role on a protective stop is a trade-off. It avoids the taker fee, but the resulting order may sit unfilled at the best quote while the market runs away from it — exactly the scenario a stop exists to handle. Use `bbo_role: 2`, or [`collateral_order_stop_market_place`](/websocket/order-management/collateral-order-stop-market-place), where the exit must complete; an empty order book at activation drops the order entirely.</Warning>
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

@@ -7,6 +7,9 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
+<Warning>
+**Deprecated.** The OAuth 2.0 Authorization Code Grant flow for direct account-data access is deprecated and will be removed on **November 1, 2026**. New partner integrations should use the [Fast API Key flow](/guides/fast-api-key-integration), which issues a WhiteBIT API key on the user's behalf and calls the standard [V4 API](/api-reference/authentication).
+</Warning>
 
 ## Key Benefits
 
@@ -33,16 +36,16 @@ When the access token expires, the application can use a refresh token to obtain
 ## Use Cases
 
 #### Partner API key issuance
-Partner platforms issue WhiteBIT API keys on behalf of end users through the OAuth API key flow. The flow replaces manual key creation with a consent-driven bootstrap: the user authorizes the partner once, and the WhiteBIT platform issues a partner-scoped API key with a secret that the partner retrieves through a dedicated endpoint. See the [Fast API Key integration guide](/guides/fast-api-key-via-oauth).
+Partner platforms issue WhiteBIT API keys on behalf of end users through the OAuth API key flow. The flow replaces manual key creation with a consent-driven bootstrap: the user authorizes the partner once, and the WhiteBIT platform issues a partner-scoped API key with a secret that the partner retrieves through a dedicated endpoint. See the [Fast API Key integration guide](/guides/fast-api-key-integration).
 
 #### Trading Bots & Algorithmic Trading
-Enable automated trading strategies without storing WhiteBIT credentials in third-party systems. Trading bots can place, modify, and cancel orders while only having the specific permissions they need.
+Enable automated trading strategies without storing WhiteBIT credentials in third-party systems. Trading bots can place, modify, and cancel orders while only having the specific permissions required.
 
 ### Portfolio Trackers & Analytics
-Allow portfolio management applications to read balance and trade history information without write access to trading functions, providing users with consolidated views of their assets across multiple platforms.
+Allow portfolio management applications to read balance and trade history information without write access to trading functions, providing users with consolidated views of assets across multiple platforms.
 
 ### Mobile Applications
-Provide a seamless authentication experience in mobile apps without requiring users to enter and store their WhiteBIT credentials in the app.
+Provide a seamless authentication experience in mobile apps without requiring users to enter and store WhiteBIT credentials in the app.
 
 ### Enterprise Integrations
 Enable business systems to securely connect to WhiteBIT for institutional trading, reporting, and compliance purposes with proper audit controls.
@@ -63,7 +66,7 @@ For a complete list of available scopes and detailed implementation instructions
 
 ## Getting Started
 
-**WhiteBIT OAuth 2.0 integration is exclusively offered to close ecosystem partners.** To integrate WhiteBIT OAuth 2.0 with an application, contact support at [support@whitebit.com](mailto:support@whitebit.com). The support team guides through the OAuth integration process, including:
+**WhiteBIT OAuth 2.0 integration is exclusively offered to close ecosystem partners.** To integrate WhiteBIT OAuth 2.0 with an application, contact support at [support@whitebit.com](mailto:support@whitebit.com) — the channel applies to the deprecated classic flow; new integrations enroll in the [Fast API Key flow](/guides/fast-api-key-integration) via `institutional@whitebit.com`. The support team guides through the OAuth integration process, including:
 
 1. Application registration and approval
 2. Scope request and configuration
@@ -78,11 +81,11 @@ The [Usage](/platform/oauth/usage/overview) page provides comprehensive document
 
 - Endpoint specifications for authorization and token exchange
 - Request and response formats with example code
-- Complete list of available scopes and their permissions
+- Complete list of available scopes and associated permissions
 - Step-by-step implementation guides for common scenarios
 - Troubleshooting tips and best practices
 
-The usage documentation guides through the entire implementation process from initial setup to making the first authenticated API calls. For partner integrations that need to issue API keys on behalf of users, the [Fast API Key integration guide](/guides/fast-api-key-via-oauth) covers the end-to-end consent and key-management flow. The [OAuth endpoint overview](/api-reference/oauth/usage/overview) lists every OAuth endpoint in the API Reference.
+The usage documentation guides through the entire implementation process from initial setup to making the first authenticated API calls. For partner integrations that need to issue API keys on behalf of users, the [Fast API Key integration guide](/guides/fast-api-key-integration) covers the end-to-end consent and key-management flow. The [OAuth endpoint overview](/api-reference/oauth/usage/overview) lists every OAuth endpoint in the API Reference.
 
 ## Support
 

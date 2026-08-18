@@ -27,7 +27,7 @@ import {
 } from '/snippets/ws-data/depth.jsx'
 import { RelatedResources } from '/snippets/RelatedResources.jsx'
 
-<RegionBaseUrl />
+<RegionBaseUrl protocol="wss" />
 
 Real-time order book data with support for both one-time snapshots and continuous subscription updates. Each update contains changed price levels (asks and bids) as `[price, amount]` tuples. The server pushes incremental deltas every 100ms; if 10 seconds pass without an emitted `depth_update` on this subscription, a full snapshot is sent as a keepalive. Use this channel to maintain a live local order book for trading logic or display.
 
@@ -86,11 +86,11 @@ Public `depth` updates exclude Retail Price Improvement (RPI) orders. The stream
 
 ## Including RPI orders in a local order book
 
-Public `depth` excludes RPI orders by design, so they never appear in this stream. RPI resting liquidity is not published on any market-data feed — it is visible only in private active orders and in the exchange UI order book.
+Public `depth` excludes RPI orders by design, so RPI orders never appear in this stream. RPI resting liquidity is not published on any market-data feed — it is visible only in private active orders and in the exchange UI order book.
 
 To display an account's own RPI orders alongside the public book, overlay its private active orders onto the local depth book. Subscribe to [`ordersPending`](/websocket/account-streams/orders-pending) (private) alongside `depth_subscribe`, then merge:
 
-1. **Overlay only orders with `rpi: true`.** Non-RPI orders already appear in the public `depth` aggregate — overlaying every order double-counts them.
+1. **Overlay only orders with `rpi: true`.** Non-RPI orders already appear in the public `depth` aggregate — overlaying every order double-counts the non-RPI orders.
 2. **Aggregate by price before merging.** Public `depth` levels are price-aggregated `[price, total amount]`, while the private stream is per-order. Sum the RPI orders by price level, and use each order's `left` (remaining amount), not `amount` (original size).
 3. **Map the side.** Order `side` `1` (sell) → ask; `2` (buy) → bid.
 4. **Upsert by `order_id`.** Add or update on `event_id` `1` (new) and `2` (update); remove on `3` (finish). `order_id` changes on modify — correlate with `client_order_id`. Stop-order activation emits a second `event_id=1` for the same `order_id`, so upsert rather than append.
@@ -424,3 +424,7 @@ public class OrderBookClient {
 }
 ```
 </CodeGroup>
+
+## Used in these guides
+
+- [Market Maker integration](/guides/market-maker-integration) — bulk quoting, RPI, kill-switch, and market-data streams.

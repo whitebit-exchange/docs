@@ -4,7 +4,14 @@ description: "Get default spot and futures maker/taker fee rates and custom per-
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/market/fee"
 playground: none
 ---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
 import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
 import { signerFields } from '/snippets/signer-fields/market-fee.jsx';
 
 <WhitebitSigner path="/api/v4/market/fee" fields={signerFields} />
+
+
+<RelatedResources>
+- [Query market fee for a single market](/api-reference/spot-trading/query-market-fee-single) — the effective maker and taker fee for one market
+- [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) — what the maker fee premium applies to
+</RelatedResources>

@@ -1,0 +1,51 @@
+---
+title: "Integration models"
+description: "How WhiteBIT partner programs connect end users: partner-operated sub-accounts (Model A), customers' own accounts via Fast API Key (Model B), and why a pooled account is not offered."
+---
+
+An integration model defines who holds each end user's WhiteBIT account and who performs end-user identity verification (KYC). WhiteBIT partner programs offer more than one model because partners differ: some operate accounts on behalf of customers, and others connect customers who already hold personal WhiteBIT accounts. The chosen model sets the account structure, the counterparty relationship, and where compliance responsibility sits. Program overviews and integration guides link to the models below rather than restating the trade-off.
+
+## Model A — partner-operated sub-accounts
+
+Model A places each end user in a dedicated sub-account under the partner's master account. WhiteBIT provides per-customer isolation, per-customer API keys, and fee-free internal transfers between the master account and the sub-accounts. WhiteBIT is the end user's counterparty and, by default, verifies (KYC) each end user. Model A suits partners operating accounts for customers: Embedded Trading partners, [Wallet-as-a-Service](/guides/waas-overview) backends — where the model is called *managed sub-accounts* — and platforms managing customer funds.
+
+A gated variant, KYC reliance, lets an eligible partner perform end-user verification instead, subject to a WhiteBIT Compliance assessment. The eligibility conditions are documented on the [Embedded Trading overview](/guides/embedded-trading-overview) and the [WaaS overview](/guides/waas-overview). Build Model A with [Sub-Accounts](/products/sub-accounts/overview); the [Embedded Trading integration guide](/guides/sub-account-integration) covers per-customer setup end to end.
+
+## Model B — customers' own accounts (Fast API Key)
+
+Model B connects end users who each hold a personal WhiteBIT account. WhiteBIT holds custody and performs KYC. The partner acts on the account through an OAuth-issued API key granted by the user on the WhiteBIT consent screen — see [Fast API Key via OAuth](/guides/fast-api-key-integration) for the flow and [OAuth 2.0](/platform/oauth/overview) for the concept. The user selects the key's permission scope, so partner access is bounded by the granted permissions. In Wallet-as-a-Service terms, Model B is *attribution*: the end user is a direct WhiteBIT customer, and attribution or fee-share is arranged separately.
+
+Model B fits more partner types than embedded trading alone — a long tail of applications where the end user keeps a personal account. Model B partner types group by the permission scope required:
+
+- **Read-only** — portfolio trackers and aggregators, tax and accounting tools, and referral apps reading a user's own activity. No fund movement.
+- **Trade-execute** — trading bots and signal execution, copy and social trading, charting and analytics with on-chart execution, algorithmic and quant platforms, and education platforms with in-app execution. Order placement only; withdrawal remains a separate, user-controlled grant.
+
+Compliance review scales with the permission scope, not the partner label.
+
+## Comparison
+
+| Dimension | Model A — sub-accounts | Model B — Fast API Key |
+|-----------|------------------------|------------------------|
+| Account holder | Partner (a sub-account per end user under a master account) | End user (a personal WhiteBIT account) |
+| KYC | WhiteBIT by default; the partner under gated KYC reliance | WhiteBIT |
+| Counterparty | WhiteBIT, via the partner's master account | WhiteBIT, direct to the end user |
+| Best fit | Account operators, WaaS backends, platforms operating customer accounts | Bots, copy trading, portfolio and tax tools, and other apps on customers' own accounts |
+| Where to build | [Sub-Accounts](/products/sub-accounts/overview), [Embedded Trading](/guides/sub-account-integration) | [Fast API Key via OAuth](/guides/fast-api-key-integration) |
+
+## Why not a pooled account
+
+A single pooled (omnibus) account holding all end users' funds together — sometimes called Model C — is not offered. Pooled custody conflicts with MiCA client-fund segregation and with [Travel Rule](/concepts/travel-rule) requirements, both of which depend on funds and transfers being attributable to an identified end user. Segregated sub-accounts (Model A) and customers' own accounts (Model B) preserve attribution, while a master account acts only as a settlement hub. Client-fund segregation also became the market baseline after the 2022 collapse of FTX, where customer funds were commingled. See [Regulatory Compliance](/institutional/compliance) for the MiCA specifics.
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Sub-account integration" icon="sitemap" href="/guides/sub-account-integration">
+    Build Model A: per-customer sub-accounts, per-customer API keys, and reconciliation.
+  </Card>
+  <Card title="Fast API Key integration" icon="key" href="/guides/fast-api-key-integration">
+    Build Model B: the OAuth API key flow on customers' own accounts.
+  </Card>
+  <Card title="Embedded Trading overview" icon="circle-info" href="/guides/embedded-trading-overview">
+    What Embedded Trading is and how enrollment works.
+  </Card>
+</CardGroup>

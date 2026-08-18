@@ -26,7 +26,7 @@ import {
 } from '/snippets/ws-data/trades.jsx'
 import { RelatedResources } from '/snippets/RelatedResources.jsx'
 
-<RegionBaseUrl />
+<RegionBaseUrl protocol="wss" />
 
 Subscribe to real-time trade execution updates for one or more markets. Each message delivers a batch of trade objects containing price, quantity, trade direction, and execution timestamp. The channel supports both targeted subscriptions for specific markets and a wildcard subscription for all available markets.
 
@@ -85,7 +85,7 @@ Updates are pushed in **real time** on each trade execution.
 
 ## Unsubscribe
 
-Send `trades_unsubscribe` with an empty `params` array to stop receiving trade updates on the connection. There is no per-market unsubscribe — to keep a subset of markets, resubscribe with the markets you want to retain. See [Managing subscriptions](/websocket/market-streams/overview#managing-subscriptions).
+Send `trades_unsubscribe` with an empty `params` array to stop receiving trade updates on the connection. There is no per-market unsubscribe — to keep a subset of markets, resubscribe with the markets to retain. See [Managing subscriptions](/websocket/market-streams/overview#managing-subscriptions).
 
 ## Error codes
 

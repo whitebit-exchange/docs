@@ -43,7 +43,7 @@ A trading bot operates as a continuous loop:
 
 1. **Market data** — receive prices and orderbook updates via WebSocket (or REST polling for lower-frequency strategies)
 2. **Signal generation** — apply strategy logic to determine when and what to trade
-3. **Order execution** — place orders via REST API (single or bulk)
+3. **Order execution** — place orders via REST API (single or bulk), or over the WebSocket connection from September 2, 2026
 4. **Fill monitoring** — track order fills and state changes via WebSocket
 5. **Position management** — update internal state, replace filled orders, manage risk
 
@@ -295,6 +295,28 @@ Place up to 20 limit orders in a single request — one round trip instead of up
 <Note>
   The bulk endpoint accepts up to **20 limit orders** per request. All orders in a batch must target the same market pair. Partial failures are possible — always check each order result individually, or set `stopOnFail: true` to stop processing at the first failed order.
 </Note>
+
+### Placing orders over WebSocket
+
+<Note>
+Coming soon — order placement over WebSocket becomes available on September 2, 2026, on the global platform only; the EU platform is not yet supported. Until then, place orders over REST as shown above.
+</Note>
+
+The [WebSocket Order Management](/websocket/order-management/overview) methods place, modify, and cancel orders as JSON-RPC calls on the same authorized WebSocket connection used for [fill monitoring](#websocket-fill-monitoring) — an alternative to the REST order endpoints. Placing over the open socket removes the per-request HTTP round trip and the per-request HMAC signature: the connection authorizes once, and every later order frame rides that session. REST `/order/bulk` places up to 20 orders in one request, while the WebSocket methods place one order per frame, so keep REST bulk for atomic batches; the kill-switch deadman below stays on REST.
+
+A placement is one JSON-RPC frame; the server answers with a single frame carrying the same `id`, interleaved with the subscription pushes, so correlate answers by `id`:
+
+```json
+{
+  "id": 201,
+  "method": "order_limit_place",
+  "params": [
+    { "market": "BTC_USDT", "side": "buy", "amount": "0.01", "price": "60000", "client_order_id": "bot-1" }
+  ]
+}
+```
+
+The transport numbers its errors independently of REST — see the [error reference](/websocket/order-management/overview#error-codes). Order placement requires an authorized connection; the parameter set for each method is on the [Order Management](/websocket/order-management/overview) reference.
 
 ## Kill-switch setup
 
@@ -633,7 +655,7 @@ The lifecycle, mapped to the sections above:
 
 1. **Center the grid** — fetch the market's `last_price` from [`GET /api/v4/public/ticker`](/api-reference/market-data/market-activity) and snap to the grid spacing.
 2. **Arm the kill-switch first** — activate the timer and start the [heartbeat refresh loop](#heartbeat-refresh-loop) before any order exists, so a crash mid-startup still cleans up.
-3. **Clean slate** — cancel leftovers from a previous run with `POST /api/v4/order/cancel/all` scoped to the market. The call removes every open spot order on the market, including manually placed ones.
+3. **Clean slate** — cancel leftovers from a previous run with `POST /api/v4/order/cancel/all` scoped to the market. The call removes every open order on the market regardless of type, including manually placed ones.
 4. **Place the grid** — buy levels below center, sell levels above, batched through the [bulk endpoint](#bulk-orders) in groups of 20. Track `orderId → {side, price, level}` in a local dict (`grid_orders` below).
 5. **Monitor and replace** — subscribe to the [account streams](#websocket-fill-monitoring); each fully executed grid order triggers an opposite order one level away.
 6. **Recover** — on disconnect, [reconnect with backoff](#reconnection-with-exponential-backoff), re-authorize, [reconcile](#state-reconciliation) against `POST /api/v4/orders` (a grid order missing from the server filled or was canceled during the gap), then re-subscribe.
@@ -670,10 +692,10 @@ async def handle_message(data):
 </Note>
 
 <Warning>
-  Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), and add proper logging. The startup `order/cancel/all` call removes every open spot order on the configured market — including orders placed manually — so run the bot on a dedicated account or sub-account.
+  Before running against real funds: validate all order parameters against the market's `minAmount` and `minTotal` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info), and add proper logging. The startup `order/cancel/all` call removes every open order on the configured market regardless of type, including orders placed manually, so run the bot on a dedicated account or sub-account.
 </Warning>
 
-## What's Next
+## What's next
 
 <CardGroup cols={3}>
   <Card title="Account Monitoring" icon="chart-line" href="/guides/account-monitoring">

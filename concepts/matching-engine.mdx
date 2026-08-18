@@ -14,7 +14,7 @@ At a given price level, non-RPI orders form a priority queue ahead of [RPI](/glo
 
 Each fill triggers re-evaluation of resting [stop and trigger orders](/concepts/order-types#stop-market-orders). Any stop or trigger whose condition is met by the new trade price enters the matching pipeline immediately, in the same engine cycle as the originating fill.
 
-Time priority is determined by **matching-engine arrival**, not by arrival at the API gateway. Order modification does not preserve queue position — the engine cancels the original order and creates a replacement with a new `orderId` at the back of the price level's queue. See [order modification in the Market Maker Guide](/guides/market-maker-guide) and the [modify order endpoint](/api-reference/spot-trading/modify-order).
+Time priority is determined by **matching-engine arrival**, not by arrival at the API gateway. Order modification does not preserve queue position — the engine cancels the original order and creates a replacement with a new `orderId` at the back of the price level's queue. See [order modification in the Market Maker Guide](/guides/market-maker-integration) and the [modify order endpoint](/api-reference/spot-trading/modify-order).
 
 ## Participant fairness
 
@@ -28,7 +28,7 @@ The engine applies no prioritization by request type (submit, cancel, modify, bu
   <Card title="Order Types" icon="layer-group" href="/concepts/order-types">
     Execution flags — IOC, post-only, reduce-only — and how each behaves.
   </Card>
-  <Card title="Market Maker Guide" icon="chart-line" href="/guides/market-maker-guide">
+  <Card title="Market Maker Guide" icon="chart-line" href="/guides/market-maker-integration">
     Colocation, quoting strategy, and the matching-engine-zone endpoint subset.
   </Card>
   <Card title="Self-Trade Prevention" icon="shield" href="/platform/self-trade-prevention">

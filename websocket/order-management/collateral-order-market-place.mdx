@@ -1,0 +1,59 @@
+---
+title: Place margin market order
+tag: "WSS"
+description: "Place a margin or futures market order over the WhiteBIT WebSocket connection with collateral_order_market_place."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  collateralOrderMarketPlaceParams,
+  exCollateralOrderMarketPlaceRequest,
+  exCollateralOrderMarketPlaceResponse,
+} from '/snippets/ws-data/collateral_order_market_place.jsx'
+
+<RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
+
+Open, extend, reduce, or close a position at the order book price. Sending the position size on the opposite side is the usual way to flatten a position.
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Place margin market order
+
+### Request parameters
+
+<WsSchemaTable fields={collateralOrderMarketPlaceParams} />
+
+No money-denominated variant exists for this family. Unlike spot, `amount` is [stock](/glossary#stock) on both sides, which is why there is no `collateral_order_market_stock_place` — this method already behaves that way.
+
+<WsMessageExample data={exCollateralOrderMarketPlaceRequest} />
+
+### Response
+
+<WsMessageExample data={exCollateralOrderMarketPlaceResponse} />
+
+The `result` object is the standard order object plus `reduce_only` and `position_side` — see the [order object reference](/websocket/order-management/overview#order-object). A margin market order reports `type` `8` and `price` `"0"`.
+
+<Warning>Set `reduce_only` when closing a position. Without it a stale size larger than the open position flips the position instead of flattening it. With the flag set, an order that would flip is rejected with error `115`, and an order with nothing to reduce is rejected with error `116` or dropped with status `AUTO_CANCELED_REDUCE_ONLY`.</Warning>
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).

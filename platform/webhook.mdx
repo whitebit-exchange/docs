@@ -259,7 +259,7 @@ Performed when deposit was canceled. Request example:
 
 #### Travel Rule deposit statuses (EEA)
 
-For EEA users, an inbound deposit may be frozen pending Travel Rule verification, and the deposit carries a Travel Rule status code (see the table below). There is currently no webhook for these transitions, so track them via the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). When the Travel Rule API is enabled for the account, submit the deposit originator data via [Submit deposit originator data](/api-reference/travel-rule/submit-deposit-verification) (`POST /api/v4/travel-rule/deposit/verification`); otherwise the deposit is verified manually at whitebit.com. Funds are credited only after successful verification.
+For EEA users, an inbound deposit may be frozen pending Travel Rule verification, and the deposit carries a Travel Rule status code (see the table below). There is currently no webhook for these transitions, so track status changes via the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). When the Travel Rule API is enabled for the account, submit the deposit originator data via [Submit deposit originator data](/api-reference/travel-rule/submit-deposit-verification) (`POST /api/v4/travel-rule/deposit/verification`); otherwise the deposit is verified manually at whitebit.com. Funds are credited only after successful verification.
 
 For details on Travel Rule requirements and the travelRule object for withdrawals, see [Regulatory Compliance](/institutional/compliance).
 

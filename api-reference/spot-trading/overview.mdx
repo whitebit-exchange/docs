@@ -14,9 +14,14 @@ For general API conventions (base URL, error format, rate limits), see the [API 
 
 Endpoints for querying market fees:
 
-<Card title="Query Market Fees" icon="percent" href="/api-reference/spot-trading/query-market-fee">
-  Retrieve default maker and taker rates and custom per-market overrides
-</Card>
+<CardGroup cols={2}>
+  <Card title="Query Market Fees" icon="percent" href="/api-reference/spot-trading/query-market-fee">
+    Retrieve default maker and taker rates and custom per-market overrides
+  </Card>
+  <Card title="Query Market Fee For A Single Market" icon="percent" href="/api-reference/spot-trading/query-market-fee-single">
+    Retrieve the effective maker and taker fee for one market
+  </Card>
+</CardGroup>
 
 ---
 
@@ -82,8 +87,8 @@ Endpoints for spot trading operations:
   <Card title="Query Executed Orders" icon="list-check" href="/api-reference/spot-trading/query-executed-orders">
     Get all executed orders
   </Card>
-  <Card title="Query Delisting Orders" icon="ban" href="/api-reference/spot-trading/query-delisting-orders">
-    Get delisting order history
+  <Card title="Query Delisting and Maintenance Orders" icon="ban" href="/api-reference/spot-trading/query-delisting-orders">
+    Get delisting and maintenance order history
   </Card>
 </CardGroup>
 
@@ -97,3 +102,8 @@ Endpoints for spot trading operations:
     Get kill-switch timer status
   </Card>
 </CardGroup>
+
+## Used in these guides
+
+- [Copy Trading](/guides/copy-trading) — mirror a lead trader's orders into followers' own accounts via OAuth-issued keys.
+- [Market Maker integration](/guides/market-maker-integration) — bulk quoting, RPI, kill-switch, and market-data streams.

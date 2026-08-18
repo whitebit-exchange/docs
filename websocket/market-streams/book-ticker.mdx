@@ -24,7 +24,7 @@ import {
   exBookTickerUnsubscribe,
 } from '/snippets/ws-data/book_ticker.jsx'
 
-<RegionBaseUrl />
+<RegionBaseUrl protocol="wss" />
 
 Real-time best bid and best ask price updates for a market. The server sends an update instantly whenever the best bid or best ask changes. Each update contains the current best bid price, best bid amount, best ask price, and best ask amount for the subscribed market. Use this stream to maintain an accurate top-of-book view without polling the REST API.
 
@@ -66,3 +66,7 @@ Public `bookTicker_update` events exclude Retail Price Improvement (RPI) orders.
 ## Book ticker update object
 
 <WsSchemaTable fields={bookTickerUpdate} />
+
+## Used in these guides
+
+- [Market Maker integration](/guides/market-maker-integration) — bulk quoting, RPI, kill-switch, and market-data streams.

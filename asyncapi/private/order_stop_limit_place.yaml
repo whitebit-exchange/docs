@@ -1,0 +1,202 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Place Spot Stop-Limit Order
+  version: 1.0.0
+  description: |
+    Place a spot stop-limit order over the WebSocket connection.
+
+    The order waits outside the order book until the market reaches `activation_price`. On
+    activation the engine places a limit order at `price`.
+
+    The limit price is independent of the trigger price. Setting it past the trigger makes
+    the resulting order marketable.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-minute: 200
+  x-error-codes:
+    - code: 101
+      message: activation price should not be equal to the last price
+      description: "The activation price equals the current last price. Move the trigger to either side of it."
+    - code: 158
+      message: wrong activation price for limit order
+      description: "The trigger price and the limit price are inconsistent."
+    - code: 250
+      message: price must be >= X / <= Y
+      description: "The limit price falls outside the market price band. The message states the accepted boundary."
+    - code: 251
+      message: activation price is out of bands
+      description: "The activation price falls outside the maker price bands."
+    - code: 51
+      message: trading in the market is not allowed
+      description: "Trading is suspended, or the market runs in post-only mode — a stop method is rejected there."
+
+servers:
+  production:
+    host: api.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: Spot stop-limit order placement channel
+    messages:
+      orderStopLimitPlaceRequest:
+        $ref: '#/components/messages/orderStopLimitPlaceRequest'
+      orderStopLimitPlaceResponse:
+        $ref: '#/components/messages/orderStopLimitPlaceResponse'
+
+operations:
+  sendOrderStopLimitPlaceRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderStopLimitPlaceRequest'
+
+  receiveOrderStopLimitPlaceResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/orderStopLimitPlaceResponse'
+
+components:
+  messages:
+    orderStopLimitPlaceRequest:
+      name: OrderStopLimitPlaceRequest
+      title: Place stop-limit order
+      summary: Place a spot stop-limit order
+      payload:
+        $ref: '#/components/schemas/OrderStopLimitPlaceRequest'
+      examples:
+        - name: orderStopLimitPlaceSell
+          summary: |
+            Place a sell stop-limit order with parameters:
+            - params[0]: order object with market, side, amount, price, and activation_price
+          payload:
+            id: 500005
+            method: order_stop_limit_place
+            params:
+              - market: ETH_USDT
+                side: sell
+                amount: "0.00108"
+                price: "1831.41"
+                activation_price: "1859.73"
+                stp: "no"
+
+    orderStopLimitPlaceResponse:
+      name: OrderStopLimitPlaceResponse
+      title: Place Stop-Limit Order Response
+      summary: Accepted conditional order (status OPEN, not activated)
+      payload:
+        $ref: '#/components/schemas/OrderStopLimitPlaceResponse'
+      examples:
+        - name: orderStopLimitPlaceAccepted
+          summary: Order waiting for the trigger, activation_condition derived as lte
+          payload:
+            id: 500005
+            result:
+              id: 2423735873475
+              market: ETH_USDT
+              type: 3
+              side: 1
+              post_only: false
+              ioc: false
+              ctime: 1786452690.462755
+              mtime: 1786452690.462755
+              activation_price: "1859.73"
+              activation_condition: lte
+              activated: 0
+              price: "1831.41"
+              amount: "0.00108"
+              left: "0.00108"
+              deal_stock: "0"
+              deal_money: "0"
+              deal_fee: "0"
+              client_order_id: ""
+              stp: "no"
+              status: OPEN
+            error: null
+
+  schemas:
+    OrderStopLimitPlaceRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier. The response echoes this value.
+        method:
+          type: string
+          const: order_stop_limit_place
+          description: "Method name. Fixed value: `order_stop_limit_place`."
+        params:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/OrderStopLimitPlaceParams'
+          description: Array containing exactly one order parameter object
+
+    OrderStopLimitPlaceParams:
+      type: object
+      required:
+        - market
+        - side
+        - amount
+        - activation_price
+        - price
+      properties:
+        market:
+          type: string
+          description: "Spot market name. A futures market is rejected with error `1`."
+          example: ETH_USDT
+        side:
+          type: string
+          enum: ["buy", "sell"]
+          description: "Order side. The response reports the side numerically: `1` for sell, `2` for buy."
+        amount:
+          type: string
+          description: "Order size in stock, at the market stock precision."
+          example: "0.00108"
+        activation_price:
+          type: string
+          description: "Trigger price. The engine compares it to the current market to derive `activation_condition` — `gte` when above the market, `lte` when below. It must differ from the last price, otherwise error `101` is returned."
+          example: "1859.73"
+        price:
+          type: string
+          description: "Limit price of the order placed on activation. Independent of the trigger price."
+          example: "1831.41"
+        client_order_id:
+          type: string
+          description: "Custom client order id, echoed on the response. Must be unique among active orders — a collision returns error `43`."
+        stp:
+          type: string
+          enum: ["no", "co", "cn", "cb"]
+          description: "Self-trade prevention mode applied to the order created on activation. Defaults to `no` when omitted."
+
+    OrderStopLimitPlaceResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          description: "Accepted conditional order. Adds `activation_price`, `activation_condition`, and `activated` to the standard order object. Reports `type` `3` and `activated` `0` until the trigger fires."
+        error:
+          type: "null"
+          description: Error object (null on success)

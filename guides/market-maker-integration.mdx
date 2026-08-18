@@ -1,7 +1,10 @@
 ---
 title: "Market Maker Integration Guide"
 description: "Guide for professional market makers — Market-Making Program terms, colocation setup, available endpoints, quoting strategy, and safety mechanisms."
-sidebarTitle: "Market Maker Guide"
+sidebarTitle: "Integration"
+icon: "code"
+pageType: "integration"
+program: "market-makers"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
@@ -10,7 +13,7 @@ import { endpointLimits } from '/snippets/concept-data/rate-limits.jsx';
 
 <RegionBaseUrl />
 
-The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, [colocation](/platform/colocation), and a 33-endpoint API subset reachable from inside the matching-engine zone.
+The Market-Making Program provides dedicated infrastructure for professional liquidity providers: maker-fee rebates, [colocation](/platform/colocation), and a 35-endpoint API subset reachable from inside the matching-engine zone.
 
 ## Market-Making Program overview
 
@@ -25,6 +28,12 @@ Rates and volume breakpoints change over time and are not duplicated here. For c
 - Cross-marketing support
 - [Sub-accounts](/products/sub-accounts/overview) for strategy separation
 - Access to [Liquidity Provision program](https://whitebit.com/m/liquidity-provision) for non-MM liquidity partnerships
+
+## Prerequisites
+
+- **Approved Market-Making Program enrollment** — contact `institutional@whitebit.com` with trading-volume history and target markets (see [How to apply](#how-to-apply)); the [Market-Making overview](/guides/market-maker-overview) covers program terms.
+- **Colocation connection details** — provisioned by the account manager for latency-sensitive strategies (see [Colocation setup](#colocation-setup)).
+- **API access** — [HMAC-signed requests](/api-reference/authentication).
 
 ## Colocation setup
 
@@ -43,16 +52,16 @@ Both REST API and WebSocket connections are available via colocation.
 Contact the designated account manager for connection details including base URLs and availability zone placement.
 
 <Warning>
-  Colocation endpoints are a SUBSET of the full WhiteBIT API. Only the 33 endpoints listed below are available via colocation infrastructure. All other API endpoints must be accessed through the standard public API.
+  Colocation endpoints are a SUBSET of the full WhiteBIT API. Only the 35 endpoints listed below are available via colocation infrastructure. All other API endpoints must be accessed through the standard public API.
 </Warning>
 
 See the [Colocation](/platform/colocation) page for additional infrastructure details.
 
 ## Available colocation endpoints
 
-The colocation infrastructure exposes 33 endpoints organized into three categories: spot trading (15), collateral trading for both Margin and Futures (14), and utility (4).
+The colocation infrastructure exposes 35 endpoints organized into three categories: spot trading (17), collateral trading for both Margin and Futures (14), and utility (4).
 
-### Spot trading (15 endpoints)
+### Spot trading (17 endpoints)
 
 | Endpoint | Description |
 |----------|-------------|
@@ -62,6 +71,8 @@ The colocation infrastructure exposes 33 endpoints organized into three categori
 | `POST /api/v4/trade-account/order/history` | Order history |
 | `POST /api/v4/orders` | Active orders list |
 | `POST /api/v4/order/cancel` | Cancel an order |
+| `POST /api/v4/order/cancel/bulk` | Cancel up to 100 orders in one request |
+| `POST /api/v4/order/cancel/all` | Cancel all open orders (optional `market` and `type` scope) |
 | `POST /api/v4/order/new` | Place a limit order |
 | `POST /api/v4/order/bulk` | Place up to 20 limit orders |
 | `POST /api/v4/order/modify` | Modify an existing order |
@@ -108,11 +119,11 @@ For endpoints not listed above, use the standard WhiteBIT API at `https://whiteb
 
 ## Quoting strategy
 
-Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input.
+Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input. Orders can be placed over REST — covered in this section — or, from September 2, 2026, over the WebSocket order methods on the same connection (global platform only); see [Placing and canceling orders over WebSocket](#placing-and-canceling-orders-over-websocket) for the trade-offs.
 
 **Bulk vs individual:** bulk reduces wire and auth overhead and gives atomic same-timestamp placement of a quote ladder. The bulk response only returns once every leg in the batch is processed. Pipelined individual orders give faster per-leg acknowledgment for clients optimized for that pattern. Use bulk for atomic quote refreshes and less-optimized clients; use individual orders when lowest per-leg ack latency matters most.
 
-**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. They remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/spot-trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
+**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. RPI orders remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/spot-trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
@@ -195,7 +206,7 @@ sequenceDiagram
     Bot->>WB: POST /api/v4/order/kill-switch/status (verify active timers)
     WB-->>Bot: active timers for the market
     Note over Bot,WB: bot crashes or loses connectivity — resets stop
-    WB->>WB: timeout expires — open orders on the market are cancelled
+    WB->>WB: timeout expires — open orders on the market are canceled
 ```
 
 ```python
@@ -217,7 +228,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 
 | Channel | Carries | Recovery model | Where to learn the protocol |
 |---|---|---|---|
-| `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates; detect gaps via the `past_update_id` chain on deltas (keepalive snapshots are full resets, not gaps) | [WS Quickstart — Subscribe to orderbook depth](/guides/websocket-quickstart#subscribe-to-orderbook-depth) |
+| `depth` | Full orderbook (1/5/10/20/30/50/100 levels per market) | Snapshot on subscribe, then incremental updates; detect gaps via the `past_update_id` chain on deltas (keepalive snapshots are full resets, not gaps) | [Depth channel](/websocket/market-streams/depth) |
 | `bookTicker` | Best bid + best ask only — lighter than depth, ideal for top-of-book quoting | Simple replacement on every change | [Book Ticker channel](/websocket/market-streams/book-ticker). Note: `bookTicker_update` excludes RPI orders. Track RPI quotes via the private active-orders state. |
 | `balanceSpot` | Available + frozen balances per asset | Query-then-subscribe (`balanceSpot_request` then `balanceSpot_subscribe`) | [WS Quickstart — State recovery](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `ordersPending` | Active order state transitions: placed, partially filled, canceled | Query first (`ordersPending_request` or REST `POST /api/v4/orders`), then subscribe | [Bot Guide — WebSocket fill monitoring](/guides/building-a-trading-bot#websocket-fill-monitoring) |
@@ -230,7 +241,7 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 | `positions` | Snapshot of open collateral positions (size, entry price, liquidation price, PnL) | Periodic full snapshot — full state arrives shortly after subscribing | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 | `marginPositionsEvents` | Position-change events (open, update, close, liquidation) | Event-only — pair with `positions` for complete state | [WS Quickstart — State recovery table](/guides/websocket-quickstart#state-recovery-after-reconnect) |
 
-**Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/guides/websocket-quickstart#authenticate-for-private-channels) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/guides/websocket-quickstart#subscribe-to-orderbook-depth)). To stop quoting on one pair without disrupting the others, send `depth_unsubscribe` or `bookTicker_unsubscribe` with that market name in `params` — only that market's feed drops; an empty array unsubscribes from all markets on the stream.
+**Canonical subscribe set (spot MM).** Send these messages after the [`authorize` handshake](/websocket/authentication) — the three private subscriptions will be rejected on an unauthenticated socket. For multi-symbol MM, repeat each `*_subscribe` per market or use the multiple-subscription flag where supported (see the [depth subscribe parameters](/websocket/market-streams/depth)). To stop quoting on one pair without disrupting the others, send `depth_unsubscribe` or `bookTicker_unsubscribe` with that market name in `params` — only that market's feed drops; an empty array unsubscribes from all markets on the stream.
 
 ```json
 [
@@ -244,6 +255,55 @@ The protocol primitives — connect, ping/pong, `authorize`, exponential-backoff
 Note the asymmetry: `ordersPending_subscribe` takes a flat array of markets, `deals_subscribe` takes a single-element array containing the array of markets. The full schema lives in `asyncapi/private/deals.yaml` (rendered as the [Deals channel](/websocket/account-streams/deals) page).
 
 For the full reconnect-with-fresh-token + auto-resubscribe pattern that wraps these subscriptions in production, see [WS Quickstart — Reconnection and state recovery](/guides/websocket-quickstart#reconnection-and-state-recovery) and the worked grid-bot example in the [Bot Guide](/guides/building-a-trading-bot#auto-resubscription-after-reconnect).
+
+## Placing and canceling orders over WebSocket
+
+<Note>
+Coming soon — order placement over WebSocket becomes available on September 2, 2026, on the global platform only; the EU platform is not yet supported. Until then, place orders over REST as described in [Quoting strategy](#quoting-strategy).
+</Note>
+
+The subscriptions above feed the quoting loop with market data and fill events, while the [Quoting strategy](#quoting-strategy) section places orders over REST. The same authorized socket can carry the write side too: the [WebSocket Order Management](/websocket/order-management/overview) methods place, modify, and cancel orders as JSON-RPC calls on the connection already open for market data — an alternative transport to the REST order endpoints for latency-sensitive flow.
+
+The loop runs on one connection — authorize once, place with an order method, then read the acknowledgment and the fills off the same socket:
+
+```mermaid
+sequenceDiagram
+    participant Bot as MM bot
+    participant WS as WhiteBIT WebSocket
+    Bot->>WS: authorize (token)
+    WS-->>Bot: result: success
+    Bot->>WS: order_limit_place (id 101)
+    WS-->>Bot: result (id 101 — order object)
+    WS-->>Bot: ordersPending push — state change
+    WS-->>Bot: deals push — fill
+    Note over Bot,WS: correlate the ack by id; fills arrive as id-less pushes
+    Bot->>WS: order_modify or order_cancel — requote
+```
+
+A placement carries the order parameters in a single-object `params` array — prices and amounts as decimal strings, `side` as `"buy"` or `"sell"`:
+
+```json
+{
+  "id": 101,
+  "method": "order_limit_place",
+  "params": [
+    { "market": "BTC_USDT", "side": "buy", "amount": "0.01", "price": "60000", "client_order_id": "quote-bid-1" }
+  ]
+}
+```
+
+The server answers with one frame echoing `id`: `result` holds the order object — with `side` inverted to `1` for sell or `2` for buy — and `error` is `null` on success. The full parameter set, the flag rules, and every method live on the [Order Management](/websocket/order-management/overview) reference and the [Place limit order](/websocket/order-management/order-limit-place) page.
+
+**When the socket wins.** Placing over the open connection removes the per-request HTTP round trip and the per-request HMAC signature that each REST order carries: the connection authorizes once, and every later order frame rides that session. For a quoter refreshing one price at a time, the socket is the shortest path to the book.
+
+**When REST still wins.** Two market-making primitives run over REST, so a socket-first quoter keeps a REST client alongside the connection:
+
+- **Atomic ladder placement.** `POST /api/v4/order/bulk` places up to 20 limit orders in one request with same-timestamp atomicity. The WebSocket methods place one order per frame, and order frames draw on the same 200-requests-per-minute-per-connection budget as subscriptions — a 20-level requote is 20 frames against that budget. Refresh a full ladder over REST bulk; place and cancel individual quotes over the socket.
+- **The deadman timer.** The kill-switch (`POST /api/v4/order/kill-switch`) that cancels a market's orders when the client stops calling in is a REST endpoint. Arm it over REST no matter which transport places the quotes — the WebSocket `order_cancel_all` method cancels one market on demand but does not run a timer.
+
+**Correlation and errors.** Each order method answers with a single frame carrying the request `id`; responses interleave with subscription pushes, so match answers by `id`, not by arrival order. `order_modify` over the socket is cancel-and-replace exactly as the REST modify is — a new engine order id, `client_order_id` preserved, queue priority lost. The `rpi` flag is accepted on `order_limit_place`, so RPI quoting works over either transport.
+
+<Warning>The WebSocket transport numbers its errors independently of REST — code `40` is `order is not post only`, `41` is `order is not ioc`, and `43` a duplicate `client_order_id`, each different from the REST code for the same condition. Branch on the WebSocket codes in the [error reference](/websocket/order-management/overview#error-codes); never carry a REST code across.</Warning>
 
 ## Infrastructure best practices
 
@@ -286,9 +346,9 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 **Kill-switch configuration:** Set a kill-switch timer for every quoted market as the first action after connecting — each timer covers only its own market. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timers with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels each covered market's open orders as its timeout expires.
 
-**Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders cancelled when the timer lapses.
+**Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders canceled when the timer lapses. The kill-switch is a REST endpoint — arm it over REST whether quotes are placed over REST or the WebSocket order methods.
 
-**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is not part of the colocation endpoint subset — call it via the standard public API; the in-zone alternatives are per-order `order/cancel` and the kill-switch. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
+**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is available on colocation as well as through the standard public API. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
 
 <Tabs>
   <Tab title="curl">
@@ -329,7 +389,7 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 Contact **institutional@whitebit.com** with trading volume history and target markets. The dedicated account manager provides colocation connection details — AWS region, availability zone, and connection endpoints — during onboarding.
 
-## What's Next
+## What's next
 
 <CardGroup cols={3}>
   <Card title="Colocation" icon="server" href="/platform/colocation">
