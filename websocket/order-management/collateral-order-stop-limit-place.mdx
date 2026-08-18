@@ -27,8 +27,6 @@ Park a margin or futures limit order outside the order book. When the market rea
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -50,10 +48,6 @@ The trigger direction is not a parameter. The engine derives `activation_conditi
 The `result` object adds the activation fields and the position fields to the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A margin stop-limit order reports `type` `9`.
 
 <Note>Cancel this order with [`order_cancel`](/websocket/order-management/order-cancel) by order id. The [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) method applies to OCO and OTO groups only, and returns error `6` for a plain stop order. A stop-limit order also cannot be modified once it belongs to a group — see [`order_modify`](/websocket/order-management/order-modify).</Note>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_stop_limit_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the trigger firing.
 
 ## Error codes
 

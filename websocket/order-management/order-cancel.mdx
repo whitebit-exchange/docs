@@ -27,8 +27,6 @@ Cancel a single order — a resting limit order, a plain conditional stop, or an
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -61,10 +59,6 @@ The `result` object is the standard order object with `status` `CANCELED` — se
 <Warning>Verify the outcome by status, not by the absence of an error. A successful call returns `CANCELED`; an unknown or already-finished order returns error `6`. A partially filled order reports its matched quantity in `deal_stock` — cancellation withdraws only the remainder in `left`.</Warning>
 
 <Note>Groups need a different call. Use [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) for OCO and OTO groups — passing a group id here returns error `6`. Plain stop orders and TPSL legs, on the other hand, belong to this method.</Note>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `order_cancel` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancellation event.
 
 ## Error codes
 

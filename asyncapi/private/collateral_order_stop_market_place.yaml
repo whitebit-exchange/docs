@@ -33,7 +33,7 @@ info:
       description: "The order carries `reduce_only` but nothing is open on that side."
     - code: 114
       message: order's position side does not match user's setting
-      description: "`position_side` was sent without hedge mode enabled, or does not match the account setting."
+      description: "`position_side` was sent (as non-`BOTH`) without hedge mode enabled, or was omitted or sent as `BOTH` while hedge mode is enabled, or otherwise does not match the account setting."
 
 servers:
   production:
@@ -182,7 +182,7 @@ components:
         position_side:
           type: string
           enum: ["BOTH", "LONG", "SHORT"]
-          description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode."
+          description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Optional at the request layer but functionally required in hedge mode — omitting it, or sending `BOTH`, is rejected with error `114`."
         client_order_id:
           type: string
           description: "Custom client order id, echoed on the response. Must be unique among active orders — a collision returns error `43`."

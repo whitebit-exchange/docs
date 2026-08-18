@@ -27,8 +27,6 @@ Park a limit order outside the order book. When the market reaches `activation_p
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -52,10 +50,6 @@ The trigger direction is not a parameter. The engine derives `activation_conditi
 The `result` object adds the conditional fields — `activation_price`, `activation_condition`, and `activated` — to the standard order object. See the [order object reference](/websocket/order-management/overview#order-object). A spot stop-limit order reports `type` `3`.
 
 <Note>Cancel a stop-limit order with [`order_cancel`](/websocket/order-management/order-cancel) by order id. The [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) method applies to OCO and OTO groups only and returns error `6` for a plain stop order.</Note>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `order_stop_limit_place` request with a single response frame carrying the same `id`. Activation itself is not reported on this method — subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the trigger firing.
 
 ## Error codes
 

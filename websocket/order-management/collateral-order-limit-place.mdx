@@ -27,8 +27,6 @@ Place a margin or futures limit order that rests in the order book until it is m
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -51,11 +49,7 @@ Across the whole `collateral_*` family `amount` is [stock](/glossary#stock) on b
 
 The `result` object is the standard order object plus `reduce_only` and `position_side` — see the [order object reference](/websocket/order-management/overview#order-object). A margin limit order reports `type` `7`.
 
-<Warning>Hedge mode governs `position_side`. Sending a value other than `BOTH` without hedge mode enabled returns error `114`, and a switch in progress returns error `113`. On a non-futures margin market any value other than `BOTH` is rejected with error `1`.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_limit_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the resulting position.
+<Warning>Hedge mode governs `position_side`. The field is optional at the request layer but functionally required once hedge mode is enabled — omitting it, or sending `BOTH`, returns error `114`, same as sending a value other than `BOTH` without hedge mode enabled. A switch in progress returns error `113`. On a non-futures margin market any value other than `BOTH` is rejected with error `1`.</Warning>
 
 ## Error codes
 

@@ -27,8 +27,6 @@ Place a spot market order sized in the base asset on both sides. The matching be
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -48,10 +46,6 @@ Place a spot market order sized in the base asset on both sides. The matching be
 The `result` object is the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). This method reports `type` `202` and `price` `"0"`.
 
 <Warning>A buy still consumes quote currency even though the order is sized in stock. The balance must cover `amount` multiplied by the best ask, plus fee, otherwise the order fills only partially. The `deal_money` field reports what the fill actually cost.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `order_market_stock_place` request with a single response frame carrying the same `id`.
 
 ## Error codes
 

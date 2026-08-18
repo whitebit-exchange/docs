@@ -27,8 +27,6 @@ Park an order that turns into a BBO order when the market reaches `activation_pr
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -50,10 +48,6 @@ The `bbo_role` semantics match [`order_bbo_place`](/websocket/order-management/o
 The `result` object adds the conditional fields to the standard order object and reports `type` `3` with `price` `"0"`. See the [order object reference](/websocket/order-management/overview#order-object).
 
 <Warning>An empty order book at activation drops the order. With no quote on the required side there is nothing to peg to, so the order cannot be priced and is discarded rather than retried. Use [`order_stop_limit_place`](/websocket/order-management/order-stop-limit-place) where a guaranteed price matters more than a book-relative one.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `order_stop_bbo_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the trigger firing and the resolved price.
 
 ## Error codes
 

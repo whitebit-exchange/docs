@@ -27,8 +27,6 @@ Place a spot market order that matches immediately against the order book at the
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -50,12 +48,6 @@ The `post_only`, `ioc`, and `rpi` flags carry no meaning for a market order and 
 <WsMessageExample data={exOrderMarketPlaceResponse} />
 
 The `result` object is the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). A spot market order reports `type` `2` and `price` `"0"`, because it carries no limit price. Read the achieved cost from `deal_money` and the matched size from `deal_stock`.
-
-<Warning>A thin order book does not produce an error. When the book runs out before `amount` is exhausted, the status comes back `PARTIALLY_FILLED` with the unspent balance in `left`, and the order is not retained. Check `left` rather than assuming a full fill; an order book with no liquidity at all returns error `12`.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `order_market_place` request with a single response frame carrying the same `id`.
 
 ## Error codes
 

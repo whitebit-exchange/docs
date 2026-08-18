@@ -33,7 +33,7 @@ info:
       description: "The total value of pending margin orders would exceed the account limit."
     - code: 114
       message: order's position side does not match user's setting
-      description: "`position_side` was sent without hedge mode enabled, or does not match the account setting."
+      description: "`position_side` was sent (as non-`BOTH`) without hedge mode enabled, or was omitted or sent as `BOTH` while hedge mode is enabled, or otherwise does not match the account setting."
     - code: 250
       message: price must be >= X / <= Y
       description: "The limit price falls outside the market price band."
@@ -182,7 +182,7 @@ components:
         position_side:
           type: string
           enum: ["BOTH", "LONG", "SHORT"]
-          description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Any value other than `BOTH` on a non-futures margin market is rejected with error `1`."
+          description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Optional at the request layer but functionally required in hedge mode — omitting it, or sending `BOTH`, is rejected with error `114`. Any value other than `BOTH` on a non-futures margin market is rejected with error `1`."
         post_only:
           type: boolean
           description: "Reject the order instead of taking liquidity. Cannot be combined with `ioc`."

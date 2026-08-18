@@ -27,8 +27,6 @@ Park a margin or futures order that turns into a BBO order when the market reach
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
@@ -48,10 +46,6 @@ Park a margin or futures order that turns into a BBO order when the market reach
 The `result` object adds the activation fields and the position fields to the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). The order reports `type` `9` with `price` `"0"` while it waits.
 
 <Warning>The maker role on a protective stop is a trade-off. It avoids the taker fee, but the resulting order may sit unfilled at the best quote while the market runs away from it — exactly the scenario a stop exists to handle. Use `bbo_role: 2`, or [`collateral_order_stop_market_place`](/websocket/order-management/collateral-order-stop-market-place), where the exit must complete; an empty order book at activation drops the order entirely.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_stop_bbo_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the trigger firing and the resolved price.
 
 ## Error codes
 
