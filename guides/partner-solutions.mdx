@@ -64,12 +64,12 @@ Common use cases mapped to a program:
 |----------|------------|--------|
 | Live prices | WebSocket | Streaming push, no polling |
 | Orderbook depth | WebSocket | Real-time depth updates |
-| Place / modify / cancel orders | REST API | Request-response pattern with confirmation |
+| Place / modify / cancel orders | REST (WebSocket from 2 September 2026) | Request–response over REST; single-connection placement over WebSocket |
 | Monitor balances | WebSocket | Real-time balance updates |
 | Fetch historical trades | REST API | One-time queries, paginated |
 | Check open orders | REST or WebSocket | REST for on-demand; WebSocket for real-time |
 
-Combining REST for order management with WebSocket for market data is the most common integration pattern. See the [WebSocket API](/websocket/overview) for the available channels and the [API Reference](/api-reference/overview) for endpoint details.
+Order placement runs over REST for request–response confirmation and atomic bulk placement; the [WebSocket order methods](/websocket/order-management/overview) add an alternative on the same authorized connection from 2 September 2026, on the global platform only. Combining REST for order management with WebSocket for market data remains the most common integration pattern. See the [WebSocket API](/websocket/overview) for the available channels and the [API Reference](/api-reference/overview) for endpoint details.
 
 ## How to apply
 

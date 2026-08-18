@@ -833,7 +833,7 @@ paths:
       description: |
         The endpoint returns detailed information for all available futures markets. Use the response to read current pricing, open interest, funding rates, and leverage bracket configuration. Each entry includes the predicted next funding rate, settlement timestamps, and maximum allowed position sizes per leverage level.
 
-        Coming soon: the `mark_price` field is not yet returned by the endpoint. The same release repoints `index_price` and `funding_rate` to the premium index source that already drives liquidation; field names and the decimal-string format are unchanged.
+        The `mark_price` field reports the fair value of the perpetual contract. `index_price` and `funding_rate` are sourced from the premium index that already drives liquidation; field names and the decimal-string format are unchanged.
 
         <Note>
         The API caches the response for 1 second
@@ -1535,7 +1535,7 @@ components:
           example: "6000"
         mark_price:
           type: string
-          description: "Coming soon: this field is not yet returned by the endpoint. Fair value
+          description: "Fair value
             of the perpetual contract, derived from the underlying index price and the futures
             basis. Mark price — not `last_price` — is what a liquidation is evaluated against,
             so a temporary wick in the order book does not by itself trigger one. Point-in-time
