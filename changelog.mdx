@@ -4,6 +4,22 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="August 18, 2026">
+## Maintenance status on order history
+**New `maintenance` order status and status filter on `POST /api/v4/trade-account/order/history` and `POST /api/v4/trade-account/order/history/query`**
+
+When a market enters planned maintenance, the platform cancels the orders that are open on it. Those orders now carry a dedicated `maintenance` status on both order-history endpoints, so an integration can tell a maintenance cancellation from one the user or a risk rule triggered.
+
+`POST /api/v4/trade-account/order/history` accepts `MAINTENANCE` as the `status` filter and returns `MAINTENANCE` in the response, matching the uppercase status set of that endpoint. Maintenance cancellations are no longer reported as `CANCELED`, so the `CANCELED` filter excludes maintenance records.
+
+`POST /api/v4/trade-account/order/history/query` accepts `maintenance` as the `status` filter and returns the same lowercase value in the response `status` field, matching the lowercase outcomes of that endpoint. Maintenance records carry an empty `delistingKind`, so the `status` field is the discriminator, and a request that omits `status` returns maintenance records next to the delisting records.
+
+<CardGroup cols={2}>
+  <Card title="Query executed orders" href="/api-reference/spot-trading/query-executed-orders" icon="list-check" horizontal/>
+  <Card title="Query delisting and maintenance orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="August 17, 2026">
 ## Price and quantity steps on Market Info
 **New `tickSize` and `stepSize` fields on `GET /api/v4/public/markets`**
@@ -78,7 +94,7 @@ Every market entry carries `delistedAt` — the announced delisting date as a Un
 
 <CardGroup cols={2}>
   <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
-  <Card title="Query delisting orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
+  <Card title="Query delisting and maintenance orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
 </CardGroup>  
   
 ## Closed-position PNL on Collateral Trading
