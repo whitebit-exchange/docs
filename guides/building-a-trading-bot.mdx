@@ -43,7 +43,7 @@ A trading bot operates as a continuous loop:
 
 1. **Market data** — receive prices and orderbook updates via WebSocket (or REST polling for lower-frequency strategies)
 2. **Signal generation** — apply strategy logic to determine when and what to trade
-3. **Order execution** — place orders via REST API (single or bulk), or over the WebSocket connection from 2 September 2026
+3. **Order execution** — place orders via REST API (single or bulk), or over the WebSocket connection from September 2, 2026
 4. **Fill monitoring** — track order fills and state changes via WebSocket
 5. **Position management** — update internal state, replace filled orders, manage risk
 
@@ -299,7 +299,7 @@ Place up to 20 limit orders in a single request — one round trip instead of up
 ### Placing orders over WebSocket
 
 <Note>
-Coming soon — order placement over WebSocket becomes available on 2 September 2026, on the global platform only; the EU platform is not yet supported. Until then, place orders over REST as shown above.
+Coming soon — order placement over WebSocket becomes available on September 2, 2026, on the global platform only; the EU platform is not yet supported. Until then, place orders over REST as shown above.
 </Note>
 
 The [WebSocket Order Management](/websocket/order-management/overview) methods place, modify, and cancel orders as JSON-RPC calls on the same authorized WebSocket connection used for [fill monitoring](#websocket-fill-monitoring) — an alternative to the REST order endpoints. Placing over the open socket removes the per-request HTTP round trip and the per-request HMAC signature: the connection authorizes once, and every later order frame rides that session. REST `/order/bulk` places up to 20 orders in one request, while the WebSocket methods place one order per frame, so keep REST bulk for atomic batches; the kill-switch deadman below stays on REST.

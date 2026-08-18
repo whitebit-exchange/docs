@@ -5,6 +5,7 @@ description: "Place a linked take-profit and stop-loss pair on a margin or futur
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/collateral_order_oco_place.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Place two linked orders — a limit take-profit and a stop-limit stop-loss — of which only one can execute. When either leg fills, the engine withdraws the other. Both legs point the same way, because both exit the same position.
 

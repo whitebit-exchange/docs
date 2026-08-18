@@ -193,11 +193,11 @@ paths:
                       example: 1786752000
                     tickSize:
                       type: string
-                      description: "Minimal price step a limit order price must be a multiple of. Passed through verbatim from the trade engine; an empty string when the engine does not provide the value for the market."
+                      description: "Minimal price step a limit order price must be a multiple of. Passed through verbatim from the trade engine; an empty string when the engine does not provide the value for the market. From September 18, 2026, an order price that is not a multiple of this value is rejected."
                       example: "0.01"
                     stepSize:
                       type: string
-                      description: "Minimal quantity step an order amount must be a multiple of. Passed through verbatim from the trade engine; an empty string when the engine does not provide the value for the market."
+                      description: "Minimal quantity step an order amount must be a multiple of. Passed through verbatim from the trade engine; an empty string when the engine does not provide the value for the market. From September 18, 2026, an order amount that is not a multiple of this value is rejected."
                       example: "0.001"
         'default':
           description: Error response

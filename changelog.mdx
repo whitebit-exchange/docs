@@ -4,6 +4,22 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 2, 2026">
+## Order placement over WebSocket
+**Place, modify, and cancel orders on the WebSocket connection**
+
+<Note>
+Coming soon: order placement over WebSocket becomes available on September 2, 2026, on the global platform only. The EU platform is not yet supported.
+</Note>
+
+From September 2, 2026, the WebSocket API carries order flow alongside market and account streams: 21 JSON-RPC methods place, modify, and cancel spot, margin, and futures orders over the same authorized connection that carries subscriptions. The methods are an alternative transport to the REST order endpoints for latency-sensitive integrations that hold one connection open. Authorize the connection first with the `authorize` frame; an order method on an unauthorized connection is rejected. The transport numbers its errors independently of REST — the same numeric code carries a different meaning on each surface — so branch on the codes documented on the Order Management page rather than reusing REST codes.
+
+<CardGroup cols={2}>
+  <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
+  <Card title="Create Limit Order (REST)" href="/api-reference/spot-trading/create-limit-order" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="August 19, 2026">
 ## Price and quantity steps on Market Info
 **Breaking change: order price and amount must align to `tickSize` and `stepSize`**
@@ -14,9 +30,9 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 - Read `tickSize` and `stepSize` from `GET /api/v4/public/markets` and validate order price and amount against those two fields, instead of deriving the steps from `moneyPrec`/`stockPrec`.
 - Handle the empty-string case (the engine does not provide the value for the market) before parsing.
 
-**Backward compatibility:** Until 18 September 2026, WhiteBIT maintains backward compatibility for order prices and amounts that are not aligned to `tickSize` and `stepSize`. After 18 September 2026, an order whose price is not a multiple of `tickSize`, or whose amount is not a multiple of `stepSize`, is rejected.
+**Backward compatibility:** Until September 18, 2026, WhiteBIT maintains backward compatibility for order prices and amounts that are not aligned to `tickSize` and `stepSize`. After September 18, 2026, an order whose price is not a multiple of `tickSize`, or whose amount is not a multiple of `stepSize`, is rejected.
 
-**Sunset date:** 18 September 2026.
+**Sunset date:** September 18, 2026.
 
 <CardGroup cols={2}>
   <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
@@ -63,22 +79,6 @@ When a market enters planned maintenance, the platform cancels the orders that a
 <CardGroup cols={2}>
   <Card title="Query market fee for a single market" href="/api-reference/spot-trading/query-market-fee-single" icon="percent" horizontal/>
   <Card title="Query market fees" href="/api-reference/spot-trading/query-market-fee" icon="percent" horizontal/>
-</CardGroup>
-</Update>
-
-<Update label="August 18, 2026">
-## Order placement over WebSocket
-**Place, modify, and cancel orders on the WebSocket connection**
-
-<Note>
-Coming soon: order placement over WebSocket becomes available on 2 September 2026, on the global platform only. The EU platform is not yet supported.
-</Note>
-
-From 2 September 2026, the WebSocket API carries order flow alongside market and account streams: 21 JSON-RPC methods place, modify, and cancel spot, margin, and futures orders over the same authorized connection that carries subscriptions. The methods are an alternative transport to the REST order endpoints for latency-sensitive integrations that hold one connection open. Authorize the connection first with the `authorize` frame; an order method on an unauthorized connection is rejected. The transport numbers its errors independently of REST — the same numeric code carries a different meaning on each surface — so branch on the codes documented on the Order Management page rather than reusing REST codes.
-
-<CardGroup cols={2}>
-  <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
-  <Card title="Create Limit Order (REST)" href="/api-reference/spot-trading/create-limit-order" icon="list" horizontal/>
 </CardGroup>
 </Update>
 

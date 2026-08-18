@@ -5,6 +5,7 @@ description: "Place a spot market order over the WhiteBIT WebSocket connection w
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/order_market_place.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Place a spot market order that matches immediately against the order book at the available prices. A market order never rests, so the response is already terminal — `FILLED` when the book absorbed the whole order, `PARTIALLY_FILLED` when it ran out first.
 

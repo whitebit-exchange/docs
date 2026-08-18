@@ -5,6 +5,7 @@ description: "Place a margin or futures stop-limit order over the WhiteBIT WebSo
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/collateral_order_stop_limit_place.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Park a margin or futures limit order outside the order book. When the market reaches `activation_price`, the engine places a margin limit order at `price`. Until then the order holds `status` `OPEN` with `activated` `0`.
 

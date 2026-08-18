@@ -119,7 +119,7 @@ For endpoints not listed above, use the standard WhiteBIT API at `https://whiteb
 
 ## Quoting strategy
 
-Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input. Orders can be placed over REST — covered in this section — or, from 2 September 2026, over the WebSocket order methods on the same connection (global platform only); see [Placing and canceling orders over WebSocket](#placing-and-canceling-orders-over-websocket) for the trade-offs.
+Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input. Orders can be placed over REST — covered in this section — or, from September 2, 2026, over the WebSocket order methods on the same connection (global platform only); see [Placing and canceling orders over WebSocket](#placing-and-canceling-orders-over-websocket) for the trade-offs.
 
 **Bulk vs individual:** bulk reduces wire and auth overhead and gives atomic same-timestamp placement of a quote ladder. The bulk response only returns once every leg in the batch is processed. Pipelined individual orders give faster per-leg acknowledgment for clients optimized for that pattern. Use bulk for atomic quote refreshes and less-optimized clients; use individual orders when lowest per-leg ack latency matters most.
 
@@ -259,7 +259,7 @@ For the full reconnect-with-fresh-token + auto-resubscribe pattern that wraps th
 ## Placing and canceling orders over WebSocket
 
 <Note>
-Coming soon — order placement over WebSocket becomes available on 2 September 2026, on the global platform only; the EU platform is not yet supported. Until then, place orders over REST as described in [Quoting strategy](#quoting-strategy).
+Coming soon — order placement over WebSocket becomes available on September 2, 2026, on the global platform only; the EU platform is not yet supported. Until then, place orders over REST as described in [Quoting strategy](#quoting-strategy).
 </Note>
 
 The subscriptions above feed the quoting loop with market data and fill events, while the [Quoting strategy](#quoting-strategy) section places orders over REST. The same authorized socket can carry the write side too: the [WebSocket Order Management](/websocket/order-management/overview) methods place, modify, and cancel orders as JSON-RPC calls on the connection already open for market data — an alternative transport to the REST order endpoints for latency-sensitive flow.

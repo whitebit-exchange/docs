@@ -5,6 +5,7 @@ description: "Place a spot stop-market order sized in the base asset on both sid
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/order_stop_market_stock_place.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Fire a market order sized in the base asset when the market reaches `activation_price`. The trigger semantics match [`order_stop_market_place`](/websocket/order-management/order-stop-market-place); only the unit of `amount` differs — here it is [stock](/glossary#stock) on a buy as well as on a sell.
 

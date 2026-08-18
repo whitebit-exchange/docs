@@ -5,6 +5,7 @@ description: "Cancel an OCO or OTO order group in one call with order_cancel_con
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/order_cancel_conditional.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Cancel an OCO or OTO group in one call. Pass the group id from the placement response and every leg is withdrawn atomically, which removes the risk of a half-canceled pair leaving one exit armed.
 
