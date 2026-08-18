@@ -4401,6 +4401,120 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v4/market/fee/single:
+    post:
+      summary: Query Market Fee For A Single Market
+      operationId: getMarketFeeSingle
+      description: |
+        Returns the account's effective maker and taker fee for one market. Use this endpoint when only one market matters; `POST /api/v4/market/fee` returns the account's default fees and every custom override at once.
+
+        The response reports the fee that applies to the requested market — the market's own fee, the account's default trading fee when the default is lower than the market fee, or the custom fee assigned for the market.
+
+        Coming soon: the RPI maker fee premium fields (`rpi_maker_fee_premium`, `futures_rpi_maker_fee_premium`) are not yet returned by the endpoint. Once live, `rpi_maker_fee_premium` carries the [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) premium on spot and margin markets, and `futures_rpi_maker_fee_premium` carries it on futures markets, where `rpi_maker_fee_premium` repeats the futures value for backward compatibility and is deprecated — read `futures_rpi_maker_fee_premium` for futures markets.
+
+        <Accordion title="Errors">
+        A missing `market` field and an unknown market both fail with code `30` on the `market` field. A market that exists but is not available for trading in the caller's region fails with code `31`.
+
+        ```json
+        {
+          "code": 30,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market field is required."]
+          }
+        }
+        ```
+
+        ```json
+        {
+          "code": 31,
+          "message": "Validation failed",
+          "errors": {
+            "market": ["Market is not available."]
+          }
+        }
+        ```
+        </Accordion>
+      tags:
+        - Market Fee
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - market
+                - request
+                - nonce
+              properties:
+                market:
+                  type: string
+                  description: "Market to return the fee for. The market must be a spot, margin, or futures market available for trading in the caller's region. Example: BTC_USDT"
+                  example: BTC_USDT
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  example: 1594297865000
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                x-fern-type-name: GetMarketFeeSingleResponse
+                properties:
+                  error:
+                    type: string
+                    nullable: true
+                    example: null
+                  taker:
+                    type: string
+                    description: Effective taker fee percentage for the requested market
+                    example: "0.1"
+                  maker:
+                    type: string
+                    description: Effective maker fee percentage for the requested market
+                    example: "0.1"
+                  rpi_maker_fee_premium:
+                    type: string
+                    nullable: true
+                    description: |
+                      Coming soon: this field is not yet returned by the endpoint. Additional maker fee percentage applied on top of `maker` when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a spot or margin market. The effective RPI maker rate equals `maker` plus this premium. On futures markets the field repeats `futures_rpi_maker_fee_premium` for backward compatibility and is deprecated — read `futures_rpi_maker_fee_premium` instead. The field returns `null` when the RPI order mode is not enabled for the account or when no premium is configured.
+                    example: "0.015"
+                  futures_rpi_maker_fee_premium:
+                    type: string
+                    nullable: true
+                    description: |
+                      Coming soon: this field is not yet returned by the endpoint. Additional maker fee percentage applied on top of `maker` when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a futures market. The effective RPI maker rate equals `maker` plus this premium. The field returns `null` on spot and margin markets, when the RPI order mode is not enabled for the account, or when no premium is configured.
+                    example: "0.01"
+              examples:
+                spot:
+                  summary: Spot market (BTC_USDT)
+                  value:
+                    error: null
+                    taker: "0.1"
+                    maker: "0.1"
+                futures:
+                  summary: Futures market (BTC_PERP)
+                  value:
+                    error: null
+                    taker: "0.055"
+                    maker: "-0.02"
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v4/trade-account/balance:
     post:
       summary: Trading Balance

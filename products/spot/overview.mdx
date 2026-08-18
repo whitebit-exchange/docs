@@ -45,13 +45,13 @@ The Spot Trading API provides programmatic access to WhiteBIT [spot markets](/co
 | VIP (best tier) | -0.001% | 0.03% |
 | Market-Making Program (best tier) | -0.012% | 0.020% |
 
-Full fee schedule with all VIP tier breakpoints: [trading fees page](https://whitebit.com/trading-data/trading-fees) and [VIP program](https://whitebit.com/vip-program). Query current fees per market via the [market fee endpoint](/api-reference/spot-trading/query-market-fee).
+Full fee schedule with all VIP tier breakpoints: [trading fees page](https://whitebit.com/trading-data/trading-fees) and [VIP program](https://whitebit.com/vip-program). Query current fees via the [market fee endpoint](/api-reference/spot-trading/query-market-fee), or the effective fee for one market via the [single-market fee endpoint](/api-reference/spot-trading/query-market-fee-single).
 
 ## Technical Overview
 
 | Detail | Value |
 |--------|-------|
-| Endpoints | 17 (all `POST`, all authenticated) |
+| Endpoints | 20 (all `POST`, all authenticated) |
 | Authentication | HMAC-SHA512 ([guide](/api-reference/authentication)) |
 | Rate limits | Vary per endpoint ([details](/api-reference/rate-limits)) |
 | Base URL | `https://whitebit.com` |
@@ -59,9 +59,9 @@ Full fee schedule with all VIP tier breakpoints: [trading fees page](https://whi
 
 Endpoint categories:
 - **Account** — Trade balance query (1 endpoint)
-- **Order management** — Create, modify, cancel orders; bulk operations (9 endpoints)
-- **Order queries** — Active orders, executed history, execution deals, order history (4 endpoints)
-- **Market fees** — Default maker/taker rates plus custom per-market overrides (1 endpoint)
+- **Order management** — Create, modify, cancel orders; bulk operations (10 endpoints)
+- **Order queries** — Active orders, executed history, execution deals, order history, delisting orders (5 endpoints)
+- **Market fees** — Default maker/taker rates, custom per-market overrides, and the effective fee for a single market (2 endpoints)
 - **Kill-switch** — Sync timer, status (2 endpoints)
 
 For full endpoint documentation, see the [Spot Trading API Reference](/api-reference/spot-trading/overview).
@@ -75,7 +75,7 @@ For Go and PHP examples, see [SDKs](/sdks).
     Place a first trade in 5 minutes.
   </Card>
   <Card title="API Reference" icon="square-terminal" href="/api-reference/spot-trading/overview">
-    All 17 spot trading endpoints with parameters, signing, error codes, and rate limits.
+    All 20 spot trading endpoints with parameters, signing, error codes, and rate limits.
   </Card>
   <Card title="Trading Bot Guide" icon="robot" href="/guides/building-a-trading-bot">
     Build a Python trading bot with signed REST orders, WebSocket fills, kill-switch heartbeat, and a grid-bot example.
