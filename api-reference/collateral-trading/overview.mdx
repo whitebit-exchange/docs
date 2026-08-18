@@ -1,6 +1,6 @@
 ---
 title: "Collateral Trading"
-sidebarTitle: "Overview"
+sidebarTitle: "Collateral overview"
 description: "Overview of collateral (margin) trading endpoints for managing positions, leverage, and collateral orders."
 ---
 
@@ -65,12 +65,28 @@ For general API conventions (base URL, error format, rate limits), see the [API 
 
 ## Order Queries
 
+Conditional and OCO queries are collateral-specific. Executed, canceled, unexecuted, and
+trade-fill history are served by shared order-query endpoints that cover spot and futures
+markets alike (documented under Trading → Order Queries).
+
 <CardGroup cols={2}>
   <Card title="Query Unexecuted Conditional Orders" icon="list" href="/api-reference/collateral-trading/query-unexecuted-conditional-orders">
     Get active conditional orders
   </Card>
   <Card title="Query Unexecuted OCO Orders" icon="code-branch" href="/api-reference/collateral-trading/query-unexecuted-oco-orders">
     Get active OCO orders
+  </Card>
+  <Card title="Query Unexecuted Orders" icon="list-check" href="/api-reference/spot-trading/query-unexecuted-orders">
+    Open orders on spot and futures markets
+  </Card>
+  <Card title="Query Executed Orders" icon="clock-rotate-left" href="/api-reference/spot-trading/query-executed-orders">
+    Executed and canceled order history (spot and futures)
+  </Card>
+  <Card title="Query Executed Order History" icon="rectangle-history" href="/api-reference/spot-trading/query-executed-order-history">
+    Full execution history
+  </Card>
+  <Card title="Query Executed Order Deals" icon="receipt" href="/api-reference/spot-trading/query-executed-order-deals">
+    Individual trade fills for an executed order
   </Card>
 </CardGroup>
 

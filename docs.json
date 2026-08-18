@@ -347,15 +347,34 @@
             ]
           },
           {
-            "group": "Spot Trading",
+            "group": "Trading",
             "public": true,
-            "icon": "arrow-right-arrow-left",
+            "icon": "chart-line",
             "pages": [
               "api-reference/spot-trading/overview",
-              "api-reference/spot-trading/query-market-fee",
-              "api-reference/spot-trading/query-market-fee-single",
+              "api-reference/collateral-trading/overview",
               {
-                "group": "Order Management",
+                "group": "Market Fees",
+                "public": true,
+                "pages": [
+                  "api-reference/spot-trading/query-market-fee",
+                  "api-reference/spot-trading/query-market-fee-single"
+                ]
+              },
+              {
+                "group": "Collateral Account",
+                "public": true,
+                "pages": [
+                  "api-reference/collateral-trading/collateral-account-balance",
+                  "api-reference/collateral-trading/collateral-account-balance-summary",
+                  "api-reference/collateral-trading/collateral-account-summary",
+                  "api-reference/collateral-trading/change-collateral-account-leverage",
+                  "api-reference/collateral-trading/collateral-account-hedge-mode",
+                  "api-reference/collateral-trading/update-collateral-account-hedge-mode"
+                ]
+              },
+              {
+                "group": "Orders",
                 "public": true,
                 "pages": [
                   "api-reference/spot-trading/trading-balance",
@@ -368,52 +387,7 @@
                   "api-reference/spot-trading/modify-order",
                   "api-reference/spot-trading/cancel-order",
                   "api-reference/spot-trading/cancel-bulk-order",
-                  "api-reference/spot-trading/cancel-all-orders"
-                ]
-              },
-              {
-                "group": "Order Queries",
-                "public": true,
-                "pages": [
-                  "api-reference/spot-trading/query-unexecuted-orders",
-                  "api-reference/spot-trading/query-executed-order-history",
-                  "api-reference/spot-trading/query-executed-order-deals",
-                  "api-reference/spot-trading/query-executed-orders",
-                  "api-reference/spot-trading/query-delisting-orders"
-                ]
-              },
-              {
-                "group": "Kill Switch",
-                "public": true,
-                "pages": [
-                  "api-reference/spot-trading/sync-kill-switch-timer",
-                  "api-reference/spot-trading/status-kill-switch-timer"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Collateral Trading",
-            "public": true,
-            "icon": "scale-balanced",
-            "pages": [
-              "api-reference/collateral-trading/overview",
-              {
-                "group": "Account & Balance",
-                "public": true,
-                "pages": [
-                  "api-reference/collateral-trading/collateral-account-balance",
-                  "api-reference/collateral-trading/collateral-account-balance-summary",
-                  "api-reference/collateral-trading/collateral-account-summary",
-                  "api-reference/collateral-trading/change-collateral-account-leverage",
-                  "api-reference/collateral-trading/collateral-account-hedge-mode",
-                  "api-reference/collateral-trading/update-collateral-account-hedge-mode"
-                ]
-              },
-              {
-                "group": "Order Management",
-                "public": true,
-                "pages": [
+                  "api-reference/spot-trading/cancel-all-orders",
                   "api-reference/collateral-trading/collateral-limit-order",
                   "api-reference/collateral-trading/collateral-bulk-limit-order",
                   "api-reference/collateral-trading/collateral-market-order",
@@ -427,12 +401,17 @@
                 "group": "Order Queries",
                 "public": true,
                 "pages": [
+                  "api-reference/spot-trading/query-unexecuted-orders",
+                  "api-reference/spot-trading/query-executed-orders",
+                  "api-reference/spot-trading/query-executed-order-history",
+                  "api-reference/spot-trading/query-executed-order-deals",
+                  "api-reference/spot-trading/query-delisting-orders",
                   "api-reference/collateral-trading/query-unexecuted-conditional-orders",
                   "api-reference/collateral-trading/query-unexecuted-oco-orders"
                 ]
               },
               {
-                "group": "Position Management",
+                "group": "Positions",
                 "public": true,
                 "pages": [
                   "api-reference/collateral-trading/open-positions",
@@ -441,6 +420,14 @@
                   "api-reference/collateral-trading/positions-history",
                   "api-reference/collateral-trading/closed-position-pnl",
                   "api-reference/collateral-trading/funding-history"
+                ]
+              },
+              {
+                "group": "Kill Switch",
+                "public": true,
+                "pages": [
+                  "api-reference/spot-trading/sync-kill-switch-timer",
+                  "api-reference/spot-trading/status-kill-switch-timer"
                 ]
               }
             ]
