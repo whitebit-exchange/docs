@@ -5,8 +5,11 @@ description: "Place, modify, and cancel spot, margin, and futures orders over th
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 The WebSocket transport carries order flow as well as market data and account streams. The transport exposes 21 JSON-RPC methods that place, modify, and cancel orders on spot, margin, and futures markets over the same connection used for subscriptions.
 
@@ -280,7 +283,7 @@ See [WebSocket Rate Limits](/websocket/rate-limits) for connection and request l
 
 ## Regional availability
 
-The region of the authorized connection decides which trading types — spot, margin, futures — and which individual markets are reachable. On this transport the region is carried by the authorization token; no per-request override exists.
+At launch on September 2, 2026, order placement over WebSocket is available on the global platform only; the EU platform is not yet supported. Once available in a region, the region of the authorized connection decides which trading types — spot, margin, futures — and which individual markets are reachable. On this transport the region is carried by the authorization token; no per-request override exists.
 
 Region checks run before market and balance validation, so a region error masks any other problem with the request. When an order is rejected with one of the codes below, nothing else about it was evaluated.
 
@@ -292,7 +295,7 @@ Region checks run before market and balance validation, so a region error masks 
 | `10009` | `spot trading is not available in your region` | Spot disabled for the region |
 | `10010` | `this market is restricted in your region` | Market on the restricted list for the region |
 
-The available order types also vary by region. In the EU region the spot order types are restricted and margin and futures are unavailable — see [Order types — Regional restrictions](/concepts/order-types#regional-restrictions).
+The available order types also vary by region. In the EU region the spot order types are restricted and margin and futures are unavailable; that policy will apply here once EU support for this transport is added — see [Order types — Regional restrictions](/concepts/order-types#regional-restrictions).
 
 ## Related resources
 
@@ -301,3 +304,9 @@ The available order types also vary by region. In the EU region the spot order t
 - [Deals](/websocket/account-streams/deals) — stream of individual fills
 - [Order Types](/concepts/order-types) — order type concepts and regional restrictions
 - [WebSocket Rate Limits](/websocket/rate-limits) — connection limits, request limits, and standard error codes
+
+## Used in these guides
+
+- [Market Maker integration](/guides/market-maker-integration) — placing and canceling quotes over the WebSocket order methods.
+- [Partner Solutions](/guides/partner-solutions) — the partner router's REST-versus-WebSocket transport guidance.
+- [Crypto-as-a-Service integration](/guides/caas-integration) — the trade surface composed into a white-label exchange.

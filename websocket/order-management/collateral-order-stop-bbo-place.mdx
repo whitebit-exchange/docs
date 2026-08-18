@@ -5,6 +5,7 @@ description: "Place a margin or futures stop order that becomes a BBO order with
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/collateral_order_stop_bbo_place.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Park a margin or futures order that turns into a BBO order when the market reaches `activation_price`. The order waits as `type` `9` with `price` `"0"`, then prices itself from the order book once the trigger fires.
 

@@ -5,6 +5,7 @@ description: "Place a margin or futures stop-market order over the WhiteBIT WebS
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/collateral_order_stop_market_place.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Fire a margin market order when the market reaches `activation_price`. This is the workhorse protective stop: because `amount` is [stock](/glossary#stock), a stop that closes a position takes the position size directly.
 

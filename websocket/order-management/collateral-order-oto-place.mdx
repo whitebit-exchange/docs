@@ -5,6 +5,7 @@ description: "Place an entry order that arms its own exit on a margin or futures
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -20,6 +21,8 @@ import {
 } from '/snippets/ws-data/collateral_order_oto_place.jsx'
 
 <RegionBaseUrl protocol="wss" />
+
+<WsOrderComingSoon />
 
 Place a One-Triggers-Other group: an entry order that, once it fills, automatically arms its own exit — a take-profit, a stop-loss, or an OCO pair of both. The exit needs no second request and survives a disconnect, which makes this the safer pattern for an unattended entry.
 
