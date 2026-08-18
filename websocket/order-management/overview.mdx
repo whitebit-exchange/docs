@@ -177,7 +177,7 @@ A failure sets `result` to `null` and fills `error` with a numeric `code` and a 
 
 Two codes are overloaded on this transport. Code `6` means order not found in a cancel or modify context, and authentication required when the connection has not authorized. Code `11` means amount too small on placement, and carries the authorization server message when authorization itself fails.
 
-<Warning>The numbering on this transport is independent of the REST error codes. The same number carries a different meaning on each surface — on the WebSocket transport `40` is `order is not post only` and `41` is `order is not ioc`, while the REST API uses its own codes for the equivalent conditions. Do not carry a code learned from [REST error responses](/api-reference/authentication#common-errors) over to this transport, or the reverse.</Warning>
+<Warning>The numbering on this transport is independent of the REST error codes. The same number carries a different meaning on each surface — on the WebSocket transport `40` is `order is not post only`, while the REST API uses its own code for the equivalent condition. Do not carry a code learned from [REST error responses](/api-reference/authentication#common-errors) over to this transport, or the reverse.</Warning>
 
 ### Validation — code 1
 
@@ -233,7 +233,6 @@ Every malformed request returns code `1`; the message identifies the parameter.
 | `17` | `user margin balance not enough` | `collateral_*` | Insufficient collateral balance |
 | `19` | `market is not margin market` | `collateral_*`, `order_cancel_conditional` | Called on a spot-only market |
 | `40` | `order is not post only` | Limit placement without `post_only` | Market is in post-only mode |
-| `41` | `order is not ioc` | Placement | Market requires immediate-or-cancel |
 | `42` | `order slippage threshold` | Market placement | Slippage guard tripped |
 | `43` | `client order id already exists` | Placement | Duplicate `client_order_id` among active orders |
 | `51` | `trading in the market is not allowed` | All | Market suspended, or the market status blocks the method — including every market and stop method while the market runs in post-only mode |

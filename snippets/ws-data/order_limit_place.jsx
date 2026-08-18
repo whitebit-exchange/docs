@@ -79,11 +79,6 @@ export const channelMeta = {
       "description": "The market is in post-only mode and the order does not carry the post-only flag."
     },
     {
-      "code": 41,
-      "message": "order is not ioc",
-      "description": "The market requires immediate-or-cancel orders."
-    },
-    {
       "code": 51,
       "message": "trading in the market is not allowed",
       "description": "Trading on the market is suspended, or the market status blocks this method."
