@@ -5,6 +5,7 @@ description: "Cancel an OCO or OTO order group in one call with order_cancel_con
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,13 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Cancel an OCO or OTO group in one call. Pass the group id from the placement response and every leg is withdrawn atomically, which removes the risk of a half-canceled pair leaving one exit armed.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
 
 ## Rate limits
 
@@ -59,10 +60,6 @@ Canceling an OTO group uses the same request shape and returns `type` `"oto"` wi
 The response mirrors the placement response — same shape, same `type` value — with every leg reporting `status` `CANCELED`. All legs share one `mtime`, because the cancellation is a single atomic event.
 
 <Warning>Groups only. A plain stop order or a TPSL leg passed here returns error `6` — cancel those with [`order_cancel`](/websocket/order-management/order-cancel). Conversely, a group id passed to `order_cancel` also returns error `6`, so the two methods are not interchangeable.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `order_cancel_conditional` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the cancellation events for each leg.
 
 ## Error codes
 

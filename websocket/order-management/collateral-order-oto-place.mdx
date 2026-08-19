@@ -5,6 +5,7 @@ description: "Place an entry order that arms its own exit on a margin or futures
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,13 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Place a One-Triggers-Other group: an entry order that, once it fills, automatically arms its own exit — a take-profit, a stop-loss, or an OCO pair of both. The exit needs no second request and survives a disconnect, which makes this the safer pattern for an unattended entry.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
 
 ## Rate limits
 
@@ -62,10 +63,6 @@ The `result` object carries `type` `"oto"`, the group `id`, the echoed `conditio
 <Warning>The exit legs do not exist yet. Until the entry fills, the exit legs hold no order ids and appear only as `take_profit_price` and `stop_loss_price`. Nothing can be canceled or modified per leg during that window — cancel the whole group through [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) using the group id.</Warning>
 
 <Note>Two constraints on the entry. The `rpi` flag is not allowed inside `trigger_order`, and `margin_market_oco` is not a valid `trigger_order_type` — it works only as an exit.</Note>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_oto_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the entry filling and the exit legs being created.
 
 ## Error codes
 

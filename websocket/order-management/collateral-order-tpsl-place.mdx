@@ -5,6 +5,7 @@ description: "Attach a take-profit and stop-loss pair to an open margin or futur
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,13 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Attach a take-profit and a stop-loss to an existing position rather than to an order. The pair tracks the position: it carries no size of its own and always exits whatever is open at trigger time, so a position that grows or shrinks afterwards stays covered.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
 
 ## Rate limits
 
@@ -54,10 +55,6 @@ The `result` object holds the `take_profit` and `stop_loss` legs, each reporting
 <Warning>An open position is required. Without one the call fails with error `104`, so arm the pair after the entry fills rather than alongside it. For an entry that arms its own exit in a single request, use [`collateral_order_oto_place`](/websocket/order-management/collateral-order-oto-place) instead.</Warning>
 
 <Note>Cancellation differs from the group methods. The two legs are independent orders with separate ids, so cancel each one with [`order_cancel`](/websocket/order-management/order-cancel). A TPSL pair has no group id, so [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) does not apply; separately, [`order_modify`](/websocket/order-management/order-modify) returns error `160` for a TPSL leg.</Note>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_tpsl_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the protected position.
 
 ## Error codes
 

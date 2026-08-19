@@ -21,7 +21,7 @@ export const collateralOrderBboPlaceParams = [
   { name: "amount", type: "string", required: true, description: "Order size in stock, at the market stock precision." },
   { name: "bbo_role", type: "integer", required: true, enum: [1,2], description: "Pricing role. `1` maker — price at the own-side best and set `post_only`. `2` taker — price at the opposite-side best and cross the spread." },
   { name: "reduce_only", type: "boolean", description: "Restrict the order to shrinking an existing position." },
-  { name: "position_side", type: "string", enum: ["BOTH","LONG","SHORT"], description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode." },
+  { name: "position_side", type: "string", enum: ["BOTH","LONG","SHORT"], description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Optional at the request layer but functionally required in hedge mode — omitting it, or sending `BOTH`, is rejected with error `114`." },
   { name: "ioc", type: "boolean", description: "Immediate-or-cancel — cancel the unmatched remainder instead of resting it." },
   { name: "client_order_id", type: "string", description: "Custom client order id, echoed on the response. Must be unique among active orders — a collision returns error `43`." },
   { name: "stp", type: "string", enum: ["no","co","cn","cb"], description: "Self-trade prevention mode: `no`=No Prevention, `co`=Cancel Oldest, `cn`=Cancel Newest, `cb`=Cancel Both. Defaults to `no` when omitted." },
@@ -76,7 +76,7 @@ export const channelMeta = {
     {
       "code": 114,
       "message": "order's position side does not match user's setting",
-      "description": "`position_side` was sent without hedge mode enabled, or does not match the account setting."
+      "description": "`position_side` was sent (as non-`BOTH`) without hedge mode enabled, or was omitted or sent as `BOTH` while hedge mode is enabled, or otherwise does not match the account setting."
     }
   ]
 };
