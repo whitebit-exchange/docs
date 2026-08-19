@@ -4,8 +4,60 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
-<Update label="August 18, 2026">
-## Maintenance status on order history
+<Update label="September 2, 2026">
+## Order placement over WebSocket
+**Place, modify, and cancel orders on the WebSocket connection**
+
+<Note>
+Coming soon: order placement over WebSocket becomes available on September 2, 2026, on the global platform only. The EU platform is not yet supported.
+</Note>
+
+From September 2, 2026, the WebSocket API carries order flow alongside market and account streams: 21 JSON-RPC methods place, modify, and cancel spot, margin, and futures orders over the same authorized connection that carries subscriptions. The methods are an alternative transport to the REST order endpoints for latency-sensitive integrations that hold one connection open. Authorize the connection first with the `authorize` frame; an order method on an unauthorized connection is rejected. The transport numbers its errors independently of REST — the same numeric code carries a different meaning on each surface — so branch on the codes documented on the Order Management page rather than reusing REST codes.
+
+<CardGroup cols={2}>
+  <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
+  <Card title="Create Limit Order (REST)" href="/api-reference/trading/create-limit-order" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="August 19, 2026">
+## Price and quantity steps on Market Info
+**Breaking change: order price and amount must align to `tickSize` and `stepSize`**
+
+`GET /api/v4/public/markets` now returns `tickSize` — the minimal price step a limit order price must be a multiple of — and `stepSize` — the minimal quantity step an order amount must be a multiple of. Both are decimal strings passed through verbatim from the trade engine, so the values follow a precision change on the market automatically. Either field is an empty string when the engine does not provide the value for the market, so handle the empty string before parsing.
+
+**Migration guide:**
+- Read `tickSize` and `stepSize` from `GET /api/v4/public/markets` and validate order price and amount against those two fields, instead of deriving the steps from `moneyPrec`/`stockPrec`.
+- Handle the empty-string case (the engine does not provide the value for the market) before parsing.
+
+**Backward compatibility:** Until September 18, 2026, WhiteBIT maintains backward compatibility for order prices and amounts that are not aligned to `tickSize` and `stepSize`. After September 18, 2026, an order whose price is not a multiple of `tickSize`, or whose amount is not a multiple of `stepSize`, is rejected.
+
+**Sunset date:** September 18, 2026.
+
+<CardGroup cols={2}>
+  <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
+  <Card title="Markets & Trading Pairs" href="/concepts/markets" icon="chart-line" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="August 19, 2026">
+## Market data, order history, and fee updates
+
+This release documents three API updates across market data, order history, and trading fees.
+
+### Mark price on futures markets list
+**New `mark_price` field on `GET /api/v4/public/futures`**
+
+Each futures market entry carries `mark_price` — the fair value of the perpetual contract, derived from the underlying index price and the futures basis. Mark price, not `last_price`, is what a liquidation is evaluated against, so reading it lets an integration reproduce the distance to liquidation the platform itself measures instead of approximating it from the order book. The value is a decimal string taken from the latest premium index snapshot. While no fresh snapshot is available for the market, the field is returned as an empty string instead.
+
+The same release repoints `index_price` and `funding_rate` to that premium index source. Field names and the decimal-string format are unchanged, so no integration change is required. `index_price` now carries the index the contract actually tracks; while the index is unavailable it falls back to the last traded price of the corresponding spot market, then to the last traded price of the futures market itself, and returns `"0"` when neither has traded.
+
+<CardGroup cols={2}>
+  <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
+  <Card title="Auto-deleveraging" href="/concepts/auto-deleveraging" icon="scale-unbalanced" horizontal/>
+</CardGroup>
+
+### Maintenance status on order history
 **New `maintenance` order status and status filter on `POST /api/v4/trade-account/order/history` and `POST /api/v4/trade-account/order/history/query`**
 
 When a market enters planned maintenance, the platform cancels the orders that are open on it. Those orders now carry a dedicated `maintenance` status on both order-history endpoints, so an integration can tell a maintenance cancellation from one the user or a risk rule triggered.
@@ -18,22 +70,8 @@ When a market enters planned maintenance, the platform cancels the orders that a
   <Card title="Query executed orders" href="/api-reference/trading/query-executed-orders" icon="list-check" horizontal/>
   <Card title="Query delisting and maintenance orders" href="/api-reference/trading/query-delisting-orders" icon="ban" horizontal/>
 </CardGroup>
-</Update>
 
-<Update label="August 17, 2026">
-## Price and quantity steps on Market Info
-**New `tickSize` and `stepSize` fields on `GET /api/v4/public/markets`**
-
-Every market entry now carries `tickSize` — the minimal price step a limit order price must be a multiple of — and `stepSize` — the minimal quantity step an order amount must be a multiple of. Both are decimal strings passed through verbatim from the trade engine, so the values follow a precision change on the market automatically. Use the fields for pre-trade validation of order price and amount instead of deriving steps from `moneyPrec`/`stockPrec`. Either field is an empty string when the engine does not provide the value for the market, so handle the empty string before parsing.
-
-<CardGroup cols={2}>
-  <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
-  <Card title="Markets & Trading Pairs" href="/concepts/markets" icon="chart-line" horizontal/>
-</CardGroup>
-</Update>
-
-<Update label="August 17, 2026">
-## Single-market fee endpoint documented
+### Single-market fee endpoint documented
 **New reference page for `POST /api/v4/market/fee/single`**
 
 `POST /api/v4/market/fee/single` returns the effective maker and taker fee for one market. The endpoint has been available for some time but was never documented; the new reference page covers the request body, the response fields, and the validation errors. Use it when only one market matters — `POST /api/v4/market/fee` returns the account's default fees and every custom override at once.
@@ -41,24 +79,6 @@ Every market entry now carries `tickSize` — the minimal price step a limit ord
 <CardGroup cols={2}>
   <Card title="Query market fee for a single market" href="/api-reference/trading/query-market-fee-single" icon="percent" horizontal/>
   <Card title="Query market fees" href="/api-reference/trading/query-market-fee" icon="percent" horizontal/>
-</CardGroup>
-</Update>
-
-<Update label="August 13, 2026">
-## Mark price on futures markets list
-**New `mark_price` field on `GET /api/v4/public/futures`**
-
-<Note>
-Coming soon: this field is not yet returned by the endpoint.
-</Note>
-
-Each futures market entry will carry `mark_price` — the fair value of the perpetual contract, derived from the underlying index price and the futures basis. Mark price, not `last_price`, is what a liquidation is evaluated against, so reading it lets an integration reproduce the distance to liquidation the platform itself measures instead of approximating it from the order book. The value is a decimal string taken from the latest premium index snapshot. While no fresh snapshot is available for the market, the field is returned as an empty string instead.
-
-The same release repoints `index_price` and `funding_rate` to that premium index source. Field names and the decimal-string format are unchanged, so no integration change is required. `index_price` now carries the index the contract actually tracks; while the index is unavailable it falls back to the last traded price of the corresponding spot market, then to the last traded price of the futures market itself, and returns `"0"` when neither has traded.
-
-<CardGroup cols={2}>
-  <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
-  <Card title="Auto-deleveraging" href="/concepts/auto-deleveraging" icon="scale-unbalanced" horizontal/>
 </CardGroup>
 </Update>
 

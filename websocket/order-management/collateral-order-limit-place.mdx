@@ -5,6 +5,7 @@ description: "Place a margin or futures limit order over the WhiteBIT WebSocket 
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,13 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Place a margin or futures limit order that rests in the order book until it is matched or canceled. This is the counterpart of [`order_limit_place`](/websocket/order-management/order-limit-place), and like its spot twin it is the only method in the `collateral_*` family that accepts `rpi`.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
 
 ## Rate limits
 
@@ -51,11 +52,7 @@ Across the whole `collateral_*` family `amount` is [stock](/glossary#stock) on b
 
 The `result` object is the standard order object plus `reduce_only` and `position_side` — see the [order object reference](/websocket/order-management/overview#order-object). A margin limit order reports `type` `7`.
 
-<Warning>Hedge mode governs `position_side`. Sending a value other than `BOTH` without hedge mode enabled returns error `114`, and a switch in progress returns error `113`. On a non-futures margin market any value other than `BOTH` is rejected with error `1`.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_limit_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to follow the resulting position.
+<Warning>Hedge mode governs `position_side`. The field is optional at the request layer but functionally required once hedge mode is enabled — omitting it, or sending `BOTH`, returns error `114`, same as sending a value other than `BOTH` without hedge mode enabled. A switch in progress returns error `113`. On a non-futures margin market any value other than `BOTH` is rejected with error `1`.</Warning>
 
 ## Error codes
 

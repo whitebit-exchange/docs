@@ -5,6 +5,7 @@ description: "Place a margin or futures order priced from the best bid or offer 
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,13 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Place a margin or futures limit order priced from the current best bid or offer. The role semantics match the spot [`order_bbo_place`](/websocket/order-management/order-bbo-place) method, and the same ordinary limit order comes back.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
 
 ## Rate limits
 
@@ -55,10 +56,6 @@ The `bbo_role` parameter decides which side of the spread supplies the price.
 The response is an ordinary margin limit order reporting `type` `7` — no BBO marker survives placement. The `price` field records where the order landed. See the [order object reference](/websocket/order-management/overview#order-object).
 
 <Warning>No re-pegging happens. The price is resolved once, at placement, and the order then behaves like any other resting limit order as the order book moves away from it.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_bbo_place` request with a single response frame carrying the same `id`.
 
 ## Error codes
 

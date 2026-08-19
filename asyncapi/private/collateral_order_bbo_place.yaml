@@ -29,7 +29,7 @@ info:
       description: "The order book has no quote on the required side, so the order cannot be priced."
     - code: 114
       message: order's position side does not match user's setting
-      description: "`position_side` was sent without hedge mode enabled, or does not match the account setting."
+      description: "`position_side` was sent (as non-`BOTH`) without hedge mode enabled, or was omitted or sent as `BOTH` while hedge mode is enabled, or otherwise does not match the account setting."
 
 servers:
   production:
@@ -175,7 +175,7 @@ components:
         position_side:
           type: string
           enum: ["BOTH", "LONG", "SHORT"]
-          description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode."
+          description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Optional at the request layer but functionally required in hedge mode — omitting it, or sending `BOTH`, is rejected with error `114`."
         ioc:
           type: boolean
           description: "Immediate-or-cancel — cancel the unmatched remainder instead of resting it."

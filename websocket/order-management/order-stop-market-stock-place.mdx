@@ -5,6 +5,7 @@ description: "Place a spot stop-market order sized in the base asset on both sid
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,13 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Fire a market order sized in the base asset when the market reaches `activation_price`. The trigger semantics match [`order_stop_market_place`](/websocket/order-management/order-stop-market-place); only the unit of `amount` differs — here it is [stock](/glossary#stock) on a buy as well as on a sell.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
 
 ## Rate limits
 
@@ -48,10 +49,6 @@ Fire a market order sized in the base asset when the market reaches `activation_
 The `result` object adds the conditional fields to the standard order object — see the [order object reference](/websocket/order-management/overview#order-object). This method reports `type` `203`, the stock-denominated stop-market code.
 
 <Warning>A buy spends quote currency at activation even though the order is sized in stock. The balance must cover `amount` multiplied by the best ask at trigger time, plus fee.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `order_stop_market_stock_place` request with a single response frame carrying the same `id`. Subscribe to [Orders Pending](/websocket/account-streams/orders-pending) to observe the trigger firing.
 
 ## Error codes
 

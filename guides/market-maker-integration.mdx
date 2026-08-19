@@ -119,7 +119,7 @@ For endpoints not listed above, use the standard WhiteBIT API at `https://whiteb
 
 ## Quoting strategy
 
-Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input.
+Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /api/v4/order/bulk` (up to 20 limit orders per request), paired with the `depth` and `bookTicker` WebSocket channels for price input. Orders can be placed over REST — covered in this section — or, from September 2, 2026, over the WebSocket order methods on the same connection (global platform only); see [Placing and canceling orders over WebSocket](#placing-and-canceling-orders-over-websocket) for the trade-offs.
 
 **Bulk vs individual:** bulk reduces wire and auth overhead and gives atomic same-timestamp placement of a quote ladder. The bulk response only returns once every leg in the batch is processed. Pipelined individual orders give faster per-leg acknowledgment for clients optimized for that pattern. Use bulk for atomic quote refreshes and less-optimized clients; use individual orders when lowest per-leg ack latency matters most.
 
@@ -206,7 +206,7 @@ sequenceDiagram
     Bot->>WB: POST /api/v4/order/kill-switch/status (verify active timers)
     WB-->>Bot: active timers for the market
     Note over Bot,WB: bot crashes or loses connectivity — resets stop
-    WB->>WB: timeout expires — open orders on the market are cancelled
+    WB->>WB: timeout expires — open orders on the market are canceled
 ```
 
 ```python
@@ -256,6 +256,55 @@ Note the asymmetry: `ordersPending_subscribe` takes a flat array of markets, `de
 
 For the full reconnect-with-fresh-token + auto-resubscribe pattern that wraps these subscriptions in production, see [WS Quickstart — Reconnection and state recovery](/guides/websocket-quickstart#reconnection-and-state-recovery) and the worked grid-bot example in the [Bot Guide](/guides/building-a-trading-bot#auto-resubscription-after-reconnect).
 
+## Placing and canceling orders over WebSocket
+
+<Note>
+Coming soon — order placement over WebSocket becomes available on September 2, 2026, on the global platform only; the EU platform is not yet supported. Until then, place orders over REST as described in [Quoting strategy](#quoting-strategy).
+</Note>
+
+The subscriptions above feed the quoting loop with market data and fill events, while the [Quoting strategy](#quoting-strategy) section places orders over REST. The same authorized socket can carry the write side too: the [WebSocket Order Management](/websocket/order-management/overview) methods place, modify, and cancel orders as JSON-RPC calls on the connection already open for market data — an alternative transport to the REST order endpoints for latency-sensitive flow.
+
+The loop runs on one connection — authorize once, place with an order method, then read the acknowledgment and the fills off the same socket:
+
+```mermaid
+sequenceDiagram
+    participant Bot as MM bot
+    participant WS as WhiteBIT WebSocket
+    Bot->>WS: authorize (token)
+    WS-->>Bot: result: success
+    Bot->>WS: order_limit_place (id 101)
+    WS-->>Bot: result (id 101 — order object)
+    WS-->>Bot: ordersPending push — state change
+    WS-->>Bot: deals push — fill
+    Note over Bot,WS: correlate the ack by id; fills arrive as id-less pushes
+    Bot->>WS: order_modify or order_cancel — requote
+```
+
+A placement carries the order parameters in a single-object `params` array — prices and amounts as decimal strings, `side` as `"buy"` or `"sell"`:
+
+```json
+{
+  "id": 101,
+  "method": "order_limit_place",
+  "params": [
+    { "market": "BTC_USDT", "side": "buy", "amount": "0.01", "price": "60000", "client_order_id": "quote-bid-1" }
+  ]
+}
+```
+
+The server answers with one frame echoing `id`: `result` holds the order object — with `side` inverted to `1` for sell or `2` for buy — and `error` is `null` on success. The full parameter set, the flag rules, and every method live on the [Order Management](/websocket/order-management/overview) reference and the [Place limit order](/websocket/order-management/order-limit-place) page.
+
+**When the socket wins.** Placing over the open connection removes the per-request HTTP round trip and the per-request HMAC signature that each REST order carries: the connection authorizes once, and every later order frame rides that session. For a quoter refreshing one price at a time, the socket is the shortest path to the book.
+
+**When REST still wins.** Two market-making primitives run over REST, so a socket-first quoter keeps a REST client alongside the connection:
+
+- **Atomic ladder placement.** `POST /api/v4/order/bulk` places up to 20 limit orders in one request with same-timestamp atomicity. The WebSocket methods place one order per frame, and order frames draw on the same 200-requests-per-minute-per-connection budget as subscriptions — a 20-level requote is 20 frames against that budget. Refresh a full ladder over REST bulk; place and cancel individual quotes over the socket.
+- **The deadman timer.** The kill-switch (`POST /api/v4/order/kill-switch`) that cancels a market's orders when the client stops calling in is a REST endpoint. Arm it over REST no matter which transport places the quotes — the WebSocket `order_cancel_all` method cancels one market on demand but does not run a timer.
+
+**Correlation and errors.** Each order method answers with a single frame carrying the request `id`; responses interleave with subscription pushes, so match answers by `id`, not by arrival order. `order_modify` over the socket is cancel-and-replace exactly as the REST modify is — a new engine order id, `client_order_id` preserved, queue priority lost. The `rpi` flag is accepted on `order_limit_place`, so RPI quoting works over either transport.
+
+<Warning>The WebSocket transport numbers its errors independently of REST — code `40` is `order is not post only`, `41` is `order is not ioc`, and `43` a duplicate `client_order_id`, each different from the REST code for the same condition. Branch on the WebSocket codes in the [error reference](/websocket/order-management/overview#error-codes); never carry a REST code across.</Warning>
+
 ## Infrastructure best practices
 
 Three pieces are load-bearing in production: how the account is partitioned across strategies, how the socket recovers when it drops, and how requests stay under per-endpoint limits.
@@ -297,7 +346,7 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 **Kill-switch configuration:** Set a kill-switch timer for every quoted market as the first action after connecting — each timer covers only its own market. Configure the timeout based on the maximum acceptable unmonitored period for the system. Reset the timers with each regular API call to the kill-switch endpoint. If the system crashes or loses connectivity, the kill-switch cancels each covered market's open orders as its timeout expires.
 
-**Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders cancelled when the timer lapses.
+**Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders canceled when the timer lapses. The kill-switch is a REST endpoint — arm it over REST whether quotes are placed over REST or the WebSocket order methods.
 
 **Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is available on colocation as well as through the standard public API. See the [API Reference](/api-reference/trading/cancel-all-orders).
 

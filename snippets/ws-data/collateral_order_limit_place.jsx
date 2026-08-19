@@ -21,7 +21,7 @@ export const collateralOrderLimitPlaceParams = [
   { name: "amount", type: "string", required: true, description: "Order size in stock, at the market stock precision." },
   { name: "price", type: "string", required: true, description: "Limit price, validated against the maker and taker price bands for the given side." },
   { name: "reduce_only", type: "boolean", description: "Restrict the order to shrinking an existing position. It can never open or flip one. With nothing to reduce, the order is dropped with status `AUTO_CANCELED_REDUCE_ONLY`, or rejected up front with error `116`." },
-  { name: "position_side", type: "string", enum: ["BOTH","LONG","SHORT"], description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Any value other than `BOTH` on a non-futures margin market is rejected with error `1`." },
+  { name: "position_side", type: "string", enum: ["BOTH","LONG","SHORT"], description: "Position leg in hedge mode; futures markets only. `BOTH` in one-way mode. Optional at the request layer but functionally required in hedge mode — omitting it, or sending `BOTH`, is rejected with error `114`. Any value other than `BOTH` on a non-futures margin market is rejected with error `1`." },
   { name: "post_only", type: "boolean", description: "Reject the order instead of taking liquidity. Cannot be combined with `ioc`." },
   { name: "ioc", type: "boolean", description: "Immediate-or-cancel — cancel the unmatched remainder instead of resting it. Cannot be combined with `post_only` or `rpi`." },
   { name: "rpi", type: "boolean", description: "Retail Price Improvement order. Implies `post_only`; cannot be combined with `ioc`." },
@@ -78,7 +78,7 @@ export const channelMeta = {
     {
       "code": 114,
       "message": "order's position side does not match user's setting",
-      "description": "`position_side` was sent without hedge mode enabled, or does not match the account setting."
+      "description": "`position_side` was sent (as non-`BOTH`) without hedge mode enabled, or was omitted or sent as `BOTH` while hedge mode is enabled, or otherwise does not match the account setting."
     },
     {
       "code": 250,

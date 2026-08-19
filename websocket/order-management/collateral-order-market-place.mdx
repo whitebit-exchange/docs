@@ -5,6 +5,7 @@ description: "Place a margin or futures market order over the WhiteBIT WebSocket
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,13 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Open, extend, reduce, or close a position at the order book price. Sending the position size on the opposite side is the usual way to flatten a position.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://api.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
 
 ## Rate limits
 
@@ -50,10 +51,6 @@ No money-denominated variant exists for this family. Unlike spot, `amount` is [s
 The `result` object is the standard order object plus `reduce_only` and `position_side` — see the [order object reference](/websocket/order-management/overview#order-object). A margin market order reports `type` `8` and `price` `"0"`.
 
 <Warning>Set `reduce_only` when closing a position. Without it a stale size larger than the open position flips the position instead of flattening it. With the flag set, an order that would flip is rejected with error `115`, and an order with nothing to reduce is rejected with error `116` or dropped with status `AUTO_CANCELED_REDUCE_ONLY`.</Warning>
-
-## Update frequency
-
-This method is client-initiated: the server answers each `collateral_order_market_place` request with a single response frame carrying the same `id`. Subscribe to [Positions](/websocket/account-streams/positions) to confirm the resulting position size.
 
 ## Error codes
 
