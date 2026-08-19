@@ -12,11 +12,11 @@ Leveraged trading on [spot pairs](/concepts/markets) with up to 10x leverage usi
 
 ## Capabilities
 
-- **Up to 10x leverage** — Adjustable per account via the [leverage endpoint](/api-reference/collateral-trading/change-collateral-account-leverage)
+- **Up to 10x leverage** — Adjustable per account via the [leverage endpoint](/api-reference/trading/change-collateral-account-leverage)
 - **Isolated Margin mode** — Limit risk to the margin allocated to a specific position, preventing cross-position liquidation cascades
 - **6 order types** — Limit, Market, Stop-Limit, Trigger-Market, OCO, Bulk-Limit ([details](/concepts/order-types))
-- **Bulk orders** — Place up to 20 collateral limit orders in a single call ([endpoint](/api-reference/collateral-trading/collateral-bulk-limit-order))
-- **Position management** — Open, monitor, and close positions programmatically ([open positions](/api-reference/collateral-trading/open-positions), [close](/api-reference/collateral-trading/close-position))
+- **Bulk orders** — Place up to 20 collateral limit orders in a single call ([endpoint](/api-reference/trading/collateral-bulk-limit-order))
+- **Position management** — Open, monitor, and close positions programmatically ([open positions](/api-reference/trading/open-positions), [close](/api-reference/trading/close-position))
 
 <Note>
   **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
@@ -35,9 +35,9 @@ Leveraged trading on [spot pairs](/concepts/markets) with up to 10x leverage usi
 
 ## Common Integration Patterns
 
-**Hedging** — Open opposing margin positions to offset risk on existing spot holdings. For example, short BTC_USDT on margin while holding BTC in a spot wallet. Use the [collateral account balance](/api-reference/collateral-trading/collateral-account-balance) endpoint to monitor margin utilization.
+**Hedging** — Open opposing margin positions to offset risk on existing spot holdings. For example, short BTC_USDT on margin while holding BTC in a spot wallet. Use the [collateral account balance](/api-reference/trading/collateral-account-balance) endpoint to monitor margin utilization.
 
-**Leveraged directional trading** — Amplify exposure with controlled risk via isolated margin. Set leverage via the [leverage endpoint](/api-reference/collateral-trading/change-collateral-account-leverage), place orders, and monitor positions through the [open positions endpoint](/api-reference/collateral-trading/open-positions). The API returns a `liquidationPrice` field in position responses for risk monitoring.
+**Leveraged directional trading** — Amplify exposure with controlled risk via isolated margin. Set leverage via the [leverage endpoint](/api-reference/trading/change-collateral-account-leverage), place orders, and monitor positions through the [open positions endpoint](/api-reference/trading/open-positions). The API returns a `liquidationPrice` field in position responses for risk monitoring.
 
 ## Risk Context
 
@@ -81,7 +81,7 @@ Endpoint categories (shared with Futures Trading):
 
 The pair name determines whether an order is Margin or Futures. Spot pairs (e.g., `BTC_USDT`) route to Margin. Perpetual pairs (e.g., `BTC_PERP`) route to Futures.
 
-For full endpoint documentation, see the [Collateral Trading API Reference](/api-reference/collateral-trading/overview).
+For full endpoint documentation, see the [Collateral Trading API Reference](/api-reference/trading/collateral-overview).
 
 For Go and PHP examples, see [SDKs](/sdks).
 
@@ -94,7 +94,7 @@ For Go and PHP examples, see [SDKs](/sdks).
   <Card title="Futures Trading" icon="chart-candlestick" href="/products/futures/overview">
     Compare with perpetual contracts — up to 100x leverage and Hedge Mode.
   </Card>
-  <Card title="API Reference" icon="square-terminal" href="/api-reference/collateral-trading/overview">
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/trading/collateral-overview">
     Full endpoint documentation for all 19 collateral trading endpoints.
   </Card>
 </CardGroup>

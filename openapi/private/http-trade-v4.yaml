@@ -1907,7 +1907,7 @@ paths:
               properties:
                 positionId:
                   type: integer
-                  description: "Unique identifier of the position to close. Obtain from the [open positions](/api-reference/collateral-trading/open-positions) endpoint."
+                  description: "Unique identifier of the position to close. Obtain from the [open positions](/api-reference/trading/open-positions) endpoint."
                   example: 123
                 positionSide:
                   type: string
@@ -3487,7 +3487,7 @@ paths:
       summary: Cancel conditional order
       operationId: cancelConditionalOrder
       description: |
-        The endpoint cancels an active conditional order ([OCO](/glossary#one-cancels-the-other-oco) or [OTO](/glossary#one-triggers-the-other-oto)) on the specified market. Both legs of the conditional order are cancelled. Use the [query unexecuted conditional orders](/api-reference/collateral-trading/query-unexecuted-conditional-orders) endpoint to obtain the conditional order `id` before cancellation.
+        The endpoint cancels an active conditional order ([OCO](/glossary#one-cancels-the-other-oco) or [OTO](/glossary#one-triggers-the-other-oto)) on the specified market. Both legs of the conditional order are cancelled. Use the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint to obtain the conditional order `id` before cancellation.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3534,7 +3534,7 @@ paths:
                   example: "BTC_USDT"
                 id:
                   type: integer
-                  description: "Conditional order identifier. Obtain from the [query unexecuted conditional orders](/api-reference/collateral-trading/query-unexecuted-conditional-orders) endpoint."
+                  description: "Conditional order identifier. Obtain from the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint."
                   example: 117703764514
                 request:
                   type: string

@@ -123,17 +123,17 @@ Quoting on WhiteBIT uses limit orders placed via individual endpoints or `POST /
 
 **Bulk vs individual:** bulk reduces wire and auth overhead and gives atomic same-timestamp placement of a quote ladder. The bulk response only returns once every leg in the batch is processed. Pipelined individual orders give faster per-leg acknowledgment for clients optimized for that pattern. Use bulk for atomic quote refreshes and less-optimized clients; use individual orders when lowest per-leg ack latency matters most.
 
-**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. RPI orders remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/spot-trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
+**RPI mode:** Each order item in `/order/bulk` can set `rpi: true` to enable Retail Price Improvement (RPI) mode. RPI orders are post-only and hidden from public `depth` and `bookTicker` feeds. RPI orders remain visible in the exchange UI order book (web/mobile) — capturing UI-driven retail flow rather than algorithmic flow consuming the public feed. RPI executions use an account-specific fee or rebate model. Incompatible with `ioc`. RPI is a flow-segmentation tool, not a default MM primitive — fit depends on volume targets and the account's fee arrangement. See the [API Reference](/api-reference/trading/bulk-limit-order) and [glossary entry](/glossary#retail-price-improvement-rpi).
 
 **Real-time orderbook:** Subscribe to the `depth` WebSocket channel for real-time orderbook updates. See the [WebSocket Quickstart](/guides/websocket-quickstart).
 
-**Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/spot-trading/modify-order). For how the engine sequences orders — price-time priority, participant fairness, and latency factors — see [Matching engine](/concepts/matching-engine).
+**Order modify:** `POST /api/v4/order/modify` — change an existing order's price, amount, or activation price. The matching engine internally cancels the original order and creates a replacement with a **new `orderId`**, so modify does NOT preserve queue priority. Use `clientOrderId` as the stable identifier across modifications. Identify the target by `orderId` OR `clientOrderId` — never both. See the [API Reference](/api-reference/trading/modify-order). For how the engine sequences orders — price-time priority, participant fairness, and latency factors — see [Matching engine](/concepts/matching-engine).
 
-**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — sets a per-market timeout of 5–600 seconds; if the endpoint is not called again before it expires, the kill-switch cancels every open order on that market. Quoting several markets requires one timer per market. The deadman trigger for process crashes, lost connectivity, and operator absence. See the [API Reference](/api-reference/spot-trading/sync-kill-switch-timer).
+**Kill-switch (circuit breaker):** `POST /api/v4/order/kill-switch` — sets a per-market timeout of 5–600 seconds; if the endpoint is not called again before it expires, the kill-switch cancels every open order on that market. Quoting several markets requires one timer per market. The deadman trigger for process crashes, lost connectivity, and operator absence. See the [API Reference](/api-reference/trading/sync-kill-switch-timer).
 
 - Configuration: set the timeout (5–600 seconds); each call to the endpoint resets the timer; `timeout: null` deletes it
 - Scope: pass the optional `types` array (`"spot"`, `"margin"`, `"futures"`) to restrict the breaker to a subset of order types — useful when spot market-making runs alongside futures positions whose protective orders must stay on the book
-- Check status: `POST /api/v4/order/kill-switch/status` — see the [API Reference](/api-reference/spot-trading/status-kill-switch-timer)
+- Check status: `POST /api/v4/order/kill-switch/status` — see the [API Reference](/api-reference/trading/status-kill-switch-timer)
 
 **Self-Trade Prevention:** Market makers providing two-sided quotes (bid + ask) must understand STP behavior to avoid self-trades. When a new order would match against an existing order from the same account, the STP mechanism cancels the new order, the existing order, both, or neither — depending on the `stp` mode passed at order placement. The default mode (`no`) allows self-trades, which is usually not what a two-sided quoter wants. See [Self-Trade Prevention](/platform/self-trade-prevention) for the available modes.
 
@@ -299,7 +299,7 @@ Set the kill-switch first; everything below is the loop that keeps it reset, the
 
 **Disconnect protection:** WhiteBIT provides no automatic cancel-on-disconnect for WebSocket clients — resting orders persist when the socket drops. The per-market kill-switch is the disconnect safeguard: set a timer for each quoted market and reset it on the connection heartbeat, so a dropped or crashed client has its open orders cancelled when the timer lapses.
 
-**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is available on colocation as well as through the standard public API. See the [API Reference](/api-reference/spot-trading/cancel-all-orders).
+**Emergency cancel:** `POST /api/v4/order/cancel/all` — cancel every open order synchronously; the response returns after the cancellations complete. Use the optional `market` field to scope to a single pair and the `type` array to scope to `"spot"`, `"margin"`, or `"futures"`; omit both to cancel everything on the account. This is the "big red button" for live traders; the kill-switch is the deadman timer for unattended operation. `order/cancel/all` is available on colocation as well as through the standard public API. See the [API Reference](/api-reference/trading/cancel-all-orders).
 
 <Tabs>
   <Tab title="curl">
@@ -346,7 +346,7 @@ Contact **institutional@whitebit.com** with trading volume history and target ma
   <Card title="Colocation" icon="server" href="/platform/colocation">
     AWS regions, EC2 sizing, and availability-zone placement for colocation onboarding.
   </Card>
-  <Card title="Spot Trading API" icon="square-terminal" href="/api-reference/spot-trading/overview">
+  <Card title="Spot Trading API" icon="square-terminal" href="/api-reference/trading/spot-overview">
     Full endpoint documentation for all spot trading endpoints.
   </Card>
   <Card title="Self-Trade Prevention" icon="shield" href="/platform/self-trade-prevention">

@@ -1,0 +1,21 @@
+---
+title: "Collateral bulk limit order"
+description: "Place multiple collateral limit orders in a single request via the WhiteBIT V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/collateral/bulk"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-collateral-bulk.jsx';
+import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
+
+<WhitebitSigner path="/api/v4/order/collateral/bulk" fields={signerFields} />
+
+<RegionalRestrictionNote />
+
+<RelatedResources>
+- [Collateral limit order](/api-reference/trading/collateral-limit-order) — Place a single collateral limit order
+- [Collateral market order](/api-reference/trading/collateral-market-order) — Place a collateral market order
+- [Cancel conditional order](/api-reference/trading/cancel-conditional-order) — Cancel an active conditional order
+- [Open positions](/api-reference/trading/open-positions) — List current open positions
+</RelatedResources>

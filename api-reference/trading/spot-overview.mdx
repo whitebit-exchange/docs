@@ -1,0 +1,109 @@
+---
+title: "Spot Trading"
+sidebarTitle: "Spot overview"
+description: "Endpoints for spot trading operations including order management, order queries, market fees, and kill switch."
+---
+
+Manage spot trading on WhiteBIT — place and cancel orders, check market fees, and control kill-switch timers.
+
+For general API conventions (base URL, error format, rate limits), see the [API Reference Overview](/api-reference/overview).
+
+---
+
+## Market Fee
+
+Endpoints for querying market fees:
+
+<CardGroup cols={2}>
+  <Card title="Query Market Fees" icon="percent" href="/api-reference/trading/query-market-fee">
+    Retrieve default maker and taker rates and custom per-market overrides
+  </Card>
+  <Card title="Query Market Fee For A Single Market" icon="percent" href="/api-reference/trading/query-market-fee-single">
+    Retrieve the effective maker and taker fee for one market
+  </Card>
+</CardGroup>
+
+---
+
+## Spot Trading
+
+Endpoints for spot trading operations:
+
+### Account & Balance
+
+<CardGroup cols={2}>
+  <Card title="Trading Balance" icon="wallet" href="/api-reference/trading/trading-balance">
+    Get trade balance by currency ticker or all balances
+  </Card>
+</CardGroup>
+
+### Order Management
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" icon="chart-line" href="/api-reference/trading/create-limit-order">
+    Create a limit trading order
+  </Card>
+  <Card title="Bulk Limit Order" icon="layer-group" href="/api-reference/trading/bulk-limit-order">
+    Create multiple limit orders (1-20 orders)
+  </Card>
+  <Card title="Create Market Order" icon="bolt" href="/api-reference/trading/create-market-order">
+    Create a market trading order
+  </Card>
+  <Card title="Create Buy Stock Market Order" icon="shopping-cart" href="/api-reference/trading/create-buy-stock-market-order">
+    Create buy stock market trading order
+  </Card>
+  <Card title="Create Stop-Limit Order" icon="stop" href="/api-reference/trading/create-stop-limit-order">
+    Create a stop-limit trading order
+  </Card>
+  <Card title="Create Stop-Market Order" icon="hand" href="/api-reference/trading/create-stop-market-order">
+    Create a stop-market trading order
+  </Card>
+  <Card title="Modify Order" icon="edit" href="/api-reference/trading/modify-order">
+    Modify an existing order
+  </Card>
+  <Card title="Cancel Order" icon="xmark" href="/api-reference/trading/cancel-order">
+    Cancel a specific order
+  </Card>
+  <Card title="Cancel Bulk Orders" icon="rectangle-xmark" href="/api-reference/trading/cancel-bulk-order">
+    Cancel up to 100 orders in a single request
+  </Card>
+  <Card title="Cancel All Orders" icon="trash" href="/api-reference/trading/cancel-all-orders">
+    Cancel all orders in a market
+  </Card>
+</CardGroup>
+
+### Order Queries
+
+<CardGroup cols={2}>
+  <Card title="Query Unexecuted Orders" icon="clock" href="/api-reference/trading/query-unexecuted-orders">
+    Get active/unexecuted orders
+  </Card>
+  <Card title="Query Executed Order History" icon="history" href="/api-reference/trading/query-executed-order-history">
+    Get executed order history
+  </Card>
+  <Card title="Query Executed Order Deals" icon="handshake" href="/api-reference/trading/query-executed-order-deals">
+    Get executed order deals
+  </Card>
+  <Card title="Query Executed Orders" icon="list-check" href="/api-reference/trading/query-executed-orders">
+    Get all executed orders
+  </Card>
+  <Card title="Query Delisting and Maintenance Orders" icon="ban" href="/api-reference/trading/query-delisting-orders">
+    Get delisting and maintenance order history
+  </Card>
+</CardGroup>
+
+### Kill Switch
+
+<CardGroup cols={2}>
+  <Card title="Sync Kill-Switch Timer" icon="timer" href="/api-reference/trading/sync-kill-switch-timer">
+    Synchronize kill-switch timer
+  </Card>
+  <Card title="Status Kill-Switch Timer" icon="circle-info" href="/api-reference/trading/status-kill-switch-timer">
+    Get kill-switch timer status
+  </Card>
+</CardGroup>
+
+## Used in these guides
+
+- [Copy Trading](/guides/copy-trading) — mirror a lead trader's orders into followers' own accounts via OAuth-issued keys.
+- [Market Maker integration](/guides/market-maker-integration) — bulk quoting, RPI, kill-switch, and market-data streams.
