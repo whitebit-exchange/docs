@@ -1,0 +1,21 @@
+---
+title: "Query unexecuted orders"
+description: "List all open orders not yet executed via the WhiteBIT V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/orders"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/orders.jsx';
+
+<WhitebitSigner path="/api/v4/orders" fields={signerFields} />
+
+<RelatedResources>
+- [Cancel order](/api-reference/trading/cancel-order) — cancel an open order
+- [Cancel all orders](/api-reference/trading/cancel-all-orders) — cancel all open orders
+- [Query executed orders](/api-reference/trading/query-executed-orders) — view executed order history
+</RelatedResources>
+
+## Used in these guides
+
+- [Copy Trading](/guides/copy-trading) — mirror a lead trader's orders into followers' own accounts via OAuth-issued keys.

@@ -44,7 +44,7 @@ See [Errors and Error Handling](/api-reference/rate-limits) for the complete err
 
 - [ ] Per-endpoint rate limits documented and enforced in the application.
 - [ ] Request queuing implemented to stay within rate limits.
-- [ ] Bulk endpoints used where available (e.g., [`/order/bulk`](/api-reference/spot-trading/bulk-limit-order) for up to 20 orders per call).
+- [ ] Bulk endpoints used where available (e.g., [`/order/bulk`](/api-reference/trading/bulk-limit-order) for up to 20 orders per call).
 - [ ] WebSocket used for real-time data instead of REST polling where possible.
 - [ ] Public endpoint caching implemented for data that changes infrequently (market list, asset status).
 
@@ -94,11 +94,11 @@ See [Webhooks](/platform/webhook) and [Security Best Practices](/best-practices/
 
 WhiteBIT does not offer a public testnet. The following approach validates an integration on the live API with minimal risk.
 
-1. **Start with Demo Tokens (risk-free):** Activate free Demo Tokens (0.5 DBTC + 1,000 DUSDT) via the [WhiteBIT Codes page](https://whitebit.com/codes) — no KYC required. Trade the `DBTC_DUSDT` spot pair via [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order) to validate the full order lifecycle (place, query, cancel, fill) without risking real funds. Demo tokens support Spot trading only — Margin and Futures testing requires real assets at minimum sizes.
+1. **Start with Demo Tokens (risk-free):** Activate free Demo Tokens (0.5 DBTC + 1,000 DUSDT) via the [WhiteBIT Codes page](https://whitebit.com/codes) — no KYC required. Trade the `DBTC_DUSDT` spot pair via [`POST /api/v4/order/new`](/api-reference/trading/create-limit-order) to validate the full order lifecycle (place, query, cancel, fill) without risking real funds. Demo tokens support Spot trading only — Margin and Futures testing requires real assets at minimum sizes.
 
 2. **Start with public endpoints:** Verify connectivity and parsing by calling read-only public endpoints ([`GET /api/v4/public/time`](/api-reference/market-data/server-time), [`GET /api/v4/public/markets`](/api-reference/market-data/market-info)). No authentication required.
 
-3. **Verify authentication:** Make an authenticated call to [`POST /api/v4/trade-account/balance`](/api-reference/spot-trading/trading-balance). If the response is `401`, debug the HMAC signing implementation before proceeding.
+3. **Verify authentication:** Make an authenticated call to [`POST /api/v4/trade-account/balance`](/api-reference/trading/trading-balance). If the response is `401`, debug the HMAC signing implementation before proceeding.
 
 4. **Use minimum order sizes:** Query `GET /api/v4/public/markets` to find pairs with the lowest `minAmount`. Place test orders at minimum sizes to verify the full order lifecycle.
 

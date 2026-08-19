@@ -1,0 +1,21 @@
+---
+title: "Create collateral OCO order"
+description: "Create a collateral OCO (one-cancels-the-other) order combining limit and stop-limit via the V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/collateral/oco"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-collateral-oco.jsx';
+import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
+
+<WhitebitSigner path="/api/v4/order/collateral/oco" fields={signerFields} />
+
+<RegionalRestrictionNote />
+
+<RelatedResources>
+- [Query unexecuted OCO orders](/api-reference/trading/query-unexecuted-oco-orders) — List active OCO orders
+- [Collateral limit order](/api-reference/trading/collateral-limit-order) — Place a single collateral limit order
+- [Collateral stop-limit order](/api-reference/trading/collateral-stop-limit-order) — Place a collateral stop-limit order
+- [Cancel conditional order](/api-reference/trading/cancel-conditional-order) — Cancel an active conditional order
+</RelatedResources>

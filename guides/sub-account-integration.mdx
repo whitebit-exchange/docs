@@ -177,7 +177,7 @@ Embedded Trading does not expose a dedicated fee-share endpoint. Earnings are re
 **Programmatic reconciliation:**
 
 1. List sub-accounts via `POST /api/v4/sub-account/list`.
-2. For each sub-account, query trade history via `POST /api/v4/trade-account/executed-history` using the sub-account's own API key — [API Reference](/api-reference/spot-trading/query-executed-order-history).
+2. For each sub-account, query trade history via `POST /api/v4/trade-account/executed-history` using the sub-account's own API key — [API Reference](/api-reference/trading/query-executed-order-history).
 3. For each executed deal, multiply the fee charged by the agreed fee-share percentage.
 4. Sum across all sub-accounts to produce earnings for the reporting window.
 

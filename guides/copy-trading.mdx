@@ -51,7 +51,7 @@ The partner places each mirrored order on the follower's account through the V4 
 
 The fields below are the copy-trading-relevant subset of the limit-order request. The full request and response schemas, including all order types and the signed-payload fields, are on the API Reference pages linked at the end of each table.
 
-**Request — [Create Limit Order](/api-reference/spot-trading/create-limit-order) (`POST /api/v4/order/new`):**
+**Request — [Create Limit Order](/api-reference/trading/create-limit-order) (`POST /api/v4/order/new`):**
 
 | Field | Type | Required | Notes for copy trading |
 |-------|------|----------|------------------------|
@@ -61,7 +61,7 @@ The fields below are the copy-trading-relevant subset of the limit-order request
 | `price` | string | Conditional | Limit price in quote currency. Required unless a best-bid/offer execution method is used. |
 | `clientOrderId` | string | No | Partner-assigned identifier, useful to reconcile a mirrored order back to its lead trade and follower. |
 
-For market and stop variants, see [Create Market Order](/api-reference/spot-trading/create-market-order) and the other [order endpoints](/api-reference/spot-trading/overview).
+For market and stop variants, see [Create Market Order](/api-reference/trading/create-market-order) and the other [order endpoints](/api-reference/trading/spot-overview).
 
 **Response — order confirmation (subset of the shared order shape):**
 
@@ -74,7 +74,7 @@ For market and stop variants, see [Create Market Order](/api-reference/spot-trad
 | `dealMoney` | string | Filled amount in quote currency; `"0"` while unfilled. |
 | `left` | string | Remaining unfilled quantity. |
 
-Full field list: [Create Limit Order](/api-reference/spot-trading/create-limit-order).
+Full field list: [Create Limit Order](/api-reference/trading/create-limit-order).
 
 ## Endpoints
 
@@ -92,12 +92,12 @@ Copy trading composes the Fast API Key management endpoints with the standard V4
 
 | Purpose | Endpoint | Reference |
 |---------|----------|-----------|
-| Place a limit order | `POST /api/v4/order/new` | [Create limit order](/api-reference/spot-trading/create-limit-order) |
-| Place a market order | `POST /api/v4/order/market` | [Create market order](/api-reference/spot-trading/create-market-order) |
-| Modify an open order | `POST /api/v4/order/modify` | [Modify order](/api-reference/spot-trading/modify-order) |
-| Cancel one order | `POST /api/v4/order/cancel` | [Cancel order](/api-reference/spot-trading/cancel-order) |
-| Cancel every order on a market for one follower | `POST /api/v4/order/cancel/all` | [Cancel all orders](/api-reference/spot-trading/cancel-all-orders) |
-| List a follower's open orders | `POST /api/v4/orders` | [Query unexecuted orders](/api-reference/spot-trading/query-unexecuted-orders) |
+| Place a limit order | `POST /api/v4/order/new` | [Create limit order](/api-reference/trading/create-limit-order) |
+| Place a market order | `POST /api/v4/order/market` | [Create market order](/api-reference/trading/create-market-order) |
+| Modify an open order | `POST /api/v4/order/modify` | [Modify order](/api-reference/trading/modify-order) |
+| Cancel one order | `POST /api/v4/order/cancel` | [Cancel order](/api-reference/trading/cancel-order) |
+| Cancel every order on a market for one follower | `POST /api/v4/order/cancel/all` | [Cancel all orders](/api-reference/trading/cancel-all-orders) |
+| List a follower's open orders | `POST /api/v4/orders` | [Query unexecuted orders](/api-reference/trading/query-unexecuted-orders) |
 
 **Fill monitoring and reconciliation, per follower:**
 
@@ -105,11 +105,11 @@ Copy trading composes the Fast API Key management endpoints with the standard V4
 |---------|-------|
 | Order updates in real time | [Orders Executed](/websocket/account-streams/orders-executed) WebSocket stream |
 | Fills in real time | [Deals](/websocket/account-streams/deals) WebSocket stream |
-| Executed-order history, as a polling fallback | [Query executed order history](/api-reference/spot-trading/query-executed-order-history) (`POST /api/v4/trade-account/executed-history`) |
-| Trade-level deals for an order | [Query executed order deals](/api-reference/spot-trading/query-executed-order-deals) |
+| Executed-order history, as a polling fallback | [Query executed order history](/api-reference/trading/query-executed-order-history) (`POST /api/v4/trade-account/executed-history`) |
+| Trade-level deals for an order | [Query executed order deals](/api-reference/trading/query-executed-order-deals) |
 
 <Note>
-  Subscribing to a follower's private WebSocket streams requires a WebSocket authentication token from `POST /api/v4/profile/websocket_token`. Confirm that an OAuth-issued key can obtain this token for the follower's account before making the WebSocket streams the primary fill-monitoring path; until then, poll [executed-order history](/api-reference/spot-trading/query-executed-order-history) as the reliable per-follower fallback.
+  Subscribing to a follower's private WebSocket streams requires a WebSocket authentication token from `POST /api/v4/profile/websocket_token`. Confirm that an OAuth-issued key can obtain this token for the follower's account before making the WebSocket streams the primary fill-monitoring path; until then, poll [executed-order history](/api-reference/trading/query-executed-order-history) as the reliable per-follower fallback.
 </Note>
 {/* TODO: confirm with Engineering whether an OAuth-issued key can call POST /api/v4/profile/websocket_token (and its 10 req/60s limit) — copytrading-03. */}
 
@@ -143,7 +143,7 @@ A follower grants an OAuth-issued key on the WhiteBIT consent screen; the partne
 
 ### Per-follower fill tracking
 
-Poll [Query executed order history](/api-reference/spot-trading/query-executed-order-history) for per-follower fills, and subscribe to each follower's [Orders Executed](/websocket/account-streams/orders-executed) and [Deals](/websocket/account-streams/deals) account streams for real-time updates where an OAuth-issued key can obtain a WebSocket token (see the monitoring note under [Endpoints](#endpoints)). Reconcile each fill to its lead trade and follower with the `clientOrderId` set at placement.
+Poll [Query executed order history](/api-reference/trading/query-executed-order-history) for per-follower fills, and subscribe to each follower's [Orders Executed](/websocket/account-streams/orders-executed) and [Deals](/websocket/account-streams/deals) account streams for real-time updates where an OAuth-issued key can obtain a WebSocket token (see the monitoring note under [Endpoints](#endpoints)). Reconcile each fill to its lead trade and follower with the `clientOrderId` set at placement.
 
 ### Sandbox-free testing
 
@@ -159,7 +159,7 @@ Copy-trading access is approval-gated — it is not available by default and req
   <Card title="Fast API Key via OAuth" icon="key" href="/guides/fast-api-key-integration">
     The prerequisite flow: consent, key issuance, secret retrieval, signing, and revocation.
   </Card>
-  <Card title="Create Limit Order" icon="file-lines" href="/api-reference/spot-trading/create-limit-order">
+  <Card title="Create Limit Order" icon="file-lines" href="/api-reference/trading/create-limit-order">
     Full request and response schema for order placement.
   </Card>
   <Card title="App Builders Overview" icon="mobile-screen" href="/guides/app-builders-overview">

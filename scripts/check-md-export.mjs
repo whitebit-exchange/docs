@@ -17,7 +17,7 @@ const CANARIES = [
   // page path, what it exercises
   ['websocket/rate-limits', 'single component import (RegionBaseUrl)'],
   ['websocket/market-streams/trades', 'snippet component suite + ws-data module'],
-  ['api-reference/spot-trading/create-limit-order', 'WhitebitSigner + signer-fields data module'],
+  ['api-reference/trading/create-limit-order', 'WhitebitSigner + signer-fields data module'],
 ];
 const BASE = 'https://docs.whitebit.com';
 

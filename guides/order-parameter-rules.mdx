@@ -86,7 +86,7 @@ The [Retail flag](/glossary#retail-flag) designates an order as a retail-source 
 
 ### Issue
 
-A request to [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order) or [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order) sets both `rpi=true` and `retail=true`.
+A request to [`POST /api/v4/order/new`](/api-reference/trading/create-limit-order) or [`POST /api/v4/order/bulk`](/api-reference/trading/bulk-limit-order) sets both `rpi=true` and `retail=true`.
 
 ### Result
 
@@ -104,7 +104,7 @@ Sending `retail=true` from a private-API source requires the [Retail flag](/glos
 
 ### Issue
 
-A request to [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order) or [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order) sets `retail=true` from a private-API source, and the account does not have the Retail flag enabled.
+A request to [`POST /api/v4/order/new`](/api-reference/trading/create-limit-order) or [`POST /api/v4/order/bulk`](/api-reference/trading/bulk-limit-order) sets `retail=true` from a private-API source, and the account does not have the Retail flag enabled.
 
 ### Result
 
@@ -118,7 +118,7 @@ Contact the account manager to enable the Retail flag. After enablement, retry t
 
 ## BBO role and explicit price
 
-The `bboRole` parameter (available on [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order), [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order) items, and [`POST /api/v4/order/stop_limit`](/api-reference/spot-trading/create-stop-limit-order)) tells the system to select the best bid/offer price instead of an explicit limit price: `1` = Queue method, `2` = Counterparty method.
+The `bboRole` parameter (available on [`POST /api/v4/order/new`](/api-reference/trading/create-limit-order), [`POST /api/v4/order/bulk`](/api-reference/trading/bulk-limit-order) items, and [`POST /api/v4/order/stop_limit`](/api-reference/trading/create-stop-limit-order)) tells the system to select the best bid/offer price instead of an explicit limit price: `1` = Queue method, `2` = Counterparty method.
 
 - `price` is required only when `bboRole` is not set. When `bboRole` is set, the BBO method determines the execution price.
 - `postOnly` is allowed only when `bboRole` is not set.
