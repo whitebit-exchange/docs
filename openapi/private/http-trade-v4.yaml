@@ -1907,7 +1907,7 @@ paths:
               properties:
                 positionId:
                   type: integer
-                  description: "Unique identifier of the position to close. Obtain from the [open positions](/api-reference/collateral-trading/open-positions) endpoint."
+                  description: "Unique identifier of the position to close. Obtain from the [open positions](/api-reference/trading/open-positions) endpoint."
                   example: 123
                 positionSide:
                   type: string
@@ -3487,7 +3487,7 @@ paths:
       summary: Cancel conditional order
       operationId: cancelConditionalOrder
       description: |
-        The endpoint cancels an active conditional order ([OCO](/glossary#one-cancels-the-other-oco) or [OTO](/glossary#one-triggers-the-other-oto)) on the specified market. Both legs of the conditional order are cancelled. Use the [query unexecuted conditional orders](/api-reference/collateral-trading/query-unexecuted-conditional-orders) endpoint to obtain the conditional order `id` before cancellation.
+        The endpoint cancels an active conditional order ([OCO](/glossary#one-cancels-the-other-oco) or [OTO](/glossary#one-triggers-the-other-oto)) on the specified market. Both legs of the conditional order are cancelled. Use the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint to obtain the conditional order `id` before cancellation.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3534,7 +3534,7 @@ paths:
                   example: "BTC_USDT"
                 id:
                   type: integer
-                  description: "Conditional order identifier. Obtain from the [query unexecuted conditional orders](/api-reference/collateral-trading/query-unexecuted-conditional-orders) endpoint."
+                  description: "Conditional order identifier. Obtain from the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint."
                   example: 117703764514
                 request:
                   type: string
@@ -6178,7 +6178,7 @@ paths:
       summary: Query unexecuted(active) orders
       operationId: getActiveOrders
       description: |
-        The endpoint retrieves [active orders](/glossary#active-orders) (orders not yet executed). The response includes limit, stop-limit, and stop-market orders that remain open on the order book. Use the `market` parameter to filter by trading pair, or omit the parameter to retrieve orders across all markets. The endpoint supports pagination with `limit` and `offset` parameters.
+        The endpoint retrieves [active orders](/glossary#active-orders) (orders not yet executed) across spot, margin, and futures markets. The response includes limit, stop-limit, and stop-market orders that remain open on the order book. Use the `market` parameter to filter by trading pair, or omit the parameter to retrieve orders across all markets. The endpoint supports pagination with `limit` and `offset` parameters.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -6432,7 +6432,7 @@ paths:
       summary: Query executed order deals
       operationId: getOrderDeals
       description: |
-        The endpoint retrieves individual trade fills (deals) for a specific order. Each deal represents a partial or full execution of the order against a counterparty. The response includes pagination and returns deal details such as price, amount, fee, and execution role (maker or taker).
+        The endpoint retrieves individual trade fills (deals) for a specific order, which may belong to a spot, margin, or futures market. Each deal represents a partial or full execution of the order against a counterparty. The response includes pagination and returns deal details such as price, amount, fee, and execution role (maker or taker).
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -6594,7 +6594,7 @@ paths:
       summary: Query executed orders
       operationId: getOrderHistory
       description: |
-        The endpoint retrieves the history of executed and cancelled orders. The response groups orders by market name. Use the `market` parameter to filter by a single trading pair, or omit the parameter to retrieve orders across all markets. The endpoint supports pagination with `limit` (default 50, max 500) and `offset` parameters. Results are ordered by time, newest first.
+        The endpoint retrieves the history of executed and cancelled orders across spot, margin, and futures markets. The response groups orders by market name. Use the `market` parameter to filter by a single trading pair, or omit the parameter to retrieve orders across all markets. The endpoint supports pagination with `limit` (default 50, max 500) and `offset` parameters. Results are ordered by time, newest first.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.

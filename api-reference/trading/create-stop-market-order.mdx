@@ -1,0 +1,21 @@
+---
+title: "Create stop-market order"
+description: "Place a spot stop-market order for execution at market price when the trigger price is reached."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/stop_market"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-stop-market.jsx';
+import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
+
+<WhitebitSigner path="/api/v4/order/stop_market" fields={signerFields} />
+
+<RegionalRestrictionNote />
+
+
+<RelatedResources>
+- [Create stop-limit order](/api-reference/trading/create-stop-limit-order) — place a stop-limit order
+- [Query unexecuted orders](/api-reference/trading/query-unexecuted-orders) — list open orders
+- [Cancel order](/api-reference/trading/cancel-order) — cancel an open order
+</RelatedResources>

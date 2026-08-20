@@ -202,7 +202,7 @@ An automated strategy that places [limit orders](#limit-order) at fixed price in
 <AccordionGroup>
 <Accordion title="Hedge mode">
 
-An account-level setting for collateral trading accounts that allows simultaneous long and short [positions](#position-side) on the same market; when disabled, the account operates in one-way mode. Toggling requires zero open positions. See [Collateral account hedge mode](/api-reference/collateral-trading/collateral-account-hedge-mode) and [Update collateral account hedge mode](/api-reference/collateral-trading/update-collateral-account-hedge-mode).
+An account-level setting for collateral trading accounts that allows simultaneous long and short [positions](#position-side) on the same market; when disabled, the account operates in one-way mode. Toggling requires zero open positions. See [Collateral account hedge mode](/api-reference/trading/collateral-account-hedge-mode) and [Update collateral account hedge mode](/api-reference/trading/update-collateral-account-hedge-mode).
 </Accordion>
 
 <Accordion title="High-frequency trading (HFT)">
@@ -401,7 +401,7 @@ A type of [derivative](#derivative) contract for trading cryptocurrencies with n
 
 <Accordion title="PNL">
 
-Profit and loss on a position. `grossPnl` is the realized profit and loss before funding, with trading fees already deducted; `netPnl` is `grossPnl` minus total funding. See [Closed-position PNL](/api-reference/collateral-trading/closed-position-pnl).
+Profit and loss on a position. `grossPnl` is the realized profit and loss before funding, with trading fees already deducted; `netPnl` is `grossPnl` minus total funding. See [Closed-position PNL](/api-reference/trading/closed-position-pnl).
 </Accordion>
 
 <Accordion title="Position side">
@@ -450,12 +450,12 @@ RPI orders use post-only behavior by design. An RPI order does not support the I
 
 **Fees**
 
-RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use [`Query Market Fees`](/api-reference/spot-trading/query-market-fee) to retrieve account-wide fees, or [`Query Market Fee For A Single Market`](/api-reference/spot-trading/query-market-fee-single) to retrieve the effective fee for one market.
+RPI executions apply a specific [fee](#fee) or rebate model defined for the account. When a user trades through a [sub-account](#sub-account), the system applies the effective sub-account fee configuration. Use [`Query Market Fees`](/api-reference/trading/query-market-fee) to retrieve account-wide fees, or [`Query Market Fee For A Single Market`](/api-reference/trading/query-market-fee-single) to retrieve the effective fee for one market.
 </Accordion>
 
 <Accordion title="Retail flag">
 
-The `retail` request parameter on the [Create Limit Order](/api-reference/spot-trading/create-limit-order) and [Bulk Limit Order](/api-reference/spot-trading/bulk-limit-order) endpoints marks a [limit order](#limit-order) as a retail-source taker eligible to match against orders submitted by [Retail Price Improvement (RPI)](#retail-price-improvement-rpi) makers. The Retail flag is the taker-side counterpart to the `rpi` flag, which marks the maker side of the same feature.
+The `retail` request parameter on the [Create Limit Order](/api-reference/trading/create-limit-order) and [Bulk Limit Order](/api-reference/trading/bulk-limit-order) endpoints marks a [limit order](#limit-order) as a retail-source taker eligible to match against orders submitted by [Retail Price Improvement (RPI)](#retail-price-improvement-rpi) makers. The Retail flag is the taker-side counterpart to the `rpi` flag, which marks the maker side of the same feature.
 
 **Eligibility**
 
@@ -541,9 +541,9 @@ A main account manages a sub-account. The main account assigns specific permissi
 
 Crypto deposits are a separately enabled capability and are disabled by default. Once enabled for the account, the capability applies to the account and its sub-accounts; to request it, contact the assigned Account Manager or email institutional@whitebit.com.
 
-A sub-account can use a custom trading [fee](#fee) or rebate model defined for the sub-account. Use [`Query Market Fees`](/api-reference/spot-trading/query-market-fee) to retrieve effective fees when an API key belongs to a sub-account.
+A sub-account can use a custom trading [fee](#fee) or rebate model defined for the sub-account. Use [`Query Market Fees`](/api-reference/trading/query-market-fee) to retrieve effective fees when an API key belongs to a sub-account.
 
-[RPI](#retail-price-improvement-rpi) trading uses account-specific fees or rebates. When a user places RPI orders through a sub-account, the system applies the effective sub-account fees. Use [`Query Market Fees`](/api-reference/spot-trading/query-market-fee) to verify fees for RPI executions.
+[RPI](#retail-price-improvement-rpi) trading uses account-specific fees or rebates. When a user places RPI orders through a sub-account, the system applies the effective sub-account fees. Use [`Query Market Fees`](/api-reference/trading/query-market-fee) to verify fees for RPI executions.
 </Accordion>
 </AccordionGroup>
 

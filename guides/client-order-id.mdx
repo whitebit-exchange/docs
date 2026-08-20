@@ -175,7 +175,7 @@ Track orders using `clientOrderId` through the following endpoints:
 
 **1. Query Active Orders**
 
-Use the [Query Active Orders endpoint](/api-reference/spot-trading/query-unexecuted-orders) (`/api/v4/orders`) to get all unexecuted orders:
+Use the [Query Active Orders endpoint](/api-reference/trading/query-unexecuted-orders) (`/api/v4/orders`) to get all unexecuted orders:
 
 ```javascript
 // Request
@@ -205,7 +205,7 @@ Example response includes order details such as ID, status, and execution inform
 
 **2. Query Order History**
 
-Use the [Query Order History endpoint](/api-reference/spot-trading/query-executed-orders) (`/api/v4/trade-account/order/history`) to get executed orders:
+Use the [Query Order History endpoint](/api-reference/trading/query-executed-orders) (`/api/v4/trade-account/order/history`) to get executed orders:
 
 ```javascript
 // Request
@@ -241,7 +241,7 @@ Example response showing execution details and final order status. The response 
 
 **3. Cancelling Orders Using ClientOrderId**
 
-Use the [Cancel Order endpoint](/api-reference/spot-trading/cancel-order) (`/api/v4/order/cancel`) to cancel an order by its `clientOrderId`:
+Use the [Cancel Order endpoint](/api-reference/trading/cancel-order) (`/api/v4/order/cancel`) to cancel an order by its `clientOrderId`:
 
 ```javascript
 // Request
@@ -440,7 +440,7 @@ await cancelClientOrder('ind123', 'spot', '1678234567');
 
 #### Retrieving Historical Client Orders
 
-The [Query Order History endpoint](/api-reference/spot-trading/query-executed-orders) (`/api/v4/trade-account/order/history`) supports exact `clientOrderId` lookup only: pass the full identifier to retrieve a single order. When `clientOrderId` is supplied, the endpoint switches to single-order lookup mode and ignores the `startDate`, `endDate`, and `status` filters. Pattern or prefix matching on `clientOrderId` is not supported.
+The [Query Order History endpoint](/api-reference/trading/query-executed-orders) (`/api/v4/trade-account/order/history`) supports exact `clientOrderId` lookup only: pass the full identifier to retrieve a single order. When `clientOrderId` is supplied, the endpoint switches to single-order lookup mode and ignores the `startDate`, `endDate`, and `status` filters. Pattern or prefix matching on `clientOrderId` is not supported.
 
 ```javascript
 // Exact lookup of one client order (single-order mode)

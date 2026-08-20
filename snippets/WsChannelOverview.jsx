@@ -53,13 +53,14 @@ export const WsChannelOverview = ({ operations }) => {
         margin: "1.25rem 0",
         borderRadius: "0.5rem",
         border: "1px solid",
-        overflow: "hidden",
+        overflowX: "auto",
+        width: "fit-content",
+        maxWidth: "100%",
         fontSize: "0.8125rem",
       }}
       className="border-gray-200 dark:border-gray-700"
     >
       <table
-        className="w-full"
         style={{ margin: 0, borderCollapse: "collapse", tableLayout: "auto" }}
       >
         <thead>

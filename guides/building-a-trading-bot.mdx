@@ -219,7 +219,7 @@ See [Authentication](/api-reference/authentication) for the full signing walkthr
 
 Place a limit order using the order creation endpoint:
 
-**Endpoint:** [`POST /api/v4/order/new`](/api-reference/spot-trading/create-limit-order)
+**Endpoint:** [`POST /api/v4/order/new`](/api-reference/trading/create-limit-order)
 
 <Tabs>
   <Tab title="cURL">
@@ -258,7 +258,7 @@ Place a limit order using the order creation endpoint:
 
 Place up to 20 limit orders in a single request — one round trip instead of up to 20 for multi-order strategies.
 
-**Endpoint:** [`POST /api/v4/order/bulk`](/api-reference/spot-trading/bulk-limit-order)
+**Endpoint:** [`POST /api/v4/order/bulk`](/api-reference/trading/bulk-limit-order)
 
 <Tabs>
   <Tab title="cURL">
@@ -323,8 +323,8 @@ The transport numbers its errors independently of REST — see the [error refere
 The kill-switch cancels every active order on the configured market after a timeout that the bot must refresh. If the bot crashes or loses connectivity to the API, the timer expires and the API cancels every stale order automatically.
 
 **Endpoints:**
-- [`POST /api/v4/order/kill-switch`](/api-reference/spot-trading/sync-kill-switch-timer) — activate or refresh the timer
-- [`POST /api/v4/order/kill-switch/status`](/api-reference/spot-trading/status-kill-switch-timer) — check current timer state
+- [`POST /api/v4/order/kill-switch`](/api-reference/trading/sync-kill-switch-timer) — activate or refresh the timer
+- [`POST /api/v4/order/kill-switch/status`](/api-reference/trading/status-kill-switch-timer) — check current timer state
 
 ### Activate kill-switch
 
@@ -617,7 +617,7 @@ def reconcile_state(market, local_orders):
         print(f"Reconcile: adopting server-side order {oid}")
 ```
 
-Call `reconcile_state(MARKET, grid_orders)` after `authenticate_ws(ws)` and before re-subscribing. For a per-fill audit trail, also query [`POST /api/v4/trade-account/executed-history`](/api-reference/spot-trading/query-executed-order-history) to see fills that happened during the disconnect.
+Call `reconcile_state(MARKET, grid_orders)` after `authenticate_ws(ws)` and before re-subscribing. For a per-fill audit trail, also query [`POST /api/v4/trade-account/executed-history`](/api-reference/trading/query-executed-order-history) to see fills that happened during the disconnect.
 
 ## Worked example: Grid bot
 
@@ -687,7 +687,7 @@ async def handle_message(data):
   `asyncio.to_thread()` — blocking calls (including the backoff sleeps in
   `send_request_with_retry`) delay WebSocket message processing. When
   reconciling after a reconnect, confirm a vanished order's outcome via
-  [`POST /api/v4/trade-account/executed-history`](/api-reference/spot-trading/query-executed-order-history)
+  [`POST /api/v4/trade-account/executed-history`](/api-reference/trading/query-executed-order-history)
   before treating the disappearance as a fill.
 </Note>
 
