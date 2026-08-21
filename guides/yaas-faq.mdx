@@ -1,0 +1,97 @@
+---
+title: "Yield-as-a-Service FAQ"
+sidebarTitle: "FAQ"
+description: "Common questions about WhiteBIT Yield-as-a-Service: scope, the integration model, onboarding and access, operations, and how B2B yield differs from the self-service flow."
+icon: "circle-question"
+pageType: "program-faq"
+program: "yaas"
+---
+
+Answers to common questions about WhiteBIT Yield-as-a-Service (YaaS).
+
+## Scope and delivery
+
+### What Yield-as-a-Service delivers
+
+YaaS lets a partner offer WhiteBIT Crypto Lending yield to end users through the API, under the
+partner's own brand. See the [overview](/guides/yaas-overview).
+
+### Difference from the self-service quickstart
+
+The [Crypto Lending quickstart](/products/lending/quickstart) shows the self-service flow for a
+single account; YaaS adds the B2B layer — a sub-account per end user, funding, and per-user
+reconciliation. See the [Integration guide](/guides/yaas-integration).
+
+## Integration model
+
+### How end-user funds are segregated
+
+Each end user earns in a dedicated sub-account with independent balances and history; the master
+account is the funding hub. See [How it works](/guides/yaas-overview#how-it-works).
+
+### Whether end users need separate WhiteBIT accounts
+
+End users do not open separate accounts — each is provisioned as a sub-account under the partner's
+master account (Model A). See [Sub-Accounts](/products/sub-accounts/overview).
+
+### Pooled account
+
+A single pooled (omnibus) account for end-user funds is not offered, because pooled custody
+conflicts with client-fund segregation and Travel Rule requirements. See
+[why not a pooled account](/concepts/integration-models#why-not-a-pooled-account).
+
+## Onboarding and access
+
+### How lending access is granted
+
+Crypto Lending is available on the master account with B2B access; on sub-accounts it is not enabled
+by default and must be enabled per sub-account on request. See
+[How to get started](/guides/yaas-overview#how-to-get-started).
+
+### API key type for a sub-account
+
+Running lending on a sub-account requires a **type:2** key (info, trading, deposits, withdraws). See
+[Prerequisites](/guides/yaas-integration#prerequisites).
+
+## Operations
+
+### Tracking each end user's earnings
+
+Each sub-account's investments and payment history are that end user's earnings; there is no
+aggregated cross-sub report, so reconciliation is per sub-account. See
+[Reconcile earnings per user](/guides/yaas-integration#4-reconcile-earnings-per-user).
+
+### Fixed versus flexible plans
+
+Fixed plans lock funds for a term with interest paid at maturity; flexible plans allow withdrawal
+anytime with interest credited daily. See [Crypto Lending](/products/lending/overview).
+
+### Test environment availability
+
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts. See
+the [Integration guide](/guides/yaas-integration#testing).
+
+## Compliance
+
+### Regulatory review
+
+Eligibility to offer yield to end users is assessed during KYB and handled as part of onboarding
+rather than in the API. See [Regulatory Compliance](/institutional/compliance).
+
+## Support
+
+### Support contacts
+
+The assigned account manager is the primary contact; programs and onboarding go to
+`institutional@whitebit.com`. See [Institutional Onboarding](/institutional/onboarding).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="piggy-bank" href="/guides/yaas-overview">
+    What Yield-as-a-Service provides, the model, and how to apply.
+  </Card>
+  <Card title="Integration" icon="code" href="/guides/yaas-integration">
+    Provision sub-accounts, invest, and reconcile earnings.
+  </Card>
+</CardGroup>

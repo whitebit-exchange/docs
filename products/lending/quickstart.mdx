@@ -92,39 +92,16 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
   </Step>
 
   <Step title="Create a Flex investment">
-    Invest into the selected Flex plan using the plan ID from Step 1.
+    Invest into the selected Flex plan using the plan ID from Step 1. Sign the request as in Step 1
+    (`make_request` builds the payload and signature); for language clients, see [SDKs](/sdks).
 
-    <Tabs>
-      <Tab title="cURL">
-        ```bash
-        curl -X POST https://whitebit.com/api/v4/main-account/smart-flex/investments/invest \
-          -H "Content-Type: application/json" \
-          -H "X-TXC-APIKEY: YOUR_API_KEY" \
-          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{
-            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
-            "amount": "100.00",
-            "withReinvest": true,
-            "request": "/api/v4/main-account/smart-flex/investments/invest",
-            "nonce": 1709340000001
-          }'
-        ```
-      </Tab>
-      <Tab title="Python">
-        ```python
-        # Create a Flex investment (use plan ID from Step 1)
-        response = make_request("/api/v4/main-account/smart-flex/investments/invest", {
-            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
-            "amount": "100.00",
-            "withReinvest": True,
-        })
-        print(response.json())
-        ```
-      </Tab>
-    </Tabs>
+    **Endpoint:** `POST /api/v4/main-account/smart-flex/investments/invest`
 
-    **Required fields:** `plan` (UUID from Step 1), `amount` (string). **Optional:** `withReinvest` (boolean, enables auto-reinvestment).
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `plan` | string (UUID) | Yes | Plan ID from Step 1 |
+    | `amount` | string | Yes | Amount to invest |
+    | `withReinvest` | boolean | No | Enables auto-reinvestment |
 
     **Expected response:**
     ```json
@@ -137,28 +114,9 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
   </Step>
 
   <Step title="Check investment status">
-    Verify the investment was created and check the current investment status.
+    Verify the investment was created and check its status. Sign the request as in Step 1.
 
-    <Tabs>
-      <Tab title="cURL">
-        ```bash
-        curl -X POST https://whitebit.com/api/v4/main-account/smart-flex/investments \
-          -H "Content-Type: application/json" \
-          -H "X-TXC-APIKEY: YOUR_API_KEY" \
-          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{"request": "/api/v4/main-account/smart-flex/investments", "nonce": 1709340000002}'
-        ```
-      </Tab>
-      <Tab title="Python">
-        ```python
-        # Check active investments
-        response = make_request("/api/v4/main-account/smart-flex/investments", {})
-        investments = response.json()
-        print(json.dumps(investments, indent=2))
-        ```
-      </Tab>
-    </Tabs>
+    **Endpoint:** `POST /api/v4/main-account/smart-flex/investments` (no additional fields)
 
     **Expected response:**
     ```json
@@ -180,37 +138,14 @@ The four endpoints below cover the full Flex lifecycle — fetch plans, invest, 
   </Step>
 
   <Step title="Withdraw from investment">
-    Withdraw funds from the Flex investment back to Main balance.
+    Withdraw funds from the Flex investment back to Main balance. Sign the request as in Step 1.
 
-    <Tabs>
-      <Tab title="cURL">
-        ```bash
-        curl -X POST https://whitebit.com/api/v4/main-account/smart-flex/investments/withdraw \
-          -H "Content-Type: application/json" \
-          -H "X-TXC-APIKEY: YOUR_API_KEY" \
-          -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
-          -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
-          -d '{
-            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
-            "amount": "50.00",
-            "request": "/api/v4/main-account/smart-flex/investments/withdraw",
-            "nonce": 1709340000003
-          }'
-        ```
-      </Tab>
-      <Tab title="Python">
-        ```python
-        # Withdraw from Flex investment (partial withdrawal)
-        response = make_request("/api/v4/main-account/smart-flex/investments/withdraw", {
-            "plan": "8f2e9d3c-1a4b-4c2d-9e5f-6a7b8c9d0e1f",
-            "amount": "50.00",
-        })
-        print(response.json())
-        ```
-      </Tab>
-    </Tabs>
+    **Endpoint:** `POST /api/v4/main-account/smart-flex/investments/withdraw`
 
-    **Required fields:** `plan` (UUID), `amount` (string). Partial withdrawals are supported. To withdraw everything, use the full invested amount.
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `plan` | string (UUID) | Yes | The plan to withdraw from |
+    | `amount` | string | Yes | Amount to withdraw; partial withdrawals supported (use the full invested amount to withdraw everything) |
 
     **Expected response:**
     ```json
