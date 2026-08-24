@@ -132,7 +132,7 @@ The Collateral Trading API now returns one aggregated profit-and-loss record per
 ## RPI maker fee premiums on Query Market Fees
 **New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**
 
-The Query Market Fees response returns the RPI maker fee premium, an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` covers spot and margin markets; `futures_rpi_maker_fee_premium` covers futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. The endpoint returns both fields for every account, regardless of whether the RPI order mode is enabled; each field returns `null` when the trade engine reports no premium for the account, and a premium configured as zero is returned as `"0"`.
+The Query Market Fees response returns the RPI maker fee premium, an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` covers spot and margin markets; `futures_rpi_maker_fee_premium` covers futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. The endpoint returns both fields for every account, regardless of whether the RPI order mode is enabled; each field returns `null` when no premium is configured for the account, and a premium configured as zero is returned as `"0"`.
 
 <CardGroup cols={2}>
   <Card title="Query market fees" href="/api-reference/trading/query-market-fee" icon="percent" horizontal/>
