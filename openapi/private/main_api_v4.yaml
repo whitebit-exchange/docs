@@ -2095,6 +2095,149 @@ paths:
                     errors:
                       currency: ["Deposit to this currency is disabled"]
 
+  /api/v4/main-account/transfer/history:
+    post:
+      tags:
+        - Transfer
+      summary: Get transfer history
+      description: |
+        The endpoint returns the history of transfers between the [main](/glossary#balance-main), [spot](/glossary#balance-spotbalance-trade) and [collateral](/glossary#balance-collateral) balances of the authenticated account, newest first.
+
+        The endpoint requires an API key with the **Balance transfer** permission enabled — the same permission as [Transfer between balances](/api-reference/account-wallet/transfer-between-balances).
+
+        For transfers between a main account and its [sub-accounts](/glossary#sub-account), use [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) instead.
+
+        <Note>
+        Every transfer is recorded with the main balance on one side. A transfer between the spot and collateral balances executes as two steps through the main balance, so such a transfer appears as two records — `spot → main` and `main → collateral` — each carrying a separate identifier and the full transferred amount. Account for both records when summing amounts. Filter combinations that cannot be stored (`spot` with `collateral`, `collateral` with `spot`, or the same balance on both sides) return an empty `data` array — filter by the individual legs instead.
+        </Note>
+
+        <Note>
+        Records are ordered from newest to oldest by the order of execution. Neither `id` nor `created_at` is a sort key — `id` is a random identifier, and two records can share the same `created_at` second — so page through the history with `limit` and `offset`. The response carries no total count and no cursor: a returned count below `limit` marks the last page, and an empty array means no further records. `offset` cannot exceed `10000` — for a longer history, use report generation on the History page.
+        </Note>
+
+        <Note>
+        The API does not cache the response. `POST /api/v4/main-account/transfer` returns `201` as soon as a transfer is queued, so a request sent immediately afterwards can return no records yet. The history also covers transfers the platform performs for the account, such as mining-pool conversions, and transfers in delisted currencies. Every returned transfer is completed.
+        </Note>
+      operationId: getMainAccountTransferHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                from_balance:
+                  type: string
+                  description: |
+                    Balance FROM which funds moved. Acceptable values: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade), [**collateral**](/glossary#balance-collateral). Do not send this parameter in order to receive transfers from every balance.
+
+                    Values are case-sensitive — `main`, not `MAIN`. An empty string counts as no filter.
+                  enum: [main, spot, collateral]
+                  example: "main"
+                to_balance:
+                  type: string
+                  description: |
+                    Balance TO which funds moved. Acceptable values: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade), [**collateral**](/glossary#balance-collateral). Do not send this parameter in order to receive transfers to every balance.
+
+                    Values are case-sensitive — `main`, not `MAIN`. An empty string counts as no filter.
+                  enum: [main, spot, collateral]
+                  example: "spot"
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 100
+                  description: "Number of records to return. Default: 100, Min: 1, Max: 100"
+                  example: 50
+                offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                  description: "Number of records to skip. Default: 0, Min: 0, Max: 10000"
+                  example: 0
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: Unique request identifier
+                  example: 1594297865000
+            examples:
+              firstPage:
+                summary: First page, transfers between all balances
+                value:
+                  limit: 50
+                  offset: 0
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              secondPage:
+                summary: Second page, filtered by source balance
+                value:
+                  from_balance: "main"
+                  limit: 50
+                  offset: 50
+                  request: "{{request}}"
+                  nonce: 1594297865000
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    description: Transfers ordered from newest to oldest.
+                    items:
+                      $ref: "#/components/schemas/MainAccountBalanceTransfer"
+                  limit:
+                    type: integer
+                    description: Number of records requested, echoed from the request.
+                  offset:
+                    type: integer
+                    description: Number of records skipped, echoed from the request.
+              example:
+                data:
+                  - id: "b1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+                    currency: "USDT"
+                    amount: "150.5"
+                    from_balance: "main"
+                    to_balance: "spot"
+                    created_at: 1755000000
+                  - id: "9c8b7a6d-5e4f-4a3b-9c8d-7e6f5a4b3c2d"
+                    currency: "USDT"
+                    amount: "40"
+                    from_balance: "main"
+                    to_balance: "collateral"
+                    created_at: 1754990000
+                  - id: "5f4e3d2c-1b0a-4c9d-8e7f-6a5b4c3d2e1f"
+                    currency: "USDT"
+                    amount: "40"
+                    from_balance: "spot"
+                    to_balance: "main"
+                    created_at: 1754990000
+                limit: 50
+                offset: 0
+        "400":
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                unsupportedBalance:
+                  summary: Unsupported balance value
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      from_balance: ["The selected from_balance is invalid."]
   /api/v4/main-account/history:
     post:
       tags:
@@ -8269,6 +8412,37 @@ components:
               type: integer
               description: Required number of confirmations
               example: 6
+
+    MainAccountBalanceTransfer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Transfer identifier (UUID). Each record carries a separate identifier, including both records of a transfer between the spot and collateral balances.
+          example: "b1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+        currency:
+          type: string
+          description: "Currency's [ticker](/glossary#ticker). Example: USDT"
+          example: "USDT"
+        amount:
+          type: string
+          description: Transferred amount, with trailing zeros trimmed.
+          example: "150.5"
+        from_balance:
+          type: string
+          description: "Balance FROM which funds moved: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade) or [**collateral**](/glossary#balance-collateral)"
+          enum: [main, spot, collateral]
+          example: "main"
+        to_balance:
+          type: string
+          description: "Balance TO which funds moved: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade) or [**collateral**](/glossary#balance-collateral)"
+          enum: [main, spot, collateral]
+          example: "spot"
+        created_at:
+          type: integer
+          description: Time the transfer was executed, as a Unix timestamp in seconds. Not the time the transfer request was accepted.
+          example: 1755000000
 
     CodeInfo:
       type: object
