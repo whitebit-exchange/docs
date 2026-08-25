@@ -7060,9 +7060,9 @@ paths:
       summary: Modify order
       operationId: modifyOrder
       description: |
-        The endpoint modifies existing [order](/glossary#orders).
+        The endpoint modifies an existing [order](/glossary#orders) on spot, margin, and futures markets. There is no separate collateral path: collateral orders go through this endpoint, and the `market` parameter identifies which market the order belongs to.
         
-        Supported order types: limit, stop limit, stop market.
+        Supported order types: limit, stop limit, stop market. On collateral markets the supported types are the collateral limit, collateral stop-limit, and collateral trigger-market orders.
         
         Request must contain at least one of the following parameters: amount, total, price, activationPrice.
 
@@ -7074,6 +7074,7 @@ paths:
         - Use total parameter instead of amount for modify buy stop market order. `amount` and `total` are mutually exclusive — a request sending both is rejected.
         - The request accepts exactly one identifier: either `orderId` or `clientOrderId`.
         - Sending both identifiers, or neither, returns a validation error.
+        - Group legs cannot be modified. An OCO or OTO leg returns error `155`: cancel the group and place a new one. A TPSL leg returns error `160`: cancel the leg and attach a new pair.
         </Note>
 
         <Note>

@@ -4,7 +4,7 @@ sidebarTitle: "Collateral overview"
 description: "Overview of collateral (margin) trading endpoints for managing positions, leverage, and collateral orders."
 ---
 
-Collateral trading enables leveraged trading using margin. Manage the collateral account balance, place various order types (limit, market, stop-limit, OCO), query open orders, and manage positions.
+Collateral trading enables leveraged trading using margin. Manage the collateral account balance, place various order types (limit, market, stop-limit, OCO), modify and query open orders, and manage positions.
 
 For general API conventions (base URL, error format, rate limits), see the [API Reference Overview](/api-reference/overview).
 
@@ -59,7 +59,18 @@ For general API conventions (base URL, error format, rate limits), see the [API 
   <Card title="Cancel Conditional Order" icon="ban" href="/api-reference/trading/cancel-conditional-order">
     Cancel a conditional order
   </Card>
+  <Card title="Modify Order" icon="pen-to-square" href="/api-reference/trading/modify-order">
+    Modify an open order on spot or collateral markets
+  </Card>
 </CardGroup>
+
+Order modification uses the shared `POST /api/v4/order/modify` endpoint. There is no
+collateral-specific path; the `market` parameter identifies which market the order belongs
+to.
+
+Group legs are the exception. To change an OCO or OTO leg, cancel the group and place a new
+one. To change a [TPSL pair](/websocket/order-management/collateral-order-tpsl-place), which
+is placed over WebSocket, cancel the leg and attach a new pair.
 
 ---
 
