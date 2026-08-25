@@ -369,6 +369,30 @@ WhiteBIT futures markets now apply Auto-Deleveraging as the final stage of liqui
 </CardGroup>
 </Update>
 
+<Update label="March 12, 2026">
+## Deprecation: OCO and OTO cancel endpoints
+**`POST /api/v4/order/oco-cancel` and `POST /api/v4/order/oto-cancel` are being retired**
+
+WhiteBIT is discontinuing support for the two dedicated conditional-cancel endpoints. Cancel OCO and OTO orders through [`POST /api/v4/order/conditional-cancel`](/api-reference/trading/cancel-conditional-order), which handles both order types on every collateral market.
+
+**Migration guide:**
+- Replace calls to `POST /api/v4/order/oco-cancel` and `POST /api/v4/order/oto-cancel` with `POST /api/v4/order/conditional-cancel`.
+- Send the conditional order `id` in place of `orderId` or `otoId`. The value is the same identifier, returned as `id` by [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders).
+- An integration that cancels OCO orders by `clientOrderId` must resolve the client order id to the conditional order `id` first through [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders). The replacement endpoint does not accept `clientOrderId`.
+- Expect an empty array in the response. `POST /api/v4/order/oco-cancel` returns the canceled `stop_loss` and `take_profit` legs; the replacement does not. An integration that logs the canceled legs can read the final leg state from [query executed orders](/api-reference/trading/query-executed-orders), within a 31-day request window reaching back 6 months. For B2B accounts, canceled orders are not recorded in order history; contact support or the assigned account manager to retrieve canceled-leg data.
+
+**Impact:** Integrations calling either endpoint must migrate. Integrations that cancel OCO orders by `clientOrderId`, or that read the canceled legs from the response, need an extra lookup rather than a direct swap.
+
+**Backward compatibility:** Both endpoints keep working until the sunset date.
+
+**Sunset date:** To be announced.
+
+<CardGroup cols={2}>
+  <Card title="Cancel conditional order" href="/api-reference/trading/cancel-conditional-order" icon="ban" horizontal/>
+  <Card title="Query unexecuted conditional orders" href="/api-reference/trading/query-unexecuted-conditional-orders" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="March 6, 2026">
 ## Mining Pool API
 **Comprehensive mining pool management endpoints**

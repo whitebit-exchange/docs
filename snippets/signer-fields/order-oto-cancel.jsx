@@ -3,6 +3,6 @@
 // Regenerate: node scripts/generate-signer-fields.mjs
 
 export const signerFields = [
-  {"name":"market","type":"string","required":true,"example":"BTC_USDT"},
-  {"name":"otoId","type":"integer","required":true,"example":"117703764514"},
+  {"name":"market","type":"string","required":true,"description":"Market of the OTO order to cancel. Example: BTC_USDT","example":"BTC_USDT"},
+  {"name":"otoId","type":"integer","required":true,"description":"OTO order identifier. Obtain from the query unexecuted conditional orders endpoint — the id field of every record with type set to oto.","example":"29457221"},
 ];

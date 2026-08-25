@@ -2753,7 +2753,7 @@ paths:
       summary: Query unexecuted(active) conditional orders
       operationId: getConditionalOrders
       description: |
-        The endpoint returns active (unexecuted) conditional orders for the authenticated account. Conditional orders include [OCO](/glossary#one-cancels-the-other-oco) and [OTO](/glossary#one-triggers-the-other-oto) types. The response uses polymorphic structure — each record contains a `type` field (`oco` or `oto`) that determines the record shape. Use the optional `market` parameter to filter results.
+        The endpoint returns active (unexecuted) conditional orders for the authenticated account. Conditional orders include [OCO](/glossary#oco-orders) and [OTO](/glossary#one-triggers-the-other-oto) types. The response uses polymorphic structure — each record contains a `type` field (`oco` or `oto`) that determines the record shape. Use the optional `market` parameter to filter results.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -2973,7 +2973,7 @@ paths:
       summary: Query unexecuted(active) OCO orders
       operationId: getOcoOrders
       description: |
-        The endpoint returns active (unexecuted) [OCO](/glossary#one-cancels-the-other-oco) orders for the authenticated account. Each OCO order contains a `stop_loss` and `take_profit` leg. When one leg executes, the system cancels the other automatically. Use the optional `market` parameter to filter results.
+        The endpoint returns active (unexecuted) [OCO](/glossary#oco-orders) orders for the authenticated account. Each OCO order contains a `stop_loss` and `take_profit` leg. When one leg executes, the system cancels the other automatically. Use the optional `market` parameter to filter results.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -3115,7 +3115,7 @@ paths:
       summary: Create collateral OCO order
       operationId: createCollateralOcoOrder
       description: |
-        The endpoint creates a collateral [OCO](/glossary#one-cancels-the-other-oco) (one-cancels-the-other) order using [collateral balance](/glossary#balance-collateral). An OCO order combines a limit order (take-profit leg) and a stop-limit order (stop-loss leg) into a single conditional group. When one leg executes, the system cancels the other automatically.
+        The endpoint creates a collateral [OCO](/glossary#oco-orders) (one-cancels-the-other) order using [collateral balance](/glossary#balance-collateral). An OCO order combines a limit order (take-profit leg) and a stop-limit order (stop-loss leg) into a single conditional group. When one leg executes, the system cancels the other automatically.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3487,7 +3487,7 @@ paths:
       summary: Cancel conditional order
       operationId: cancelConditionalOrder
       description: |
-        The endpoint cancels an active conditional order ([OCO](/glossary#one-cancels-the-other-oco) or [OTO](/glossary#one-triggers-the-other-oto)) on the specified market. Both legs of the conditional order are cancelled. Use the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint to obtain the conditional order `id` before cancellation.
+        The endpoint cancels an active conditional order ([OCO](/glossary#oco-orders) or [OTO](/glossary#one-triggers-the-other-oto)) on the specified market. Both legs of the conditional order are cancelled. Use the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint to obtain the conditional order `id` before cancellation.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3535,7 +3535,7 @@ paths:
                 id:
                   type: integer
                   description: "Conditional order identifier. Obtain from the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint."
-                  example: 117703764514
+                  example: 117703764513
                 request:
                   type: string
                   example: "{{request}}"
@@ -3544,7 +3544,7 @@ paths:
                   example: 1594297865000
             example:
               market: BTC_USDT
-              id: 117703764514
+              id: 117703764513
               request: "{{request}}"
               nonce: 1594297865000
       responses:
@@ -3577,8 +3577,16 @@ paths:
     post:
       summary: Cancel OCO order
       operationId: cancelOcoOrder
+      deprecated: true
       description: |
-        The endpoint cancels an OCO order. Identify the order by `orderId` or `clientOrderId` — exactly one of the two must be provided. A request specifying both identifiers, or neither, fails validation.
+        <Warning>
+        **Deprecated.** The endpoint is deprecated as of March 12, 2026. Sunset date: to be announced. Use [cancel conditional order](/api-reference/trading/cancel-conditional-order) (`POST /api/v4/order/conditional-cancel`), which cancels both OCO and OTO orders.
+
+        </Warning>
+
+        The replacement identifies the order by `id` only. An integration that cancels by `clientOrderId` must first resolve the client order id to the conditional order `id` through [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders). The replacement also returns an empty array rather than the canceled legs.
+
+        The endpoint cancels an [OCO](/glossary#oco-orders) order. Identify the order by `orderId` or `clientOrderId` — exactly one of the two must be provided. A request specifying both identifiers, or neither, fails validation.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3721,8 +3729,13 @@ paths:
     post:
       summary: Cancel OTO order
       operationId: cancelOtoOrder
+      deprecated: true
       description: |
-        The endpoint cancels an OTO order.
+        <Warning>
+        **Deprecated.** The endpoint is deprecated as of March 12, 2026. Sunset date: to be announced. Use [cancel conditional order](/api-reference/trading/cancel-conditional-order) (`POST /api/v4/order/conditional-cancel`), which cancels both OCO and OTO orders and takes the same identifier under the name `id`.
+        </Warning>
+
+        The endpoint cancels an [OTO](/glossary#one-triggers-the-other-oto) order on the specified market. The [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint returns `otoId` as the `id` field of every record with `type` set to `oto`.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3765,10 +3778,12 @@ paths:
               properties:
                 market:
                   type: string
+                  description: "Market of the OTO order to cancel. Example: BTC_USDT"
                   example: "BTC_USDT"
                 otoId:
                   type: integer
-                  example: 117703764514
+                  description: "OTO order identifier. Obtain from the [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) endpoint — the `id` field of every record with `type` set to `oto`."
+                  example: 29457221
                 request:
                   type: string
                   example: "{{request}}"
@@ -3777,7 +3792,7 @@ paths:
                   example: 1594297865000
             example:
               market: BTC_USDT
-              otoId: 117703764514
+              otoId: 29457221
               request: "{{request}}"
               nonce: 1594297865000
       responses:
