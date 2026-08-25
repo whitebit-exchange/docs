@@ -4,5 +4,5 @@
 
 export const signerFields = [
   {"name":"market","type":"string","required":true,"description":"Market of the conditional order to cancel. Example: BTC_USDT","example":"BTC_USDT"},
-  {"name":"id","type":"integer","required":true,"description":"Conditional order identifier. Obtain from the query unexecuted conditional orders endpoint.","example":"117703764514"},
+  {"name":"id","type":"integer","required":true,"description":"Conditional order identifier. Obtain from the query unexecuted conditional orders endpoint.","example":"117703764513"},
 ];
