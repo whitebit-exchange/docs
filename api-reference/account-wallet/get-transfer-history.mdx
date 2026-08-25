@@ -1,0 +1,15 @@
+---
+title: "Get transfer history"
+description: "Retrieve the history of transfers between main, spot, and collateral balances of a WhiteBIT account via the V4 API."
+openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/transfer/history
+playground: none
+---
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/main-account-transfer-history.jsx';
+
+<WhitebitSigner path="/api/v4/main-account/transfer/history" fields={signerFields} />
+
+## Rate limit
+
+<RestRateLimit requests={1000} period="10 seconds" scope="/api/v4/main-account/*" />
