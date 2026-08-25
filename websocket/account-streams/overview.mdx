@@ -24,6 +24,14 @@ Several Account Stream channels return a `type` field identifying the order type
 | 10 | Margin stop market |
 | 14 | Margin normalization |
 
+<Note>
+**Type 14 (Margin normalization)** is a system-generated order, not one the account places. The platform creates it to settle a negative balance or on borrow closure (for example, a fee deduction or a funding accrual that pushes a balance below zero). Despite the name, it is not limited to margin markets and can also occur on spot.
+
+A normalization order always executes as the taker, and it is not subject to [self-trade prevention](/platform/self-trade-prevention), so it can match against the account's own resting order. When it does, both sides of the trade belong to the account. A taker fee is charged at the account's taker rate.
+
+On execution, an update is delivered on both `ordersExecuted_update` (with `type` 14) and `deals_update`. The order type is carried on `ordersExecuted_update`; `deals_update` rows do not include an order-type field.
+</Note>
+
 ## Channels
 
 <CardGroup cols={2}>
