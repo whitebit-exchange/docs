@@ -35,11 +35,13 @@ Transfers between account types use a single endpoint and are instant and fee-fr
 ```
 Main ↔ Trade          (for spot trading)
 Main ↔ Collateral     (for margin and futures trading)
+Trade ↔ Collateral    (executed as two steps through Main)
 ```
 
-The `/api/v4/main-account/transfer` endpoint supports only Main ↔ Trade and Main ↔ Collateral — to move funds between Trade and Collateral via the API, route through Main (two transfers). The platform UI exposes a direct Trade ↔ Collateral transfer, but the same Main-routed transfers happen under the hood.
+Every transfer is stored with Main on one side. A direct Trade ↔ Collateral transfer is accepted — the platform executes such a transfer as two steps through Main, so transfer history returns two records, `spot → main` and `main → collateral`, each carrying the full amount. The platform UI exposes the same direct Trade ↔ Collateral transfer, and the same Main-routed steps happen under the hood.
 
 - Transfer endpoint: `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
+- Transfer history endpoint: `POST /api/v4/main-account/transfer/history` — [API Reference](/api-reference/account-wallet/get-transfer-history)
 
 Transfer direction is controlled via the `method` parameter:
 - `deposit` — Main → Trade

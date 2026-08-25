@@ -68,7 +68,7 @@ Liquidation can occur when the maintenance margin threshold is breached. Key det
 
 | Detail | Value |
 |--------|-------|
-| Endpoints | 19 shared with Futures (all `POST`, all authenticated) |
+| Endpoints | 21 shared with Futures (all `POST`, all authenticated) |
 | Authentication | HMAC-SHA512 ([guide](/api-reference/authentication)) |
 | Rate limits | Vary per endpoint ([details](/api-reference/rate-limits)) |
 | Pair format | Spot pairs: `BTC_USDT`, `ETH_USDT`, etc. |
@@ -77,7 +77,9 @@ Endpoint categories (shared with Futures Trading):
 - **Account & Balance** — Balance, balance summary, account summary, leverage, hedge mode (6 endpoints)
 - **Order Management** — Limit, bulk-limit, market, stop-limit, trigger-market, OCO, cancel (7 endpoints)
 - **Order Queries** — Conditional orders, OCO orders (2 endpoints)
-- **Position Management** — Open positions, close position, position history, funding history (4 endpoints)
+- **Position Management** — Open positions, ADL quantile (returns perpetual markets only), close position, position history, closed-position PNL, funding history (6 endpoints)
+
+There is no collateral-specific modify endpoint. The shared [modify order](/api-reference/trading/modify-order) endpoint covers collateral markets.
 
 The pair name determines whether an order is Margin or Futures. Spot pairs (e.g., `BTC_USDT`) route to Margin. Perpetual pairs (e.g., `BTC_PERP`) route to Futures.
 
@@ -95,6 +97,6 @@ For Go and PHP examples, see [SDKs](/sdks).
     Compare with perpetual contracts — up to 100x leverage and Hedge Mode.
   </Card>
   <Card title="API Reference" icon="square-terminal" href="/api-reference/trading/collateral-overview">
-    Full endpoint documentation for all 19 collateral trading endpoints.
+    Full endpoint documentation for all 21 collateral trading endpoints.
   </Card>
 </CardGroup>
