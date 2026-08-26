@@ -1628,6 +1628,18 @@ paths:
               example:
                 code: 1
                 message: "This action is unauthorized. Please, enable Two-Factor authentication."
+        "401":
+          description: |
+            The API key is not authorized for this endpoint. Occurs with a [sub-account](/glossary#sub-account)
+            key whose `/api/v4/main-account/withdraw` URL is still `enable: false`. Enable it with
+            [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key), then retry.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 4
+                message: "This API Key is not authorized to perform this action."
 
   /api/v4/main-account/withdraw-pay:
     post:
@@ -5817,9 +5829,12 @@ paths:
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
 
         <Note>
-        A `type: 2` key carries deposit and withdrawal permissions, but crypto deposits must also
-        be enabled for the account. Deposits are disabled by default — to enable them, contact your
-        assigned Account Manager or email institutional@whitebit.com.
+        A `type: 2` key includes the withdrawal permission group, but its URLs default to `enable: false`.
+        Enable the ones the key uses (for example `/api/v4/main-account/withdraw`) with
+        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); until then
+        `/api/v4/main-account/withdraw` returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
+        Crypto deposits additionally require deposits to be enabled for the account — disabled by default,
+        contact your assigned Account Manager or email institutional@whitebit.com.
         </Note>
 
         <Warning>
@@ -5942,7 +5957,9 @@ paths:
                   example: "Trading Bot Key"
                 urls:
                   type: array
-                  description: Array of URL objects for API key restrictions
+                  description: |
+                    Array of URL objects for API key restrictions. The array is merged into the key's
+                    existing settings — URLs not listed keep their current `enable` value.
                   items:
                     type: object
                     properties:
@@ -8893,18 +8910,34 @@ components:
           example: false
         accessEndpoints:
           type: array
-          description: "List of allowed endpoints"
+          description: |
+            Permission groups for the key. Each group lists its individual endpoint URLs and whether
+            each is enabled. On a newly created key every URL defaults to `enable: false`; enable the
+            required URLs with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key)
+            before calling them (for example `/api/v4/main-account/withdraw`).
           items:
             type: object
             properties:
               name:
                 type: string
-                description: "Endpoint name"
-                example: "/api/v4/main-account/balance"
+                description: "Permission group name"
+                example: "withdraw"
               title:
                 type: string
-                description: "Endpoint title"
-                example: "Get Balance"
+                description: "Permission group title"
+                example: "Withdraw"
+              urls:
+                type: array
+                description: "Endpoint URLs in this group and their enabled state"
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      example: "/api/v4/main-account/withdraw"
+                    enable:
+                      type: boolean
+                      example: false
 
     SubAccountApiKeyList:
       type: object
@@ -8939,15 +8972,30 @@ components:
           example: false
         accessEndpoints:
           type: array
+          description: |
+            Permission groups for the key. Each group lists its individual endpoint URLs and whether
+            each is enabled. On a newly created key every URL defaults to `enable: false`; enable the
+            required URLs with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key).
           items:
             type: object
             properties:
               name:
                 type: string
-                example: "/api/v4/main-account/balance"
+                example: "withdraw"
               title:
                 type: string
-                example: "Get Balance"
+                example: "Withdraw"
+              urls:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      example: "/api/v4/main-account/withdraw"
+                    enable:
+                      type: boolean
+                      example: false
 
     MiningReward:
       type: object
