@@ -48,7 +48,8 @@ Store API secrets using environment variables or a dedicated secrets management 
 
 Rotate API keys regularly and monitor for inactive key auto-deactivation.
 
-- **Auto-deactivation:** API keys that remain unused for **14 consecutive days** are automatically deactivated
+- **Auto-deactivation:** API keys that remain unused for **14 consecutive days** are automatically deactivated. An IP whitelist does not exempt a key from this rule
+- **Reserve keys:** Send one authenticated request from each standby key every 14 days to keep it active — any authenticated endpoint resets the timer
 - **Rotation strategy:**
   1. Create a new API key with the same permissions and IP whitelist
   2. Update the application configuration to use the new key
