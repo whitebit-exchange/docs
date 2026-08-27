@@ -25,6 +25,8 @@ WhiteBIT supports four market types, each using different account balances and l
 
 **TradFi Futures** — Futures markets on traditional-finance assets such as equities (e.g., `AAPL_USD`), identified in the [markets response](/api-reference/market-data/market-info) by `type: tradfiFutures` and `isTradFiFutures: true`. Availability is region-gated — markets not available in a given region are omitted from `GET /api/v4/public/markets` entirely.
 
+Availability is also gated per account: placing or modifying an order on a TradFi market requires the account to hold the TradFi futures permission. The account gate is separate from the region gate, so a TradFi market can be listed in `GET /api/v4/public/markets` and still reject order placement with HTTP 422 and error code `10011` on the [collateral order endpoints](/api-reference/trading/collateral-overview). Canceling an existing order on a TradFi market is never restricted.
+
 <Note>
   **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
   Margin and Futures trading. The market pair determines the product:
