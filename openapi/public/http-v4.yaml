@@ -781,8 +781,16 @@ paths:
       description: |
         The endpoint returns the list of [market](/glossary#market) pair names available for [collateral](/glossary#collateral) trading. Use the response to determine which markets support margin positions. Each item in the result array is a market pair name in `BASE_QUOTE` format (e.g., `BTC_USDT`).
 
+        The list includes TradFi futures markets that are enabled for collateral trading, alongside crypto markets. TradFi entries are ordinary market pair names in the same array — the response carries no per-market type field, so read `type` and `isTradFiFutures` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info) to tell the market types apart.
+
+        TradFi futures markets stay region-gated: a TradFi market not assigned to the caller's region is omitted from that region's response, exactly as on `GET /api/v4/public/markets`.
+
         <Note>
         The collateral market list is reference data, re-synced approximately every 10 seconds. Polling more frequently returns identical data. The cache is shared across all callers.
+        </Note>
+
+        <Note>
+        A market in this list is configured for collateral trading; that is not the same as the account being entitled to trade it. Placing an order on a TradFi market additionally requires TradFi futures to be enabled for the account — without it the order request is rejected with HTTP 422, `api.tradeErrors.tradFi.restricted`.
         </Note>
 
         <Warning>
@@ -810,12 +818,12 @@ paths:
                     type: array
                     items:
                       type: string
-                      description: "Market pair name in `BASE_QUOTE` format."
-                    example: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
+                      description: "Market pair name in `BASE_QUOTE` format. Crypto and TradFi futures markets share the same array."
+                    example: ["AAPL_USD", "ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
               example:
                 success: true
                 message: null
-                result: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
+                result: ["AAPL_USD", "ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
         '451':
           description: "Returned when the service is not available in the caller's region."
           content:

@@ -15,7 +15,7 @@ WhiteBIT supports four market types, each using different account balances and l
 | **Spot** | 800+ | Trade | None (1×) | `BTC_USDT` |
 | **Margin** | Spot pairs | Collateral | Up to 10× | `BTC_USDT` |
 | **Futures** | 270+ perpetuals | Collateral | Up to 100× | `BTC_PERP` |
-| **TradFi Futures** | Region-gated | — | — | `AAPL_USD` |
+| **TradFi Futures** | Region-gated | Collateral | — | `AAPL_USD` |
 
 **Spot** — Direct buy/sell. Orders execute against the spot orderbook. Funds held in the [Trade balance](/concepts/balances).
 
@@ -23,7 +23,7 @@ WhiteBIT supports four market types, each using different account balances and l
 
 **Futures** — Perpetual contracts with up to 100× leverage. Pairs use the `_PERP` suffix (e.g., `BTC_PERP`). Funds held in the [Collateral balance](/concepts/balances). Hedge Mode allows simultaneous long and short positions.
 
-**TradFi Futures** — Futures markets on traditional-finance assets such as equities (e.g., `AAPL_USD`), identified in the [markets response](/api-reference/market-data/market-info) by `type: tradfiFutures` and `isTradFiFutures: true`. Availability is region-gated — markets not available in a given region are omitted from `GET /api/v4/public/markets` entirely.
+**TradFi Futures** — Futures markets on traditional-finance assets such as equities (e.g., `AAPL_USD`), identified in the [markets response](/api-reference/market-data/market-info) by `type: tradfiFutures` and `isTradFiFutures: true`. Funds are held in the [Collateral balance](/concepts/balances). Availability is region-gated — markets not available in a given region are omitted from `GET /api/v4/public/markets` entirely. TradFi markets enabled for collateral trading also appear in the [collateral markets list](/api-reference/market-data/collateral-markets-list); placing an order on a TradFi market additionally requires TradFi futures to be enabled for the account.
 
 <Note>
   **API naming convention:** WhiteBIT's API uses "collateral" endpoints for both
