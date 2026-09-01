@@ -28,7 +28,7 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide ta
 
 | Detail | Value |
 |--------|-------|
-| Endpoint | `wss://api.whitebit.com/ws` |
+| Endpoint | `wss://wss.whitebit.com/ws` |
 | Protocol | JSON-RPC 2.0 over WebSocket |
 | Inactivity timeout | 60 seconds — send `ping` every 50 seconds or less |
 | Rate limit | 200 requests per minute per connection |
@@ -43,13 +43,13 @@ Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide ta
         import websocket
         import json
 
-        ws = websocket.create_connection("wss://api.whitebit.com/ws")
+        ws = websocket.create_connection("wss://wss.whitebit.com/ws")
         print("Connected to WebSocket API")
         ```
       </Tab>
       <Tab title="wscat">
         ```bash
-        wscat -c wss://api.whitebit.com/ws
+        wscat -c wss://wss.whitebit.com/ws
         ```
       </Tab>
     </Tabs>
@@ -367,7 +367,7 @@ async def listen_with_reconnect():
     delay = 1
     while True:
         try:
-            async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+            async with websockets.connect("wss://wss.whitebit.com/ws") as ws:
                 delay = 1  # reset backoff after a successful connection
                 # Private channels: authorize first with a fresh token
                 # ("Authenticate for private channels" above)
