@@ -254,6 +254,8 @@ sequenceDiagram
     participant Sub as Sub-account (own key)
     participant WB as WhiteBIT
     participant Main as Main account (own key)
+    Main->>WB: POST /sub-account/api-key/edit (enable withdraw URL)
+    WB-->>Main: 200 — withdraw enabled on the key
     Sub->>WB: POST /main-account/withdraw
     WB-->>Sub: status unconfirmed_by_main_account
     Main->>WB: POST /sub-account/withdraw/unconfirmed-list
@@ -270,6 +272,36 @@ sequenceDiagram
 </Note>
 
 <Steps>
+  <Step title="Enable the withdrawal endpoint on the sub-account key">
+    A newly created `type: 2` key lists the `withdraw` and `deposit` groups in `accessEndpoints`,
+    but each URL defaults to `enable: false`. Until the withdraw URL is enabled, `POST /api/v4/main-account/withdraw`
+    returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
+    Enable it from the main account with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key)
+    (`POST /api/v4/sub-account/api-key/edit`):
+
+    ```bash
+    curl -X POST https://whitebit.com/api/v4/sub-account/api-key/edit \
+      -H "Content-Type: application/json" \
+      -H "X-TXC-APIKEY: YOUR_API_KEY" \
+      -H "X-TXC-PAYLOAD: YOUR_PAYLOAD" \
+      -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
+      -d '{
+        "apiKeyId": "SUB_ACCOUNT_API_KEY_ID",
+        "title": "Trading Bot Key",
+        "urls": [
+          { "url": "/api/v4/main-account/withdraw", "enable": true }
+        ],
+        "request": "/api/v4/sub-account/api-key/edit",
+        "nonce": 1709340000006
+      }'
+    ```
+
+    `title` is required; reuse the key's current title to avoid renaming it. The `urls` array is
+    merged into the key's existing settings, so enabling the withdraw URLs leaves other endpoints
+    untouched. Verify with [List Sub-Account API Keys](/api-reference/sub-accounts/list-sub-account-api-keys):
+    the withdraw URLs under `accessEndpoints` now show `enable: true`.
+  </Step>
+
   <Step title="Initiate the withdrawal from the sub-account">
     The sub-account creates the withdrawal with the sub-account's own `type: 2` API key (deposits
     and withdrawals) on the standard [Create withdraw request](/api-reference/account-wallet/create-withdraw-request)

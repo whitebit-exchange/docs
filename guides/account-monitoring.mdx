@@ -26,8 +26,8 @@ WhiteBIT separates funds into three account types. Each has a dedicated balance 
 | Account type | Endpoint | Doc page |
 |-------------|----------|----------|
 | Main | `POST /api/v4/main-account/balance` | [Main Balance](/api-reference/account-wallet/main-balance) |
-| Trade (Spot) | `POST /api/v4/trade-account/balance` | [Trading Balance](/api-reference/spot-trading/trading-balance) |
-| Collateral | `POST /api/v4/collateral-account/balance` | [Collateral Balance](/api-reference/collateral-trading/collateral-account-balance) |
+| Trade (Spot) | `POST /api/v4/trade-account/balance` | [Trading Balance](/api-reference/trading/trading-balance) |
+| Collateral | `POST /api/v4/collateral-account/balance` | [Collateral Balance](/api-reference/trading/collateral-account-balance) |
 
 For an explanation of account types and how funds move between accounts, see [Balances & Transfers](/concepts/balances).
 
@@ -203,7 +203,7 @@ See [Webhooks](/platform/webhook) for setup, signature verification, and event t
 
 Query active orders across all markets or filter by a specific market:
 
-**Endpoint:** [`POST /api/v4/orders`](/api-reference/spot-trading/query-unexecuted-orders)
+**Endpoint:** [`POST /api/v4/orders`](/api-reference/trading/query-unexecuted-orders)
 
 <Tabs>
   <Tab title="cURL">
@@ -231,7 +231,7 @@ Query active orders across all markets or filter by a specific market:
 
 Query order history for filled and canceled orders:
 
-**Endpoint:** [`POST /api/v4/trade-account/order/history`](/api-reference/spot-trading/query-executed-orders)
+**Endpoint:** [`POST /api/v4/trade-account/order/history`](/api-reference/trading/query-executed-orders)
 
 For [B2B](/glossary#b2b-partner-account) accounts, canceled orders are not recorded in order history — to obtain canceled-order data, contact support or the assigned account manager.
 
@@ -257,7 +257,7 @@ For [B2B](/glossary#b2b-partner-account) accounts, canceled orders are not recor
   </Tab>
 </Tabs>
 
-Order history paginates with the same `limit` (default 50, max 500) and `offset` parameters. Date filtering is limited to a 31-day window between `startDate` and `endDate`, with the earliest reachable date 6 months back — see [Query Executed Orders](/api-reference/spot-trading/query-executed-orders).
+Order history paginates with the same `limit` (default 50, max 500) and `offset` parameters. Date filtering is limited to a 31-day window between `startDate` and `endDate`, with the earliest reachable date 6 months back — see [Query Executed Orders](/api-reference/trading/query-executed-orders).
 
 ### Real-time order updates via WebSocket
 

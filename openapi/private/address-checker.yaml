@@ -45,8 +45,26 @@ paths:
           application/json:
             schema:
               type: object
-              description: The endpoint requires an empty JSON body.
-              example: {}
+              required:
+                - request
+                - nonce
+              properties:
+                request:
+                  type: string
+                  description: Request path without the domain name. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: "/api/v4/aml/checks/assets"
+                nonce:
+                  type: integer
+                  description: Unique request identifier. Use the Unix timestamp in milliseconds; each nonce must be larger than the previous one. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: 1594297865000
+                nonceWindow:
+                  type: boolean
+                  description: Optional. Set to `true` to enable time-based nonce validation. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: true
+            example:
+              request: "/api/v4/aml/checks/assets"
+              nonce: 1594297865000
+              nonceWindow: true
       responses:
         '200':
           description: List of supported assets and networks.
@@ -114,9 +132,30 @@ paths:
                   nullable: true
                   description: Network identifier. May be `null` when not required.
                   example: "string"
+                request:
+                  type: string
+                  description: Request path without the domain name. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: "/api/v4/aml/checks/create"
+                nonce:
+                  type: integer
+                  description: Unique request identifier. Use the Unix timestamp in milliseconds; each nonce must be larger than the previous one. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: 1594297865000
+                nonceWindow:
+                  type: boolean
+                  description: Optional. Set to `true` to enable time-based nonce validation. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: true
               required:
                 - asset
                 - address
+                - request
+                - nonce
+            example:
+              asset: "string"
+              address: "string"
+              network: "string"
+              request: "/api/v4/aml/checks/create"
+              nonce: 1594297865000
+              nonceWindow: true
       responses:
         '200':
           description: |
@@ -183,8 +222,27 @@ paths:
                   type: string
                   description: Unique identifier of the created check.
                   example: "string"
+                request:
+                  type: string
+                  description: Request path without the domain name. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: "/api/v4/aml/checks/result"
+                nonce:
+                  type: integer
+                  description: Unique request identifier. Use the Unix timestamp in milliseconds; each nonce must be larger than the previous one. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: 1594297865000
+                nonceWindow:
+                  type: boolean
+                  description: Optional. Set to `true` to enable time-based nonce validation. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: true
               required:
                 - id
+                - request
+                - nonce
+            example:
+              id: "string"
+              request: "/api/v4/aml/checks/result"
+              nonce: 1594297865000
+              nonceWindow: true
       responses:
         '200':
           description: Result of the address screening request.
@@ -284,6 +342,27 @@ paths:
                     enum: [low, medium, high]
                   description: "`low`, `medium`, `high`."
                   example: ["medium", "high"]
+                request:
+                  type: string
+                  description: Request path without the domain name. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: "/api/v4/aml/checks/history"
+                nonce:
+                  type: integer
+                  description: Unique request identifier. Use the Unix timestamp in milliseconds; each nonce must be larger than the previous one. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: 1594297865000
+                nonceWindow:
+                  type: boolean
+                  description: Optional. Set to `true` to enable time-based nonce validation. Refer to [Private HTTP API Authentication](/api-reference/authentication) for details.
+                  example: true
+              required:
+                - request
+                - nonce
+            example:
+              limit: 50
+              offset: 0
+              request: "/api/v4/aml/checks/history"
+              nonce: 1594297865000
+              nonceWindow: true
       responses:
         '200':
           description: Historical address screening data.

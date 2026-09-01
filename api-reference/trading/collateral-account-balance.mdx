@@ -1,0 +1,23 @@
+---
+title: "Collateral account balance"
+description: "Retrieve detailed balance information for a collateral trading account via the WhiteBIT V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/balance"
+playground: none
+---
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/collateral-account-balance.jsx';
+
+<WhitebitSigner path="/api/v4/collateral-account/balance" fields={signerFields} />
+
+## Rate limit
+
+<RestRateLimit requests={100} period="10 seconds" scope="/api/v4/collateral-account/balance" />
+
+
+<RelatedResources>
+- [Collateral account balance summary](/api-reference/trading/collateral-account-balance-summary) — View detailed per-asset balance breakdown
+- [Collateral account summary](/api-reference/trading/collateral-account-summary) — View account-level margin and equity
+- [Change collateral account leverage](/api-reference/trading/change-collateral-account-leverage) — Adjust account leverage
+</RelatedResources>

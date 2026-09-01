@@ -1,0 +1,19 @@
+---
+title: "Cancel conditional order"
+description: "Cancel an active conditional order on a collateral trading market via the WhiteBIT V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/conditional-cancel"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-conditional-cancel.jsx';
+
+<WhitebitSigner path="/api/v4/order/conditional-cancel" fields={signerFields} />
+
+
+<RelatedResources>
+- [Query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders) — List active conditional orders before cancellation
+- [Query unexecuted OCO orders](/api-reference/trading/query-unexecuted-oco-orders) — List active OCO orders
+- [Create collateral OCO order](/api-reference/trading/create-collateral-oco-order) — Create a new OCO order
+- [Open positions](/api-reference/trading/open-positions) — View current open positions
+</RelatedResources>

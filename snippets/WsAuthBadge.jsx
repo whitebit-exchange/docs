@@ -14,17 +14,10 @@ export const WsAuthBadge = ({ required }) => {
   }
 
   return (
-    <div>
-      <Warning>
-        This is a private channel.{' '}
-        <a href="/websocket/authentication">Authorize</a> the WebSocket
-        connection before subscribing.
-      </Warning>
-      <p>
-        <strong>Authentication:</strong> Required.{' '}
-        <a href="/websocket/authentication">Authorize</a> the WebSocket
-        connection before subscribing.
-      </p>
-    </div>
+    <Warning>
+      This is a private channel.{' '}
+      <a href="/websocket/authentication">Authorize</a> the WebSocket
+      connection before subscribing.
+    </Warning>
   );
 };

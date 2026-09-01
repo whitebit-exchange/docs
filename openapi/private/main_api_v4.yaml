@@ -1628,6 +1628,18 @@ paths:
               example:
                 code: 1
                 message: "This action is unauthorized. Please, enable Two-Factor authentication."
+        "401":
+          description: |
+            The API key is not authorized for this endpoint. Occurs with a [sub-account](/glossary#sub-account)
+            key whose `/api/v4/main-account/withdraw` URL is still `enable: false`. Enable it with
+            [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key), then retry.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: 4
+                message: "This API Key is not authorized to perform this action."
 
   /api/v4/main-account/withdraw-pay:
     post:
@@ -2095,6 +2107,149 @@ paths:
                     errors:
                       currency: ["Deposit to this currency is disabled"]
 
+  /api/v4/main-account/transfer/history:
+    post:
+      tags:
+        - Transfer
+      summary: Get transfer history
+      description: |
+        The endpoint returns the history of transfers between the [main](/glossary#balance-main), [spot](/glossary#balance-spotbalance-trade) and [collateral](/glossary#balance-collateral) balances of the authenticated account, newest first.
+
+        The endpoint requires an API key with the **Balance transfer** permission enabled — the same permission as [Transfer between balances](/api-reference/account-wallet/transfer-between-balances).
+
+        For transfers between a main account and its [sub-accounts](/glossary#sub-account), use [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) instead.
+
+        <Note>
+        Every transfer is recorded with the main balance on one side. A transfer between the spot and collateral balances executes as two steps through the main balance, so such a transfer appears as two records — `spot → main` and `main → collateral` — each carrying a separate identifier and the full transferred amount. Account for both records when summing amounts. Filter combinations that cannot be stored (`spot` with `collateral`, `collateral` with `spot`, or the same balance on both sides) return an empty `data` array — filter by the individual legs instead.
+        </Note>
+
+        <Note>
+        Records are ordered from newest to oldest by the order of execution. Neither `id` nor `created_at` is a sort key — `id` is a random identifier, and two records can share the same `created_at` second — so page through the history with `limit` and `offset`. The response carries no total count and no cursor: a returned count below `limit` marks the last page, and an empty array means no further records. `offset` cannot exceed `10000` — for a longer history, use report generation on the History page.
+        </Note>
+
+        <Note>
+        The API does not cache the response. `POST /api/v4/main-account/transfer` returns `201` as soon as a transfer is queued, so a request sent immediately afterwards can return no records yet. The history also covers transfers the platform performs for the account, such as mining-pool conversions, and transfers in delisted currencies. Every returned transfer is completed.
+        </Note>
+      operationId: getMainAccountTransferHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                from_balance:
+                  type: string
+                  description: |
+                    Balance FROM which funds moved. Acceptable values: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade), [**collateral**](/glossary#balance-collateral). Do not send this parameter in order to receive transfers from every balance.
+
+                    Values are case-sensitive — `main`, not `MAIN`. An empty string counts as no filter.
+                  enum: [main, spot, collateral]
+                  example: "main"
+                to_balance:
+                  type: string
+                  description: |
+                    Balance TO which funds moved. Acceptable values: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade), [**collateral**](/glossary#balance-collateral). Do not send this parameter in order to receive transfers to every balance.
+
+                    Values are case-sensitive — `main`, not `MAIN`. An empty string counts as no filter.
+                  enum: [main, spot, collateral]
+                  example: "spot"
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 100
+                  description: "Number of records to return. Default: 100, Min: 1, Max: 100"
+                  example: 50
+                offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                  description: "Number of records to skip. Default: 0, Min: 0, Max: 10000"
+                  example: 0
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: Unique request identifier
+                  example: 1594297865000
+            examples:
+              firstPage:
+                summary: First page, transfers between all balances
+                value:
+                  limit: 50
+                  offset: 0
+                  request: "{{request}}"
+                  nonce: 1594297865000
+              secondPage:
+                summary: Second page, filtered by source balance
+                value:
+                  from_balance: "main"
+                  limit: 50
+                  offset: 50
+                  request: "{{request}}"
+                  nonce: 1594297865000
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    description: Transfers ordered from newest to oldest.
+                    items:
+                      $ref: "#/components/schemas/MainAccountBalanceTransfer"
+                  limit:
+                    type: integer
+                    description: Number of records requested, echoed from the request.
+                  offset:
+                    type: integer
+                    description: Number of records skipped, echoed from the request.
+              example:
+                data:
+                  - id: "b1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+                    currency: "USDT"
+                    amount: "150.5"
+                    from_balance: "main"
+                    to_balance: "spot"
+                    created_at: 1755000000
+                  - id: "9c8b7a6d-5e4f-4a3b-9c8d-7e6f5a4b3c2d"
+                    currency: "USDT"
+                    amount: "40"
+                    from_balance: "main"
+                    to_balance: "collateral"
+                    created_at: 1754990000
+                  - id: "5f4e3d2c-1b0a-4c9d-8e7f-6a5b4c3d2e1f"
+                    currency: "USDT"
+                    amount: "40"
+                    from_balance: "spot"
+                    to_balance: "main"
+                    created_at: 1754990000
+                limit: 50
+                offset: 0
+        "400":
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                unsupportedBalance:
+                  summary: Unsupported balance value
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      from_balance: ["The selected from_balance is invalid."]
   /api/v4/main-account/history:
     post:
       tags:
@@ -5674,9 +5829,12 @@ paths:
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
 
         <Note>
-        A `type: 2` key carries deposit and withdrawal permissions, but crypto deposits must also
-        be enabled for the account. Deposits are disabled by default — to enable them, contact your
-        assigned Account Manager or email institutional@whitebit.com.
+        A `type: 2` key includes the withdrawal permission group, but its URLs default to `enable: false`.
+        Enable the ones the key uses (for example `/api/v4/main-account/withdraw`) with
+        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); until then
+        `/api/v4/main-account/withdraw` returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
+        Crypto deposits additionally require deposits to be enabled for the account — disabled by default,
+        contact your assigned Account Manager or email institutional@whitebit.com.
         </Note>
 
         <Warning>
@@ -5799,7 +5957,9 @@ paths:
                   example: "Trading Bot Key"
                 urls:
                   type: array
-                  description: Array of URL objects for API key restrictions
+                  description: |
+                    Array of URL objects for API key restrictions. The array is merged into the key's
+                    existing settings — URLs not listed keep their current `enable` value.
                   items:
                     type: object
                     properties:
@@ -8270,6 +8430,37 @@ components:
               description: Required number of confirmations
               example: 6
 
+    MainAccountBalanceTransfer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Transfer identifier (UUID). Each record carries a separate identifier, including both records of a transfer between the spot and collateral balances.
+          example: "b1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+        currency:
+          type: string
+          description: "Currency's [ticker](/glossary#ticker). Example: USDT"
+          example: "USDT"
+        amount:
+          type: string
+          description: Transferred amount, with trailing zeros trimmed.
+          example: "150.5"
+        from_balance:
+          type: string
+          description: "Balance FROM which funds moved: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade) or [**collateral**](/glossary#balance-collateral)"
+          enum: [main, spot, collateral]
+          example: "main"
+        to_balance:
+          type: string
+          description: "Balance TO which funds moved: [**main**](/glossary#balance-main), [**spot**](/glossary#balance-spotbalance-trade) or [**collateral**](/glossary#balance-collateral)"
+          enum: [main, spot, collateral]
+          example: "spot"
+        created_at:
+          type: integer
+          description: Time the transfer was executed, as a Unix timestamp in seconds. Not the time the transfer request was accepted.
+          example: 1755000000
+
     CodeInfo:
       type: object
       properties:
@@ -8719,18 +8910,34 @@ components:
           example: false
         accessEndpoints:
           type: array
-          description: "List of allowed endpoints"
+          description: |
+            Permission groups for the key. Each group lists its individual endpoint URLs and whether
+            each is enabled. On a newly created key every URL defaults to `enable: false`; enable the
+            required URLs with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key)
+            before calling them (for example `/api/v4/main-account/withdraw`).
           items:
             type: object
             properties:
               name:
                 type: string
-                description: "Endpoint name"
-                example: "/api/v4/main-account/balance"
+                description: "Permission group name"
+                example: "withdraw"
               title:
                 type: string
-                description: "Endpoint title"
-                example: "Get Balance"
+                description: "Permission group title"
+                example: "Withdraw"
+              urls:
+                type: array
+                description: "Endpoint URLs in this group and their enabled state"
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      example: "/api/v4/main-account/withdraw"
+                    enable:
+                      type: boolean
+                      example: false
 
     SubAccountApiKeyList:
       type: object
@@ -8765,15 +8972,30 @@ components:
           example: false
         accessEndpoints:
           type: array
+          description: |
+            Permission groups for the key. Each group lists its individual endpoint URLs and whether
+            each is enabled. On a newly created key every URL defaults to `enable: false`; enable the
+            required URLs with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key).
           items:
             type: object
             properties:
               name:
                 type: string
-                example: "/api/v4/main-account/balance"
+                example: "withdraw"
               title:
                 type: string
-                example: "Get Balance"
+                example: "Withdraw"
+              urls:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      example: "/api/v4/main-account/withdraw"
+                    enable:
+                      type: boolean
+                      example: false
 
     MiningReward:
       type: object

@@ -16,9 +16,9 @@ The Spot Trading API provides programmatic access to WhiteBIT [spot markets](/co
 ## Capabilities
 
 - **6 order types** — Market, Limit, Stop-Limit, Stop-Market, Stock-Market, Bulk-Limit ([details](/concepts/order-types))
-- **Bulk orders** — Place up to 20 limit orders in a single API call ([endpoint](/api-reference/spot-trading/bulk-limit-order))
-- **Kill-switch** — Emergency mechanism to cancel all active orders after a configurable timeout ([sync timer](/api-reference/spot-trading/sync-kill-switch-timer), [status](/api-reference/spot-trading/status-kill-switch-timer))
-- **Order modification** — Modify existing orders in-place without canceling and recreating ([endpoint](/api-reference/spot-trading/modify-order))
+- **Bulk orders** — Place up to 20 limit orders in a single API call ([endpoint](/api-reference/trading/bulk-limit-order))
+- **Kill-switch** — Emergency mechanism to cancel all active orders after a configurable timeout ([sync timer](/api-reference/trading/sync-kill-switch-timer), [status](/api-reference/trading/status-kill-switch-timer))
+- **Order modification** — Modify existing orders in-place without canceling and recreating ([endpoint](/api-reference/trading/modify-order))
 - **Client Order ID** — Attach custom identifiers for order tracking and reconciliation
 - **Self-Trade Prevention** — Prevent accidental self-crossing when quoting both sides ([details](/platform/self-trade-prevention))
 
@@ -31,9 +31,9 @@ The Spot Trading API provides programmatic access to WhiteBIT [spot markets](/co
 
 ## Common Integration Patterns
 
-**Trading automation** — Combine the REST API for order placement with [WebSocket](/guides/websocket-quickstart) for real-time price data. Set the [kill-switch](/api-reference/spot-trading/sync-kill-switch-timer) timer so all active orders cancel automatically if the bot stops sending heartbeats. Existing integrations include Bitsgap and TradingView.
+**Trading automation** — Combine the REST API for order placement with [WebSocket](/guides/websocket-quickstart) for real-time price data; from September 2, 2026 (global platform only), orders can also be placed over the [WebSocket order methods](/websocket/order-management/overview). Set the [kill-switch](/api-reference/trading/sync-kill-switch-timer) timer so all active orders cancel automatically if the bot stops sending heartbeats. Existing integrations include Bitsgap and TradingView.
 
-**Market making** — Use [bulk limit orders](/api-reference/spot-trading/bulk-limit-order) (up to 20 per call) alongside the real-time orderbook [depth WebSocket channel](/guides/websocket-quickstart). The [Market-Making Program](/guides/market-maker-overview) offers maker fee rebates up to -0.012% for qualifying volume ($100M+/30 days). Pair with [colocation](/platform/colocation) for low-latency execution (3–5 ms) and [sub-accounts](/products/sub-accounts/overview) to run market-making and directional strategies on independent balances with separate API keys. Enable [Self-Trade Prevention](/platform/self-trade-prevention) to avoid accidental self-crossing.
+**Market making** — Use [bulk limit orders](/api-reference/trading/bulk-limit-order) (up to 20 per call) alongside the real-time orderbook [depth WebSocket channel](/guides/websocket-quickstart). The [Market-Making Program](/guides/market-maker-overview) offers maker fee rebates up to -0.012% for qualifying volume ($100M+/30 days). Pair with [colocation](/platform/colocation) for low-latency execution (3–5 ms) and [sub-accounts](/products/sub-accounts/overview) to run market-making and directional strategies on independent balances with separate API keys. Enable [Self-Trade Prevention](/platform/self-trade-prevention) to avoid accidental self-crossing.
 
 **Multi-exchange arbitrage** — Subscribe to the `lastprice` WebSocket channel for real-time price monitoring across pairs. Use [colocation](/platform/colocation) (3–5 ms latency) for execution speed. Market orders provide immediate fills at best available price.
 
@@ -45,7 +45,7 @@ The Spot Trading API provides programmatic access to WhiteBIT [spot markets](/co
 | VIP (best tier) | -0.001% | 0.03% |
 | Market-Making Program (best tier) | -0.012% | 0.020% |
 
-Full fee schedule with all VIP tier breakpoints: [trading fees page](https://whitebit.com/trading-data/trading-fees) and [VIP program](https://whitebit.com/vip-program). Query current fees via the [market fee endpoint](/api-reference/spot-trading/query-market-fee), or the effective fee for one market via the [single-market fee endpoint](/api-reference/spot-trading/query-market-fee-single).
+Full fee schedule with all VIP tier breakpoints: [trading fees page](https://whitebit.com/trading-data/trading-fees) and [VIP program](https://whitebit.com/vip-program). Query current fees via the [market fee endpoint](/api-reference/trading/query-market-fee), or the effective fee for one market via the [single-market fee endpoint](/api-reference/trading/query-market-fee-single).
 
 ## Technical Overview
 
@@ -64,7 +64,7 @@ Endpoint categories:
 - **Market fees** — Default maker/taker rates, custom per-market overrides, and the effective fee for a single market (2 endpoints)
 - **Kill-switch** — Sync timer, status (2 endpoints)
 
-For full endpoint documentation, see the [Spot Trading API Reference](/api-reference/spot-trading/overview).
+For full endpoint documentation, see the [Spot Trading API Reference](/api-reference/trading/spot-overview).
 
 For Go and PHP examples, see [SDKs](/sdks).
 
@@ -74,7 +74,7 @@ For Go and PHP examples, see [SDKs](/sdks).
   <Card title="Spot Quickstart" icon="rocket" href="/products/spot/quickstart">
     Place a first trade in 5 minutes.
   </Card>
-  <Card title="API Reference" icon="square-terminal" href="/api-reference/spot-trading/overview">
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/trading/spot-overview">
     All 20 spot trading endpoints with parameters, signing, error codes, and rate limits.
   </Card>
   <Card title="Trading Bot Guide" icon="robot" href="/guides/building-a-trading-bot">

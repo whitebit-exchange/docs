@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide targets developers building trading bots, live price feeds, or account monitoring dashboards.
+Connect to the WhiteBIT WebSocket API for real-time streaming data. The guide targets developers building trading bots, live price feeds, or account monitoring dashboards. The same authorized connection also places orders — see [Placing orders over the same connection](#placing-orders-over-the-same-connection) (available September 2, 2026, global platform only).
 
 ## Prerequisites
 
@@ -423,6 +423,26 @@ async def recover_and_subscribe(ws):
     }))
 ```
 
+## Placing orders over the same connection
+
+<Note>
+Coming soon — order placement over WebSocket becomes available on September 2, 2026, on the global platform only; the EU platform is not yet supported.
+</Note>
+
+The connection this guide opens and authorizes also carries order flow. The [WebSocket Order Management](/websocket/order-management/overview) methods place, modify, and cancel spot, margin, and futures orders as JSON-RPC calls — the same envelope as a subscribe frame, with two differences: `params` carries a single object rather than positional values, and the error codes are numbered independently of REST. A placement uses the same frame shape as a subscribe request:
+
+```json
+{
+  "id": 101,
+  "method": "order_limit_place",
+  "params": [
+    { "market": "BTC_USDT", "side": "buy", "amount": "0.01", "price": "60000", "client_order_id": "quote-1" }
+  ]
+}
+```
+
+The server answers with one frame echoing `id`; correlate it against the interleaved subscription pushes by `id`. See [Order Management](/websocket/order-management/overview) for the full method set, parameters, and error reference.
+
 ## What's next
 
 <CardGroup cols={3}>
@@ -430,7 +450,10 @@ async def recover_and_subscribe(ws):
     REST API counterpart — polling-based market data for simpler integrations.
   </Card>
   <Card title="Building a Trading Bot" icon="robot" href="/guides/building-a-trading-bot">
-    Combine WebSocket data with REST order placement for automated trading.
+    Combine WebSocket data with order placement for automated trading.
+  </Card>
+  <Card title="Order Management" icon="pen-to-square" href="/websocket/order-management/overview">
+    Place, modify, and cancel orders over the same connection (from September 2, 2026, global platform only).
   </Card>
   <Card title="Price Dashboard" icon="gauge" href="/guides/building-a-price-dashboard">
     Combine a REST snapshot and a WebSocket stream into a live price board — no API key.

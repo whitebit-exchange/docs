@@ -1,0 +1,18 @@
+---
+title: "Query delisting and maintenance orders"
+description: "Retrieve delisting- and maintenance-related order history across spot and collateral markets via the WhiteBIT V4 API - reverse close orders, orders canceled during delisting, and orders canceled during planned market maintenance."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/trade-account/order/history/query"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/trade-account-order-history-query.jsx';
+
+<WhitebitSigner path="/api/v4/trade-account/order/history/query" fields={signerFields} />
+
+<RelatedResources>
+- [Query executed orders](/api-reference/trading/query-executed-orders) — view executed and canceled order history
+- [Query executed order history](/api-reference/trading/query-executed-order-history) — view full execution history
+- [Query unexecuted orders](/api-reference/trading/query-unexecuted-orders) — list open orders
+- [Market info](/api-reference/market-data/market-info) — read `delistedAt` to detect an announced delisting before it runs
+</RelatedResources>

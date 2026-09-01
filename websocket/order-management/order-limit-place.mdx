@@ -5,6 +5,7 @@ description: "Place a spot limit order over the WhiteBIT WebSocket connection wi
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
@@ -21,15 +22,13 @@ import {
 
 <RegionBaseUrl protocol="wss" />
 
+<WsOrderComingSoon />
+
 Place a spot limit order that rests in the order book until it is matched or canceled. Among the spot placement methods, `order_limit_place` accepts the full execution-flag set, including Retail Price Improvement. The response returns the accepted order in its initial state — `OPEN` for an order that rests, `FILLED` or `PARTIALLY_FILLED` when the order matches on arrival.
 
 <WsChannelOverview operations={channelOperations} />
 
 <WsAuthBadge required={channelMeta.authRequired} />
-
-<Note>Connect to `wss://wss.whitebit.com/ws` and [authorize](/websocket/account-streams/authorize) the connection first. Shared conventions, the order object, and the full error reference are in [Order Management](/websocket/order-management/overview).</Note>
-
-<Warning>Spot limit orders are not available in the EU region — see [Order types — Regional restrictions](/concepts/order-types#regional-restrictions). On this transport the region is carried by the authorization token and cannot be set per request; a rejection returns error `10009` or `10010` rather than an HTTP status.</Warning>
 
 ## Rate limits
 
@@ -43,7 +42,7 @@ The `params` array carries exactly one element: an object holding the order para
 
 <WsSchemaTable fields={orderLimitPlaceParams} />
 
-Prices and amounts are decimal strings, not numbers. Precision above the market setting is rejected with error `1`; consult `stockPrec` and `moneyPrec` via `GET /api/v4/public/markets`.
+Prices and amounts are decimal strings, not numbers. Precision above the market setting is rejected with error `1`; consult `stepSize` and `tickSize` via `GET /api/v4/public/markets`.
 
 <WsMessageExample data={exOrderLimitPlaceRequest} />
 
@@ -63,12 +62,12 @@ Among the spot placement methods, only `order_limit_place` accepts `rpi`. The fl
 
 While a market runs in post-only mode, only limit orders carrying the post-only flag are accepted; a market or stop method on the same market is rejected with error `51`.
 
-## Update frequency
-
-This method is client-initiated: the server answers each `order_limit_place` request with a single response frame carrying the same `id`. Responses may arrive interleaved with subscription pushes, which carry no `id`, so correlate answers by `id` rather than by arrival order.
-
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />
 
 Standard transport errors and the shared account, rate-limit, and region codes are listed in [Order Management](/websocket/order-management/overview#error-codes).
+
+## Used in these guides
+
+- [Market Maker integration](/guides/market-maker-integration) — placing and canceling quotes over the WebSocket order methods.

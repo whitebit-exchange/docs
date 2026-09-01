@@ -4,6 +4,22 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 2, 2026">
+## Order placement over WebSocket
+**Place, modify, and cancel orders on the WebSocket connection**
+
+<Note>
+Coming soon: order placement over WebSocket becomes available on September 2, 2026, on the global platform only. The EU platform is not yet supported.
+</Note>
+
+From September 2, 2026, the WebSocket API carries order flow alongside market and account streams: 21 JSON-RPC methods place, modify, and cancel spot, margin, and futures orders over the same authorized connection that carries subscriptions. The methods are an alternative transport to the REST order endpoints for latency-sensitive integrations that hold one connection open. Authorize the connection first with the `authorize` frame; an order method on an unauthorized connection is rejected. The transport numbers its errors independently of REST — the same numeric code carries a different meaning on each surface — so branch on the codes documented on the Order Management page rather than reusing REST codes.
+
+<CardGroup cols={2}>
+  <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
+  <Card title="Create Limit Order (REST)" href="/api-reference/trading/create-limit-order" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 1, 2026">
 ## WebSocket host migration
 **Breaking change: the Global WebSocket host moved to `wss://wss.whitebit.com/ws`**
@@ -31,8 +47,44 @@ Only the host changes. The `/ws` path, the JSON-RPC message format, every market
 </CardGroup>
 </Update>
 
-<Update label="August 18, 2026">
-## Maintenance status on order history
+<Update label="August 19, 2026">
+## Price and quantity steps on Market Info
+**Breaking change: order price and amount must align to `tickSize` and `stepSize`**
+
+`GET /api/v4/public/markets` now returns `tickSize` — the minimal price step a limit order price must be a multiple of — and `stepSize` — the minimal quantity step an order amount must be a multiple of. Both are decimal strings passed through verbatim from the trade engine, so the values follow a precision change on the market automatically. Either field is an empty string when the engine does not provide the value for the market, so handle the empty string before parsing.
+
+**Migration guide:**
+- Read `tickSize` and `stepSize` from `GET /api/v4/public/markets` and validate order price and amount against those two fields, instead of deriving the steps from `moneyPrec`/`stockPrec`.
+- Handle the empty-string case (the engine does not provide the value for the market) before parsing.
+
+**Backward compatibility:** Until September 18, 2026, WhiteBIT maintains backward compatibility for order prices and amounts that are not aligned to `tickSize` and `stepSize`. After September 18, 2026, an order whose price is not a multiple of `tickSize`, or whose amount is not a multiple of `stepSize`, is rejected.
+
+**Sunset date:** September 18, 2026.
+
+<CardGroup cols={2}>
+  <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
+  <Card title="Markets & Trading Pairs" href="/concepts/markets" icon="chart-line" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="August 19, 2026">
+## Market data, order history, and fee updates
+
+This release documents three API updates across market data, order history, and trading fees.
+
+### Mark price on futures markets list
+**New `mark_price` field on `GET /api/v4/public/futures`**
+
+Each futures market entry carries `mark_price` — the fair value of the perpetual contract, derived from the underlying index price and the futures basis. Mark price, not `last_price`, is what a liquidation is evaluated against, so reading it lets an integration reproduce the distance to liquidation the platform itself measures instead of approximating it from the order book. The value is a decimal string taken from the latest premium index snapshot. While no fresh snapshot is available for the market, the field is returned as an empty string instead.
+
+The same release repoints `index_price` and `funding_rate` to that premium index source. Field names and the decimal-string format are unchanged, so no integration change is required. `index_price` now carries the index the contract actually tracks; while the index is unavailable it falls back to the last traded price of the corresponding spot market, then to the last traded price of the futures market itself, and returns `"0"` when neither has traded.
+
+<CardGroup cols={2}>
+  <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
+  <Card title="Auto-deleveraging" href="/concepts/auto-deleveraging" icon="scale-unbalanced" horizontal/>
+</CardGroup>
+
+### Maintenance status on order history
 **New `maintenance` order status and status filter on `POST /api/v4/trade-account/order/history` and `POST /api/v4/trade-account/order/history/query`**
 
 When a market enters planned maintenance, the platform cancels the orders that are open on it. Those orders now carry a dedicated `maintenance` status on both order-history endpoints, so an integration can tell a maintenance cancellation from one the user or a risk rule triggered.
@@ -42,50 +94,18 @@ When a market enters planned maintenance, the platform cancels the orders that a
 `POST /api/v4/trade-account/order/history/query` accepts `maintenance` as the `status` filter and returns the same lowercase value in the response `status` field, matching the lowercase outcomes of that endpoint. Maintenance records carry an empty `delistingKind`, so the `status` field is the discriminator, and a request that omits `status` returns maintenance records next to the delisting records.
 
 <CardGroup cols={2}>
-  <Card title="Query executed orders" href="/api-reference/spot-trading/query-executed-orders" icon="list-check" horizontal/>
-  <Card title="Query delisting and maintenance orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
+  <Card title="Query executed orders" href="/api-reference/trading/query-executed-orders" icon="list-check" horizontal/>
+  <Card title="Query delisting and maintenance orders" href="/api-reference/trading/query-delisting-orders" icon="ban" horizontal/>
 </CardGroup>
-</Update>
 
-<Update label="August 17, 2026">
-## Price and quantity steps on Market Info
-**New `tickSize` and `stepSize` fields on `GET /api/v4/public/markets`**
-
-Every market entry now carries `tickSize` — the minimal price step a limit order price must be a multiple of — and `stepSize` — the minimal quantity step an order amount must be a multiple of. Both are decimal strings passed through verbatim from the trade engine, so the values follow a precision change on the market automatically. Use the fields for pre-trade validation of order price and amount instead of deriving steps from `moneyPrec`/`stockPrec`. Either field is an empty string when the engine does not provide the value for the market, so handle the empty string before parsing.
-
-<CardGroup cols={2}>
-  <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
-  <Card title="Markets & Trading Pairs" href="/concepts/markets" icon="chart-line" horizontal/>
-</CardGroup>
-</Update>
-
-<Update label="August 17, 2026">
-## Single-market fee endpoint documented
+### Single-market fee endpoint documented
 **New reference page for `POST /api/v4/market/fee/single`**
 
 `POST /api/v4/market/fee/single` returns the effective maker and taker fee for one market. The endpoint has been available for some time but was never documented; the new reference page covers the request body, the response fields, and the validation errors. Use it when only one market matters — `POST /api/v4/market/fee` returns the account's default fees and every custom override at once.
 
 <CardGroup cols={2}>
-  <Card title="Query market fee for a single market" href="/api-reference/spot-trading/query-market-fee-single" icon="percent" horizontal/>
-  <Card title="Query market fees" href="/api-reference/spot-trading/query-market-fee" icon="percent" horizontal/>
-</CardGroup>
-</Update>
-
-<Update label="August 13, 2026">
-## Mark price on futures markets list
-**New `mark_price` field on `GET /api/v4/public/futures`**
-
-<Note>
-Coming soon: this field is not yet returned by the endpoint.
-</Note>
-
-Each futures market entry will carry `mark_price` — the fair value of the perpetual contract, derived from the underlying index price and the futures basis. Mark price, not `last_price`, is what a liquidation is evaluated against, so reading it lets an integration reproduce the distance to liquidation the platform itself measures instead of approximating it from the order book. The value is a decimal string taken from the latest premium index snapshot. While no fresh snapshot is available for the market, the field is returned as an empty string instead.
-
-The same release repoints `index_price` and `funding_rate` to that premium index source. Field names and the decimal-string format are unchanged, so no integration change is required. `index_price` now carries the index the contract actually tracks; while the index is unavailable it falls back to the last traded price of the corresponding spot market, then to the last traded price of the futures market itself, and returns `"0"` when neither has traded.
-
-<CardGroup cols={2}>
-  <Card title="Available futures markets list" href="/api-reference/market-data/available-futures-markets-list" icon="chart-line" horizontal/>
-  <Card title="Auto-deleveraging" href="/concepts/auto-deleveraging" icon="scale-unbalanced" horizontal/>
+  <Card title="Query market fee for a single market" href="/api-reference/trading/query-market-fee-single" icon="percent" horizontal/>
+  <Card title="Query market fees" href="/api-reference/trading/query-market-fee" icon="percent" horizontal/>
 </CardGroup>
 </Update>
 
@@ -121,7 +141,7 @@ Every market entry carries `delistedAt` — the announced delisting date as a Un
 
 <CardGroup cols={2}>
   <Card title="Market info" href="/api-reference/market-data/market-info" icon="list" horizontal/>
-  <Card title="Query delisting and maintenance orders" href="/api-reference/spot-trading/query-delisting-orders" icon="ban" horizontal/>
+  <Card title="Query delisting and maintenance orders" href="/api-reference/trading/query-delisting-orders" icon="ban" horizontal/>
 </CardGroup>  
   
 ## Closed-position PNL on Collateral Trading
@@ -130,8 +150,8 @@ Every market entry carries `delistedAt` — the announced delisting date as a Un
 The Collateral Trading API now returns one aggregated profit-and-loss record per closed position — the same closed-position PNL the trading terminal shows. Each record carries `grossPnl` (realized PNL with trading fees already deducted), `netPnl` (`grossPnl` minus `totalFunding`), volume-weighted average entry and exit prices, total closed size, and informational fee totals. The optional `startDate`/`endDate` window filters by position close time, and a position opened before the window still returns complete lifetime aggregates. The `amount` field always returns `"0"` for closed positions.
 
 <CardGroup cols={2}>
-  <Card title="Closed-position PNL" href="/api-reference/collateral-trading/closed-position-pnl" icon="sack-dollar" horizontal/>
-  <Card title="Positions history" href="/api-reference/collateral-trading/positions-history" icon="clock-rotate-left" horizontal/>
+  <Card title="Closed-position PNL" href="/api-reference/trading/closed-position-pnl" icon="sack-dollar" horizontal/>
+  <Card title="Positions history" href="/api-reference/trading/positions-history" icon="clock-rotate-left" horizontal/>
 </CardGroup>
 </Update>
 
@@ -139,14 +159,10 @@ The Collateral Trading API now returns one aggregated profit-and-loss record per
 ## RPI maker fee premiums on Query Market Fees
 **New `rpi_maker_fee_premium` and `futures_rpi_maker_fee_premium` fields on `POST /api/v4/market/fee`**
 
-<Note>
-Coming soon: these fields are not yet returned by the endpoint.
-</Note>
-
-Once live, the Query Market Fees response will return the RPI maker fee premium, an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` will cover spot and margin markets; `futures_rpi_maker_fee_premium` will cover futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. Both fields return `null` when the RPI order mode is not enabled for the account or when no premium is configured.
+The Query Market Fees response returns the RPI maker fee premium, an additional fee component applied on top of the maker rate when a Retail Price Improvement (RPI) order executes. `rpi_maker_fee_premium` covers spot and margin markets; `futures_rpi_maker_fee_premium` covers futures markets. The effective RPI maker rate equals the base maker rate plus the applicable premium. The endpoint returns both fields for every account, regardless of whether the RPI order mode is enabled; each field returns `null` when no premium is configured for the account, and a premium configured as zero is returned as `"0"`.
 
 <CardGroup cols={2}>
-  <Card title="Query market fees" href="/api-reference/spot-trading/query-market-fee" icon="percent" horizontal/>
+  <Card title="Query market fees" href="/api-reference/trading/query-market-fee" icon="percent" horizontal/>
   <Card title="Glossary — Retail Price Improvement" href="/glossary#retail-price-improvement-rpi" icon="tag" horizontal/>
 </CardGroup>
 </Update>
@@ -188,8 +204,8 @@ The `stp` parameter on trade endpoints now uses abbreviated mode values: `cb` (c
 
 <CardGroup cols={2}>
   <Card title="Self-Trade Prevention" href="/platform/self-trade-prevention" icon="shield" horizontal/>
-  <Card title="Create Limit Order" href="/api-reference/spot-trading/create-limit-order" icon="chart-line" horizontal/>
-  <Card title="Collateral Limit Order" href="/api-reference/collateral-trading/collateral-limit-order" icon="layer-group" horizontal/>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Collateral Limit Order" href="/api-reference/trading/collateral-limit-order" icon="layer-group" horizontal/>
   <Card title="Glossary — STP" href="/glossary#self-trade-prevention-stp" icon="tag" horizontal/>
 </CardGroup>
 </Update>
@@ -242,8 +258,8 @@ A new optional `retail` boolean parameter on `POST /api/v4/order/new` and `POST 
 - The flag has no effect on `postOnly=true` orders, because post-only orders are makers and cannot be retail takers.
 
 <CardGroup cols={2}>
-  <Card title="Create Limit Order" href="/api-reference/spot-trading/create-limit-order" icon="chart-line" horizontal/>
-  <Card title="Bulk Limit Order" href="/api-reference/spot-trading/bulk-limit-order" icon="layer-group" horizontal/>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Bulk Limit Order" href="/api-reference/trading/bulk-limit-order" icon="layer-group" horizontal/>
   <Card title="Order Parameter Rules" href="/guides/order-parameter-rules" icon="book" horizontal/>
   <Card title="Glossary — Retail flag" href="/glossary#retail-flag" icon="tag" horizontal/>
 </CardGroup>
@@ -286,11 +302,11 @@ The `POST /api/v4/collateral-account/positions/history` endpoint no longer retur
 
 **Sunset date:** April 29, 2026.
 
-**Replacement:** Use `side` and `isHedge` on the same endpoint. See [v4 - Positions history](/api-reference/collateral-trading/positions-history).
+**Replacement:** Use `side` and `isHedge` on the same endpoint. See [v4 - Positions history](/api-reference/trading/positions-history).
 
 **Impact:** Integrations parsing the response of `POST /api/v4/collateral-account/positions/history` and reading `positionSide` must migrate to `side` and `isHedge`. Other endpoint integrations are not affected.
 
-<Card title="v4 - Positions History" href="/api-reference/collateral-trading/positions-history" icon="chart-bar" horizontal/>
+<Card title="v4 - Positions History" href="/api-reference/trading/positions-history" icon="chart-bar" horizontal/>
 </Update>
 
 <Update label="April 28, 2026">
@@ -299,7 +315,7 @@ The `POST /api/v4/collateral-account/positions/history` endpoint no longer retur
 
 The new `POST /api/v4/order/cancel/bulk` endpoint cancels up to 100 spot orders in a single request. Each item identifies a target order by `market` plus exactly one of `orderId` or `clientOrderId`. The response array preserves the order of the input — `response[i]` corresponds to `request.orders[i]`.
 
-<Card title="Cancel Bulk Orders" href="/api-reference/spot-trading/cancel-bulk-order" icon="rectangle-xmark" horizontal/>
+<Card title="Cancel Bulk Orders" href="/api-reference/trading/cancel-bulk-order" icon="rectangle-xmark" horizontal/>
 </Update>
 
 <Update label="April 22, 2026">
@@ -316,15 +332,15 @@ A new `reduceOnly` boolean parameter for collateral order endpoints. When set to
 **Supported on 6 collateral order creation endpoints:**
 
 <CardGroup cols={3}>
-  <Card title="Collateral Limit Order" href="/api-reference/collateral-trading/collateral-limit-order" icon="chart-line" horizontal/>
-  <Card title="Collateral Bulk Limit Order" href="/api-reference/collateral-trading/collateral-bulk-limit-order" icon="layer-group" horizontal/>
-  <Card title="Collateral Market Order" href="/api-reference/collateral-trading/collateral-market-order" icon="bolt" horizontal/>
-  <Card title="Collateral Stop-Limit Order" href="/api-reference/collateral-trading/collateral-stop-limit-order" icon="hand" horizontal/>
-  <Card title="Collateral Trigger Market Order" href="/api-reference/collateral-trading/collateral-trigger-market-order" icon="crosshairs" horizontal/>
-  <Card title="Collateral OCO Order" href="/api-reference/collateral-trading/create-collateral-oco-order" icon="code-branch" horizontal/>
+  <Card title="Collateral Limit Order" href="/api-reference/trading/collateral-limit-order" icon="chart-line" horizontal/>
+  <Card title="Collateral Bulk Limit Order" href="/api-reference/trading/collateral-bulk-limit-order" icon="layer-group" horizontal/>
+  <Card title="Collateral Market Order" href="/api-reference/trading/collateral-market-order" icon="bolt" horizontal/>
+  <Card title="Collateral Stop-Limit Order" href="/api-reference/trading/collateral-stop-limit-order" icon="hand" horizontal/>
+  <Card title="Collateral Trigger Market Order" href="/api-reference/trading/collateral-trigger-market-order" icon="crosshairs" horizontal/>
+  <Card title="Collateral OCO Order" href="/api-reference/trading/create-collateral-oco-order" icon="code-branch" horizontal/>
 </CardGroup>
 
-The `reduceOnly` field also appears in the response of [query active orders](/api-reference/spot-trading/query-unexecuted-orders), [query executed orders](/api-reference/spot-trading/query-executed-orders), and [query conditional orders](/api-reference/collateral-trading/query-unexecuted-conditional-orders).
+The `reduceOnly` field also appears in the response of [query active orders](/api-reference/trading/query-unexecuted-orders), [query executed orders](/api-reference/trading/query-executed-orders), and [query conditional orders](/api-reference/trading/query-unexecuted-conditional-orders).
 
 **WebSocket channels:**
 
@@ -343,16 +359,16 @@ The uniqueness rule for `clientOrderId` on spot and collateral order creation ch
 
 Integrations that relied on a fixed-time uniqueness window to suppress duplicate submissions should not assume a resubmitted `clientOrderId` will be rejected after the original order leaves the open state. Before resubmitting an order whose response was not received, check whether an order with that `clientOrderId` already exists:
 
-- [Query unexecuted orders](/api-reference/spot-trading/query-unexecuted-orders) (`POST /api/v4/orders`) — search open orders by `clientOrderId`.
-- [Query executed orders](/api-reference/spot-trading/query-executed-orders) (`POST /api/v4/trade-account/order/history`) — search filled and canceled orders by `clientOrderId`.
+- [Query unexecuted orders](/api-reference/trading/query-unexecuted-orders) (`POST /api/v4/orders`) — search open orders by `clientOrderId`.
+- [Query executed orders](/api-reference/trading/query-executed-orders) (`POST /api/v4/trade-account/order/history`) — search filled and canceled orders by `clientOrderId`.
 
 If the order is found in either result, the original submission was accepted and no retry is needed.
 
 <CardGroup cols={2}>
   <Card title="Client Order ID guide" href="/guides/client-order-id" icon="tag" horizontal/>
-  <Card title="Create Limit Order" href="/api-reference/spot-trading/create-limit-order" icon="chart-line" horizontal/>
-  <Card title="Query unexecuted orders" href="/api-reference/spot-trading/query-unexecuted-orders" icon="magnifying-glass" horizontal/>
-  <Card title="Query executed orders" href="/api-reference/spot-trading/query-executed-orders" icon="clock-rotate-left" horizontal/>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Query unexecuted orders" href="/api-reference/trading/query-unexecuted-orders" icon="magnifying-glass" horizontal/>
+  <Card title="Query executed orders" href="/api-reference/trading/query-executed-orders" icon="clock-rotate-left" horizontal/>
 </CardGroup>
 </Update>
 
@@ -373,6 +389,30 @@ WhiteBIT futures markets now apply Auto-Deleveraging as the final stage of liqui
 <CardGroup cols={2}>
   <Card title="Auto-Deleveraging Concept" href="/concepts/auto-deleveraging" icon="scale-balanced" horizontal/>
   <Card title="Help Center Article" href="https://help.whitebit.com/hc/ru/articles/35218885148445" icon="book-open" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="March 12, 2026">
+## Deprecation: OCO and OTO cancel endpoints
+**`POST /api/v4/order/oco-cancel` and `POST /api/v4/order/oto-cancel` are being retired**
+
+WhiteBIT is discontinuing support for the two dedicated conditional-cancel endpoints. Cancel OCO and OTO orders through [`POST /api/v4/order/conditional-cancel`](/api-reference/trading/cancel-conditional-order), which handles both order types on every collateral market.
+
+**Migration guide:**
+- Replace calls to `POST /api/v4/order/oco-cancel` and `POST /api/v4/order/oto-cancel` with `POST /api/v4/order/conditional-cancel`.
+- Send the conditional order `id` in place of `orderId` or `otoId`. The value is the same identifier, returned as `id` by [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders).
+- An integration that cancels OCO orders by `clientOrderId` must resolve the client order id to the conditional order `id` first through [query unexecuted conditional orders](/api-reference/trading/query-unexecuted-conditional-orders). The replacement endpoint does not accept `clientOrderId`.
+- Expect an empty array in the response. `POST /api/v4/order/oco-cancel` returns the canceled `stop_loss` and `take_profit` legs; the replacement does not. An integration that logs the canceled legs can read the final leg state from [query executed orders](/api-reference/trading/query-executed-orders), within a 31-day request window reaching back 6 months. For B2B accounts, canceled orders are not recorded in order history; contact support or the assigned account manager to retrieve canceled-leg data.
+
+**Impact:** Integrations calling either endpoint must migrate. Integrations that cancel OCO orders by `clientOrderId`, or that read the canceled legs from the response, need an extra lookup rather than a direct swap.
+
+**Backward compatibility:** Both endpoints keep working until the sunset date.
+
+**Sunset date:** To be announced.
+
+<CardGroup cols={2}>
+  <Card title="Cancel conditional order" href="/api-reference/trading/cancel-conditional-order" icon="ban" horizontal/>
+  <Card title="Query unexecuted conditional orders" href="/api-reference/trading/query-unexecuted-conditional-orders" icon="list" horizontal/>
 </CardGroup>
 </Update>
 
@@ -491,7 +531,7 @@ Added documentation for Smart Flex (Flex Earn) endpoints: list plans, manage inv
 
 Updated documentation for `/api/v4/trade-account/order/history` endpoint to clarify date range filtering capabilities with `startDate` and `endDate` parameters.
 
-<Card title="Trade API - Query executed orders" href="/api-reference/spot-trading/query-executed-orders" icon="shop" horizontal/>
+<Card title="Trade API - Query executed orders" href="/api-reference/trading/query-executed-orders" icon="shop" horizontal/>
 </Update>
 
 <Update label="July 14, 2025">
@@ -548,13 +588,13 @@ WebSocket events now include `event_time` and `update_id` fields. The `event_tim
 The Hedge mode is now available for all users. This mode allows holding both long and short positions in the same asset simultaneously, providing greater flexibility in managing trades.
 
 <CardGroup cols={2}>
-  <Card title="v4 - Collateral Limit Order" href="/api-reference/collateral-trading/collateral-limit-order" icon="sliders" horizontal/>
-  <Card title="v4 - Collateral Stop Limit Order" href="/api-reference/collateral-trading/collateral-stop-limit-order" icon="flag" horizontal/>
-  <Card title="v4 - Collateral Market Order" href="/api-reference/collateral-trading/collateral-market-order" icon="store" horizontal/>
-  <Card title="v4 - Collateral OCO Order" href="/api-reference/collateral-trading/create-collateral-oco-order" icon="split" horizontal/>
-  <Card title="v4 - Collateral Trigger Market Order" href="/api-reference/collateral-trading/collateral-trigger-market-order" icon="rocket" horizontal/>
-  <Card title="v4 - Collateral Account Hedge Mode" href="/api-reference/collateral-trading/collateral-account-hedge-mode" icon="shield" horizontal/>
-  <Card title="v4 - Update Collateral Account Hedge Mode" href="/api-reference/collateral-trading/update-collateral-account-hedge-mode" icon="shield-check" horizontal/>
+  <Card title="v4 - Collateral Limit Order" href="/api-reference/trading/collateral-limit-order" icon="sliders" horizontal/>
+  <Card title="v4 - Collateral Stop Limit Order" href="/api-reference/trading/collateral-stop-limit-order" icon="flag" horizontal/>
+  <Card title="v4 - Collateral Market Order" href="/api-reference/trading/collateral-market-order" icon="store" horizontal/>
+  <Card title="v4 - Collateral OCO Order" href="/api-reference/trading/create-collateral-oco-order" icon="split" horizontal/>
+  <Card title="v4 - Collateral Trigger Market Order" href="/api-reference/trading/collateral-trigger-market-order" icon="rocket" horizontal/>
+  <Card title="v4 - Collateral Account Hedge Mode" href="/api-reference/trading/collateral-account-hedge-mode" icon="shield" horizontal/>
+  <Card title="v4 - Update Collateral Account Hedge Mode" href="/api-reference/trading/update-collateral-account-hedge-mode" icon="shield-check" horizontal/>
   <Card title="ws - Orders Pending" href="/websocket/account-streams/orders-pending" icon="clock" horizontal/>
   <Card title="ws - Orders Executed" href="/websocket/account-streams/orders-executed" icon="check" horizontal/>
   <Card title="ws - Positions" href="/websocket/account-streams/positions" icon="chart-bar" horizontal/>
@@ -566,12 +606,12 @@ To enhance performance and focus on the most relevant data, the API limits data 
 
 <CardGroup cols={2}>
   <Card title="v4 - Convert History" href="/api-reference/convert/convert-history" icon="book" horizontal/>
-  <Card title="v4 - Executed order deals" href="/api-reference/spot-trading/query-executed-order-deals" icon="handshake" horizontal/>
-  <Card title="v4 - Executed orders" href="/api-reference/spot-trading/query-executed-orders" icon="check" horizontal/>
-  <Card title="v4 - Unexecuted (active) conditional orders" href="/api-reference/collateral-trading/query-unexecuted-conditional-orders" icon="clock" horizontal/>
-  <Card title="v4 - Collateral bulk limit order" href="/api-reference/collateral-trading/collateral-bulk-limit-order" icon="grid" horizontal/>
-  <Card title="v4 - Executed order history" href="/api-reference/spot-trading/query-executed-order-history" icon="book" horizontal/>
-  <Card title="v4 - Positions history" href="/api-reference/collateral-trading/positions-history" icon="chart-bar" horizontal/>
+  <Card title="v4 - Executed order deals" href="/api-reference/trading/query-executed-order-deals" icon="handshake" horizontal/>
+  <Card title="v4 - Executed orders" href="/api-reference/trading/query-executed-orders" icon="check" horizontal/>
+  <Card title="v4 - Unexecuted (active) conditional orders" href="/api-reference/trading/query-unexecuted-conditional-orders" icon="clock" horizontal/>
+  <Card title="v4 - Collateral bulk limit order" href="/api-reference/trading/collateral-bulk-limit-order" icon="grid" horizontal/>
+  <Card title="v4 - Executed order history" href="/api-reference/trading/query-executed-order-history" icon="book" horizontal/>
+  <Card title="v4 - Positions history" href="/api-reference/trading/positions-history" icon="chart-bar" horizontal/>
 </CardGroup>
 </Update>
 

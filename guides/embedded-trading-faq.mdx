@@ -43,6 +43,10 @@ Partner-operated sub-accounts (this program) and customers' own accounts via Fas
 
 Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts, each with its own IP whitelist and permission scope. See [Account architecture](/guides/sub-account-integration#account-architecture).
 
+### Sub-account withdrawal returns 401 "This API Key is not authorized to perform this action"
+
+A newly created `type: 2` key has its withdraw endpoints disabled by default (`enable: false`), so withdrawals return this 401 until the URL is enabled with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key). See [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval) for the step.
+
 ## What's next
 
 <CardGroup cols={2}>

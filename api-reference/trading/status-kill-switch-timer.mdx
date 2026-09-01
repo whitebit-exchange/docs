@@ -1,0 +1,20 @@
+---
+title: "Status kill-switch timer"
+description: "Check the current status of the kill-switch timer for automatic order cancellation via the V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/order/kill-switch/status"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/order-kill-switch-status.jsx';
+
+<WhitebitSigner path="/api/v4/order/kill-switch/status" fields={signerFields} />
+
+
+<RelatedResources>
+- [Sync kill-switch timer](/api-reference/trading/sync-kill-switch-timer) — set or reset the kill-switch timer
+</RelatedResources>
+
+## Used in these guides
+
+- [Market Maker integration](/guides/market-maker-integration) — bulk quoting, RPI, kill-switch, and market-data streams.

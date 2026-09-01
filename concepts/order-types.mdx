@@ -4,7 +4,7 @@ description: "All 7 order types supported by WhiteBIT, each type's availability 
 sidebarTitle: "Order Types"
 ---
 
-WhiteBIT supports 7 order types across spot, margin, and futures markets. Every order operation requires authentication. The REST endpoints listed on this page all use the `POST` method; the same order types are also reachable over the WebSocket transport as JSON-RPC methods — see [WebSocket Order Management](/websocket/order-management/overview).
+WhiteBIT supports 7 order types across spot, margin, and futures markets. Every order operation requires authentication. The REST endpoints listed on this page all use the `POST` method; the same order types become reachable over the WebSocket transport as JSON-RPC methods from September 2, 2026 (global platform only) — see [WebSocket Order Management](/websocket/order-management/overview).
 
 ## Order types overview
 
@@ -18,13 +18,13 @@ WhiteBIT supports 7 order types across spot, margin, and futures markets. Every 
 | Multi-Limit (Bulk) | Yes | Yes | Yes | Place up to 20 limit orders in a single API call |
 | OCO | No | Yes | Yes | One-Cancels-Other: two linked orders (margin/futures only) |
 
-Verify availability per market type in the [API Reference](/api-reference/spot-trading/overview).
+Verify availability per market type in the [API Reference](/api-reference/trading/spot-overview).
 
 ## Market orders
 
 A market order executes at the best available price immediately. No price parameter is needed. Orders fill immediately subject to available liquidity. Market orders are useful for exiting positions quickly when price precision matters less than execution speed.
 
-- Spot endpoint: `POST /api/v4/order/market` — [API Reference](/api-reference/spot-trading/create-market-order)
+- Spot endpoint: `POST /api/v4/order/market` — [API Reference](/api-reference/trading/create-market-order)
 - Spot stock market endpoint: `POST /api/v4/order/stock_market` — always denominated in the base (stock) currency
 - Collateral endpoint: `POST /api/v4/order/collateral/market`
 
@@ -36,12 +36,12 @@ A limit order specifies an exact price. The order rests on the orderbook until f
 
 **Post-only mode:** Setting `postOnly: true` ensures the order is placed as a maker order. If the order would immediately match an existing order, the API rejects the request instead of allowing a taker fill.
 
-- Spot endpoint: `POST /api/v4/order/new` — [API Reference](/api-reference/spot-trading/create-limit-order)
+- Spot endpoint: `POST /api/v4/order/new` — [API Reference](/api-reference/trading/create-limit-order)
 - Collateral endpoint: `POST /api/v4/order/collateral/limit`
 
 ## Advanced-Limit orders
 
-An Advanced-Limit order is a spot limit order with additional execution conditions. Setting `ioc: true` (Immediate-or-Cancel) causes the order to fill what it can immediately and cancel any unfilled portion. IOC is available on spot markets only. See `POST /api/v4/order/new` with the `ioc` flag — [API Reference](/api-reference/spot-trading/create-limit-order).
+An Advanced-Limit order is a spot limit order with additional execution conditions. Setting `ioc: true` (Immediate-or-Cancel) causes the order to fill what it can immediately and cancel any unfilled portion. IOC is available on spot markets only. See `POST /api/v4/order/new` with the `ioc` flag — [API Reference](/api-reference/trading/create-limit-order).
 
 <Note>
   The `ioc` flag and `postOnly` flag are mutually exclusive. Setting both to `true` returns error code `37`.
@@ -65,7 +65,7 @@ A stop-limit order uses two prices — a trigger price and a limit price. When t
 
 Multi-Limit allows placing up to 20 limit orders in a single API call. Available on spot and collateral (margin/futures) markets. Designed for market makers managing many price levels simultaneously without issuing separate requests per order.
 
-- Spot endpoint: `POST /api/v4/order/bulk` — [API Reference](/api-reference/spot-trading/bulk-limit-order)
+- Spot endpoint: `POST /api/v4/order/bulk` — [API Reference](/api-reference/trading/bulk-limit-order)
 - Collateral endpoint: `POST /api/v4/order/collateral/bulk`
 
 ## OCO orders
@@ -112,12 +112,12 @@ If a position closes while a reduce-only limit order is still pending, the backe
 
 | Endpoint | Path |
 |----------|------|
-| Collateral limit order | [`POST /api/v4/order/collateral/limit`](/api-reference/collateral-trading/collateral-limit-order) |
-| Collateral bulk limit order | [`POST /api/v4/order/collateral/bulk`](/api-reference/collateral-trading/collateral-bulk-limit-order) |
-| Collateral market order | [`POST /api/v4/order/collateral/market`](/api-reference/collateral-trading/collateral-market-order) |
-| Collateral stop-limit order | [`POST /api/v4/order/collateral/stop-limit`](/api-reference/collateral-trading/collateral-stop-limit-order) |
-| Collateral trigger market order | [`POST /api/v4/order/collateral/trigger-market`](/api-reference/collateral-trading/collateral-trigger-market-order) |
-| Collateral OCO order | [`POST /api/v4/order/collateral/oco`](/api-reference/collateral-trading/create-collateral-oco-order) |
+| Collateral limit order | [`POST /api/v4/order/collateral/limit`](/api-reference/trading/collateral-limit-order) |
+| Collateral bulk limit order | [`POST /api/v4/order/collateral/bulk`](/api-reference/trading/collateral-bulk-limit-order) |
+| Collateral market order | [`POST /api/v4/order/collateral/market`](/api-reference/trading/collateral-market-order) |
+| Collateral stop-limit order | [`POST /api/v4/order/collateral/stop-limit`](/api-reference/trading/collateral-stop-limit-order) |
+| Collateral trigger market order | [`POST /api/v4/order/collateral/trigger-market`](/api-reference/trading/collateral-trigger-market-order) |
+| Collateral OCO order | [`POST /api/v4/order/collateral/oco`](/api-reference/trading/create-collateral-oco-order) |
 
 For OCO orders, `reduceOnly` is a single top-level parameter that applies to both the take-profit and stop-loss legs simultaneously.
 
@@ -176,7 +176,7 @@ Independent of region, while a market has not yet been fully listed (its trading
   <Card title="Margin Trading" icon="chart-line" href="/products/margin/overview">
     Leveraged trading up to 10×.
   </Card>
-  <Card title="API Reference" icon="square-terminal" href="/api-reference/spot-trading/overview">
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/trading/spot-overview">
     Full endpoint documentation for all order types.
   </Card>
 </CardGroup>

@@ -1,0 +1,19 @@
+---
+title: "Collateral account balance summary"
+description: "Get a summary of collateral account balances including equity and margin usage via the V4 API."
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/balance-summary"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/collateral-account-balance-summary.jsx';
+
+<WhitebitSigner path="/api/v4/collateral-account/balance-summary" fields={signerFields} />
+
+
+<RelatedResources>
+- [Collateral account balance](/api-reference/trading/collateral-account-balance) — View per-asset collateral balances
+- [Collateral account summary](/api-reference/trading/collateral-account-summary) — View account-level margin and equity
+- [Open positions](/api-reference/trading/open-positions) — List current open positions
+- [Change collateral account leverage](/api-reference/trading/change-collateral-account-leverage) — Adjust account leverage
+</RelatedResources>
