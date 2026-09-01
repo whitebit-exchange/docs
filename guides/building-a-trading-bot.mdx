@@ -107,7 +107,7 @@ For real-time data, subscribe to WebSocket market streams:
 import json, asyncio, websockets
 
 async def stream_market_data():
-    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+    async with websockets.connect("wss://wss.whitebit.com/ws") as ws:
         # Subscribe to last price updates
         await ws.send(json.dumps({
             "id": 1,
@@ -550,7 +550,7 @@ async def run_bot():
     ]
 
     while True:
-        ws = await connect_with_retry("wss://api.whitebit.com/ws")
+        ws = await connect_with_retry("wss://wss.whitebit.com/ws")
         try:
             # Private channels require authentication first
             await authenticate_ws(ws)

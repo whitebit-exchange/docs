@@ -212,8 +212,17 @@ export const RegionBaseUrl = ({ className = "", showBaseUrl = true, protocol = "
         };
     }, [region]);
 
+    // ── WS HOST MIGRATION (2026-09-01) ──────────────────────────────────────
+    // The Global WebSocket host moved to wss.whitebit.com; api.whitebit.com/ws
+    // stays accepted until 2027-03-01. The EU branch is deliberately left on
+    // api.whitebit.eu — wss.whitebit.eu does not resolve, so the new subdomain
+    // has no confirmed EU counterpart yet.
+    // OPEN: while EU_ENABLED is false this is inert, but the substring rewrite in
+    // updateAllContentOnPage turns page text "wss.whitebit.com" into
+    // "wss.whitebit.eu" on toggle, which would disagree with the label below.
+    // Resolve the EU WS host before setting EU_ENABLED = true.
     const apiBaseUrl = protocol === "wss"
-        ? (region === "eu" ? "wss://api.whitebit.eu/ws" : "wss://api.whitebit.com/ws")
+        ? (region === "eu" ? "wss://api.whitebit.eu/ws" : "wss://wss.whitebit.com/ws")
         : (region === "eu" ? "https://whitebit.eu" : "https://whitebit.com");
     const baseUrlLabel = protocol === "wss" ? "WebSocket URL" : "Base URL";
 
