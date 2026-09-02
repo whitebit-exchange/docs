@@ -279,7 +279,7 @@ Every malformed request returns code `1`; the message identifies the parameter.
 | `10000` | `too many requests per period` | Per-user rate limit |
 | `10001` | `too many new orders per period` | New-order rate limit |
 
-See [WebSocket Rate Limits](/websocket/rate-limits) for connection and request limits.
+The transport limits are per connection: order placements count against a budget of `10000` requests per `10` seconds, and every other JSON-RPC request — cancellations, modifications, subscriptions, `ping` — counts against a separate budget of `12000` per `10` seconds. See [WebSocket Rate Limits](/websocket/rate-limits) for connection limits.
 
 ## Regional availability
 

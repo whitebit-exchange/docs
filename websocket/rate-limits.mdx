@@ -11,7 +11,7 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 Reference documentation for WebSocket connection limits, request limits, timeout behavior, and error codes.
 
 <Warning>
-Rate limit: `1000` WebSocket connections per minute and `200` JSON-RPC requests per minute per connection.
+Rate limits: `1000` WebSocket connections per minute. Per connection, `10000` order placements and `12000` other JSON-RPC requests per `10` seconds.
 </Warning>
 
 ## Connection limits
@@ -19,11 +19,14 @@ Rate limit: `1000` WebSocket connections per minute and `200` JSON-RPC requests 
 | Scope | Limit |
 |-------|-------|
 | New connections | 1,000 per minute |
-| Requests per connection | 200 per minute |
+| Order placements per connection | 10,000 per 10 seconds |
+| All other requests per connection | 12,000 per 10 seconds |
 
 Limit WebSocket connection creation to `1000` connections per minute.
 
-Limit JSON-RPC requests to `200` requests per minute per connection.
+Order placements — the `*_place` methods on [Order Management](/websocket/order-management/overview) — count against a budget of `10000` requests per `10` seconds per connection.
+
+Every other JSON-RPC request — subscriptions, one-time queries, order cancellations and modifications, `authorize`, `ping` — counts against a separate budget of `12000` requests per `10` seconds per connection.
 
 Reuse a single WebSocket connection for multiple subscriptions. Opening a new connection per channel consumes the connection limit and increases latency.
 
@@ -33,7 +36,7 @@ Reuse a single WebSocket connection for multiple subscriptions. Opening a new co
 |-------|-------|
 | Active subscriptions per connection | None |
 | Markets per subscription request | None |
-| Per-channel-type limits | None — the same `200` requests per minute limit applies uniformly across all public and private channels |
+| Per-channel-type limits | None — the same `12000` requests per `10` seconds budget applies uniformly across all public and private channels |
 
 A single connection comfortably maintains subscriptions across `200` or more markets. Distributing markets across multiple connections is not required for high-market-count workloads.
 
@@ -150,7 +153,7 @@ The server closes the WebSocket connection immediately if the client sends inval
 
 **Implement reconnection logic**. Handle unexpected disconnections with exponential backoff (for example, wait `1s`, `2s`, `4s`, `8s` between retries). Re-subscribe to all channels and re-authorize private channels after reconnecting.
 
-**Batch subscriptions**. Subscribe to all required channels immediately after connecting rather than one at a time. Batching reduces round-trips and avoids hitting the `200` requests per minute per connection limit during setup.
+**Batch subscriptions**. Subscribe to all required channels immediately after connecting rather than one at a time. Batching reduces round-trips and keeps connection setup well inside the `12000` requests per `10` seconds budget.
 
 **Monitor ping latency**. A slow or missing `pong` response indicates network issues. Reconnect if the server does not return `pong` within `10` seconds after a `ping`.
 
