@@ -10,7 +10,7 @@ info:
   x-auth-required: true
   x-rate-limits:
     connections-per-minute: 1000
-    requests-per-minute: 200
+    order-placements-per-10-seconds: 10000
   x-error-codes:
     - code: 19
       message: market is not margin market
@@ -33,7 +33,7 @@ info:
 
 servers:
   production:
-    host: api.whitebit.com
+    host: wss.whitebit.com
     protocol: wss
     description: WhiteBIT Global Server
   eu:

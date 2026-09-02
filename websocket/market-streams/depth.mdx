@@ -35,7 +35,7 @@ Real-time order book data with support for both one-time snapshots and continuou
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://api.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
+<Note>Connect to `wss://wss.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -149,7 +149,7 @@ interface OrderBook {
     bids: IDepth[];
 }
 
-const ws = new WebSocket("wss://api.whitebit.com/ws");
+const ws = new WebSocket("wss://wss.whitebit.com/ws");
 const orderBook: OrderBook = { asks: [], bids: [] };
 const LIMIT = 100;
 
@@ -231,7 +231,7 @@ class OrderBook:
 LIMIT = 100
 
 async def depth_subscribe():
-    async with websockets.connect('wss://api.whitebit.com/ws') as ws:
+    async with websockets.connect('wss://wss.whitebit.com/ws') as ws:
         await ws.send(json.dumps({
             'id': 1,
             'method': 'depth_subscribe',
@@ -309,7 +309,7 @@ public class OrderBookClient {
     public static void main(String[] args) throws URISyntaxException, InterruptedException {
         latch = new CountDownLatch(1);
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        URI uri = new URI("wss://api.whitebit.com/ws");
+        URI uri = new URI("wss://wss.whitebit.com/ws");
         container.connectToServer(OrderBookClient.class, uri);
         latch.await(1, TimeUnit.MINUTES);
     }

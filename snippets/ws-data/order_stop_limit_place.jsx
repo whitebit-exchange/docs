@@ -43,7 +43,7 @@ export const channelMeta = {
   "authRequired": true,
   "rateLimits": {
     "connectionsPerMinute": 1000,
-    "requestsPerMinute": 200
+    "orderPlacementsPer10Seconds": 10000
   },
   "errorCodes": [
     {

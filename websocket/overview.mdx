@@ -8,13 +8,38 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl protocol="wss" />
 
+<Warning>
+**Deprecated.** `wss://api.whitebit.com/ws` is deprecated as of September 1, 2026 and stops accepting connections on March 1, 2027. Connect to `wss://wss.whitebit.com/ws` instead. Only the host changes — see [Host migration](#host-migration).
+</Warning>
+
 ## Connection
 
-WebSocket endpoint: **`wss://api.whitebit.com/ws`**
+WebSocket endpoint: **`wss://wss.whitebit.com/ws`**
 
-The API is based on [JSON RPC](https://www.jsonrpc.org/specification) over the WebSocket protocol.
+The API is based on [JSON-RPC](https://www.jsonrpc.org/specification) over the WebSocket protocol.
 
 The API returns time in Unix-time format.
+
+### Host migration
+
+The Global WebSocket host moved from `api.whitebit.com` to `wss.whitebit.com` on September 1, 2026. Both hosts serve the same channels over the same `/ws` path during a 6-month transition window.
+
+| Host | Status |
+|------|--------|
+| `wss://wss.whitebit.com/ws` | Current. Use for all connections. |
+| `wss://api.whitebit.com/ws` | Deprecated September 1, 2026. Rejects connections from March 1, 2027. |
+
+Replace the host string in the WebSocket client and redeploy. Nothing in the application protocol changes:
+
+- The `/ws` path is unchanged.
+- The JSON-RPC request and response format is unchanged.
+- Every subscription, query, and order-management method name is unchanged.
+- The `authorize` flow and the token format are unchanged — see [WebSocket Authentication](/websocket/authentication).
+- Connection and request limits are unchanged — see [WebSocket Rate Limits & Error Codes](/websocket/rate-limits).
+
+One item sits outside the application protocol: a network that allowlists destination hosts must permit `wss.whitebit.com` before the switch.
+
+The legacy host stays fully functional until March 1, 2027, so the switch does not need a coordinated cutover. An integration that resolves the host from configuration needs a configuration change only. An integration that hardcodes the host in more than one place — a reconnect helper, a failover list, a client default — must update every occurrence, because a missed entry keeps working until March 1, 2027 and fails then rather than at deploy time.
 
 ---
 
@@ -35,7 +60,7 @@ Open a WebSocket connection to the endpoint.
 <CodeGroup>
 
 ```javascript JavaScript
-const socket = new WebSocket("wss://api.whitebit.com/ws");
+const socket = new WebSocket("wss://wss.whitebit.com/ws");
 
 socket.onopen = () => {
   console.log("Connected");
@@ -53,7 +78,7 @@ import websockets
 import json
 
 async def connect():
-    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+    async with websockets.connect("wss://wss.whitebit.com/ws") as ws:
         print("Connected")
         async for message in ws:
             data = json.loads(message)
@@ -92,7 +117,7 @@ import websockets
 import json
 
 async def connect():
-    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+    async with websockets.connect("wss://wss.whitebit.com/ws") as ws:
         async def keepalive():
             while True:
                 await asyncio.sleep(50)
@@ -136,7 +161,7 @@ import websockets
 import json
 
 async def connect():
-    async with websockets.connect("wss://api.whitebit.com/ws") as ws:
+    async with websockets.connect("wss://wss.whitebit.com/ws") as ws:
         async def keepalive():
             while True:
                 await asyncio.sleep(50)

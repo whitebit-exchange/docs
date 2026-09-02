@@ -18,6 +18,43 @@ From September 2, 2026, the WebSocket API carries order flow alongside market an
   <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
   <Card title="Create Limit Order (REST)" href="/api-reference/trading/create-limit-order" icon="list" horizontal/>
 </CardGroup>
+
+## WebSocket rate limits
+**Per-connection budgets: 10,000 order placements and 12,000 other requests per 10 seconds**
+
+The documented WebSocket request limits are updated. Per connection, order placements — the `*_place` methods — are limited to 10,000 requests per 10 seconds, and every other JSON-RPC request (subscriptions, cancellations, modifications, `ping`) counts against a separate budget of 12,000 per 10 seconds. These budgets replace the previously documented cap of 200 requests per minute per connection. The connection limit is unchanged at 1,000 new connections per minute.
+
+<CardGroup cols={2}>
+  <Card title="WebSocket Rate Limits" href="/websocket/rate-limits" icon="gauge-high" horizontal/>
+  <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="September 1, 2026">
+## WebSocket host migration
+**Breaking change: the Global WebSocket host moved to `wss://wss.whitebit.com/ws`**
+
+The Global WebSocket endpoint moved from `wss://api.whitebit.com/ws` to `wss://wss.whitebit.com/ws`. Both hosts serve the same channels over the same `/ws` path during a 6-month transition window, after which the legacy host stops accepting connections.
+
+Only the host changes. The `/ws` path, the JSON-RPC message format, every market-stream, account-stream, and order-management method name, the `authorize` flow and token format, and the connection and request limits are all unchanged.
+
+**Migration guide:**
+- Replace `wss://api.whitebit.com/ws` with `wss://wss.whitebit.com/ws` in the WebSocket client and redeploy.
+- Update every hardcoded copy of the host — reconnect helpers, failover lists, client defaults, and environment configuration. A missed copy keeps working until the sunset date and fails then rather than at deploy time.
+- Subscription logic, message parsing, authorization, and keepalive handling need no change.
+
+**Sunset date:** March 1, 2027.
+
+**Replacement:** Connect to `wss://wss.whitebit.com/ws`. See [WebSocket API — Host migration](/websocket/overview#host-migration).
+
+**Impact:** Every integration on the Global WebSocket host is affected — public market streams, private account streams, and WebSocket order management alike. REST API integrations are not affected; the REST base URL is unchanged.
+
+<CardGroup cols={2}>
+  <Card title="WebSocket overview" href="/websocket/overview" icon="plug" horizontal/>
+  <Card title="WebSocket authentication" href="/websocket/authentication" icon="lock" horizontal/>
+  <Card title="Market streams" href="/websocket/market-streams/overview" icon="chart-line" horizontal/>
+  <Card title="Order management" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
+</CardGroup>
 </Update>
 
 <Update label="August 19, 2026">

@@ -260,6 +260,7 @@ paths:
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
         </Accordion>
       tags:
         - Collateral Trading
@@ -539,6 +540,7 @@ paths:
           - `114` - hedge mode position side does not match (per-order; sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
+          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (per-order; coming soon — not yet returned)
         </Accordion>
       tags:
         - Collateral Trading
@@ -883,6 +885,7 @@ paths:
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
         </Accordion>
       tags:
         - Collateral Trading
@@ -1111,6 +1114,7 @@ paths:
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
         </Accordion>
       tags:
         - Collateral Trading
@@ -1369,6 +1373,7 @@ paths:
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
         </Accordion>
       tags:
         - Collateral Trading
@@ -3134,6 +3139,7 @@ paths:
           - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
           - `115` - order would open a position in the opposite direction (one-way mode)
           - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
         </Accordion>
       tags:
         - Collateral Trading
@@ -7091,7 +7097,9 @@ paths:
         <Accordion title="Error Codes">
         **Status 400** (client errors): 1, 2, 6, 20, 24, 101, 158
         
-        **Status 422** (business logic): 10, 11, 12, 13, 14, 15, 16, 17, 25, 27, 40, 42, 51, 103, 104, 105, 106, 111, 112, 113, 114, 115, 150, 151, 152, 153, 155, 157, 159, 160, 161, 162, 163, 250, 251, 300, 302, 330
+        **Status 422** (business logic): 10, 11, 12, 13, 14, 15, 16, 17, 25, 27, 40, 42, 51, 103, 104, 105, 106, 111, 112, 113, 114, 115, 150, 151, 152, 153, 155, 157, 159, 160, 161, 162, 163, 250, 251, 300, 302, 330, 10011 (coming soon)
+
+        Coming soon: `10011` will be returned when the order being modified belongs to a TradFi market and TradFi trading is restricted for the account. Canceling such an order is always allowed.
         </Accordion>
         
         <Accordion title="Errors">

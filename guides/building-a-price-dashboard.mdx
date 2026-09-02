@@ -101,7 +101,7 @@ Polling covers one-shot lookups; a live board needs continuous updates. Subscrib
     import json
     import websocket
 
-    ws = websocket.create_connection("wss://api.whitebit.com/ws")
+    ws = websocket.create_connection("wss://wss.whitebit.com/ws")
     ws.send(json.dumps({
         "id": 1,
         "method": "lastprice_subscribe",
@@ -158,7 +158,7 @@ The endpoints and channels used on this page carry the following limits:
 | `GET /api/v4/public/markets` | 2,000 requests per 10 seconds |
 | `GET /api/v4/public/ticker` | 2,000 requests per 10 seconds |
 | WebSocket connections | 1,000 new connections per minute |
-| WebSocket requests | 200 JSON-RPC requests per minute per connection |
+| WebSocket requests | 12,000 JSON-RPC requests per 10 seconds per connection |
 
 Full reference: [Rate Limits & Error Codes](/api-reference/rate-limits) and [WebSocket Rate Limits & Error Codes](/websocket/rate-limits).
 
