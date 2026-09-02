@@ -18,6 +18,16 @@ From September 2, 2026, the WebSocket API carries order flow alongside market an
   <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
   <Card title="Create Limit Order (REST)" href="/api-reference/trading/create-limit-order" icon="list" horizontal/>
 </CardGroup>
+
+## WebSocket rate limits
+**Per-connection budgets: 10,000 order placements and 12,000 other requests per 10 seconds**
+
+The documented WebSocket request limits are updated. Per connection, order placements — the `*_place` methods — are limited to 10,000 requests per 10 seconds, and every other JSON-RPC request (subscriptions, cancellations, modifications, `ping`) counts against a separate budget of 12,000 per 10 seconds. These budgets replace the previously documented cap of 200 requests per minute per connection. The connection limit is unchanged at 1,000 new connections per minute.
+
+<CardGroup cols={2}>
+  <Card title="WebSocket Rate Limits" href="/websocket/rate-limits" icon="gauge-high" horizontal/>
+  <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
+</CardGroup>
 </Update>
 
 <Update label="September 1, 2026">

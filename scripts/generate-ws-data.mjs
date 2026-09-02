@@ -476,8 +476,13 @@ for (const dir of SPEC_DIRS) {
       if (rateLimits) {
         meta.rateLimits = {
           connectionsPerMinute: rateLimits['connections-per-minute'] || 1000,
-          requestsPerMinute: rateLimits['requests-per-minute'] || 200,
         };
+        if (rateLimits['order-placements-per-10-seconds'] !== undefined) {
+          meta.rateLimits.orderPlacementsPer10Seconds = rateLimits['order-placements-per-10-seconds'];
+        }
+        if (rateLimits['requests-per-10-seconds'] !== undefined) {
+          meta.rateLimits.requestsPer10Seconds = rateLimits['requests-per-10-seconds'];
+        }
       }
       meta.errorCodes = errorCodes || 'standard';
       metaExport = `export const channelMeta = ${JSON.stringify(meta, null, 2)};`;
