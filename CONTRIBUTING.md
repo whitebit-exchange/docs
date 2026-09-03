@@ -160,4 +160,4 @@ See `ai/how-to/playbook.md` for full workflow details.
 | Style and content | Tech Writer team lead |
 | API accuracy | Backend Engineering team |
 | Process and workflow | DevRel team lead |
-| Portal setup | Check `README.md` |
+| Portal setup | `README.md` (browse locally) · `README.internal.md` (full contributor setup) |
