@@ -51,8 +51,14 @@ The MCP server documented on this page enables **trading** via AI clients. For d
       </Step>
       <Step title="Run the setup command">
         ```bash
-        uvx whitebit-mcp-setup --public=YOUR_API_KEY --secret=YOUR_SECRET_KEY
+        uvx --from whitebit-mcp whitebit-mcp-setup --public=YOUR_API_KEY
         ```
+
+        <Warning>
+        Keep `--from whitebit-mcp`. `whitebit-mcp-setup` is a command inside the `whitebit-mcp` package, not a package of its own — running `uvx whitebit-mcp-setup` downloads and executes an unrelated third-party package that happens to hold that name on PyPI, and passes the API credentials to it.
+        </Warning>
+
+        Omitting `--secret` makes the script prompt for the secret key without echoing it, which keeps it out of the shell history. To run non-interactively, add `--secret=YOUR_SECRET_KEY`.
 
         The script writes the server configuration and credentials into the config of each AI tool it finds:
 
@@ -226,26 +232,23 @@ Skip this section if the auto-setup tab above was used — the AI clients are al
 Generate API keys at [whitebit.com](https://whitebit.com) → **Profile** → **API Keys**. Use the minimum permissions required for the intended use case — read-only keys are sufficient for balance and order queries.
 
 <Warning>
-Never paste API keys directly into the AI conversation. Pass credentials as tool parameters at the start of a session. The server uses keys only to sign outgoing WhiteBIT API requests — keys are not stored, logged, or cached.
+Never paste API keys into the AI conversation. Credentials are supplied at connection time — the setup command writes them into the AI client configuration, and the client passes them to the server on every connection. The server uses keys only to sign outgoing WhiteBIT API requests — keys are not stored, logged, or cached.
 </Warning>
 
-**Credential handling:** API keys are passed as parameters in each tool call. The AI client sends the credentials on behalf of the account holder when provided at the start of the conversation.
+**Credential handling:** credentials are read from the transport, never from tool parameters.
 
-**Public market data tools** (market info, tickers, order book) query public endpoints. Pass `"public"` for both `api_key` and `secret_key` when only public data is needed.
+| Transport | Where credentials come from |
+|---|---|
+| stdio / `uvx` | `WHITEBIT_API_KEY` and `WHITEBIT_SECRET_KEY` environment variables |
+| HTTP / Docker | `X-WB-Api-Key` and `X-WB-Secret-Key` request headers |
 
-### Example: provide credentials at session start
-
-```text
-API key is YOUR_API_KEY and secret is YOUR_SECRET. Show the spot balance.
-```
-
-The AI client passes credentials as tool parameters for the duration of the session.
+**Public market data tools** (market info, tickers, order book) query public endpoints and need no credentials. On the HTTP transport the `/mcp` endpoint still answers `401` to a connection that carries no credentials at all, so the client must be configured with keys even for public data.
 
 ## Example prompts
 
 ### Market data — no API key required
 
-Pass `"public"` for both key fields when querying public endpoints.
+These tools query public endpoints and return data without credentials.
 
 - "What is the current BTC_USDT price?"
 - "Show the order book for ETH_USDT"
