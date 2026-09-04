@@ -33,9 +33,9 @@ See [MCP server — Connect an AI client](/guides/mcp-server#connect-an-ai-clien
 
 ## API key security
 
-API keys are passed as parameters in each tool call and are used only to sign outgoing WhiteBIT API requests. The MCP server does not store, log, or cache credentials. All processing happens locally — no data is sent to external services beyond WhiteBIT.
+API keys are supplied at connection time — as `WHITEBIT_API_KEY` and `WHITEBIT_SECRET_KEY` environment variables on the stdio transport, or as `X-WB-Api-Key` and `X-WB-Secret-Key` request headers on the HTTP transport — and are used only to sign outgoing WhiteBIT API requests. No tool takes an API key as a parameter. The MCP server does not store, log, or cache credentials. All processing happens locally — no data is sent to external services beyond WhiteBIT.
 
-For public market data tools (tickers, order book, market info), pass `"public"` for both `api_key` and `secret_key`. No account credentials are required for public endpoints.
+Public market data tools (tickers, order book, market info) query public endpoints and need no account credentials.
 
 See [Authentication](/api-reference/authentication) for instructions on generating and managing API keys.
 
@@ -54,7 +54,7 @@ The documentation MCP is a Mintlify-hosted service. See [Docs search via MCP](/g
 
 ## Public market data without API keys
 
-Public market data tools do not require a WhiteBIT account. Pass `"public"` for both `api_key` and `secret_key` parameters, then ask questions like:
+Public market data tools do not require a WhiteBIT account. On the stdio transport these tools answer with no credentials configured, so a market-data-only setup can leave the key variables empty. Example questions:
 
 - "What is the current BTC_USDT price?"
 - "Show the order book for ETH_USDT"
@@ -87,7 +87,7 @@ Before connecting AI tools to a live account:
 - Generate API keys with the minimum permissions required — read-only keys are sufficient for balance and order queries.
 - Enable IP whitelisting on the API key to restrict access to the machine running the MCP server.
 - Test with small amounts before executing larger trades.
-- Never provide API keys in the AI conversation — pass credentials as tool parameters at session start only.
+- Never provide API keys in the AI conversation — credentials belong in the AI client configuration that the setup command writes.
 
 See [MCP server — Safe account practices](/guides/mcp-server#safe-account-practices) for the full checklist.
 
