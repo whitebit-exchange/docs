@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 import { execSync, spawnSync } from "node:child_process";
 
+// Fast lane (opt-in): DOCS_FAST=1 skips the headless TCR gate. The static
+// validators in .husky/pre-commit still run. Guarded here too so a direct
+// `node scripts/invoke-tcr-hook.mjs` honors the same opt-out.
+if (process.env.DOCS_FAST && process.env.DOCS_FAST !== "0") {
+  console.log("DOCS_FAST set — skipping /task-completion-review (fast lane).");
+  process.exit(0);
+}
+
 const diff = execSync("git diff --staged", { encoding: "utf-8" });
 
 if (!diff) {
@@ -21,13 +29,21 @@ if (!stagedFiles.some((f) => DOC_FILE_RE.test(f))) {
   process.exit(0);
 }
 
-console.log("Running /task-completion-review via Claude Code…");
-console.log("This may take 1–5 minutes. To bypass: git commit --no-verify\n");
+// Gate mode: the headless pre-commit review runs a leaner path than the
+// interactive skill — terse findings-only output, no glossary/learnings steps,
+// bounded ripple read-set (see task-completion-review SKILL.md "Gate mode").
+// Model defaults to sonnet for speed/cost; override with TCR_MODEL=opus for a
+// deeper review on large or wide-ripple diffs.
+const TCR_MODEL = process.env.TCR_MODEL || "sonnet";
+console.log(`Running /task-completion-review (gate mode, model: ${TCR_MODEL}) via Claude Code…`);
+console.log("Usually a couple of minutes; longer on large or wide-ripple diffs.");
+console.log("Fast lane for small edits: DOCS_FAST=1 git commit. Full bypass: git commit --no-verify\n");
 
 const result = spawnSync(
   "claude",
   [
-    "-p", "/task-completion-review",
+    "-p", "/task-completion-review --gate",
+    "--model", TCR_MODEL,
     "--output-format", "json",
     "--no-session-persistence",
   ],
