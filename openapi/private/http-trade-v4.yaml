@@ -4126,6 +4126,219 @@ paths:
                     errors:
                       quoteId: ["validation.numeric_field_length"]
 
+  /api/v4/convert/auto-confirm:
+    post:
+      summary: Convert Auto Confirm
+      description: |
+        The endpoint requests a conversion quote and accepts it in a single call. No separate confirm step and no expiry window apply, so the 10-second quote lifetime that governs [Convert Estimate](/api-reference/convert/convert-estimate) followed by [Convert Confirm](/api-reference/convert/convert-confirm) cannot elapse mid-flow. The spot balance funds the conversion and receives the converted amount, matching the two-step flow.
+
+        The endpoint reports a conversion as executed only when the quote is filled and the converted amount is non-zero.
+
+        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time.
+
+        The key is bound to the request that first executed it. Reuse with different parameters returns `409` (`frontendServerSide.converter.idempotencyKeyReused`) instead of replaying the earlier conversion.
+
+        The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
+
+        **Rate limit:** 10,000 requests / 10 sec per IP address — the default for all endpoints. See [Rate limits](/api-reference/rate-limits).
+
+        <Warning>
+        The idempotency claim is held for a few seconds and is configurable. The claim is taken once and is never renewed, and execution can outlast it. A retry sent after the claim lapses but before the original request finishes converts a second time.
+        </Warning>
+
+        <Note>
+        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic value `api.httpErrors.invalidRequest`. The specific condition appears in `errors.<field>[0]`. Branch on the HTTP status code rather than on `code`.
+        </Note>
+
+        <Warning>
+        Do not retry a `502`, with the same key or a new one — contact support to reconcile. A retry with the same key returns the same `502`.
+        </Warning>
+
+        <Note>
+        Error `message` values may be returned as translation keys (for example `validation.balance`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        </Note>
+      operationId: convertAutoConfirm
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from
+                - to
+                - direction
+                - amount
+              properties:
+                from:
+                  type: string
+                  description: "From currency. Example: BTC"
+                  example: "BTC"
+                to:
+                  type: string
+                  description: "To currency. Example: USDT"
+                  example: "USDT"
+                direction:
+                  type: string
+                  description: "Convert amount direction, defines in which currency corresponding \"amount\" field is populated. Use \"to\" in case amount is in \"to\" currency, use \"from\" if amount is in \"from\" currency"
+                  enum: ["from", "to"]
+                  example: "from"
+                amount:
+                  type: string
+                  description: "Amount to convert or receive. The value is silently truncated to 8 decimal places before evaluation; excess decimals do not raise an error."
+                  example: "0.1"
+                idempotencyKey:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                  description: "Optional idempotency key. Any characters are accepted; the bounds are a length check on a free-form string and never a comparison of a digits-only key as a number, so `\"12345678\"` is valid and `\"123\"` is too short. A UUID is the usual choice."
+                  example: "9f1c2b7e-4d3a-4f21-9c88-6e5b0a71d240"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+                  example: 1699260637
+                request:
+                  type: string
+                  description: "Request path"
+                  example: "{{request}}"
+            example:
+              from: "BTC"
+              to: "USDT"
+              direction: "from"
+              amount: "0.1"
+              idempotencyKey: "9f1c2b7e-4d3a-4f21-9c88-6e5b0a71d240"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: "Quote ID of the executed conversion. Accepted as the `quoteId` filter on the convert history endpoint."
+                    example: "987654321"
+                  finalGive:
+                    type: string
+                    description: "Final amount given, in the `from` currency"
+                    example: "0.10000000"
+                  finalReceive:
+                    type: string
+                    description: "Final amount received, in the `to` currency"
+                    example: "6543.21000000"
+              example:
+                id: "987654321"
+                finalGive: "0.10000000"
+                finalReceive: "6543.21000000"
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficientBalance:
+                  summary: "Insufficient Balance"
+                  value:
+                    code: 37
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.balance"]
+                amountTooBig:
+                  summary: "Amount Above Maximum"
+                  value:
+                    code: 32
+                    message: "Validation failed"
+                    errors:
+                      amount: ["frontendServerSide.converter.amountIsTooBig"]
+        '409':
+          description: |
+            Idempotency key conflict. The endpoint executed no conversion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                requestInFlight:
+                  summary: "Duplicate Request Still Running"
+                  value:
+                    code: 0
+                    message: "api.httpErrors.invalidRequest"
+                    errors:
+                      request: ["frontendServerSide.converter.requestInFlight"]
+                idempotencyKeyReused:
+                  summary: "Key Reused For A Different Request"
+                  value:
+                    code: 0
+                    message: "api.httpErrors.invalidRequest"
+                    errors:
+                      request: ["frontendServerSide.converter.idempotencyKeyReused"]
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingRequiredField:
+                  summary: "Missing Required Field"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.required"]
+                directionInvalid:
+                  summary: "Direction Invalid"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      direction: ["Direction field does not exist in [from,to]."]
+                amountTooSmall:
+                  summary: "Amount Below Minimum"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.amount_too_small"]
+                termsNotAccepted:
+                  summary: "Terms Not Accepted"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      user: ["Terms of exchange are not accepted"]
+                marketsNotAvailable:
+                  summary: "Markets Not Available"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      from: ["Conversion markets not available"]
+        '502':
+          description: |
+            The conversion service returned no usable verdict. The conversion may have executed. Two states produce a `502` and the response does not distinguish between the two: a transfer may still be outstanding, or the conversion was delivered and only the idempotency record failed to persist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 0
+                message: "api.httpErrors.invalidRequest"
+                errors:
+                  request: ["frontendServerSide.converter.outcomeUnknown"]
+        '503':
+          description: Conversion is disabled on the platform by the convert kill switch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v4/convert/history:
     post:
       summary: Convert History
