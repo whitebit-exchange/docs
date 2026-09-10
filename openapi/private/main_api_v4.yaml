@@ -148,53 +148,15 @@ paths:
         - Deposit
       summary: Get cryptocurrency deposit address
       description: |
-        The endpoint retrieves a deposit address of the cryptocurrency.
+        Get an existing cryptocurrency deposit address for a given currency and network.
 
         <Note>
-        Sub-accounts use this endpoint with their own API key once deposits are enabled for the
-        account. Crypto deposits are disabled by default — to enable them, contact your assigned
-        Account Manager or email institutional@whitebit.com.
+        Sub-accounts use this endpoint with a sub-account API key once deposits are enabled for the account. Crypto deposits are disabled by default. To enable deposits, contact the assigned account manager or email institutional@whitebit.com.
         </Note>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 0,
-          "message": "Validation failed",
-          "errors": {
-            "ticker": ["The selected ticker is invalid."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 0,
-          "message": "Validation failed",
-          "errors": {
-            "network": ["The selected network is invalid."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 1,
-          "message": "Inner validation failed",
-          "errors": {
-            "ticker": ["Currency is not depositable"]
-          }
-        }
-        ```
-        </Accordion>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
-        
-        <Note>
-        The API does not cache the response.
-        </Note>
 
       operationId: getDepositAddress
       requestBody:
@@ -228,7 +190,8 @@ paths:
                   example: 1594297865000
       responses:
         "200":
-          description: Successful response
+          description: |
+            Successful response. The API does not cache the response.
           content:
             application/json:
               schema:
@@ -286,6 +249,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                invalidTicker:
+                  summary: Invalid ticker
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: ["The selected ticker is invalid."]
+                invalidNetwork:
+                  summary: Invalid network
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      network: ["The selected network is invalid."]
+                notDepositable:
+                  summary: Currency not depositable
+                  value:
+                    code: 1
+                    message: "Inner validation failed"
+                    errors:
+                      ticker: ["Currency is not depositable"]
         "503":
           description: Service temporary unavailable
 
