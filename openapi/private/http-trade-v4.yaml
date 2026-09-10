@@ -42,17 +42,6 @@ paths:
         Rate limit: 12000 requests/10 sec.
         </Warning>
         
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "ticker": ["ticker is invalid."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -106,6 +95,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ticker:
+                  summary: "ticker is invalid"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      ticker:
+                      - ticker is invalid.
         '503':
           description: Service temporarily unavailable
 
@@ -124,17 +122,6 @@ paths:
         Rate limit: 12000 requests/10 sec.
         </Warning>
         
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "ticker": ["ticker is invalid."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -214,6 +201,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ticker:
+                  summary: "ticker is invalid"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      ticker:
+                      - ticker is invalid.
         '503':
           description: Service temporarily unavailable
 
@@ -242,26 +238,6 @@ paths:
         <Note>
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
         </Note>
-        
-        
-        <Accordion title="Error Codes">
-          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `33` - price validation failed
-          - `36` - clientOrderId validation failed
-          - `37` - `ioc=true` cannot be combined with `postOnly=true`
-          - `40` - `ioc=true` cannot be combined with `rpi=true`
-          - `43` - `rpi=true` is not allowed for the account
-          - `10` - insufficient balance to place the order
-          - `111` - resulting position would exceed the market maximum
-          - `112` - pending orders value would exceed the allowed maximum
-          - `113` - position side cannot be changed while open positions or orders exist
-          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
-          - `115` - order would open a position in the opposite direction (one-way mode)
-          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -507,7 +483,26 @@ paths:
                 rpi: true
                 reduceOnly: false
         '422':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `33` - price validation failed
+            - `36` - clientOrderId validation failed
+            - `37` - `ioc=true` cannot be combined with `postOnly=true`
+            - `40` - `ioc=true` cannot be combined with `rpi=true`
+            - `43` - `rpi=true` is not allowed for the account
+            - `10` - insufficient balance to place the order
+            - `111` - resulting position would exceed the market maximum
+            - `112` - pending orders value would exceed the allowed maximum
+            - `113` - position side cannot be changed while open positions or orders exist
+            - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+            - `115` - order would open a position in the opposite direction (one-way mode)
+            - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
           content:
             application/json:
               schema:
@@ -525,23 +520,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (per-order). Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `33` - price validation failed
-          - `36` - clientOrderId validation failed
-          - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
-          - `10` - insufficient balance to place the order
-          - `111` - resulting position would exceed the market maximum
-          - `112` - pending orders value would exceed the allowed maximum
-          - `113` - position side cannot be changed while open positions or orders exist
-          - `114` - hedge mode position side does not match (per-order; sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
-          - `115` - order would open a position in the opposite direction (one-way mode)
-          - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
-          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (per-order; coming soon — not yet returned)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -848,7 +826,24 @@ paths:
                     reduceOnly: false
                   error: null
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (per-order). Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `33` - price validation failed
+            - `36` - clientOrderId validation failed
+            - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+            - `10` - insufficient balance to place the order
+            - `111` - resulting position would exceed the market maximum
+            - `112` - pending orders value would exceed the allowed maximum
+            - `113` - position side cannot be changed while open positions or orders exist
+            - `114` - hedge mode position side does not match (per-order; sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+            - `115` - order would open a position in the opposite direction (one-way mode)
+            - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (per-order; coming soon — not yet returned)
           content:
             application/json:
               schema:
@@ -872,21 +867,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `36` - clientOrderId validation failed
-          - `10` - insufficient balance to place the order
-          - `111` - resulting position would exceed the market maximum
-          - `112` - pending orders value would exceed the allowed maximum
-          - `113` - position side cannot be changed while open positions or orders exist
-          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
-          - `115` - order would open a position in the opposite direction (one-way mode)
-          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1082,7 +1062,22 @@ paths:
                 positionSide: "LONG"
                 reduceOnly: false
         '422':
-          description: Internal validation failed
+          description: |
+            Internal validation failed
+
+            Error codes:
+            - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `36` - clientOrderId validation failed
+            - `10` - insufficient balance to place the order
+            - `111` - resulting position would exceed the market maximum
+            - `112` - pending orders value would exceed the allowed maximum
+            - `113` - position side cannot be changed while open positions or orders exist
+            - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+            - `115` - order would open a position in the opposite direction (one-way mode)
+            - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
           content:
             application/json:
               schema:
@@ -1100,22 +1095,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `33` - price validation failed
-          - `36` - clientOrderId validation failed
-          - `10` - insufficient balance to place the order
-          - `111` - resulting position would exceed the market maximum
-          - `112` - pending orders value would exceed the allowed maximum
-          - `113` - position side cannot be changed while open positions or orders exist
-          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
-          - `115` - order would open a position in the opposite direction (one-way mode)
-          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1336,7 +1315,23 @@ paths:
                 positionSide: "LONG"
                 reduceOnly: false
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `33` - price validation failed
+            - `36` - clientOrderId validation failed
+            - `10` - insufficient balance to place the order
+            - `111` - resulting position would exceed the market maximum
+            - `112` - pending orders value would exceed the allowed maximum
+            - `113` - position side cannot be changed while open positions or orders exist
+            - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+            - `115` - order would open a position in the opposite direction (one-way mode)
+            - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
           content:
             application/json:
               schema:
@@ -1360,21 +1355,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `36` - clientOrderId validation failed
-          - `10` - insufficient balance to place the order
-          - `111` - resulting position would exceed the market maximum
-          - `112` - pending orders value would exceed the allowed maximum
-          - `113` - position side cannot be changed while open positions or orders exist
-          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
-          - `115` - order would open a position in the opposite direction (one-way mode)
-          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1581,7 +1561,22 @@ paths:
                 positionSide: "LONG"
                 reduceOnly: false
         '422':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `36` - clientOrderId validation failed
+            - `10` - insufficient balance to place the order
+            - `111` - resulting position would exceed the market maximum
+            - `112` - pending orders value would exceed the allowed maximum
+            - `113` - position side cannot be changed while open positions or orders exist
+            - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+            - `115` - order would open a position in the opposite direction (one-way mode)
+            - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
           content:
             application/json:
               schema:
@@ -1684,10 +1679,6 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (returned when the optional `market` filter is malformed)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1868,7 +1859,11 @@ paths:
                   tpsl: null
                   positionSide: "LONG"
         '422':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (returned when the optional `market` filter is malformed)
           content:
             application/json:
               schema:
@@ -1886,12 +1881,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (for example, a missing or malformed `positionId` or `market`)
-          - `104` - position not found. Returned whether the `positionId` does not exist, the position is already closed, or it is not owned by the account — these cases are not distinguished
-          - `10` - insufficient balance to fund the closing market order
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -1939,7 +1928,13 @@ paths:
         '200':
           description: Position closed
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (for example, a missing or malformed `positionId` or `market`)
+            - `104` - position not found. Returned whether the `positionId` does not exist, the position is already closed, or it is not owned by the account — these cases are not distinguished
+            - `10` - insufficient balance to fund the closing market order
           content:
             application/json:
               schema:
@@ -1965,10 +1960,6 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset` — or a date filter that violates `startDate` ≤ `endDate` ≤ `now + 1s`)
-        </Accordion>
 
         <Note>
         **Date filter window:** `startDate` and `endDate` are optional and have no defaults. The endpoint enforces no maximum window and no lower-bound floor. The only ordering constraint is `startDate` ≤ `endDate` ≤ `now + 1s` — requests that violate the ordering are rejected with a validation error.
@@ -2129,7 +2120,11 @@ paths:
                   side: "LONG"
                   isHedge: false
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset` — or a date filter that violates `startDate` ≤ `endDate` ≤ `now + 1s`)
           content:
             application/json:
               schema:
@@ -2163,10 +2158,6 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (invalid pagination — `limit` outside 1–100, or `offset` + `limit` above 10000 — or a date filter that violates `startDate` ≤ `endDate` ≤ `now + 1s`)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2311,7 +2302,11 @@ paths:
                   openDate: 1777900000
                   closeDate: 1778050000
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (invalid pagination — `limit` outside 1–100, or `offset` + `limit` above 10000 — or a date filter that violates `startDate` ≤ `endDate` ≤ `now + 1s`)
           content:
             application/json:
               schema:
@@ -2341,11 +2336,6 @@ paths:
         <Note>
         This endpoint supports pagination. Use `limit` (default: 100) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
-          - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2459,7 +2449,12 @@ paths:
                 limit: 100
                 offset: 0
         '422':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
+            - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
           content:
             application/json:
               schema:
@@ -2487,12 +2482,6 @@ paths:
         <Warning>
         Changing leverage affects **all open positions** across margin and futures trading. Decreasing leverage increases margin requirements — if available funds are insufficient to support the new level, the request returns an error.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - invalid `leverage` value (out of range, non-integer, or wrong type). Setting leverage above a market's `max_leverage` also surfaces here as an out-of-range value
-          - `17` - the requested leverage is valid but available balance is insufficient to support it
-          - `113` - leverage cannot be changed while open positions or orders exist
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2541,7 +2530,13 @@ paths:
               example:
                 leverage: 5
         '422':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - invalid `leverage` value (out of range, non-integer, or wrong type). Setting leverage above a market's `max_leverage` also surfaces here as an out-of-range value
+            - `17` - the requested leverage is valid but available balance is insufficient to support it
+            - `113` - leverage cannot be changed while open positions or orders exist
           content:
             application/json:
               schema:
@@ -2620,11 +2615,6 @@ paths:
         <Warning>
         Switching between one-way mode and hedge mode requires **no open positions**. Close all futures positions before toggling the mode. If the switch does not take effect immediately after closing positions, wait approximately 15 seconds and retry.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (for example, a missing or non-boolean `hedgeMode` value)
-          - `113` - hedge mode cannot be changed while open positions or orders exist
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2660,7 +2650,12 @@ paths:
         '200':
           description: Successful response - hedge mode updated
         '422':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (for example, a missing or non-boolean `hedgeMode` value)
+            - `113` - hedge mode cannot be changed while open positions or orders exist
           content:
             application/json:
               schema:
@@ -2763,11 +2758,6 @@ paths:
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
-          - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -2959,7 +2949,12 @@ paths:
                       postOnly: false
                       positionSide: "LONG"
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
+            - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
           content:
             application/json:
               schema:
@@ -2987,11 +2982,6 @@ paths:
         <Note>
         This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` OCO orders are returned. An empty array means you have paged past the end; receiving exactly `limit` orders does not guarantee that another page exists.
         </Note>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
-          - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3101,7 +3091,12 @@ paths:
                     mtime: 1662478154.941582
                     price: "9928.79"
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
+            - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
           content:
             application/json:
               schema:
@@ -3125,22 +3120,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `33` - price validation failed
-          - `36` - clientOrderId validation failed
-          - `10` - insufficient balance to place the order
-          - `111` - resulting position would exceed the market maximum
-          - `112` - pending orders value would exceed the allowed maximum
-          - `113` - position side cannot be changed while open positions or orders exist
-          - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
-          - `115` - order would open a position in the opposite direction (one-way mode)
-          - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-          - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3474,7 +3453,23 @@ paths:
                   stp: "no"
                   positionSide: "LONG"
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code. Also returned when `reduceOnly=true` is combined with `stopLoss` or `takeProfit`
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `33` - price validation failed
+            - `36` - clientOrderId validation failed
+            - `10` - insufficient balance to place the order
+            - `111` - resulting position would exceed the market maximum
+            - `112` - pending orders value would exceed the allowed maximum
+            - `113` - position side cannot be changed while open positions or orders exist
+            - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
+            - `115` - order would open a position in the opposite direction (one-way mode)
+            - `116` - reduce-only validation failed (no position exists or order side matches position direction)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
           content:
             application/json:
               schema:
@@ -3498,24 +3493,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code
-          - `31` - market validation failed
-          - `2` - conditional order not found. Returned whether the `id` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
-        </Accordion>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 2,
-          "message": "Inner validation failed",
-          "errors": {
-            "id": ["Unexecuted order was not found."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3565,11 +3542,26 @@ paths:
                 items: {}
               example: []
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `2` - conditional order not found. Returned whether the `id` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                id:
+                  summary: "Unexecuted order was not found"
+                  value:
+                    code: 2
+                    message: Inner validation failed
+                    errors:
+                      id:
+                      - Unexecuted order was not found.
         '422':
           description: Validation failed
           content:
@@ -3597,24 +3589,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code. Also returned when the request specifies both `orderId` and `clientOrderId`, or neither
-          - `31` - market validation failed
-          - `2` - OCO order not found. Returned whether the identifier (`orderId` or `clientOrderId`) does not exist, or the order was already filled or already cancelled — these cases are not distinguished
-        </Accordion>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 2,
-          "message": "Inner validation failed",
-          "errors": {
-            "orderId": ["Unexecuted order was not found."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3717,11 +3691,26 @@ paths:
                   mtime: 1662478154.941582
                   price: "9928.79"
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code. Also returned when the request specifies both `orderId` and `clientOrderId`, or neither
+            - `31` - market validation failed
+            - `2` - OCO order not found. Returned whether the identifier (`orderId` or `clientOrderId`) does not exist, or the order was already filled or already cancelled — these cases are not distinguished
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                orderid:
+                  summary: "Unexecuted order was not found"
+                  value:
+                    code: 2
+                    message: Inner validation failed
+                    errors:
+                      orderId:
+                      - Unexecuted order was not found.
         '422':
           description: Validation failed
           content:
@@ -3746,24 +3735,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code
-          - `31` - market validation failed
-          - `2` - OTO order not found. Returned whether the `otoId` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
-        </Accordion>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 2,
-          "message": "Inner validation failed",
-          "errors": {
-            "otoId": ["Unexecuted order was not found."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Collateral Trading
       security:
@@ -3813,11 +3784,26 @@ paths:
                 items: {}
               example: []
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `2` - OTO order not found. Returned whether the `otoId` does not exist, or the order was already filled or already cancelled — these cases are not distinguished
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                otoid:
+                  summary: "Unexecuted order was not found"
+                  value:
+                    code: 2
+                    message: Inner validation failed
+                    errors:
+                      otoId:
+                      - Unexecuted order was not found.
         '422':
           description: Validation failed
           content:
@@ -3949,15 +3935,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                amountTooBig:
-                  summary: "Amount Above Maximum"
+                amount:
+                  summary: "Validation failed"
                   value:
                     code: 32
                     message: "Validation failed"
                     errors:
                       amount: ["frontendServerSide.converter.amountIsTooBig"]
-                insufficientBalance:
-                  summary: "Insufficient Balance"
+                amount2:
+                  summary: "Validation failed"
                   value:
                     code: 37
                     message: "Validation failed"
@@ -3970,36 +3956,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                termsNotAccepted:
-                  summary: "Terms Not Accepted"
+                user:
+                  summary: "Terms of exchange are not accepted"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       user: ["Terms of exchange are not accepted"]
-                directionInvalid:
-                  summary: "Direction Invalid"
+                direction:
+                  summary: "Direction field does not exist in [from,to]"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       direction: ["Direction field does not exist in [from,to]."]
-                marketsNotAvailable:
-                  summary: "Markets Not Available"
+                from:
+                  summary: "Conversion markets not available"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       from: ["Conversion markets not available"]
-                amountTooSmall:
-                  summary: "Amount Below Minimum"
+                amount:
+                  summary: "Validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["validation.amount_too_small"]
-                missingRequiredField:
-                  summary: "Missing Required Field"
+                amount2:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
@@ -4076,15 +4062,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                quoteExpired:
-                  summary: "Quote Expired"
+                quoteid:
+                  summary: "Validation failed"
                   value:
                     code: 20
                     message: "Validation failed"
                     errors:
                       quoteId: ["api.converter.quoteExpired"]
-                insufficientBalance:
-                  summary: "Insufficient Balance At Confirm"
+                amount:
+                  summary: "Validation failed"
                   value:
                     code: 37
                     message: "Validation failed"
@@ -4097,29 +4083,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                quoteNotFound:
-                  summary: "Quote Not Found"
+                quoteid:
+                  summary: "Quote could not be found"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       quoteId: ["Quote could not be found"]
-                quoteAlreadyUsed:
-                  summary: "Quote Already Confirmed"
+                quoteid2:
+                  summary: "Validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       quoteId: ["frontendServerSide.converter.quoteInvalid"]
-                quoteIdNonNumeric:
-                  summary: "Quote ID Not Numeric"
+                quoteid3:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       quoteId: ["validation.numeric_integer"]
-                quoteIdTooLong:
-                  summary: "Quote ID Exceeds Max Length"
+                quoteid4:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
@@ -4268,51 +4254,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                fromTickerInvalid:
-                  summary: "FromTicker Invalid"
+                fromticker:
+                  summary: "fromTicker is invalid"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       fromTicker: ["fromTicker is invalid."]
-                toTickerInvalid:
-                  summary: "ToTicker Invalid"
+                toticker:
+                  summary: "toTicker is invalid"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       toTicker: ["toTicker is invalid."]
-                dateRangeExceeded:
-                  summary: "Date Range Exceeds 30 Days"
+                from:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       from: ["api.validation.dateTime.maxRange"]
                       to: ["api.validation.dateTime.maxRange"]
-                dateNonInteger:
-                  summary: "Date Not An Integer Timestamp"
+                from2:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       from: ["validation.numeric_integer"]
-                dateOutOfRange:
-                  summary: "Date Outside Allowed Range"
+                from3:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       from: ["validation.numeric_field_length"]
-                limitOutOfRange:
-                  summary: "Limit Out Of Range"
+                limit:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       limit: ["validation.numeric_field_length"]
-                offsetNegative:
-                  summary: "Offset Below Minimum"
+                offset:
+                  summary: "Validation failed"
                   value:
                     code: 30
                     message: "Validation failed"
@@ -4432,30 +4418,6 @@ paths:
         The response reports the fee that applies to the requested market — the market's own fee, the account's default trading fee when the default is lower than the market fee, or the custom fee assigned for the market.
 
         `rpi_maker_fee_premium` carries the [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) premium on spot and margin markets, and `futures_rpi_maker_fee_premium` carries it on futures markets, where `rpi_maker_fee_premium` repeats the futures value for backward compatibility and is deprecated — read `futures_rpi_maker_fee_premium` for futures markets. The endpoint returns both fields for every account, regardless of whether the RPI order mode is enabled.
-
-        <Accordion title="Errors">
-        A missing `market` field and an unknown market both fail with code `30` on the `market` field. A market that exists but is not available for trading in the caller's region fails with code `31`.
-
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field is required."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Market Fee
       security:
@@ -4517,14 +4479,14 @@ paths:
                       Additional maker fee percentage applied on top of `maker` when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a futures market. The effective RPI maker rate equals `maker` plus this premium. The field returns `null` on spot and margin markets, or when no futures premium is configured for the account; a premium configured as zero is returned as `"0"`, not `null`.
                     example: "0.01"
               examples:
-                spot:
-                  summary: Spot market (BTC_USDT)
+                error:
+                  summary: "Error"
                   value:
                     error: null
                     taker: "0.1"
                     maker: "0.1"
-                futures:
-                  summary: Futures market (BTC_PERP)
+                error2:
+                  summary: "Error"
                   value:
                     error: null
                     taker: "0.055"
@@ -4535,6 +4497,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                market:
+                  summary: "Market field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field is required.
+                market2:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
 
   /api/v4/trade-account/balance:
     post:
@@ -4547,37 +4526,6 @@ paths:
         Rate limit: 12000 requests/10 sec.
         </Warning>
         
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "ticker": ["Ticker field should be a string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "ticker": ["Currency was not found."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 1,
-          "message": "Inner validation failed",
-          "errors": {
-            "amount": ["Invalid argument."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -4630,6 +4578,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ticker:
+                  summary: "Ticker field should be a string"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      ticker:
+                      - Ticker field should be a string.
+                ticker2:
+                  summary: "Currency was not found"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      ticker:
+                      - Currency was not found.
+                amount:
+                  summary: "Invalid argument"
+                  value:
+                    code: 1
+                    message: Inner validation failed
+                    errors:
+                      amount:
+                      - Invalid argument.
         '422':
           description: Request validation failed
           content:
@@ -4665,213 +4638,6 @@ paths:
           - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set.
           - `retail=true` has no effect on a `postOnly=true` order. Post-only orders are makers and cannot be retail takers.
         </Note>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `33` - price validation failed
-          - `36` - clientOrderId validation failed
-          - `37` - `ioc=true` cannot be combined with `postOnly=true`
-          - `40` - `ioc=true` cannot be combined with `rpi=true`
-          - `41` - `retail=true` cannot be combined with `rpi=true`
-          - `42` - `retail=true` is not allowed for the account
-          - `43` - `rpi=true` is not allowed for the account
-        </Accordion>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field is required."],
-            "market": ["Market field is required."],
-            "price": ["Price field is required."],
-            "side": ["Side field is required."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "side": ["Side field should contain only 'buy' or 'sell' values."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field should be numeric string or number."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 33,
-          "message": "Validation failed",
-          "errors": {
-            "price": ["Price field should be numeric string or number."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field should not be empty string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": [
-              "Given amount is less than min amount 0.001",
-              "Min amount step = 0.000001"
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": ["ClientOrderId field should be a string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": [
-              "ClientOrderId field should contain only latin letters, numbers and dashes."
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": [
-              "This client order id is already used by the current account."
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 37,
-          "message": "Validation failed",
-          "errors": {
-            "ioc": ["Either IOC or PostOnly flag in true state is allowed."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "total": ["Total (amount * price) is less than 5.05"]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": [
-              "Min amount step = 0.01"
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 33,
-          "message": "Validation failed",
-          "errors": {
-            "price": ["Price field should be at least 10", "Min price step = 0.000001"]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 33,
-          "message": "Validation failed",
-          "errors": {
-            "price": ["Price should be greater than 0."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 35,
-          "message": "Validation failed",
-          "errors": {
-            "maker_fee": ["Incorrect maker fee"]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 41,
-          "message": "Validation failed",
-          "errors": {
-            "retail": ["api.tradeErrors.flagsCantBeCombined.rpiRetail"]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 42,
-          "message": "Validation failed",
-          "errors": {
-            "retail": ["api.validation.retail.not_allowed"]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -4892,11 +4658,177 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `33` - price validation failed
+            - `36` - clientOrderId validation failed
+            - `37` - `ioc=true` cannot be combined with `postOnly=true`
+            - `40` - `ioc=true` cannot be combined with `rpi=true`
+            - `41` - `retail=true` cannot be combined with `rpi=true`
+            - `42` - `retail=true` is not allowed for the account
+            - `43` - `rpi=true` is not allowed for the account
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                amount:
+                  summary: "Amount field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field is required.
+                      market:
+                      - Market field is required.
+                      price:
+                      - Price field is required.
+                      side:
+                      - Side field is required.
+                side:
+                  summary: "Side field should contain only"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      side:
+                      - Side field should contain only 'buy' or 'sell' values.
+                amount2:
+                  summary: "Amount field should be numeric string or number"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field should be numeric string or number.
+                price:
+                  summary: "Price field should be numeric string or number"
+                  value:
+                    code: 33
+                    message: Validation failed
+                    errors:
+                      price:
+                      - Price field should be numeric string or number.
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
+                market2:
+                  summary: "Market field should not be empty string"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field should not be empty string.
+                amount3:
+                  summary: "Given amount is less than min amount 0.001"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Given amount is less than min amount 0.001
+                      - Min amount step = 0.000001
+                clientorderid:
+                  summary: "ClientOrderId field should be a string"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should be a string.
+                clientorderid2:
+                  summary: "ClientOrderId field should contain only latin letters, numbers and…"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should contain only latin letters, numbers and dashes.
+                clientorderid3:
+                  summary: "This client order id is already used by the current account"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - This client order id is already used by the current account.
+                ioc:
+                  summary: "Either IOC or PostOnly flag in true state is allowed"
+                  value:
+                    code: 37
+                    message: Validation failed
+                    errors:
+                      ioc:
+                      - Either IOC or PostOnly flag in true state is allowed.
+                total:
+                  summary: "Total (amount * price) is less than 5.05"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      total:
+                      - Total (amount * price) is less than 5.05
+                amount4:
+                  summary: "Min amount step = 0.01"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Min amount step = 0.01
+                price2:
+                  summary: "Price field should be at least 10"
+                  value:
+                    code: 33
+                    message: Validation failed
+                    errors:
+                      price:
+                      - Price field should be at least 10
+                      - Min price step = 0.000001
+                price3:
+                  summary: "Price should be greater than 0"
+                  value:
+                    code: 33
+                    message: Validation failed
+                    errors:
+                      price:
+                      - Price should be greater than 0.
+                makerFee:
+                  summary: "Incorrect maker fee"
+                  value:
+                    code: 35
+                    message: Validation failed
+                    errors:
+                      maker_fee:
+                      - Incorrect maker fee
+                retail:
+                  summary: "Validation failed"
+                  value:
+                    code: 41
+                    message: Validation failed
+                    errors:
+                      retail:
+                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
+                retail2:
+                  summary: "Validation failed"
+                  value:
+                    code: 42
+                    message: Validation failed
+                    errors:
+                      retail:
+                      - api.validation.retail.not_allowed
         '422':
           description: Request validation failed
           content:
@@ -4925,97 +4857,6 @@ paths:
           - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set on an item.
           - `retail=true` has no effect on a `postOnly=true` item. Post-only orders are makers and cannot be retail takers.
         </Note>
-
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code
-          - `31` - market validation failed
-          - `32` - amount validation failed
-          - `33` - price validation failed
-          - `36` - clientOrderId validation failed
-          - `37` - `ioc=true` cannot be combined with `postOnly=true`
-          - `40` - `ioc=true` cannot be combined with `rpi=true`
-          - `41` - `retail=true` cannot be combined with `rpi=true`
-          - `42` - `retail=true` is not allowed for the account
-          - `43` - `rpi=true` is not allowed for the account
-        </Accordion>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "orders": ["The orders must be an array."]
-          }
-        }
-        ```
-        
-        Individual order errors (in multiply response):
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field is required."],
-            "market": ["Market field is required."],
-            "price": ["Price field is required."],
-            "side": ["Side field is required."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "side": ["Side field should contain only 'buy' or 'sell' values."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field should be numeric string or number."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 33,
-          "message": "Validation failed",
-          "errors": {
-            "price": ["Price field should be numeric string or number."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 41,
-          "message": "Validation failed",
-          "errors": {
-            "retail": ["api.tradeErrors.flagsCantBeCombined.rpiRetail"]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 42,
-          "message": "Validation failed",
-          "errors": {
-            "retail": ["api.validation.retail.not_allowed"]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -5087,11 +4928,87 @@ paths:
         '200':
           $ref: '#/components/responses/BulkLimitOrderResponse'
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `33` - price validation failed
+            - `36` - clientOrderId validation failed
+            - `37` - `ioc=true` cannot be combined with `postOnly=true`
+            - `40` - `ioc=true` cannot be combined with `rpi=true`
+            - `41` - `retail=true` cannot be combined with `rpi=true`
+            - `42` - `retail=true` is not allowed for the account
+            - `43` - `rpi=true` is not allowed for the account
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                orders:
+                  summary: "The orders must be an array"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      orders:
+                      - The orders must be an array.
+                amount:
+                  summary: "Amount field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field is required.
+                      market:
+                      - Market field is required.
+                      price:
+                      - Price field is required.
+                      side:
+                      - Side field is required.
+                side:
+                  summary: "Side field should contain only"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      side:
+                      - Side field should contain only 'buy' or 'sell' values.
+                amount2:
+                  summary: "Amount field should be numeric string or number"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field should be numeric string or number.
+                price:
+                  summary: "Price field should be numeric string or number"
+                  value:
+                    code: 33
+                    message: Validation failed
+                    errors:
+                      price:
+                      - Price field should be numeric string or number.
+                retail:
+                  summary: "Validation failed"
+                  value:
+                    code: 41
+                    message: Validation failed
+                    errors:
+                      retail:
+                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
+                retail2:
+                  summary: "Validation failed"
+                  value:
+                    code: 42
+                    message: Validation failed
+                    errors:
+                      retail:
+                      - api.validation.retail.not_allowed
         '422':
           description: Request validation failed
           content:
@@ -5111,112 +5028,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        - `32` - amount validation failed
-        - `36` - clientOrderId validation failed
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field is required."],
-            "market": ["Market field is required."],
-            "side": ["Side field is required."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "side": ["Side field should contain only 'buy' or 'sell' values."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field should be numeric string or number."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field should not be empty string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Not enough balance."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": [
-              "Given amount is less than min amount 0.001",
-              "Min amount step = 0.000001"
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": ["ClientOrderId field should be a string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": [
-              "ClientOrderId field should contain only latin letters, numbers and dashes."
-            ]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -5237,11 +5048,96 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `36` - clientOrderId validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                amount:
+                  summary: "Amount field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field is required.
+                      market:
+                      - Market field is required.
+                      side:
+                      - Side field is required.
+                side:
+                  summary: "Side field should contain only"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      side:
+                      - Side field should contain only 'buy' or 'sell' values.
+                amount2:
+                  summary: "Amount field should be numeric string or number"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field should be numeric string or number.
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
+                market2:
+                  summary: "Market field should not be empty string"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field should not be empty string.
+                amount3:
+                  summary: "Not enough balance"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Not enough balance.
+                amount4:
+                  summary: "Given amount is less than min amount 0.001"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Given amount is less than min amount 0.001
+                      - Min amount step = 0.000001
+                clientorderid:
+                  summary: "ClientOrderId field should be a string"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should be a string.
+                clientorderid2:
+                  summary: "ClientOrderId field should contain only latin letters, numbers and…"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should contain only latin letters, numbers and dashes.
         '422':
           description: Request validation failed
           content:
@@ -5261,100 +5157,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        - `32` - amount validation failed
-        - `36` - clientOrderId validation failed
-        </Accordion>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field is required."],
-            "market": ["Market field is required."],
-            "side": ["Side field is required."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "side": ["Side field should contain only 'buy' or 'sell' values."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field should be numeric string or number."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field should not be empty string."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Not enough balance."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": [
-              "Given amount is less than min amount 0.001",
-              "Min amount step = 0.000001"
-            ]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": ["ClientOrderId field should be a string."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -5375,11 +5177,88 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `36` - clientOrderId validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                amount:
+                  summary: "Amount field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field is required.
+                      market:
+                      - Market field is required.
+                      side:
+                      - Side field is required.
+                side:
+                  summary: "Side field should contain only"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      side:
+                      - Side field should contain only 'buy' or 'sell' values.
+                amount2:
+                  summary: "Amount field should be numeric string or number"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field should be numeric string or number.
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
+                market2:
+                  summary: "Market field should not be empty string"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field should not be empty string.
+                amount3:
+                  summary: "Not enough balance"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Not enough balance.
+                amount4:
+                  summary: "Given amount is less than min amount 0.001"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Given amount is less than min amount 0.001
+                      - Min amount step = 0.000001
+                clientorderid:
+                  summary: "ClientOrderId field should be a string"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should be a string.
         '422':
           description: Request validation failed
           content:
@@ -5399,135 +5278,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        - `32` - amount validation failed
-        - `33` - price validation failed
-        - `36` - clientOrderId validation failed
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "activation_price": ["Activation price field is required."],
-            "amount": ["Amount field is required."],
-            "market": ["Market field is required."],
-            "price": ["Price field is required."],
-            "side": ["Side field is required."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "side": ["Side field should contain only 'buy' or 'sell' values."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field should be numeric string or number."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 33,
-          "message": "Validation failed",
-          "errors": {
-            "price": ["Price field should be numeric string or number."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field should not be empty string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Not enough balance."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": [
-              "Given amount is less than min amount 0.001",
-              "Min amount step = 0.000001"
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "total": ["Total (amount * price) is less than 5.05"]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": ["ClientOrderId field should be a string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": [
-              "ClientOrderId field should contain only latin letters, numbers and dashes."
-            ]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -5548,11 +5298,117 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `33` - price validation failed
+            - `36` - clientOrderId validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                activationPrice:
+                  summary: "Activation price field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      activation_price:
+                      - Activation price field is required.
+                      amount:
+                      - Amount field is required.
+                      market:
+                      - Market field is required.
+                      price:
+                      - Price field is required.
+                      side:
+                      - Side field is required.
+                side:
+                  summary: "Side field should contain only"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      side:
+                      - Side field should contain only 'buy' or 'sell' values.
+                amount:
+                  summary: "Amount field should be numeric string or number"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field should be numeric string or number.
+                price:
+                  summary: "Price field should be numeric string or number"
+                  value:
+                    code: 33
+                    message: Validation failed
+                    errors:
+                      price:
+                      - Price field should be numeric string or number.
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
+                market2:
+                  summary: "Market field should not be empty string"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field should not be empty string.
+                amount2:
+                  summary: "Not enough balance"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Not enough balance.
+                amount3:
+                  summary: "Given amount is less than min amount 0.001"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Given amount is less than min amount 0.001
+                      - Min amount step = 0.000001
+                total:
+                  summary: "Total (amount * price) is less than 5.05"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      total:
+                      - Total (amount * price) is less than 5.05
+                clientorderid:
+                  summary: "ClientOrderId field should be a string"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should be a string.
+                clientorderid2:
+                  summary: "ClientOrderId field should contain only latin letters, numbers and…"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should contain only latin letters, numbers and dashes.
         '422':
           description: Request validation failed
           content:
@@ -5572,135 +5428,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        - `32` - amount validation failed
-        - `36` - clientOrderId validation failed
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "activation_price": ["Activation price field is required."],
-            "amount": ["Amount field is required."],
-            "market": ["Market field is required."],
-            "side": ["Side field is required."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "side": ["Side field should contain only 'buy' or 'sell' values."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount field should be numeric string or number."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field should not be empty string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Not enough balance."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": [
-              "Given amount is less than min amount 0.001",
-              "Min amount step = 0.000001"
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": ["ClientOrderId field should be a string."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": [
-              "ClientOrderId field should contain only latin letters, numbers and dashes."
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 36,
-          "message": "Validation failed",
-          "errors": {
-            "clientOrderId": [
-              "This client order id is already used by the current account."
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 32,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Amount should be greater than 0."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -5721,11 +5448,114 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrderResponse'
         '422':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
+            - `32` - amount validation failed
+            - `36` - clientOrderId validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                activationPrice:
+                  summary: "Activation price field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      activation_price:
+                      - Activation price field is required.
+                      amount:
+                      - Amount field is required.
+                      market:
+                      - Market field is required.
+                      side:
+                      - Side field is required.
+                side:
+                  summary: "Side field should contain only"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      side:
+                      - Side field should contain only 'buy' or 'sell' values.
+                amount:
+                  summary: "Amount field should be numeric string or number"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount field should be numeric string or number.
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
+                market2:
+                  summary: "Market field should not be empty string"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field should not be empty string.
+                amount2:
+                  summary: "Not enough balance"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Not enough balance.
+                amount3:
+                  summary: "Given amount is less than min amount 0.001"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Given amount is less than min amount 0.001
+                      - Min amount step = 0.000001
+                clientorderid:
+                  summary: "ClientOrderId field should be a string"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should be a string.
+                clientorderid2:
+                  summary: "ClientOrderId field should contain only latin letters, numbers and…"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - ClientOrderId field should contain only latin letters, numbers and dashes.
+                clientorderid3:
+                  summary: "This client order id is already used by the current account"
+                  value:
+                    code: 36
+                    message: Validation failed
+                    errors:
+                      clientOrderId:
+                      - This client order id is already used by the current account.
+                amount4:
+                  summary: "Amount should be greater than 0"
+                  value:
+                    code: 32
+                    message: Validation failed
+                    errors:
+                      amount:
+                      - Amount should be greater than 0.
         '503':
           description: Service temporarily unavailable
 
@@ -5744,77 +5574,6 @@ paths:
         - The request accepts exactly one identifier: either `orderId` or `clientOrderId`.
         - Sending both identifiers, or neither, returns a validation error.
         </Note>
-        
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field is required."],
-            "orderId": ["OrderId field is required."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "orderId": ["OrderId field should be an integer."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "market": [
-              "Market field should be a string.",
-              "Market field format is invalid."
-            ]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 2,
-          "message": "Inner validation failed",
-          "errors": {
-            "orderId": ["Unexecuted order was not found."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -5863,12 +5622,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                orderid:
+                  summary: "Unexecuted order was not found"
+                  value:
+                    code: 2
+                    message: "Inner validation failed"
+                    errors:
+                      orderId: ["Unexecuted order was not found."]
         '422':
-          description: Validation failed
+          description: |
+            Validation failed.
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                market:
+                  summary: "Market field is required"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      market: ["Market field is required."]
+                      orderId: ["OrderId field is required."]
+                market2:
+                  summary: "Market is not available"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      market: ["Market is not available."]
+                market3:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: "Validation failed"
+                    errors:
+                      market: ["Market is not available."]
+                orderid:
+                  summary: "OrderId field should be an integer"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      orderId: ["OrderId field should be an integer."]
+                market4:
+                  summary: "Market field should be a string"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      market:
+                        - "Market field should be a string."
+                        - "Market field format is invalid."
         '503':
           description: Service temporarily unavailable
 
@@ -5893,121 +5704,6 @@ paths:
         - When the caller is not authenticated, the API returns the standard authorization error and skips per-item validation.
         </Note>
 
-        <Accordion title="Error Codes">
-        - `30` — validation failure (per-item)
-        - `404` — order not found (per-item)
-        - `500` — trade service unavailable (per-item)
-        </Accordion>
-
-        <Accordion title="Errors">
-        **Per-item errors (returned inside the response array):**
-
-        Element is not a valid object:
-        ```json
-        {
-          "result": null,
-          "error": {
-            "code": 30,
-            "message": "Validation failed",
-            "errors": { "request": ["Invalid order format"] }
-          }
-        }
-        ```
-
-        `market` field is missing:
-        ```json
-        {
-          "result": null,
-          "error": {
-            "code": 30,
-            "message": "Validation failed",
-            "errors": { "market": ["validation.required"] }
-          }
-        }
-        ```
-
-        Specified market does not exist:
-        ```json
-        {
-          "result": null,
-          "error": {
-            "code": 30,
-            "message": "Validation failed",
-            "errors": { "market": ["validation.market_not_exist"] }
-          }
-        }
-        ```
-
-        Neither `orderId` nor `clientOrderId` provided:
-        ```json
-        {
-          "result": null,
-          "error": {
-            "code": 30,
-            "message": "Validation failed",
-            "errors": { "request": ["validation.required"] }
-          }
-        }
-        ```
-
-        Both `orderId` and `clientOrderId` provided:
-        ```json
-        {
-          "result": null,
-          "error": {
-            "code": 30,
-            "message": "Validation failed",
-            "errors": { "request": ["api.validation.order.chooseOneId"] }
-          }
-        }
-        ```
-
-        Order not found (returned for both `orderId` and `clientOrderId` lookups):
-        ```json
-        {
-          "result": null,
-          "error": {
-            "code": 404,
-            "message": "Order not found",
-            "errors": {
-              "orderId": ["Order does not exist or already cancelled"]
-            }
-          }
-        }
-        ```
-
-        Trade service unavailable (returned when the trade service is unreachable or returns an unparseable response):
-        ```json
-        {
-          "result": null,
-          "error": {
-            "code": 500,
-            "message": "Service temporary unavailable",
-            "errors": { "error": ["Service temporary unavailable"] }
-          }
-        }
-        ```
-
-        **Request-level errors (HTTP 422, returned as a standard error envelope, not as an array):**
-
-        `orders` field is missing or is not an array:
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": { "orders": ["validation.required"] }
-        }
-        ```
-
-        `orders` contains more than 100 elements:
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": { "orders": ["validation.between"] }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6048,7 +5744,21 @@ paths:
               nonce: 1594297865000
       responses:
         '200':
-          description: Bulk cancel result. The response is an array — `response[i]` corresponds to `request.orders[i]`. Each item contains either a `result` (cancellation succeeded) or an `error` (cancellation failed for that item). Partial failures within the array are normal; the request itself returns HTTP 200.
+          description: |
+            Bulk cancel result. The response is an array — `response[i]` corresponds to `request.orders[i]`. Each item contains either a `result` (cancellation succeeded) or an `error` (cancellation failed for that item). Partial failures within the array are normal; the request itself returns HTTP 200.
+
+            Per-item error codes: `30` (validation failure), `404` (order not found), `500` (trade service unavailable). A failed item carries an `error` object following the standard error shape, for example:
+
+            ```json
+            {
+              "result": null,
+              "error": {
+                "code": 30,
+                "message": "Validation failed",
+                "errors": { "market": ["validation.required"] }
+              }
+            }
+            ```
           content:
             application/json:
               schema:
@@ -6078,46 +5788,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-        
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "type": ["The type must be an array."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "market": [
-              "Market field should be a string.",
-              "Market field format is invalid."
-            ]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6180,11 +5850,42 @@ paths:
                 items: {}
               example: []
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
+                type:
+                  summary: "The type must be an array"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      type:
+                      - The type must be an array.
+                market2:
+                  summary: "Market field should be a string"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field should be a string.
+                      - Market field format is invalid.
         '422':
           description: Validation failed
           content:
@@ -6213,28 +5914,6 @@ paths:
         This endpoint supports pagination. Use `limit` (default: 50, max: 100) and `offset` (default: 0, max: 4294967295) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` orders are returned. An empty array means you have paged past the end; receiving exactly `limit` orders does not guarantee that another page exists.
         </Note>
         
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available"]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "limit": ["The limit may not be greater than 100."],
-            "offset": ["The offset may not be greater than 4294967295."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6295,6 +5974,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available
+                limit:
+                  summary: "The limit may not be greater than 100"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      limit:
+                      - The limit may not be greater than 100.
+                      offset:
+                      - The offset may not be greater than 4294967295.
         '422':
           description: Request validation failed
           content:
@@ -6330,40 +6028,6 @@ paths:
         <Note>
         For B2B accounts, canceled orders are not recorded in the history. To obtain canceled-order data, contact support or the assigned account manager.
         </Note>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "limit": ["Limit field should be an integer."],
-            "offset": ["Offset field should be an integer."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field format is invalid."]
-          }
-        }
-        ```
-
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "orderHistory": ["OrderHistory was not found."]
-          }
-        }
-        ```
-        Returned when `clientOrderId` is supplied but no order matches it on the calling account.
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6439,6 +6103,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                limit:
+                  summary: "Limit field should be an integer"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      limit:
+                      - Limit field should be an integer.
+                      offset:
+                      - Offset field should be an integer.
+                market:
+                  summary: "Market field format is invalid"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field format is invalid.
+                orderhistory:
+                  summary: "OrderHistory was not found"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      orderHistory:
+                      - OrderHistory was not found.
         '422':
           description: Request validation failed
           content:
@@ -6470,10 +6161,6 @@ paths:
         <Note>
         The endpoint can retrieve data not older than 6 months from the current month. For older data, use the Report on the History page. An order older than this window returns an empty `records` array even when the order was filled.
         </Note>
-
-        <Accordion title="Error Codes">
-          - `30` - default validation error code (for example, a missing or malformed `orderId`, or invalid pagination)
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6596,7 +6283,11 @@ paths:
                 offset: 0
                 limit: 100
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (for example, a missing or malformed `orderId`, or invalid pagination)
           content:
             application/json:
               schema:
@@ -6636,19 +6327,6 @@ paths:
         <Note>
         For B2B accounts, canceled orders are not recorded in the history. To obtain canceled-order data, contact support or the assigned account manager.
         </Note>
-
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "orderHistory": ["OrderHistory was not found."]
-          }
-        }
-        ```
-        Returned when `clientOrderId` is supplied but no order matches it on the calling account.
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -6849,6 +6527,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                orderhistory:
+                  summary: "OrderHistory was not found"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      orderHistory:
+                      - OrderHistory was not found.
         '422':
           description: Request validation failed
           content:
@@ -7094,45 +6781,6 @@ paths:
         Use `clientOrderId` for stable order tracking across modifications.
         </Note>
 
-        <Accordion title="Error Codes">
-        **Status 400** (client errors): 1, 2, 6, 20, 24, 101, 158
-        
-        **Status 422** (business logic): 10, 11, 12, 13, 14, 15, 16, 17, 25, 27, 40, 42, 51, 103, 104, 105, 106, 111, 112, 113, 114, 115, 150, 151, 152, 153, 155, 157, 159, 160, 161, 162, 163, 250, 251, 300, 302, 330, 10011 (coming soon)
-
-        Coming soon: `10011` will be returned when the order being modified belongs to a TradFi market and TradFi trading is restricted for the account. Canceling such an order is always allowed.
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 2,
-          "message": "Inner validation failed",
-          "errors": {
-            "orderId": ["Unexecuted order was not found."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 10,
-          "message": "Validation failed",
-          "errors": {
-            "amount": ["Not enough balance."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -7203,17 +6851,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
-          description: Bad request - client errors (invalid arguments, order not found, quote expired, activation price issues)
+          description: |
+            Bad request. Client errors: invalid arguments, order not found, quote expired, activation price issues.
+
+            Error codes: `1`, `2`, `6`, `20`, `24`, `101`, `158`.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                orderid:
+                  summary: "Unexecuted order was not found"
+                  value:
+                    code: 2
+                    message: "Inner validation failed"
+                    errors:
+                      orderId: ["Unexecuted order was not found."]
         '422':
-          description: Unprocessable entity - business logic validation failed (balance insufficient, trading restrictions, order type conflicts, price bands exceeded)
+          description: |
+            Unprocessable entity. Business-logic validation failed: balance insufficient, trading restrictions, order type conflicts, price bands exceeded.
+
+            Error codes: `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `25`, `27`, `40`, `42`, `51`, `103`, `104`, `105`, `106`, `111`, `112`, `113`, `114`, `115`, `150`, `151`, `152`, `153`, `155`, `157`, `159`, `160`, `161`, `162`, `163`, `250`, `251`, `300`, `302`, `330`, `10011` (coming soon).
+
+            Coming soon: `10011` is returned when the order being modified belongs to a TradFi market and TradFi trading is restricted for the account. Canceling such an order is always allowed.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: "Validation failed"
+                    errors:
+                      market: ["Market is not available."]
+                amount:
+                  summary: "Not enough balance"
+                  value:
+                    code: 10
+                    message: "Validation failed"
+                    errors:
+                      amount: ["Not enough balance."]
         '503':
           description: Service temporarily unavailable
 
@@ -7232,44 +6911,6 @@ paths:
         - If timeout=null - delete existing timer by market.
         - If types=null - create timer by market for all order types.
         </Note>
-        
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market field is required."],
-            "timeout": ["Timeout field is required."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        
-        ```json
-        {
-          "code": 30,
-          "message": "Validation failed",
-          "errors": {
-            "timeout": ["Timeout should be at least 5."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -7352,22 +6993,54 @@ paths:
                     maxItems: 0
                     items: {}
               examples:
-                timerSynced:
-                  summary: Timer created or updated
+                error:
+                  summary: "Error"
                   value:
                     market: "BTC_USDT"
                     startTime: 1662478154
                     cancellationTime: 1662478154
                     types: ["spot", "margin"]
-                timerDeleted:
-                  summary: Timer deleted
+                error2:
+                  summary: "Error"
                   value: []
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                market:
+                  summary: "Market field is required"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market field is required.
+                      timeout:
+                      - Timeout field is required.
+                market2:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
+                timeout:
+                  summary: "Timeout should be at least 5"
+                  value:
+                    code: 30
+                    message: Validation failed
+                    errors:
+                      timeout:
+                      - Timeout should be at least 5.
         '422':
           description: Validation failed
           content:
@@ -7385,23 +7058,6 @@ paths:
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
-        
-        <Accordion title="Error Codes">
-        - `30` - default validation error code
-        - `31` - market validation failed
-        </Accordion>
-        
-        <Accordion title="Errors">
-        ```json
-        {
-          "code": 31,
-          "message": "Validation failed",
-          "errors": {
-            "market": ["Market is not available."]
-          }
-        }
-        ```
-        </Accordion>
       tags:
         - Spot Trading
       security:
@@ -7462,11 +7118,25 @@ paths:
                   cancellationTime: 1686127343
                   types: ["spot", "margin"]
         '400':
-          description: Inner validation failed
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code
+            - `31` - market validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                market:
+                  summary: "Market is not available"
+                  value:
+                    code: 31
+                    message: Validation failed
+                    errors:
+                      market:
+                      - Market is not available.
         '422':
           description: Validation failed
           content:
