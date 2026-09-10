@@ -3,15 +3,10 @@ title: "Get deposit/withdraw history"
 openapi: /openapi/private/main_api_v4.yaml POST /api/v4/main-account/history
 playground: none
 ---
-import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
 import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
 import { signerFields } from '/snippets/signer-fields/main-account-history.jsx';
 
 <WhitebitSigner path="/api/v4/main-account/history" fields={signerFields} />
-
-## Rate limit
-
-<RestRateLimit requests={200} period="10 seconds" scope="/api/v4/main-account/history" />
 
 ## Used in these guides
 
