@@ -96,7 +96,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                ticker:
+                ticker30:
                   summary: "ticker is invalid"
                   value:
                     code: 30
@@ -202,7 +202,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                ticker:
+                ticker30:
                   summary: "ticker is invalid"
                   value:
                     code: 30
@@ -3554,7 +3554,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                id:
+                id2:
                   summary: "Unexecuted order was not found"
                   value:
                     code: 2
@@ -3703,7 +3703,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                orderid:
+                orderid2:
                   summary: "Unexecuted order was not found"
                   value:
                     code: 2
@@ -3796,7 +3796,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                otoid:
+                otoid2:
                   summary: "Unexecuted order was not found"
                   value:
                     code: 2
@@ -3935,15 +3935,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                amount:
-                  summary: "Validation failed"
+                amountTooBig:
+                  summary: "Amount Above Maximum"
                   value:
                     code: 32
                     message: "Validation failed"
                     errors:
                       amount: ["frontendServerSide.converter.amountIsTooBig"]
-                amount2:
-                  summary: "Validation failed"
+                insufficientBalance:
+                  summary: "Insufficient Balance"
                   value:
                     code: 37
                     message: "Validation failed"
@@ -3956,36 +3956,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                user:
-                  summary: "Terms of exchange are not accepted"
+                termsNotAccepted:
+                  summary: "Terms Not Accepted"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       user: ["Terms of exchange are not accepted"]
-                direction:
-                  summary: "Direction field does not exist in [from,to]"
+                directionInvalid:
+                  summary: "Direction Invalid"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       direction: ["Direction field does not exist in [from,to]."]
-                from:
-                  summary: "Conversion markets not available"
+                marketsNotAvailable:
+                  summary: "Markets Not Available"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       from: ["Conversion markets not available"]
-                amount:
-                  summary: "Validation failed"
+                amountTooSmall:
+                  summary: "Amount Below Minimum"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["validation.amount_too_small"]
-                amount2:
-                  summary: "Validation failed"
+                missingRequiredField:
+                  summary: "Missing Required Field"
                   value:
                     code: 30
                     message: "Validation failed"
@@ -4062,15 +4062,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                quoteid:
-                  summary: "Validation failed"
+                quoteExpired:
+                  summary: "Quote Expired"
                   value:
                     code: 20
                     message: "Validation failed"
                     errors:
                       quoteId: ["api.converter.quoteExpired"]
-                amount:
-                  summary: "Validation failed"
+                insufficientBalance:
+                  summary: "Insufficient Balance At Confirm"
                   value:
                     code: 37
                     message: "Validation failed"
@@ -4083,29 +4083,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                quoteid:
-                  summary: "Quote could not be found"
+                quoteNotFound:
+                  summary: "Quote Not Found"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       quoteId: ["Quote could not be found"]
-                quoteid2:
-                  summary: "Validation failed"
+                quoteAlreadyUsed:
+                  summary: "Quote Already Confirmed"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       quoteId: ["frontendServerSide.converter.quoteInvalid"]
-                quoteid3:
-                  summary: "Validation failed"
+                quoteIdNonNumeric:
+                  summary: "Quote ID Not Numeric"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       quoteId: ["validation.numeric_integer"]
-                quoteid4:
-                  summary: "Validation failed"
+                quoteIdTooLong:
+                  summary: "Quote ID Exceeds Max Length"
                   value:
                     code: 30
                     message: "Validation failed"
@@ -4254,51 +4254,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                fromticker:
-                  summary: "fromTicker is invalid"
+                fromTickerInvalid:
+                  summary: "FromTicker Invalid"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       fromTicker: ["fromTicker is invalid."]
-                toticker:
-                  summary: "toTicker is invalid"
+                toTickerInvalid:
+                  summary: "ToTicker Invalid"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       toTicker: ["toTicker is invalid."]
-                from:
-                  summary: "Validation failed"
+                dateRangeExceeded:
+                  summary: "Date Range Exceeds 30 Days"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       from: ["api.validation.dateTime.maxRange"]
                       to: ["api.validation.dateTime.maxRange"]
-                from2:
-                  summary: "Validation failed"
+                dateNonInteger:
+                  summary: "Date Not An Integer Timestamp"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       from: ["validation.numeric_integer"]
-                from3:
-                  summary: "Validation failed"
+                dateOutOfRange:
+                  summary: "Date Outside Allowed Range"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       from: ["validation.numeric_field_length"]
-                limit:
-                  summary: "Validation failed"
+                limitOutOfRange:
+                  summary: "Limit Out Of Range"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       limit: ["validation.numeric_field_length"]
-                offset:
-                  summary: "Validation failed"
+                offsetNegative:
+                  summary: "Offset Below Minimum"
                   value:
                     code: 30
                     message: "Validation failed"
@@ -4479,14 +4479,14 @@ paths:
                       Additional maker fee percentage applied on top of `maker` when a [Retail Price Improvement (RPI)](/glossary#retail-price-improvement-rpi) order executes on a futures market. The effective RPI maker rate equals `maker` plus this premium. The field returns `null` on spot and margin markets, or when no futures premium is configured for the account; a premium configured as zero is returned as `"0"`, not `null`.
                     example: "0.01"
               examples:
-                error:
-                  summary: "Error"
+                spot:
+                  summary: "Spot market (BTC_USDT)"
                   value:
                     error: null
                     taker: "0.1"
                     maker: "0.1"
-                error2:
-                  summary: "Error"
+                futures:
+                  summary: "Futures market (BTC_PERP)"
                   value:
                     error: null
                     taker: "0.055"
@@ -4498,7 +4498,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                market:
+                market30:
                   summary: "Market field is required"
                   value:
                     code: 30
@@ -4506,7 +4506,7 @@ paths:
                     errors:
                       market:
                       - Market field is required.
-                market2:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -4579,7 +4579,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                ticker:
+                ticker30:
                   summary: "Ticker field should be a string"
                   value:
                     code: 30
@@ -4587,7 +4587,7 @@ paths:
                     errors:
                       ticker:
                       - Ticker field should be a string.
-                ticker2:
+                ticker30_2:
                   summary: "Currency was not found"
                   value:
                     code: 30
@@ -4595,7 +4595,7 @@ paths:
                     errors:
                       ticker:
                       - Currency was not found.
-                amount:
+                amount1:
                   summary: "Invalid argument"
                   value:
                     code: 1
@@ -4677,7 +4677,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                amount:
+                amount30:
                   summary: "Amount field is required"
                   value:
                     code: 30
@@ -4691,7 +4691,7 @@ paths:
                       - Price field is required.
                       side:
                       - Side field is required.
-                side:
+                side30:
                   summary: "Side field should contain only"
                   value:
                     code: 30
@@ -4699,7 +4699,7 @@ paths:
                     errors:
                       side:
                       - Side field should contain only 'buy' or 'sell' values.
-                amount2:
+                amount32:
                   summary: "Amount field should be numeric string or number"
                   value:
                     code: 32
@@ -4707,7 +4707,7 @@ paths:
                     errors:
                       amount:
                       - Amount field should be numeric string or number.
-                price:
+                price33:
                   summary: "Price field should be numeric string or number"
                   value:
                     code: 33
@@ -4715,7 +4715,7 @@ paths:
                     errors:
                       price:
                       - Price field should be numeric string or number.
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -4723,7 +4723,7 @@ paths:
                     errors:
                       market:
                       - Market is not available.
-                market2:
+                market31_2:
                   summary: "Market field should not be empty string"
                   value:
                     code: 31
@@ -4731,7 +4731,7 @@ paths:
                     errors:
                       market:
                       - Market field should not be empty string.
-                amount3:
+                amount32_2:
                   summary: "Given amount is less than min amount 0.001"
                   value:
                     code: 32
@@ -4740,7 +4740,7 @@ paths:
                       amount:
                       - Given amount is less than min amount 0.001
                       - Min amount step = 0.000001
-                clientorderid:
+                clientorderid36:
                   summary: "ClientOrderId field should be a string"
                   value:
                     code: 36
@@ -4748,7 +4748,7 @@ paths:
                     errors:
                       clientOrderId:
                       - ClientOrderId field should be a string.
-                clientorderid2:
+                clientorderid36_2:
                   summary: "ClientOrderId field should contain only latin letters, numbers and…"
                   value:
                     code: 36
@@ -4756,7 +4756,7 @@ paths:
                     errors:
                       clientOrderId:
                       - ClientOrderId field should contain only latin letters, numbers and dashes.
-                clientorderid3:
+                clientorderid36_3:
                   summary: "This client order id is already used by the current account"
                   value:
                     code: 36
@@ -4764,7 +4764,7 @@ paths:
                     errors:
                       clientOrderId:
                       - This client order id is already used by the current account.
-                ioc:
+                ioc37:
                   summary: "Either IOC or PostOnly flag in true state is allowed"
                   value:
                     code: 37
@@ -4772,7 +4772,7 @@ paths:
                     errors:
                       ioc:
                       - Either IOC or PostOnly flag in true state is allowed.
-                total:
+                total30:
                   summary: "Total (amount * price) is less than 5.05"
                   value:
                     code: 30
@@ -4780,7 +4780,7 @@ paths:
                     errors:
                       total:
                       - Total (amount * price) is less than 5.05
-                amount4:
+                amount32_3:
                   summary: "Min amount step = 0.01"
                   value:
                     code: 32
@@ -4788,7 +4788,7 @@ paths:
                     errors:
                       amount:
                       - Min amount step = 0.01
-                price2:
+                price33_2:
                   summary: "Price field should be at least 10"
                   value:
                     code: 33
@@ -4797,7 +4797,7 @@ paths:
                       price:
                       - Price field should be at least 10
                       - Min price step = 0.000001
-                price3:
+                price33_3:
                   summary: "Price should be greater than 0"
                   value:
                     code: 33
@@ -4805,7 +4805,7 @@ paths:
                     errors:
                       price:
                       - Price should be greater than 0.
-                makerFee:
+                makerFee35:
                   summary: "Incorrect maker fee"
                   value:
                     code: 35
@@ -4813,16 +4813,16 @@ paths:
                     errors:
                       maker_fee:
                       - Incorrect maker fee
-                retail:
-                  summary: "Validation failed"
+                retail41:
+                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
                   value:
                     code: 41
                     message: Validation failed
                     errors:
                       retail:
                       - api.tradeErrors.flagsCantBeCombined.rpiRetail
-                retail2:
-                  summary: "Validation failed"
+                retail42:
+                  summary: "api.validation.retail.not_allowed"
                   value:
                     code: 42
                     message: Validation failed
@@ -4947,7 +4947,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                orders:
+                orders30:
                   summary: "The orders must be an array"
                   value:
                     code: 30
@@ -4955,7 +4955,7 @@ paths:
                     errors:
                       orders:
                       - The orders must be an array.
-                amount:
+                amount30:
                   summary: "Amount field is required"
                   value:
                     code: 30
@@ -4969,7 +4969,7 @@ paths:
                       - Price field is required.
                       side:
                       - Side field is required.
-                side:
+                side30:
                   summary: "Side field should contain only"
                   value:
                     code: 30
@@ -4977,7 +4977,7 @@ paths:
                     errors:
                       side:
                       - Side field should contain only 'buy' or 'sell' values.
-                amount2:
+                amount32:
                   summary: "Amount field should be numeric string or number"
                   value:
                     code: 32
@@ -4985,7 +4985,7 @@ paths:
                     errors:
                       amount:
                       - Amount field should be numeric string or number.
-                price:
+                price33:
                   summary: "Price field should be numeric string or number"
                   value:
                     code: 33
@@ -4993,16 +4993,16 @@ paths:
                     errors:
                       price:
                       - Price field should be numeric string or number.
-                retail:
-                  summary: "Validation failed"
+                retail41:
+                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
                   value:
                     code: 41
                     message: Validation failed
                     errors:
                       retail:
                       - api.tradeErrors.flagsCantBeCombined.rpiRetail
-                retail2:
-                  summary: "Validation failed"
+                retail42:
+                  summary: "api.validation.retail.not_allowed"
                   value:
                     code: 42
                     message: Validation failed
@@ -5061,7 +5061,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                amount:
+                amount30:
                   summary: "Amount field is required"
                   value:
                     code: 30
@@ -5073,7 +5073,7 @@ paths:
                       - Market field is required.
                       side:
                       - Side field is required.
-                side:
+                side30:
                   summary: "Side field should contain only"
                   value:
                     code: 30
@@ -5081,7 +5081,7 @@ paths:
                     errors:
                       side:
                       - Side field should contain only 'buy' or 'sell' values.
-                amount2:
+                amount32:
                   summary: "Amount field should be numeric string or number"
                   value:
                     code: 32
@@ -5089,7 +5089,7 @@ paths:
                     errors:
                       amount:
                       - Amount field should be numeric string or number.
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -5097,7 +5097,7 @@ paths:
                     errors:
                       market:
                       - Market is not available.
-                market2:
+                market31_2:
                   summary: "Market field should not be empty string"
                   value:
                     code: 31
@@ -5105,7 +5105,7 @@ paths:
                     errors:
                       market:
                       - Market field should not be empty string.
-                amount3:
+                amount32_2:
                   summary: "Not enough balance"
                   value:
                     code: 32
@@ -5113,7 +5113,7 @@ paths:
                     errors:
                       amount:
                       - Not enough balance.
-                amount4:
+                amount32_3:
                   summary: "Given amount is less than min amount 0.001"
                   value:
                     code: 32
@@ -5122,7 +5122,7 @@ paths:
                       amount:
                       - Given amount is less than min amount 0.001
                       - Min amount step = 0.000001
-                clientorderid:
+                clientorderid36:
                   summary: "ClientOrderId field should be a string"
                   value:
                     code: 36
@@ -5130,7 +5130,7 @@ paths:
                     errors:
                       clientOrderId:
                       - ClientOrderId field should be a string.
-                clientorderid2:
+                clientorderid36_2:
                   summary: "ClientOrderId field should contain only latin letters, numbers and…"
                   value:
                     code: 36
@@ -5190,7 +5190,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                amount:
+                amount30:
                   summary: "Amount field is required"
                   value:
                     code: 30
@@ -5202,7 +5202,7 @@ paths:
                       - Market field is required.
                       side:
                       - Side field is required.
-                side:
+                side30:
                   summary: "Side field should contain only"
                   value:
                     code: 30
@@ -5210,7 +5210,7 @@ paths:
                     errors:
                       side:
                       - Side field should contain only 'buy' or 'sell' values.
-                amount2:
+                amount32:
                   summary: "Amount field should be numeric string or number"
                   value:
                     code: 32
@@ -5218,7 +5218,7 @@ paths:
                     errors:
                       amount:
                       - Amount field should be numeric string or number.
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -5226,7 +5226,7 @@ paths:
                     errors:
                       market:
                       - Market is not available.
-                market2:
+                market31_2:
                   summary: "Market field should not be empty string"
                   value:
                     code: 31
@@ -5234,7 +5234,7 @@ paths:
                     errors:
                       market:
                       - Market field should not be empty string.
-                amount3:
+                amount32_2:
                   summary: "Not enough balance"
                   value:
                     code: 32
@@ -5242,7 +5242,7 @@ paths:
                     errors:
                       amount:
                       - Not enough balance.
-                amount4:
+                amount32_3:
                   summary: "Given amount is less than min amount 0.001"
                   value:
                     code: 32
@@ -5251,7 +5251,7 @@ paths:
                       amount:
                       - Given amount is less than min amount 0.001
                       - Min amount step = 0.000001
-                clientorderid:
+                clientorderid36:
                   summary: "ClientOrderId field should be a string"
                   value:
                     code: 36
@@ -5312,7 +5312,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                activationPrice:
+                activationPrice30:
                   summary: "Activation price field is required"
                   value:
                     code: 30
@@ -5328,7 +5328,7 @@ paths:
                       - Price field is required.
                       side:
                       - Side field is required.
-                side:
+                side30:
                   summary: "Side field should contain only"
                   value:
                     code: 30
@@ -5336,7 +5336,7 @@ paths:
                     errors:
                       side:
                       - Side field should contain only 'buy' or 'sell' values.
-                amount:
+                amount32:
                   summary: "Amount field should be numeric string or number"
                   value:
                     code: 32
@@ -5344,7 +5344,7 @@ paths:
                     errors:
                       amount:
                       - Amount field should be numeric string or number.
-                price:
+                price33:
                   summary: "Price field should be numeric string or number"
                   value:
                     code: 33
@@ -5352,7 +5352,7 @@ paths:
                     errors:
                       price:
                       - Price field should be numeric string or number.
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -5360,7 +5360,7 @@ paths:
                     errors:
                       market:
                       - Market is not available.
-                market2:
+                market31_2:
                   summary: "Market field should not be empty string"
                   value:
                     code: 31
@@ -5368,7 +5368,7 @@ paths:
                     errors:
                       market:
                       - Market field should not be empty string.
-                amount2:
+                amount32_2:
                   summary: "Not enough balance"
                   value:
                     code: 32
@@ -5376,7 +5376,7 @@ paths:
                     errors:
                       amount:
                       - Not enough balance.
-                amount3:
+                amount32_3:
                   summary: "Given amount is less than min amount 0.001"
                   value:
                     code: 32
@@ -5385,7 +5385,7 @@ paths:
                       amount:
                       - Given amount is less than min amount 0.001
                       - Min amount step = 0.000001
-                total:
+                total30:
                   summary: "Total (amount * price) is less than 5.05"
                   value:
                     code: 30
@@ -5393,7 +5393,7 @@ paths:
                     errors:
                       total:
                       - Total (amount * price) is less than 5.05
-                clientorderid:
+                clientorderid36:
                   summary: "ClientOrderId field should be a string"
                   value:
                     code: 36
@@ -5401,7 +5401,7 @@ paths:
                     errors:
                       clientOrderId:
                       - ClientOrderId field should be a string.
-                clientorderid2:
+                clientorderid36_2:
                   summary: "ClientOrderId field should contain only latin letters, numbers and…"
                   value:
                     code: 36
@@ -5461,7 +5461,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                activationPrice:
+                activationPrice30:
                   summary: "Activation price field is required"
                   value:
                     code: 30
@@ -5475,7 +5475,7 @@ paths:
                       - Market field is required.
                       side:
                       - Side field is required.
-                side:
+                side30:
                   summary: "Side field should contain only"
                   value:
                     code: 30
@@ -5483,7 +5483,7 @@ paths:
                     errors:
                       side:
                       - Side field should contain only 'buy' or 'sell' values.
-                amount:
+                amount32:
                   summary: "Amount field should be numeric string or number"
                   value:
                     code: 32
@@ -5491,7 +5491,7 @@ paths:
                     errors:
                       amount:
                       - Amount field should be numeric string or number.
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -5499,7 +5499,7 @@ paths:
                     errors:
                       market:
                       - Market is not available.
-                market2:
+                market31_2:
                   summary: "Market field should not be empty string"
                   value:
                     code: 31
@@ -5507,7 +5507,7 @@ paths:
                     errors:
                       market:
                       - Market field should not be empty string.
-                amount2:
+                amount32_2:
                   summary: "Not enough balance"
                   value:
                     code: 32
@@ -5515,7 +5515,7 @@ paths:
                     errors:
                       amount:
                       - Not enough balance.
-                amount3:
+                amount32_3:
                   summary: "Given amount is less than min amount 0.001"
                   value:
                     code: 32
@@ -5524,7 +5524,7 @@ paths:
                       amount:
                       - Given amount is less than min amount 0.001
                       - Min amount step = 0.000001
-                clientorderid:
+                clientorderid36:
                   summary: "ClientOrderId field should be a string"
                   value:
                     code: 36
@@ -5532,7 +5532,7 @@ paths:
                     errors:
                       clientOrderId:
                       - ClientOrderId field should be a string.
-                clientorderid2:
+                clientorderid36_2:
                   summary: "ClientOrderId field should contain only latin letters, numbers and…"
                   value:
                     code: 36
@@ -5540,7 +5540,7 @@ paths:
                     errors:
                       clientOrderId:
                       - ClientOrderId field should contain only latin letters, numbers and dashes.
-                clientorderid3:
+                clientorderid36_3:
                   summary: "This client order id is already used by the current account"
                   value:
                     code: 36
@@ -5548,7 +5548,7 @@ paths:
                     errors:
                       clientOrderId:
                       - This client order id is already used by the current account.
-                amount4:
+                amount32_4:
                   summary: "Amount should be greater than 0"
                   value:
                     code: 32
@@ -5623,7 +5623,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                orderid:
+                orderNotFound:
                   summary: "Unexecuted order was not found"
                   value:
                     code: 2
@@ -5642,37 +5642,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                market:
-                  summary: "Market field is required"
+                marketAndOrderIdRequired:
+                  summary: "Market and orderId are required"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       market: ["Market field is required."]
                       orderId: ["OrderId field is required."]
-                market2:
+                marketNotAvailable:
                   summary: "Market is not available"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       market: ["Market is not available."]
-                market3:
-                  summary: "Market is not available"
+                marketValidationFailed:
+                  summary: "Market validation failed (code 31)"
                   value:
                     code: 31
                     message: "Validation failed"
                     errors:
                       market: ["Market is not available."]
-                orderid:
-                  summary: "OrderId field should be an integer"
+                orderIdNotInteger:
+                  summary: "OrderId must be an integer"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       orderId: ["OrderId field should be an integer."]
-                market4:
-                  summary: "Market field should be a string"
+                marketFormatInvalid:
+                  summary: "Market field format is invalid"
                   value:
                     code: 30
                     message: "Validation failed"
@@ -5861,7 +5861,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -5869,7 +5869,7 @@ paths:
                     errors:
                       market:
                       - Market is not available.
-                type:
+                type30:
                   summary: "The type must be an array"
                   value:
                     code: 30
@@ -5877,7 +5877,7 @@ paths:
                     errors:
                       type:
                       - The type must be an array.
-                market2:
+                market30:
                   summary: "Market field should be a string"
                   value:
                     code: 30
@@ -5975,7 +5975,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -5983,7 +5983,7 @@ paths:
                     errors:
                       market:
                       - Market is not available
-                limit:
+                limit30:
                   summary: "The limit may not be greater than 100"
                   value:
                     code: 30
@@ -6104,7 +6104,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                limit:
+                limit30:
                   summary: "Limit field should be an integer"
                   value:
                     code: 30
@@ -6114,7 +6114,7 @@ paths:
                       - Limit field should be an integer.
                       offset:
                       - Offset field should be an integer.
-                market:
+                market31:
                   summary: "Market field format is invalid"
                   value:
                     code: 31
@@ -6122,7 +6122,7 @@ paths:
                     errors:
                       market:
                       - Market field format is invalid.
-                orderhistory:
+                orderhistory30:
                   summary: "OrderHistory was not found"
                   value:
                     code: 30
@@ -6528,7 +6528,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                orderhistory:
+                orderhistory30:
                   summary: "OrderHistory was not found"
                   value:
                     code: 30
@@ -6860,8 +6860,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                orderid:
-                  summary: "Unexecuted order was not found"
+                orderNotFound:
+                  summary: "Order not found"
                   value:
                     code: 2
                     message: "Inner validation failed"
@@ -6879,14 +6879,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                market:
+                marketUnavailable:
                   summary: "Market is not available"
                   value:
                     code: 31
                     message: "Validation failed"
                     errors:
                       market: ["Market is not available."]
-                amount:
+                insufficientBalance:
                   summary: "Not enough balance"
                   value:
                     code: 10
@@ -6993,15 +6993,15 @@ paths:
                     maxItems: 0
                     items: {}
               examples:
-                error:
-                  summary: "Error"
+                timerSynced:
+                  summary: "Timer created or updated"
                   value:
                     market: "BTC_USDT"
                     startTime: 1662478154
                     cancellationTime: 1662478154
                     types: ["spot", "margin"]
-                error2:
-                  summary: "Error"
+                timerDeleted:
+                  summary: "Timer deleted"
                   value: []
         '400':
           description: |
@@ -7015,7 +7015,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                market:
+                market30:
                   summary: "Market field is required"
                   value:
                     code: 30
@@ -7025,7 +7025,7 @@ paths:
                       - Market field is required.
                       timeout:
                       - Timeout field is required.
-                market2:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31
@@ -7033,7 +7033,7 @@ paths:
                     errors:
                       market:
                       - Market is not available.
-                timeout:
+                timeout30:
                   summary: "Timeout should be at least 5"
                   value:
                     code: 30
@@ -7129,7 +7129,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                market:
+                market31:
                   summary: "Market is not available"
                   value:
                     code: 31

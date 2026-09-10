@@ -130,8 +130,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                ticker:
-                  summary: "Validation failed"
+                ticker0:
+                  summary: "validation.string"
                   value:
                     code: 0
                     message: Validation failed
@@ -247,22 +247,22 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                ticker:
-                  summary: "The selected ticker is invalid"
+                invalidTicker:
+                  summary: "Invalid ticker"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ticker: ["The selected ticker is invalid."]
-                network:
-                  summary: "The selected network is invalid"
+                invalidNetwork:
+                  summary: "Invalid network"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       network: ["The selected network is invalid."]
-                ticker2:
-                  summary: "Currency is not depositable"
+                notDepositable:
+                  summary: "Currency not depositable"
                   value:
                     code: 1
                     message: "Inner validation failed"
@@ -476,7 +476,7 @@ paths:
                     errors:
                       provider:
                       - Cannot find currency for specified provider
-                uniqueid:
+                uniqueId:
                   summary: "The unique id has already been taken"
                   value:
                     code: 0
@@ -515,7 +515,7 @@ paths:
                       - The ticker field is required.
                       uniqueId:
                       - The unique id field is required.
-                successlink:
+                successLink:
                   summary: "Your domain is incorrect. Please contact support for more details"
                   value:
                     code: 0
@@ -525,13 +525,13 @@ paths:
                       - Your domain is incorrect. Please contact support for more details
                       failureLink:
                       - Your domain is incorrect. Please contact support for more details
-                youDon:
+                permissionDenied:
                   summary: "No permission to use this endpoint"
                   value:
                     success: false
                     message: You don't have permission to use this endpoint. Please contact support for more details
                     code: 0
-                successlink2:
+                successLink2:
                   summary: "Your domain scheme incorrect. Use https only"
                   value:
                     code: 0
@@ -581,7 +581,7 @@ paths:
                     errors:
                       amount:
                       - Expiration date cannot be used for this provider
-                customerBirthdate:
+                customerbirthDate:
                   summary: "You must be at least 18 years old"
                   value:
                     code: 0
@@ -667,8 +667,8 @@ paths:
               schema:
                 type: object
               examples:
-                request:
-                  summary: "The request field is required"
+                missingFields:
+                  summary: "Missing required fields"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -756,7 +756,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                user:
+                userNotFound:
                   summary: "user not found"
                   value:
                     code: 30
@@ -819,15 +819,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                cardnumber:
-                  summary: "The cardNumber field is invalid"
+                invalidCardNumber:
+                  summary: "Invalid card number"
                   value:
                     code: 1
                     message: "Validation failed"
                     errors:
                       cardNumber: ["The cardNumber field is invalid."]
                 tooManyAttempts:
-                  summary: "Too Many Attempts"
+                  summary: "Too many attempts (throttling)"
                   value:
                     message: "Too Many Attempts."
                     code: 0
@@ -919,13 +919,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                transactionNotRefundable:
+                notRefundable:
                   summary: "Transaction not refundable"
                   value:
                     code: 0
                     message: "Transaction not refundable"
-                transactionid:
-                  summary: "The transaction id field is required"
+                validationFailed:
+                  summary: "Required fields missing"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -1455,8 +1455,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                address:
-                  summary: "The address field is required"
+                missingFields:
+                  summary: "Missing required fields"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -1465,15 +1465,15 @@ paths:
                       amount: ["The amount field is required."]
                       ticker: ["The ticker field is required."]
                       uniqueId: ["The unique id field is required."]
-                uniqueid:
-                  summary: "The unique id has already been taken"
+                duplicateUniqueId:
+                  summary: "Duplicate uniqueId"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       uniqueId: ["The unique id has already been taken."]
-                amount:
-                  summary: "This currency has no active pairs or it may have been delisted. Its…"
+                unconfirmedUser:
+                  summary: "Unconfirmed user (without KYC)"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -1481,43 +1481,43 @@ paths:
                       amount:
                         - "This currency has no active pairs or it may have been delisted. Its rate cannot be calculated at the moment."
                         - "Current limit exceeded"
-                amount2:
-                  summary: "Your account must be verified"
+                accountVerification:
+                  summary: "Account must be verified for fiat currencies"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["Your account must be verified"]
-                ticker:
-                  summary: "The selected ticker is invalid"
+                invalidTicker:
+                  summary: "Invalid ticker"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ticker: ["The selected ticker is invalid."]
-                provider:
-                  summary: "Provider is required for fiat currency"
+                providerRequired:
+                  summary: "Provider required for fiat currency"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       provider: ["Provider is required for fiat currency"]
-                memo:
-                  summary: "The memo field is required"
+                memoRequired:
+                  summary: "Memo required for memoable currency"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       memo: ["The memo field is required."]
-                partialenable:
-                  summary: "The partial enable field must be true or false"
+                invalidPartialEnable:
+                  summary: "Invalid partialEnable value"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       partialEnable: ["The partial enable field must be true or false."]
-                tooManyAttempts:
-                  summary: "Too Many Attempts"
+                throttling:
+                  summary: "Rate limiting/throttling"
                   value:
                     message: "Too Many Attempts."
                     code: 0
@@ -1549,15 +1549,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                address:
-                  summary: "The address is invalid"
+                invalidAddress:
+                  summary: "Invalid address"
                   value:
                     code: 2
                     message: "Inner validation failed"
                     errors:
                       address: ["The address is invalid"]
-                amount:
-                  summary: "Not enough money, Ethereum balance = 1"
+                notEnoughBalance:
+                  summary: "Not enough balance"
                   value:
                     code: 5
                     message: "Inner validation failed"
@@ -1640,8 +1640,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                address:
-                  summary: "The address field is required"
+                missingFields:
+                  summary: "Missing required fields"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -1650,15 +1650,15 @@ paths:
                       amount: ["The amount field is required."]
                       ticker: ["The ticker field is required."]
                       uniqueId: ["The unique id field is required."]
-                uniqueid:
-                  summary: "The unique id has already been taken"
+                duplicateUniqueId:
+                  summary: "Duplicate uniqueId"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       uniqueId: ["The unique id has already been taken."]
-                amount:
-                  summary: "This currency has no active pairs or it may have been delisted. Its…"
+                unconfirmedUser:
+                  summary: "Unconfirmed user (without KYC)"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -1687,15 +1687,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                address:
-                  summary: "The address is invalid"
+                invalidAddress:
+                  summary: "Invalid address"
                   value:
                     code: 2
                     message: "Inner validation failed"
                     errors:
                       address: ["The address is invalid"]
-                amount:
-                  summary: "Not enough money, Ethereum balance = 1"
+                notEnoughBalance:
+                  summary: "Not enough balance"
                   value:
                     code: 5
                     message: "Inner validation failed"
@@ -1936,8 +1936,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                amount:
-                  summary: "The amount field is required"
+                missingFields:
+                  summary: "Missing required fields"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -1945,15 +1945,15 @@ paths:
                       amount: ["The amount field is required."]
                       method: ["The method field is required."]
                       ticker: ["The ticker field is required."]
-                ticker:
-                  summary: "The selected ticker is invalid"
+                invalidTicker:
+                  summary: "Invalid ticker"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ticker: ["The selected ticker is invalid."]
-                amount2:
-                  summary: "This currency has no active pairs or it may have been delisted. Its…"
+                unconfirmedUser:
+                  summary: "Unconfirmed user (without KYC)"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -1961,51 +1961,51 @@ paths:
                       amount:
                         - "This currency has no active pairs or it may have been delisted. Its rate cannot be calculated at the moment."
                         - "Current limit exceeded"
-                amount3:
-                  summary: "Your account must be verified"
+                accountVerification:
+                  summary: "Account must be verified for fiat currencies"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["Your account must be verified"]
-                method:
-                  summary: "The selected method is invalid"
+                invalidMethod:
+                  summary: "Invalid method"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       method: ["The selected method is invalid."]
-                from:
-                  summary: "The selected from is invalid"
+                invalidFromTo:
+                  summary: "Invalid from/to balance type"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       from: ["The selected from is invalid."]
                       to: ["The selected to is invalid."]
-                to:
-                  summary: "The to and from must be different"
+                sameFromTo:
+                  summary: "Source and destination balance are the same"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       to: ["The to and from must be different."]
-                amount4:
-                  summary: "The amount must be at least 0.00000001"
+                amountTooSmall:
+                  summary: "Amount too small"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["The amount must be at least 0.00000001."]
-                amount5:
-                  summary: "The amount must be a number"
+                invalidAmount:
+                  summary: "Invalid amount format"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["The amount must be a number.", "Invalid number"]
-                tooManyAttempts:
-                  summary: "Too Many Attempts"
+                throttling:
+                  summary: "Rate limiting/throttling"
                   value:
                     message: "Too Many Attempts."
                     code: 0
@@ -2032,21 +2032,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                amount:
-                  summary: "Insufficient amount for transfer"
+                notEnoughBalance:
+                  summary: "Not enough balance"
                   value:
                     code: 3
                     message: "Inner validation failed"
                     errors:
                       amount: ["You don't have such amount for transfer (available 34.68, in amount: 1000000)"]
-                currency:
-                  summary: "Withdraw from this currency is disabled"
+                currencyWithdrawDisabled:
+                  summary: "Withdraw of this currency is disabled"
                   value:
                     code: 1
                     message: "Inner validation failed"
                     errors:
                       currency: ["Withdraw from this currency is disabled"]
-                currency2:
+                currencyDepositDisabled:
                   summary: "Deposit to this currency is disabled"
                   value:
                     code: 2
@@ -2190,8 +2190,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                fromBalance:
-                  summary: "The selected from_balance is invalid"
+                unsupportedBalance:
+                  summary: "Unsupported balance value"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2381,8 +2381,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                limit:
-                  summary: "The limit field is required"
+                missingFields:
+                  summary: "Missing required fields"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2390,46 +2390,46 @@ paths:
                       limit: ["The limit field is required."]
                       offset: ["The offset field is required."]
                       transactionMethod: ["The transaction method field is required."]
-                ticker:
-                  summary: "The selected ticker is invalid"
+                invalidTicker:
+                  summary: "Invalid ticker"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ticker: ["The selected ticker is invalid."]
-                transactionmethod:
-                  summary: "The selected transaction method is invalid"
+                invalidTransactionMethod:
+                  summary: "Invalid transaction method"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       transactionMethod: ["The selected transaction method is invalid."]
-                limit2:
-                  summary: "The limit may not be greater than 500"
+                limitOffsetTooLarge:
+                  summary: "Limit or offset too large"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["The limit may not be greater than 500."]
                       offset: ["The offset may not be greater than 10000."]
-                limit3:
-                  summary: "The limit must be at least 1"
+                limitOffsetTooSmall:
+                  summary: "Limit or offset too small"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["The limit must be at least 1."]
                       offset: ["The offset must be at least 0."]
-                limit4:
-                  summary: "The limit must be an integer"
+                invalidLimitOffset:
+                  summary: "Invalid limit or offset type"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["The limit must be an integer."]
                       offset: ["The offset must be an integer."]
-                status:
-                  summary: "The selected status is invalid"
+                invalidStatus:
+                  summary: "Invalid status"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2585,43 +2585,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                ticker:
-                  summary: "The ticker field is required"
+                missingTicker:
+                  summary: "Missing ticker field"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ticker: ["The ticker field is required."]
-                ticker2:
-                  summary: "The selected ticker is invalid"
+                invalidTicker:
+                  summary: "Invalid ticker"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ticker: ["The selected ticker is invalid."]
-                network:
+                unsupportedNetwork:
                   summary: "Unsupported network"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       network: ["Unsupported network"]
-                network2:
-                  summary: "Cannot extract default network"
+                noDefaultNetwork:
+                  summary: "Network omitted and the currency has no default network"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       network: ["Cannot extract default network"]
-                network3:
-                  summary: "Cannot find currency for specified network"
+                currencyNetworkMismatch:
+                  summary: "Currency/network combination is invalid"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       network: ["Cannot find currency for specified network"]
-                network4:
-                  summary: "The network must be a string"
+                invalidTypes:
+                  summary: "Invalid data types"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2640,43 +2640,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                ticker:
-                  summary: "Currency is not depositable"
+                notDepositable:
+                  summary: "Currency does not support deposits"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       ticker: ["Currency is not depositable"]
-                ticker2:
-                  summary: "Fiat currencies are unavailable for this action"
+                fiatUnavailable:
+                  summary: "Fiat currency — address creation not allowed"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       ticker: ["Fiat currencies are unavailable for this action"]
-                message:
-                  summary: "Currency is not available"
+                currencyUnavailable:
+                  summary: "Currency not available to this account (region / verification)"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       message: ["Currency is not available"]
-                error:
-                  summary: "KYC required"
+                kycRequired:
+                  summary: "KYC verification required"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       error: ["KYC required"]
-                message2:
-                  summary: "Create address in process"
+                addressInProgress:
+                  summary: "Address generation already in progress"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       message: ["Create address in process"]
-                message3:
-                  summary: "Address limit reached"
+                addressLimitReached:
+                  summary: "Per-currency address limit reached"
                   value:
                     code: 0
                     message: "Inner validation failed"
@@ -2772,16 +2772,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                amount:
-                  summary: "The amount field is required"
+                missingFields:
+                  summary: "Missing required fields"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["The amount field is required."]
                       ticker: ["The ticker field is required."]
-                amount2:
-                  summary: "The amount must be a number"
+                invalidTypes:
+                  summary: "Invalid field types"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2790,8 +2790,8 @@ paths:
                       description: ["The description must be a string."]
                       passphrase: ["The passphrase must be a string."]
                       ticker: ["The selected ticker is invalid."]
-                amount3:
-                  summary: "The amount must be at least 0"
+                invalidLengths:
+                  summary: "Invalid field lengths"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2827,8 +2827,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                amount:
-                  summary: "This currency has no active pairs or it may have been delisted. Its…"
+                unconfirmedUser:
+                  summary: "Unconfirmed users (without KYC) - limit exceeded"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2838,22 +2838,22 @@ paths:
                           "This currency has no active pairs or it may have been delisted. Its rate cannot be calculated at the moment.",
                           "Current limit exceeded"
                         ]
-                amount2:
-                  summary: "Your account must be verified"
+                kycRequired:
+                  summary: "Fiat currencies require KYC verification"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["Your account must be verified"]
-                passphrase:
-                  summary: "The passphrase format is invalid"
+                invalidPassphrase:
+                  summary: "Invalid passphrase format"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       passphrase: ["The passphrase format is invalid."]
-                ticker:
-                  summary: "Codes are disabled for this currency"
+                codesDisabled:
+                  summary: "WhiteBIT codes are disabled for this currency"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2944,36 +2944,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                code:
-                  summary: "The code field is required"
+                missingCode:
+                  summary: "Missing code field"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       code: ["The code field is required."]
-                code2:
+                incorrectCode:
                   summary: "Incorrect code or passphrase"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       code: ["Incorrect code or passphrase"]
-                code3:
-                  summary: "Code not applied"
+                codeNotApplied:
+                  summary: "Generic rejection (invalid format / expired / non-existent / wrong passphrase)"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       code: ["Code not applied"]
-                code4:
-                  summary: "Code already applied"
+                codeAlreadyApplied:
+                  summary: "Code has already been applied"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       code: ["Code already applied"]
-                code5:
-                  summary: "This code was created by you"
+                ownCode:
+                  summary: "Applying a code created by the same account"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -2988,15 +2988,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                error:
-                  summary: "KYC required"
+                kycRequired:
+                  summary: "KYC verification required to redeem"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       error: ["KYC required"]
-                code:
-                  summary: "Codes are disabled for this currency"
+                codesDisabled:
+                  summary: "WhiteBIT codes are disabled for this currency"
                   value:
                     code: 0
                     message: "Inner validation failed"
@@ -3095,24 +3095,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                limit:
-                  summary: "The limit may not be greater than 100"
+                exceedsMaximum:
+                  summary: "Exceeds maximum values"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["The limit may not be greater than 100."]
                       offset: ["The offset may not be greater than 10000."]
-                limit2:
-                  summary: "The limit must be at least 1"
+                belowMinimum:
+                  summary: "Below minimum values"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["The limit must be at least 1."]
                       offset: ["The offset must be at least 0."]
-                limit3:
-                  summary: "The limit must be an integer"
+                invalidType:
+                  summary: "Invalid field types"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3228,24 +3228,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                limit:
-                  summary: "The limit may not be greater than 100"
+                exceedsMaximum:
+                  summary: "Exceeds maximum values"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["The limit may not be greater than 100."]
                       offset: ["The offset may not be greater than 10000."]
-                limit2:
-                  summary: "The limit must be at least 1"
+                belowMinimum:
+                  summary: "Below minimum values"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["The limit must be at least 1."]
                       offset: ["The offset must be at least 0."]
-                limit3:
-                  summary: "The limit must be an integer"
+                invalidType:
+                  summary: "Invalid field types"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3338,8 +3338,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                ticker:
-                  summary: "The selected ticker is invalid"
+                invalidTicker:
+                  summary: "Invalid ticker"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3424,23 +3424,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                planid:
-                  summary: "The selected planId is invalid"
+                invalidPlanOrAmount:
+                  summary: "Invalid planId or amount"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       planId: ["The selected planId is invalid."]
                       amount: ["The amount field must be a valid number"]
-                amount:
-                  summary: "The amount must be at least 0.000001"
+                amountTooSmall:
+                  summary: "Amount below minimum"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       amount: ["The amount must be at least 0.000001."]
-                amount2:
-                  summary: "The amount you are trying to invest is bigger than the amount left in…"
+                amountExceedsAvailable:
+                  summary: "Amount exceeds plan availability"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3449,43 +3449,43 @@ paths:
                         [
                           "The amount you are trying to invest is bigger than the amount left in this SMART plan. Please try investing a smaller amount.",
                         ]
-                planid2:
+                planDisabled:
                   summary: "Plan is disabled"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       planId: ["Plan is disabled"]
-                planid3:
+                planInactive:
                   summary: "Plan is inactive"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       planId: ["Plan is inactive"]
-                planid4:
-                  summary: "There are no coins left in the plan"
+                noCoinsLeft:
+                  summary: "No coins left in plan"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       planId: ["There are no coins left in the plan"]
-                planid5:
+                planPaused:
                   summary: "Plan is paused"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       planId: ["Plan is paused"]
-                planid6:
-                  summary: "Special offers are not available via API"
+                specialOffer:
+                  summary: "Special-offer plan not available via API"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       planId: ["Special offers are not available via API"]
-                amount3:
-                  summary: "Invalid decimal amount"
+                invalidDecimal:
+                  summary: "Decimal precision exceeded"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3506,8 +3506,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                amount:
-                  summary: "The investment in this investment plan already exists"
+                investmentExists:
+                  summary: "Investment already exists"
                   value:
                     code: 1
                     message: "Inner validation failed"
@@ -3516,29 +3516,29 @@ paths:
                         [
                           "The investment in this investment plan already exists",
                         ]
-                amount2:
-                  summary: "Amount is less than min investment"
+                amountTooLow:
+                  summary: "Amount below plan minimum"
                   value:
                     code: 2
                     message: "Inner validation failed"
                     errors:
                       amount: ["Amount is less than min investment"]
-                amount3:
-                  summary: "Amount is more than max investment"
+                amountTooHigh:
+                  summary: "Amount exceeds plan maximum"
                   value:
                     code: 3
                     message: "Inner validation failed"
                     errors:
                       amount: ["Amount is more than max investment"]
-                amount4:
-                  summary: "Available 9 < 10"
+                insufficientBalance:
+                  summary: "Insufficient balance"
                   value:
                     code: 4
                     message: "Inner validation failed"
                     errors:
                       amount: ["Available 9 < 10"]
-                amount5:
-                  summary: "Not enough money to pay interest"
+                insufficientFunds:
+                  summary: "Insufficient funds for interest payment"
                   value:
                     code: 5
                     message: "Inner validation failed"
@@ -3614,15 +3614,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                id:
+                investmentNotFound:
                   summary: "Investment not found"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       id: ["Investment not found"]
-                id2:
-                  summary: "The id field is required"
+                idRequired:
+                  summary: "Missing or invalid id"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3635,8 +3635,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                error:
-                  summary: "Investment is already closed"
+                alreadyClosed:
+                  summary: "Investment already closed"
                   value:
                     code: 0
                     message: "Inner validation failed"
@@ -3764,8 +3764,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                id:
-                  summary: "The selected id is invalid"
+                invalidFields:
+                  summary: "Invalid id, ticker, or status"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3876,8 +3876,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                planid:
-                  summary: "The selected planId is invalid"
+                invalidFields:
+                  summary: "Invalid planId or ticker"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -3979,8 +3979,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                ticker:
-                  summary: "The selected ticker is invalid"
+                invalidFields:
+                  summary: "Invalid parameters"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -4111,8 +4111,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                ticker:
-                  summary: "The selected ticker is invalid"
+                invalidFields:
+                  summary: "Invalid parameters"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -4482,15 +4482,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                plan:
-                  summary: "The selected plan is invalid"
+                invalidPlan:
+                  summary: "Plan not found or inactive"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       plan: ["The selected plan is invalid."]
-                amount:
-                  summary: "The amount field must be a valid number"
+                invalidAmount:
+                  summary: "Invalid amount format"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -4510,57 +4510,57 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                plan:
-                  summary: "Plan is unavailable"
+                planUnavailable:
+                  summary: "Plan unavailable"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       plan: ["Plan is unavailable"]
-                plan2:
+                planPaused:
                   summary: "Plan is paused"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       plan: ["Plan is paused"]
-                amount:
-                  summary: "Amount is less than min investment"
+                amountTooLow:
+                  summary: "Amount below plan minimum"
                   value:
                     code: 2
                     message: "Inner validation failed"
                     errors:
                       amount: ["Amount is less than min investment"]
-                amount2:
-                  summary: "Amount is more than max investment"
+                amountTooHigh:
+                  summary: "Amount exceeds plan maximum"
                   value:
                     code: 3
                     message: "Inner validation failed"
                     errors:
                       amount: ["Amount is more than max investment"]
-                amount3:
-                  summary: "Available 9 < 10"
+                insufficientBalance:
+                  summary: "Insufficient balance"
                   value:
                     code: 4
                     message: "Inner validation failed"
                     errors:
                       amount: ["Available 9 < 10"]
-                amount4:
-                  summary: "Amount is too small"
+                amountTooSmall:
+                  summary: "Amount zero or negative"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       amount: ["Amount is too small"]
-                plan3:
-                  summary: "Private plan not available for this user"
+                privatePlan:
+                  summary: "Private plan not available for user"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       plan: ["Private plan not available for this user"]
-                amount5:
-                  summary: "Investment limit is exceeded"
+                investmentLimit:
+                  summary: "Cumulative investment cap exceeded"
                   value:
                     code: 0
                     message: "Inner validation failed"
@@ -4651,8 +4651,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                plan:
-                  summary: "The selected plan is invalid"
+                invalidPlan:
+                  summary: "Plan not found"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -4665,43 +4665,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                amount:
-                  summary: "Investment does not exist"
+                investmentNotFound:
+                  summary: "Investment not found or not owned"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       amount: ["Investment does not exist"]
-                investment:
-                  summary: "Cannot withdraw from closed investment"
+                investmentClosed:
+                  summary: "Investment is closed"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       investment: ["Cannot withdraw from closed investment"]
-                amount2:
-                  summary: "Withdraw amount is too small"
+                amountTooSmall:
+                  summary: "Withdraw amount zero or negative"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       amount: ["Withdraw amount is too small"]
-                amount3:
-                  summary: "Withdraw amount exceeds total invested"
+                exceedsInvested:
+                  summary: "Withdraw exceeds total invested"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       amount: ["Withdraw amount exceeds total invested"]
-                minamountleft:
-                  summary: "Amount left < min investment"
+                belowMinLeft:
+                  summary: "Remaining balance would drop below minimum"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       minAmountLeft: ["Amount left < min investment"]
-                amount4:
-                  summary: "Cannot withdraw amount < min possible"
+                belowMinPossible:
+                  summary: "Withdrawal below minimum threshold"
                   value:
                     code: 0
                     message: "Inner validation failed"
@@ -4788,8 +4788,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                plan:
-                  summary: "The selected plan is invalid"
+                invalidPlan:
+                  summary: "Plan not found"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -4802,15 +4802,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorInner"
               examples:
-                amount:
-                  summary: "Investment does not exist"
+                investmentNotFound:
+                  summary: "Investment not found or not owned"
                   value:
                     code: 0
                     message: "Inner validation failed"
                     errors:
                       amount: ["Investment does not exist"]
-                investment:
-                  summary: "Cannot withdraw from closed investment"
+                alreadyClosed:
+                  summary: "Investment already closed"
                   value:
                     code: 0
                     message: "Inner validation failed"
@@ -5049,16 +5049,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                alias:
-                  summary: "Alias already exists"
+                aliasOrEmailInvalid:
+                  summary: "Alias or email invalid"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       alias: ["Alias already exists."]
                       email: ["Email is invalid."]
-                email:
-                  summary: "The email field is required"
+                emailRequired:
+                  summary: "Email required when shareKyc is false"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -5749,18 +5749,18 @@ paths:
               schema:
                 type: object
               examples:
-                transactionDoesn:
-                  summary: "Transaction does not exist"
+                transactionNotFound:
+                  summary: "Transaction does not belong to a sub-account of the authenticated account"
                   value:
                     code: 422
                     message: "Transaction doesn't exist"
-                transactionHasIncorrectStatus:
-                  summary: "Transaction has incorrect status"
+                incorrectStatus:
+                  summary: "Transaction is not in a confirmable status"
                   value:
                     code: 422
                     message: "Transaction has incorrect status"
-                amount:
-                  summary: "Inner validation failed"
+                innerValidation:
+                  summary: "Inner validation failed, such as insufficient funds"
                   value:
                     code: 0
                     message: "Inner validation failed"
@@ -5835,8 +5835,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                type:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -5844,12 +5844,12 @@ paths:
                       type: ["validation.required"]
                       subAccountId: ["validation.required"]
                       title: ["validation.required"]
-                limitOfApiKeysIsReachedMaximumAllowed50:
-                  summary: "Limit of API keys is reached. Maximum allowed: 50"
+                limitReached:
+                  summary: "API-key limit reached"
                   value:
                     code: 5
                     message: "Limit of API keys is reached. Maximum allowed: 50"
-                typeIsn:
+                typeNotAllowed:
                   summary: "Requested key type is not allowed"
                   value:
                     code: 5
@@ -5862,8 +5862,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                error:
-                  summary: "Error"
+                typeNotPermitted:
+                  summary: "Restricted key type"
                   value:
                     message: ""
 
@@ -5944,8 +5944,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apikeyid:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -5953,8 +5953,8 @@ paths:
                       apiKeyId: ["validation.required"]
                       title: ["validation.required"]
                       urls: ["validation.required"]
-                theFollowingUrlsAreRestrictedForSubaccou:
-                  summary: "The following URLs are restricted for sub-account API keys:…"
+                restrictedUrl:
+                  summary: "Restricted URL"
                   value:
                     code: 5
                     message: "The following URLs are restricted for sub-account API keys: /api/v4/main-account/address"
@@ -5965,7 +5965,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apiKeyNotFound:
+                notFound:
                   summary: "API key not found"
                   value:
                     message: "API key not found"
@@ -6020,8 +6020,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apikeyid:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -6034,7 +6034,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apiKeyNotFound:
+                notFound:
                   summary: "API key not found"
                   value:
                     message: "API key not found"
@@ -6110,8 +6110,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                limit:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -6169,8 +6169,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apikeyid:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -6183,7 +6183,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apiKeyNotFound:
+                notFound:
                   summary: "API key not found"
                   value:
                     message: "API key not found"
@@ -6240,8 +6240,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apikeyid:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -6254,7 +6254,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apiKeyNotFound:
+                notFound:
                   summary: "API key not found"
                   value:
                     message: "API key not found"
@@ -6317,28 +6317,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apikeyid:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       apiKeyId: ["validation.required"]
                       ip: ["validation.required"]
-                ip:
+                invalidIp:
                   summary: "Invalid IP address"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ip: ["Invalid IP address."]
-                thisIpAddressIsAlreadyInAllowlist:
-                  summary: "This IP address is already in allowlist"
+                duplicateIp:
+                  summary: "IP already in allowlist"
                   value:
                     code: 5
                     message: "This IP address is already in allowlist"
-                youHaveReachedTheMaximumNumberOfAllowedI:
-                  summary: "You have reached the maximum number of allowed IPs: 50"
+                allowlistFull:
+                  summary: "Allowlist full"
                   value:
                     code: 5
                     message: "You have reached the maximum number of allowed IPs: 50"
@@ -6349,7 +6349,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apiKeyNotFound:
+                notFound:
                   summary: "API key not found"
                   value:
                     message: "API key not found"
@@ -6412,23 +6412,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apikeyid:
-                  summary: "Validation failed"
+                validationFailed:
+                  summary: "Request validation failed"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       apiKeyId: ["validation.required"]
                       ip: ["validation.required"]
-                ip:
+                invalidIp:
                   summary: "Invalid IP address"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       ip: ["Invalid IP address."]
-                ipAddress1921681100IsNotInTheAllowlist:
-                  summary: "IP address 192.168.1.100 is not in the allowlist"
+                ipNotInAllowlist:
+                  summary: "IP not in allowlist"
                   value:
                     code: 5
                     message: "IP address 192.168.1.100 is not in the allowlist"
@@ -6439,7 +6439,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                apiKeyNotFound:
+                notFound:
                   summary: "API key not found"
                   value:
                     message: "API key not found"
@@ -6511,25 +6511,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                id:
-                  summary: "Validation failed"
+                idNotBelongsToUser:
+                  summary: "Sub-account does not belong to the authenticated user"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       id: ["validation.exists"]
-                accountIsNotConfirmed:
-                  summary: "Account is not confirmed"
+                subAccountNotActivated:
+                  summary: "Sub-account is not activated"
                   value:
                     code: 400
                     message: "Account is not confirmed"
-                subaccountIsNotActive:
-                  summary: "Sub-account is not active"
+                subAccountNotActive:
+                  summary: "Sub-account is locked or blocked"
                   value:
                     code: 400
                     message: "Sub-account is not active"
-                subaccountHasSharedKyc:
-                  summary: "Sub-account has shared KYC"
+                sharedKycEnabled:
+                  summary: "Sub-account has shared KYC enabled"
                   value:
                     code: 400
                     message: "Sub-account has shared KYC"
@@ -6644,22 +6644,22 @@ paths:
                   errors:
                     type: object
               examples:
-                limit:
-                  summary: "Validation failed"
+                limitOutOfRange:
+                  summary: "limit above 100 (below 1 returns validation.min)"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       limit: ["validation.max.integer"]
-                offset:
-                  summary: "Validation failed"
+                offsetTooLarge:
+                  summary: "offset above 10000"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       offset: ["validation.max"]
-                limit2:
-                  summary: "Validation failed"
+                nonInteger:
+                  summary: "non-integer limit or offset"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -6920,29 +6920,29 @@ paths:
                   errors:
                     type: object
               examples:
-                user:
+                accountNotFound:
                   summary: "Mining account not found"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       user: ["Mining account not found."]
-                address:
-                  summary: "Validation failed"
+                invalidBtcAddress:
+                  summary: "address fails BTC format validation"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       address: ["miningPool.validation.payoutDestination.invalidBtcAddress"]
-                address2:
-                  summary: "Validation failed"
+                btcAddressRequired:
+                  summary: "destination is external_address but address is missing or empty"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       address: ["miningPool.validation.payoutDestination.btcAddressRequired"]
-                destination:
-                  summary: "Validation failed"
+                customCurrencyConflict:
+                  summary: "destination / currency mismatch"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -7495,15 +7495,15 @@ paths:
                   errors:
                     type: object
               examples:
-                name:
-                  summary: "The name has already been taken"
+                nameTaken:
+                  summary: "Account name already exists"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       name: ["The name has already been taken."]
-                error:
-                  summary: "Validation failed"
+                maxAccounts:
+                  summary: "Maximum number of mining accounts reached"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -7881,16 +7881,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                originatorFirstname:
-                  summary: "The first name field is required for individual"
+                requiredFields:
+                  summary: "Required originator fields missing"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
                       originator.firstName: ["The first name field is required for individual."]
                       originator.address: ["The originator address field is required."]
-                vaspdata:
-                  summary: "Either vaspId or vaspName is required for hosted wallets"
+                missingVasp:
+                  summary: "VASP required for a hosted wallet"
                   value:
                     code: 0
                     message: "Validation failed"
@@ -7903,29 +7903,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                uniqueid:
+                transactionNotFound:
                   summary: "Transaction not found"
                   value:
                     code: 0
                     message: "Something went wrong"
                     errors:
                       uniqueId: ["Transaction not found"]
-                uniqueid2:
-                  summary: "Transaction must be a deposit"
+                notDeposit:
+                  summary: "Transaction must be deposit"
                   value:
                     code: 0
                     message: "Something went wrong"
                     errors:
                       uniqueId: ["Transaction must be a deposit"]
-                uniqueid3:
-                  summary: "Transaction is not ready for verification"
+                notReady:
+                  summary: "Transaction not ready for verification"
                   value:
                     code: 0
                     message: "Something went wrong"
                     errors:
                       uniqueId: ["Transaction is not ready for verification"]
-                error:
-                  summary: "This endpoint is disabled for your region"
+                regionDisabled:
+                  summary: "API disabled for region"
                   value:
                     code: 0
                     message: "Something went wrong"
