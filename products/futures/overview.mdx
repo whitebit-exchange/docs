@@ -60,17 +60,9 @@ Check the current margin configuration via the [collateral account summary endpo
 
 ### Liquidation
 
-Positions face liquidation when the maintenance margin requirement is breached. Key details:
+Positions face liquidation when the maintenance margin requirement is breached. Liquidation is evaluated against the **mark price**, not the last traded price, and the Maintenance Margin Rate is 3% for leverage 1x–10x. Partial liquidation closes part of the position first; [Auto-Deleveraging](/concepts/auto-deleveraging) is the final stage when order-book liquidity cannot absorb the liquidation order.
 
-- **Mark price** (not last traded price) is used for liquidation calculations. Temporary price wicks do not trigger liquidation.
-- **Partial liquidation** is the primary mechanism: only a portion (e.g., 20–30%) of the position is closed first to restore margin. If partial liquidation is insufficient, full liquidation follows.
-- **Liquidation sequence:** margin positions first (smallest to largest initial margin value) → crypto borrowings → futures positions last
-- **Maintenance Margin Rate (MMR):** 3% for leverage 1x–10x. Per-market leverage limits and collateral brackets: [collateral brackets page](https://whitebit.com/trading-data/collateral-brackets)
-- The API returns a `liquidationPrice` field in position responses — monitor the liquidation price alongside collateral balance
-- When a position is liquidated, the collateral allocated to the position is lost
-- **Auto-Deleveraging (ADL):** Final-stage mechanism activated only when standard market liquidity cannot fully cover a liquidated position. ADL closes profitable counterparty positions on the opposite side, ranked by an internal Rating; integrators monitor exposure via the ADL Grade indicator (0–4). See [Auto-Deleveraging](/concepts/auto-deleveraging) for the full mechanism, formulas, and risk-management guidance.
-
-> **Coming soon:** Detailed mark price methodology and liquidation price formulas will be published here. For institutional inquiries, contact institutional@whitebit.com.
+Full mechanics — mark price derivation, leverage brackets, the liquidation sequence, and the `liquidationPrice` / `liquidationState` / `marginFraction` fields for risk monitoring: [Liquidation and margin requirements](/concepts/liquidation).
 
 ### Funding Rates
 
