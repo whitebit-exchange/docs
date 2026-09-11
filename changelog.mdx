@@ -4,6 +4,20 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 11, 2026">
+## Which order fields carry a step, and what a rejection looks like
+**Per-endpoint `tickSize` and `stepSize` rules ahead of the September 18, 2026 enforcement**
+
+The [markets concept page](/concepts/markets#price-and-amount-steps) now lists which request field each step applies to — `price`, `activation_price`, `stop_limit_price` and attached `stopLoss` / `takeProfit` prices against `tickSize`, `amount` against `stepSize` — and every order endpoint states its own rule. A rejected order returns HTTP 422 with trade error code `1` and the failing field as the key in `errors`, so branch on that key rather than on the localized message.
+
+The amount step does not apply to `POST /api/v4/order/market` and `POST /api/v4/order/stop_market` buy orders, where `amount` is the quote-currency total rather than a quantity. The `activation_price` of a buy stop-market order is still checked.
+
+<CardGroup cols={2}>
+  <Card title="Price and amount steps" href="/concepts/markets#price-and-amount-steps" icon="ruler" horizontal/>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 10, 2026">
 ## Single-call currency conversion
 **Request and accept a conversion quote in one request**

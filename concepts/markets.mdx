@@ -64,6 +64,36 @@ Each market returned by `GET /api/v4/public/markets` includes:
 | `tickSize` | Minimal price step a limit order price must be a multiple of; empty string when not provided |
 | `stepSize` | Minimal quantity step an order amount must be a multiple of; empty string when not provided |
 
+## Price and amount steps
+
+From September 18, 2026, the matching engine rejects an order whose price is not a multiple of `tickSize` or whose amount is not a multiple of `stepSize`. Read both values from `GET /api/v4/public/markets` on every poll instead of deriving the steps from `moneyPrec` and `stockPrec` — both values follow the market settings in the trade engine and may differ from the precision-derived values.
+
+| Request field | Step | Where it applies |
+|-------|-------------|-------------|
+| `price` | `tickSize` | limit, stop-limit, bulk and modify orders, spot and collateral |
+| `activation_price` | `tickSize` | stop-limit, stop-market, trigger-market, OCO and modify orders |
+| `stop_limit_price` | `tickSize` | the stop-loss leg of an OCO order |
+| `stopLoss`, `takeProfit` | `tickSize` | activation prices attached to a collateral order or to a position |
+| `amount` | `stepSize` | every order endpoint except the cases below |
+
+The amount step does not apply to `POST /api/v4/order/market` and `POST /api/v4/order/stop_market` buy orders: there `amount` is the total in quote currency, not a quantity. The `activation_price` of a buy stop-market order is still checked.
+
+A rejected order returns HTTP 422 with trade error code `1` and the failing field in `errors`:
+
+```json
+{
+  "code": 1,
+  "message": "Validation failed",
+  "errors": {
+    "price": ["Price must be a multiple of 0.01."]
+  }
+}
+```
+
+Request fields are snake_case, while the keys in `errors` are camelCase: `price`, `amount`, `activationPrice`, `stopLimitPrice`, `takeProfit`, `stopLoss`. Branch on the key in `errors`, not on the message text — the message is localized.
+
+An empty `tickSize` or `stepSize` means the trade engine does not provide the value for that market. Fall back to `10^-moneyPrec` for the price step and `10^-stockPrec` for the amount step, and re-read the market on the next poll.
+
 ## Market statuses
 
 The `tradesEnabled` field indicates whether a market is actively accepting orders. The `/api/v4/public/markets` response only includes markets enabled for trading, so a disabled market disappears from the list rather than appearing with `tradesEnabled: false`. Markets can be temporarily disabled by the platform without prior notice.
