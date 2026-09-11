@@ -189,8 +189,16 @@ Immediately delete the compromised key, review account activity for unauthorized
 For details, see the [Authentication guide](/api-reference/authentication).
 </Accordion>
 
-<Accordion title="API key expiration and auto-deactivation">
-API keys without IP address binding are automatically deactivated after 14 days of inactivity. Bind keys to specific IP addresses to prevent unexpected deactivation. See [Authentication](/api-reference/authentication) for API key management details.
+<Accordion title="API key auto-deactivation after inactivity">
+The platform automatically deactivates an API key that receives no requests for 14 consecutive days. An IP whitelist does not exempt a key from this rule — whitelisted and non-whitelisted keys deactivate on the same schedule. Reactivate a deactivated key at [whitebit.com/settings/api](https://whitebit.com/settings/api). See [Key rotation](/best-practices/security#key-rotation).
+</Accordion>
+
+<Accordion title="Keeping spare API keys active">
+Send at least one authenticated request from each spare key every 14 days. Any authenticated endpoint resets the inactivity timer — a balance check via `POST /api/v4/main-account/balance` is sufficient. Keys held in reserve without periodic traffic deactivate on the same schedule as unused keys. See [Main balance](/api-reference/account-wallet/main-balance).
+</Accordion>
+
+<Accordion title="Reasons an API key becomes disabled">
+An API key becomes disabled after 14 consecutive days without requests, or when deactivated from the account settings. Check the key status at [whitebit.com/settings/api](https://whitebit.com/settings/api), resolve the cause, then re-enable the key. See [Security best practices](/best-practices/security).
 </Accordion>
 </AccordionGroup>
 

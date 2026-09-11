@@ -4,6 +4,22 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 10, 2026">
+## Single-call currency conversion
+**Request and accept a conversion quote in one request**
+
+`POST /api/v4/convert/auto-confirm` requests a conversion quote and accepts it in a single call, so the 10-second quote lifetime cannot elapse between requesting a rate and executing at it. The request takes the same `from`, `to`, `direction`, and `amount` fields as [Convert Estimate](/api-reference/convert/convert-estimate), and the response returns `finalGive`, `finalReceive`, and the executed conversion's `id` — usable as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
+
+An optional `idempotencyKey` of 8 to 128 characters deduplicates retries: the first request claims the key and converts, and a repeat returns the recorded conversion instead of converting again. The claim is short-lived and is never renewed, so review the retry-timing caveat on [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) before building retry logic. Send a key from any automated caller — without one, a retry converts a second time.
+
+The two-step [Convert Estimate](/api-reference/convert/convert-estimate) and [Convert Confirm](/api-reference/convert/convert-confirm) endpoints are unchanged and remain available. The new endpoint is additive.
+
+<CardGroup cols={2}>
+  <Card title="Convert Auto Confirm" href="/api-reference/convert/convert-auto-confirm" icon="bolt" horizontal/>
+  <Card title="Convert" href="/platform/convert" icon="rotate" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 2, 2026">
 ## Order placement over WebSocket
 **Place, modify, and cancel orders on the WebSocket connection**
