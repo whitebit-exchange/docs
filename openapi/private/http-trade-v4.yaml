@@ -227,7 +227,7 @@ paths:
         - `amount × price` must be ≥ `minTotal`
         - `amount × price` must be ≤ `maxTotal` (when `maxTotal` is not `"0"`)
 
-        **Price and amount steps:** from September 18, 2026, `price` must be a multiple of the market `tickSize` and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+        **Price and amount steps:** from September 18, 2026, `price` and an attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -519,7 +519,7 @@ paths:
       description: |
         The endpoint creates multiple collateral [limit orders](/glossary#limit-order) in a single request. Each order in the `orders` array is validated and processed individually. The `stopOnFail` parameter controls whether processing stops at the first failure or continues through all orders. The response array contains a result or error object for each submitted order, in the same order as the request.
 
-        **Price and amount steps:** from September 18, 2026, the `price` of each order must be a multiple of the market `tickSize` and its `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+        **Price and amount steps:** from September 18, 2026, the `price` of each order and any attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and its `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -6996,7 +6996,7 @@ paths:
         
         Request must contain at least one of the following parameters: amount, total, price, activationPrice.
 
-        **Price and amount steps:** from September 18, 2026, a `price` or `activation_price` sent in the request must be a multiple of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+        **Price and amount steps:** from September 18, 2026, a `price` or `activationPrice` sent in the request must be a multiple of the market `tickSize`, and `amount` a multiple of `stepSize`. A buy stop-market modification sends `total` in quote currency, which the step does not apply to. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.

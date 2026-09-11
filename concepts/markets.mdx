@@ -71,14 +71,14 @@ From September 18, 2026, the matching engine rejects an order whose price is not
 | Request field | Step | Where it applies |
 |-------|-------------|-------------|
 | `price` | `tickSize` | limit, stop-limit, bulk and modify orders, spot and collateral |
-| `activation_price` | `tickSize` | stop-limit, stop-market, trigger-market, OCO and modify orders |
+| `activation_price`, spelled `activationPrice` on modify | `tickSize` | stop-limit, stop-market, trigger-market, OCO and modify orders |
 | `stop_limit_price` | `tickSize` | the stop-loss leg of an OCO order |
-| `stopLoss`, `takeProfit` | `tickSize` | activation prices attached to a collateral order or to a position |
+| `stopLoss`, `takeProfit` | `tickSize` | prices attached to a collateral order; a position take-profit / stop-loss request spells the same prices `take_profit_activation_price` and `stop_loss_activation_price` |
 | `amount` | `stepSize` | every order endpoint except the cases below |
 
 The amount step does not apply to `POST /api/v4/order/market` and `POST /api/v4/order/stop_market` buy orders: there `amount` is the total in quote currency, not a quantity. The `activation_price` of a buy stop-market order is still checked.
 
-A rejected order returns HTTP 422 with trade error code `1` and the failing field in `errors`:
+A standalone order rejected for a step mismatch returns HTTP 422 with trade error code `1` and the failing field in `errors`:
 
 ```json
 {
@@ -90,7 +90,9 @@ A rejected order returns HTTP 422 with trade error code `1` and the failing fiel
 }
 ```
 
-Request fields are snake_case, while the keys in `errors` are camelCase: `price`, `amount`, `activationPrice`, `stopLimitPrice`, `takeProfit`, `stopLoss`. Branch on the key in `errors`, not on the message text — the message is localized.
+The bulk endpoints answer HTTP 200 instead and carry the same object in the array entry of the order that failed.
+
+A step rejection keys `errors` on `price`, `amount`, `activationPrice`, `stopLimitPrice`, `takeProfit` or `stopLoss`, whatever spelling the request uses for the field. The endpoint's own validation errors — codes `30`, `32` and `33` — key on the request field instead, so `activation_price` appears there. Branch on the code together with the key, never on the message text: the message is localized.
 
 An empty `tickSize` or `stepSize` means the trade engine does not provide the value for that market. Fall back to `10^-moneyPrec` for the price step and `10^-stockPrec` for the amount step, and re-read the market on the next poll.
 
