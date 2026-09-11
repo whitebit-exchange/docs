@@ -1,20 +1,13 @@
 ---
 title: "Open positions"
-description: "List all currently open collateral trading positions on a WhiteBIT account via the V4 API."
 openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/positions/open"
 playground: none
 ---
-import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
 import { RelatedResources } from '/snippets/RelatedResources.jsx';
 import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
 import { signerFields } from '/snippets/signer-fields/collateral-account-positions-open.jsx';
 
 <WhitebitSigner path="/api/v4/collateral-account/positions/open" fields={signerFields} />
-
-## Rate limit
-
-<RestRateLimit requests={100} period="10 seconds" scope="/api/v4/collateral-account/positions/open" />
-
 
 <RelatedResources>
 - [Close position](/api-reference/trading/close-position) — Close an open position
