@@ -145,10 +145,32 @@ The platform validates addresses, but double-check addresses before sending.
 
 ### ⚠️ Memo/Destination Tag
 
-Some currencies require a memo (destination tag):
-- **XLM (Stellar)**: Requires memo
-- **XRP (Ripple)**: Requires destination tag
-- **EOS**: Requires memo
+Some networks use a memo (destination tag) to route a transfer to the right account behind a shared address.
+
+| Memo on withdrawal | Assets |
+| --- | --- |
+| Mandatory | BABY, INIT |
+| Optional | ATOM, CATI, DOGS, DYDX, GRAM, HBAR, IOST, KAVA, LUNA, LUNC, NOT, OSMO, SAGA, SSLX, TIA, USTC, XLM, XRP, USDC on STELLAR, USDT on TON |
+
+Optional means the memo is accepted and passed to the network, and the withdrawal also goes through without it. On deposits a memo is mandatory for every asset in the table.
+
+**Memo format by network**
+
+Each network sets its own rules, so a value accepted on one chain is rejected on another.
+
+- **XRP**: a whole number from 0 to 4294967295. The value travels in the destination tag field of the transaction, not as text.
+- **STELLAR**: up to 28 characters.
+- **HBAR**: a whole number. Hedera carries the memo in a free-text field, so a value with a letter or a separator in it, such as `id-123`, counts as no memo at all.
+- **ATOM, CELESTIA, DYDX, IOST, KAVA, LUNA, LUNC, OSMO, SAGA, BABYLON, INIT**: up to 255 characters.
+- **TON**: latin letters `a-z` and `A-Z`, digits `0-9`, space and hyphen `-`, 1 to 255 characters. Everything else is rejected, including the dot, the underscore, `:`, `#`, `@`, Cyrillic and any other non-latin script, emoji, zero-width and non-breaking characters. `42.65` fails on the dot, `4265` passes.
+
+Leading and trailing spaces are trimmed on every network. Where no character rule is listed, pass the memo exactly as the receiving platform issued it. Memos issued by WhiteBIT for its own deposit addresses are always numeric, 4 to 15 digits depending on the network.
+
+A memo that fails the network rules returns `"memo": ["Incorrect format of memo"]`. The same error comes back when a memo is sent on a network that has no memo, so for USDT send `"network": "TON"` together with the memo: the default network for USDT is ERC20.
+
+<Note>
+Deposits to WhiteBIT are stricter than withdrawals. An HBAR memo that is not a whole number is dropped entirely and the deposit is not credited automatically. A Stellar memo is reduced to printable ASCII, so Cyrillic and emoji are removed without notice and the memo arrives altered. Send the deposit memo exactly as issued, with nothing added around it.
+</Note>
 
 <Warning>
 Missing a required memo will result in **permanent loss of funds** or significant delays in recovery. Check currency requirements on [Asset Status endpoint](/api-reference/market-data/asset-status-list).
