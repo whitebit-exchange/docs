@@ -2476,6 +2476,159 @@ paths:
         '503':
           description: Service temporarily unavailable
 
+  /api/v4/collateral-account/borrow-history:
+    post:
+      summary: Borrow History
+      operationId: getBorrowHistory
+      description: |
+        The endpoint returns the [collateral](/glossary#balance-collateral) account's borrow history for the authenticated account — one record per borrow position, not per underlying engine state change. Use the optional `asset` parameter to filter to a single asset; when omitted, the response covers every asset the caller's region allows to borrow. An `asset` that is unknown or blocked in the caller's region returns a validation error rather than an empty result. Records are ordered by creation time ascending (oldest first), tie-broken by `asset` ascending.
+
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        This endpoint supports pagination via `limit` (default: 50, max: 100) and `offset` (default: 0, max: 10000 — a value above the maximum is rejected outright). `startTime` (default: `0`) and `endTime` (default: now) filter by position time and must satisfy `endTime` > `startTime`. Independently of `offset`, a `startTime`/`endTime` window wide enough to contain more than 10000 matching positions is rejected rather than scanned slowly or served partially — narrow the window instead.
+        </Note>
+
+        <Note>
+        **Field semantics:** `amount`, `principal` and `interest` are independently computed peak values, not a running formula — `amount` does not always equal `principal` + `interest`, because funding can keep accruing after a position's balance has already peaked. Treat any apparent `amount = principal + interest` relationship as usually true, never as a guarantee.
+        </Note>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                asset:
+                  type: string
+                  description: "Filter to a single asset. Optional — when omitted or empty, returns borrow history for every asset the caller's region allows to borrow. An unknown or region-blocked asset returns a validation error."
+                  example: "BTC"
+                startTime:
+                  type: integer
+                  description: "Start of the query window as a Unix timestamp in seconds. Optional, default `0`. Must be less than `endTime`."
+                  example: 1700000000
+                endTime:
+                  type: integer
+                  description: "End of the query window as a Unix timestamp in seconds. Optional, default: now. Must be greater than `startTime`."
+                  example: 1700100000
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 50
+                  description: "Maximum number of records to return. Default: `50`. Minimum: `1`. Maximum: `100`."
+                  example: 50
+                offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                  description: "Number of records to skip. Default: `0`. Maximum: `10000`."
+                  example: 0
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  example: 1594297865000
+            example:
+              asset: "BTC"
+              startTime: 1700000000
+              endTime: 1700100000
+              limit: 50
+              offset: 0
+              request: "{{request}}"
+              nonce: 1594297865000
+      responses:
+        '200':
+          description: Successful response - returns paginated borrow history. `records` is an empty array, not omitted, when nothing matches.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    description: One entry per borrow position, not per underlying engine state change.
+                    items:
+                      type: object
+                      properties:
+                        asset:
+                          type: string
+                          description: "Borrowed asset."
+                          example: "BTC"
+                        amount:
+                          type: string
+                          description: "Peak total amount owed to the engine for the position, already including accrued funding. Not always equal to `principal` + `interest` — see the field-semantics note above."
+                          example: "108.32"
+                        principal:
+                          type: string
+                          description: "Peak borrowed balance, excluding funding accrued in the position at that point."
+                          example: "100"
+                        interest:
+                          type: string
+                          description: "Magnitude of realized funding on the position."
+                          example: "6.15"
+                        status:
+                          type: string
+                          enum: [active, repaid, liquidated]
+                          description: "Current state of the borrow position."
+                          example: "active"
+                        timestamp:
+                          type: integer
+                          description: "Unix timestamp in seconds of the record."
+                          example: 1700000000
+                  limit:
+                    type: integer
+                    description: "Echoes the request's `limit`."
+                    example: 50
+                  offset:
+                    type: integer
+                    description: "Echoes the request's `offset`."
+                    example: 0
+              example:
+                records:
+                  - asset: "BTC"
+                    amount: "108.32"
+                    principal: "100"
+                    interest: "6.15"
+                    status: "active"
+                    timestamp: 1700000000
+                limit: 50
+                offset: 0
+        '400':
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (`asset` unknown or not available in the caller's region, invalid pagination, or `endTime` not strictly greater than `startTime`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: |
+            Request validation failed
+
+            Error codes:
+            - `30` - the requested window would return more than 10000 borrow positions (tag: `startTime`); narrow `startTime`/`endTime` or page with `offset` instead
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+        '503':
+          description: Service temporarily unavailable
+
   /api/v4/collateral-account/leverage:
     post:
       summary: Change Collateral Account Leverage

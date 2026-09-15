@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 15, 2026">
+## Borrow history on Collateral Trading
+**New `POST /api/v4/collateral-account/borrow-history` endpoint**
+
+The Collateral Trading API now returns the borrow history for a collateral account — one record per borrow position, not per underlying engine state change. Each record carries `amount`, `principal`, and `interest` (independently computed peak values — `amount` is not always `principal` + `interest`), plus `status` (`active`, `repaid`, or `liquidated`) and `timestamp`. Filter to one asset with the optional `asset` parameter, and page through results with `startTime`/`endTime`, `limit`, and `offset`.
+
+<CardGroup cols={2}>
+  <Card title="Borrow history" href="/api-reference/trading/borrow-history" icon="hand-holding-dollar" horizontal/>
+  <Card title="Funding history" href="/api-reference/trading/funding-history" icon="money-bill-transfer" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 11, 2026">
 ## Which order fields carry a step, and what a rejection looks like
 **Per-endpoint `tickSize` and `stepSize` rules ahead of the September 18, 2026 enforcement**
