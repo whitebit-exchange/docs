@@ -227,6 +227,8 @@ paths:
         - `amount × price` must be ≥ `minTotal`
         - `amount × price` must be ≤ `maxTotal` (when `maxTotal` is not `"0"`)
 
+        **Price and amount steps:** from September 18, 2026, `price` and an attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -516,6 +518,8 @@ paths:
       operationId: createCollateralBulkOrder
       description: |
         The endpoint creates multiple collateral [limit orders](/glossary#limit-order) in a single request. Each order in the `orders` array is validated and processed individually. The `stopOnFail` parameter controls whether processing stops at the first failure or continues through all orders. The response array contains a result or error object for each submitted order, in the same order as the request.
+
+        **Price and amount steps:** from September 18, 2026, the `price` of each order and any attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and its `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -864,6 +868,8 @@ paths:
       description: |
         The endpoint creates a [market order](/glossary#market-order) using [collateral balance](/glossary#balance-collateral). The order executes immediately at the best available market price. Optionally attach `stopLoss` and `takeProfit` prices to create an [OTO](/glossary#one-triggers-the-other-oto) order that activates after the market order fills.
 
+        **Price and amount steps:** from September 18, 2026, `amount` must be a multiple of the market `stepSize`, and an attached `stopLoss` or `takeProfit` price a multiple of `tickSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -1091,6 +1097,8 @@ paths:
       operationId: createCollateralStopLimitOrder
       description: |
         The endpoint creates a collateral [stop-limit order](/glossary#stop-limit-order) using [collateral balance](/glossary#balance-collateral). The order remains inactive until the market price reaches `activation_price`, then places a limit order at `price`. Optionally attach `stopLoss` and `takeProfit` prices to create an [OTO](/glossary#one-triggers-the-other-oto) order that activates after the stop-limit order fills.
+
+        **Price and amount steps:** from September 18, 2026, `price`, `activation_price` and an attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1351,6 +1359,8 @@ paths:
       operationId: createCollateralTriggerMarketOrder
       description: |
         The endpoint creates a collateral trigger [market order](/glossary#market-order) using [collateral balance](/glossary#balance-collateral). The order remains inactive until the market price reaches `activation_price`, then executes immediately at the best available market price. Optionally attach `stopLoss` and `takeProfit` prices to create an [OTO](/glossary#one-triggers-the-other-oto) order that activates after the trigger market order fills.
+
+        **Price and amount steps:** from September 18, 2026, `activation_price` and an attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -3121,6 +3131,8 @@ paths:
       description: |
         The endpoint creates a collateral [OCO](/glossary#oco-orders) (one-cancels-the-other) order using [collateral balance](/glossary#balance-collateral). An OCO order combines a limit order (take-profit leg) and a stop-limit order (stop-loss leg) into a single conditional group. When one leg executes, the system cancels the other automatically.
 
+        **Price and amount steps:** from September 18, 2026, `price`, `activation_price` and `stop_limit_price` must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -4843,6 +4855,8 @@ paths:
         - `amount × price` must be ≥ `minTotal`
         - `amount × price` must be ≤ `maxTotal` (when `maxTotal` is not `"0"`)
 
+        **Price and amount steps:** from September 18, 2026, `price` must be a multiple of the market `tickSize` and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -5062,6 +5076,8 @@ paths:
       description: |
         The endpoint creates bulk [limit trading orders](/glossary#limit-order). Each order in the batch follows the same validation rules as a single limit order. The `stopOnFail` parameter controls whether processing stops at the first failure or continues through all orders. The response contains a result-or-error pair for each submitted order.
 
+        **Price and amount steps:** from September 18, 2026, the `price` of each order must be a multiple of the market `tickSize` and its `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
           Limit: From 1 to 20 orders per request.
         </Warning>
@@ -5242,6 +5258,8 @@ paths:
       description: |
         The endpoint creates a [market trading order](/glossary#market-order). The matching engine executes the order immediately at the best available price. For buy orders, `amount` represents the total in quote (money) currency to spend. For sell orders, `amount` represents the quantity in base (stock) currency to sell. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, and `maxTotal`.
 
+        **Amount step:** from September 18, 2026, `amount` on a sell order must be a multiple of the market `stepSize`. A buy order carries the quote-currency total in `amount`, so the step does not apply to it. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -5371,6 +5389,8 @@ paths:
       description: |
         The endpoint creates a [stock](/glossary#stock) market trading [order](/glossary#orders). Unlike `POST /api/v4/order/market`, the `amount` parameter always represents the quantity in the base (stock) currency for both buy and sell sides. The matching engine executes the order immediately at the best available price. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, and `maxTotal`.
 
+        **Amount step:** from September 18, 2026, `amount` must be a multiple of the market `stepSize` on both sides. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -5491,6 +5511,8 @@ paths:
       operationId: createStopLimitOrder
       description: |
         The endpoint creates a [stop-limit trading order](/glossary#stop-limit-order). The order remains inactive until the market price reaches the `activation_price`, at which point the system places a limit order at the specified `price`. For buy orders, activation triggers when the market price rises to or above `activation_price`. For sell orders, activation triggers when the market price falls to or below `activation_price`. Minimum and maximum values for `amount`, `price`, and `activation_price` are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, `maxTotal`, `stockPrec` (amount precision), and `moneyPrec` (price precision).
+
+        **Price and amount steps:** from September 18, 2026, `price` and `activation_price` must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -5641,6 +5663,8 @@ paths:
       operationId: createStopMarketOrder
       description: |
         The endpoint creates a [stop-market trading order](/glossary#stop-market-order). The order remains inactive until the market price reaches the `activation_price`, at which point the system executes a market order immediately at the best available price. For buy orders, `amount` represents the total in quote currency and activation triggers when the market price rises to or above `activation_price`. For sell orders, `amount` represents the quantity in base currency and activation triggers when the market price falls to or below `activation_price`. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, and `maxTotal`.
+
+        **Price and amount steps:** from September 18, 2026, `activation_price` must be a multiple of the market `tickSize` on both sides. `amount` on a sell order must be a multiple of `stepSize`; a buy order carries the quote-currency total in `amount`, so the step does not apply to it. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -6975,6 +6999,8 @@ paths:
         Supported order types: limit, stop limit, stop market. On collateral markets the supported types are the collateral limit, collateral stop-limit, and collateral trigger-market orders.
         
         Request must contain at least one of the following parameters: amount, total, price, activationPrice.
+
+        **Price and amount steps:** from September 18, 2026, a `price` or `activationPrice` sent in the request must be a multiple of the market `tickSize`, and `amount` a multiple of `stepSize`. A buy stop-market modification sends `total` in quote currency, which the step does not apply to. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
