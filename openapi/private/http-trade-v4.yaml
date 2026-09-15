@@ -3309,7 +3309,7 @@ paths:
                         example: false
                       mtime:
                         type: number
-                        description: Timestamp of order modification
+                        description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
                         example: 1662478154.941582
                       price:
                         type: string
@@ -3404,7 +3404,7 @@ paths:
                         example: false
                       mtime:
                         type: number
-                        description: Timestamp of order modification
+                        description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
                         example: 1662478154.941582
                       price:
                         type: string
@@ -5814,6 +5814,7 @@ paths:
         <Note>
         - The request accepts exactly one identifier: either `orderId` or `clientOrderId`.
         - Sending both identifiers, or neither, returns a validation error.
+        - `timestamp` is the order's creation time. `mtime` is the time the matching engine last modified the order, which on a cancellation is the moment the cancellation was processed.
         </Note>
       tags:
         - Spot Trading
@@ -5856,7 +5857,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderResponse'
+                $ref: '#/components/schemas/CancelOrderResponse'
         '400':
           description: Inner validation failed
           content:
@@ -7968,6 +7969,17 @@ components:
             activation_price value submitted in the request. Returned for stop
             orders; omitted on other order shapes."
           example: "40000"
+    CancelOrderResponse:
+      type: object
+      description: "Final state of a canceled order. Extends the shared order shape with `mtime`."
+      allOf:
+        - $ref: '#/components/schemas/OrderResponse'
+        - type: object
+          properties:
+            mtime:
+              type: number
+              description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order. On this response that is the moment the engine processed the cancellation, because a cancellation is the order's final modification. Always present on this response. A value of `0` means the engine supplied no modification time. Read `0` as unknown, not as the Unix epoch."
+              example: 1595792412.443301
     OcoOrderLeg:
       type: object
       description: "OCO order leg as returned by `/api/v4/oco-orders` and `/api/v4/order/oco-cancel`. Field names use snake_case (`post_only`, `activation_price`) — unlike the camelCase legs returned by `/api/v4/conditional-orders`."
@@ -8044,7 +8056,7 @@ components:
           example: false
         mtime:
           type: number
-          description: Timestamp of order modification
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
           example: 1662478154.941582
         price:
           type: string
@@ -8136,7 +8148,7 @@ components:
           example: false
         mtime:
           type: number
-          description: Timestamp of order modification
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
           example: 1662478154.941582
         price:
           type: string
@@ -8191,7 +8203,7 @@ components:
           example: "my-client-id"
     BulkCancelOrderResult:
       type: object
-      description: "Acknowledgement that a single item was cancelled. The endpoint echoes the identifiers from the request item; full order state is not returned. Use the single Cancel order endpoint when post-cancel order state is required."
+      description: "Acknowledgement that a single item was canceled. The endpoint echoes the identifiers from the request item and, when available, the order's `timestamp` and `mtime`. Full order state is not returned. Use the single Cancel order endpoint when post-cancel order state is required."
       properties:
         orderId:
           type: integer
@@ -8205,6 +8217,14 @@ components:
           type: string
           description: "Trading pair of the cancelled order. Format: `BASE_QUOTE` (e.g. `BTC_USDT`)."
           example: "BTC_USDT"
+        timestamp:
+          type: number
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of order creation. Optional. May be omitted; do not rely on its presence."
+          example: 1595792396.165973
+        mtime:
+          type: number
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order. Optional. May be omitted; do not rely on its presence. A value of `0` means the engine supplied no modification time. Read `0` as unknown, not as the Unix epoch."
+          example: 1595792412.443301
     BulkCancelOrderResponse:
       type: array
       description: "Per-item cancel results. `response[i]` corresponds to `request.orders[i]`. Each item contains either `result` (cancellation succeeded) or `error` (cancellation failed for that item) — never both."
