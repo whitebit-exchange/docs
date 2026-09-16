@@ -5946,6 +5946,10 @@ paths:
         - When the caller is not authenticated, the API returns the standard authorization error and skips per-item validation.
         </Note>
 
+        <Note>
+        **`timestamp` and `mtime` on a successful item:** a canceled item's `result` may echo the order's `timestamp` (creation time) and `mtime` (the last time the matching engine modified the order — the moment of cancellation, since a cancellation is an order's final modification). Both are best-effort echoes: either may be omitted, so do not rely on either field's presence. For a cancel response that always includes `mtime`, use the single [Cancel order](/api-reference/trading/cancel-order) endpoint instead.
+        </Note>
+
       tags:
         - Spot Trading
       security:
