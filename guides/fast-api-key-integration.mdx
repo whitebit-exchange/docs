@@ -82,7 +82,7 @@ For the remaining failure modes (401, 403, 404) and both consent-screen error co
 
 ### Before the first `/oauth2/api-key/info` call
 
-Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of them can be called until the partner backend holds an OAuth token for that specific user. The steps below cover the stages that run before that point — client registration, and the consent journey that WhiteBIT hosts on its own pages. The partner writes code only for 0.2 and 0.5; the rest happens on WhiteBIT's side and is observable to the partner as either an authorization code on the callback or no callback at all.
+Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three can be called until the partner backend holds an OAuth token for that specific user. The steps below cover the stages that run before that point — client registration, and the consent journey that WhiteBIT hosts on its own pages. The partner writes code only for 0.2 and 0.5; the rest happens on WhiteBIT's side and is observable to the partner as either an authorization code on the callback or no callback at all.
 
 <Steps>
   <Step title="0.1 Register the OAuth2 client">
@@ -101,7 +101,7 @@ Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of them can 
     The partner backend exchanges the code server-to-server, as described in steps 3 and 4 below. The resulting token pair is bound to the `(user, OAuth2 client)` pair, not to the partner as a whole: a partner serving 1,000 users holds 1,000 token pairs. WhiteBIT does not store the mapping between its user and the partner's own account — persist the token alongside the partner-side user record.
   </Step>
   <Step title="0.6 The user creates the key on WhiteBIT">
-    The user selects the key permissions on WhiteBIT's own page, reviews them in a confirmation modal, and confirms with a second factor — a passkey or an authenticator-app code. A key cannot be created without 2FA, and the partner never calls the creation endpoint. WhiteBIT creates the key and withholds the secret from the browser by design, which is why the secret is fetched server-side in step 6.
+    The user selects the key permissions on WhiteBIT's own page, reviews the selection in a confirmation modal, and confirms with a second factor — a passkey or an authenticator-app code. A key cannot be created without 2FA, and the partner never calls the creation endpoint. WhiteBIT creates the key and withholds the secret from the browser by design, which is why the secret is fetched server-side in step 6.
   </Step>
 </Steps>
 
