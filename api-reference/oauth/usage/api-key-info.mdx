@@ -6,7 +6,7 @@ openapi: "/openapi/oauth2.yaml GET /oauth2/api-key/info"
 
 ## Authentication
 
-OAuth 2.0 Bearer token. Required scope: `apikeys.read`. See [Authentication](/api-reference/authentication). The endpoint is available on `https://whitebit.com` only.
+OAuth 2.0 Bearer token. Required scope: `apikeys.read`. The endpoint cannot be reached before the partner holds a token for the user, so a first-time integration calls it only after the authorization code has been exchanged. See [Authentication](/api-reference/authentication). The endpoint is available on `https://whitebit.com` only.
 
 ## Cache
 
@@ -22,10 +22,10 @@ Use the decision matrix below to interpret the `(exists, isEnabled)` response an
 | `true` | `true` | An active partner-issued API key already exists. | Skip the OAuth API key flow. Surface "an active API key for this partner already exists" to the user. |
 | `true` | `false` | A disabled partner-issued API key exists (post-inactivity, awaiting user-side deletion). | Skip the OAuth API key flow. Ask the user to delete the disabled key from the WhiteBIT dashboard, then retry. |
 
-- Call the endpoint before redirecting the user to the OAuth authorization screen. Skipping the redirect when a key already exists avoids a flow the platform rejects.
+- For a returning user whose token is still valid, call the endpoint before redirecting again — skipping the redirect when a key already exists avoids a flow the platform rejects. For a first-time user no token exists yet, and WhiteBIT's own authorization page performs the same duplicate check before it issues an authorization code.
 - Disabled keys are not deletable through the OAuth2 partner endpoint. Disabled keys are removed by the user from the WhiteBIT dashboard.
 - See [Retrieve OAuth API key secret](/api-reference/oauth/usage/api-key-secret) for the secret-fetch step and [Delete OAuth API key](/api-reference/oauth/usage/api-key-delete) for partner-initiated revocation.
-- The `permissions` array lists the permission groups the user granted on the consent screen — see [Key permissions](/guides/fast-api-key-integration#key-permissions) for the full permission model.
+- The `permissions` array lists the permission groups the user granted on the consent screen — see [Key permissions](/guides/fast-api-key-integration#key-permissions) for the full permission model. When the user granted no permissions at all, the key is still created and the array comes back empty; the user deletes that key and re-runs the flow to grant a usable set.
 
 ## Used in these guides
 

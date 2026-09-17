@@ -408,7 +408,7 @@ paths:
     get:
       summary: Check OAuth API key existence
       description: |
-        The endpoint returns whether a partner-issued API key already exists for the authenticated user and OAuth2 client pair. Use the endpoint before redirecting the user to the OAuth API key flow — when a key already exists, skip the redirect and surface the appropriate message to the user.
+        The endpoint returns whether a partner-issued API key already exists for the authenticated user and OAuth2 client pair. The endpoint is Bearer-authenticated, so it is reachable only once the partner holds a token for that user: a returning partner calls it before redirecting the user again, while a first-time authorization reaches it only after the authorization code has been exchanged. When a key already exists, skip the redirect and surface the appropriate message to the user.
 
         **Required scope:** `apikeys.read`.
 
@@ -447,7 +447,7 @@ paths:
                         example: 550e8400-e29b-41d4-a716-446655440000
                       permissions:
                         type: array
-                        description: Permission groups assigned to the key. Empty array when `exists` is `false`. For a disabled key (`isEnabled` is `false`), the array still reflects the permissions the user granted at creation time, so the partner can show the original scope. When the user granted zero permissions during the OAuth handshake, the array contains every offered group with every `urls[].enable` set to `false`.
+                        description: Permission groups assigned to the key. Empty array when `exists` is `false`, and also when the user granted zero permissions during the OAuth handshake — the key is still created in that case, and the user deletes it and re-runs the flow to grant a usable set. For a disabled key (`isEnabled` is `false`), the array still reflects the permissions the user granted at creation time, so the partner can show the original scope.
                         items:
                           type: object
                           properties:
@@ -474,7 +474,7 @@ paths:
                                     description: The user granted the action during the OAuth handshake.
                                     example: true
         "401":
-          description: Missing or invalid Bearer token, or token does not carry the `apikeys.read` scope.
+          description: Missing or invalid Bearer token.
           content:
             application/json:
               schema:
@@ -488,6 +488,36 @@ paths:
                         items:
                           type: string
                         example: ["Unauthorized."]
+        "403":
+          description: The token does not carry the `apikeys.read` scope, or the key belongs to a different OAuth2 client. Manually created API keys are never exposed through the OAuth2 endpoints.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Forbidden."]
+        "404":
+          description: The key has been deleted. A system-initiated deletion (14-day inactivity, account freeze, password change) is indistinguishable from a user-initiated one, and a key owned by a different user returns the same status.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Not found."]
 
   /oauth2/api-key/{externalId}/secret:
     get:
