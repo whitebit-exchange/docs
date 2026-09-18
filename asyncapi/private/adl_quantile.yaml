@@ -1,0 +1,285 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit ADL Quantile
+  version: 1.0.0
+  description: |
+    Subscribe to real-time ADL (Auto-Deleveraging) quantile updates for the account's open
+    futures positions. The channel does not support query operations — only subscribe,
+    update, and unsubscribe. For a one-time snapshot, use the `POST
+    /api/v4/collateral-account/adl-quantile` REST endpoint instead.
+  x-auth-required: true
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-10-seconds: 12000
+  x-error-codes:
+    - code: 6
+      message: require authentication
+      description: "The connection did not call `authorize` before subscribing or unsubscribing. ADL quantile is a private channel — authorize the connection first."
+    - code: 1
+      message: invalid argument
+      description: "The market passed in `params` is not a futures market, or does not exist. ADL quantile subscriptions are available only for futures markets (the `_PERP` suffix)."
+
+servers:
+  production:
+    host: wss.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: ADL quantile operations
+    messages:
+      adlQuantileSubscribe:
+        $ref: '#/components/messages/adlQuantileSubscribe'
+      adlQuantileSubscribeResponse:
+        $ref: '#/components/messages/adlQuantileSubscribeResponse'
+      adlQuantileUpdate:
+        $ref: '#/components/messages/adlQuantileUpdate'
+      adlQuantileUnsubscribe:
+        $ref: '#/components/messages/adlQuantileUnsubscribe'
+      adlQuantileUnsubscribeResponse:
+        $ref: '#/components/messages/adlQuantileUnsubscribeResponse'
+
+operations:
+  sendAdlQuantileSubscribe:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/adlQuantileSubscribe'
+
+  receiveAdlQuantileSubscribeResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/adlQuantileSubscribeResponse'
+
+  receiveAdlQuantileUpdates:
+    action: send
+    description: "Receive real-time ADL quantile updates (immediate push on subscribe, then every 30 sec)"
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/adlQuantileUpdate'
+
+  sendAdlQuantileUnsubscribe:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/adlQuantileUnsubscribe'
+
+  receiveAdlQuantileUnsubscribeResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/adlQuantileUnsubscribeResponse'
+
+components:
+  messages:
+    adlQuantileSubscribe:
+      name: ADLQuantileSubscribe
+      title: Subscribe to ADL Quantile
+      summary: "Subscribe to ADL quantile updates (immediate push, then every 30 sec)"
+      payload:
+        $ref: '#/components/schemas/ADLQuantileSubscribe'
+      examples:
+        - name: subscribeAllPositions
+          summary: |
+            Subscribe to ADL quantile updates for every futures market where the account
+            has an open position:
+            - params: Empty array
+          payload:
+            method: ADLQuantile_subscribe
+            params: []
+            id: 12345678
+        - name: subscribeSingleMarket
+          summary: |
+            Subscribe to ADL quantile updates for one futures market:
+            - params[0]: Market name (BTC_PERP)
+          payload:
+            method: ADLQuantile_subscribe
+            params:
+              - BTC_PERP
+            id: 12345678
+
+    adlQuantileSubscribeResponse:
+      name: ADLQuantileSubscribeResponse
+      title: Subscribe Response
+      summary: Subscription confirmation
+      payload:
+        $ref: '#/components/schemas/SubscriptionResponse'
+      examples:
+        - name: subscriptionSuccess
+          summary: Subscription successful
+          payload:
+            error: null
+            result:
+              status: success
+            id: 12345678
+
+    adlQuantileUpdate:
+      name: ADLQuantileUpdate
+      title: ADL Quantile Update
+      summary: ADL quantile snapshot for every subscribed market
+      payload:
+        $ref: '#/components/schemas/ADLQuantileUpdate'
+      examples:
+        - name: quantileUpdate
+          summary: |
+            ADL quantile update with one record per subscribed market:
+            - Each record: [market, quantile_long, quantile_short]
+          payload:
+            method: ADLQuantile_update
+            params:
+              - - BTC_PERP
+                - null
+                - 4
+            id: null
+
+    adlQuantileUnsubscribe:
+      name: ADLQuantileUnsubscribe
+      title: Unsubscribe from ADL Quantile
+      summary: Stop receiving ADL quantile updates
+      payload:
+        $ref: '#/components/schemas/UnsubscribeRequest'
+      examples:
+        - name: unsubscribe
+          summary: Unsubscribe from ADL quantile updates
+          payload:
+            method: ADLQuantile_unsubscribe
+            params: []
+            id: 12345679
+
+    adlQuantileUnsubscribeResponse:
+      name: ADLQuantileUnsubscribeResponse
+      title: Unsubscribe Response
+      summary: Unsubscription confirmation
+      payload:
+        $ref: '#/components/schemas/SubscriptionResponse'
+      examples:
+        - name: unsubscribeSuccess
+          summary: Unsubscription successful
+          payload:
+            error: null
+            result:
+              status: success
+            id: 12345679
+
+  schemas:
+    ADLQuantileSubscribe:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier
+        method:
+          type: string
+          const: ADLQuantile_subscribe
+          description: "Method name. Fixed value: `ADLQuantile_subscribe`."
+        params:
+          type: array
+          minItems: 0
+          maxItems: 1
+          items:
+            type: string
+            description: "[Market](/glossary#market) name — futures market only (e.g., BTC_PERP). Optional: empty array subscribes to every futures market where the account has an open position."
+
+    SubscriptionResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              const: success
+              description: "Fixed value: `success`."
+        error:
+          type: "null"
+          description: Error object (null on success)
+
+    ADLQuantileRecord:
+      type: array
+      description: |
+        ADL quantile record. One record per subscribed market, all arriving together in a
+        single `ADLQuantile_update` message:
+        - [0] Market name
+        - [1] ADL quantile for the long side
+        - [2] ADL quantile for the short side
+      minItems: 3
+      maxItems: 3
+      items:
+        - type: string
+          description: "[Market](/glossary#market) name"
+          x-field-name: market
+        - type: integer
+          nullable: true
+          enum: [null, 0, 1, 2, 3, 4]
+          description: "ADL quantile for the long side, 0-4. `null` when the account has no long exposure on this market. See [ADL Grade](/concepts/auto-deleveraging#adl-grade) for the meaning of each value."
+          x-field-name: quantile_long
+        - type: integer
+          nullable: true
+          enum: [null, 0, 1, 2, 3, 4]
+          description: "ADL quantile for the short side, 0-4. `null` when the account has no short exposure on this market. See [ADL Grade](/concepts/auto-deleveraging#adl-grade) for the meaning of each value."
+          x-field-name: quantile_short
+
+    ADLQuantileUpdate:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: "null"
+          description: Update events have null id
+        method:
+          type: string
+          const: ADLQuantile_update
+          description: "Method name. Fixed value: `ADLQuantile_update`."
+        params:
+          type: array
+          description: "One ADLQuantileRecord per subscribed market. When subscribed to several markets (empty `params` on subscribe), all of them arrive together in a single message."
+          items:
+            $ref: '#/components/schemas/ADLQuantileRecord'
+
+    UnsubscribeRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier
+        method:
+          type: string
+          const: ADLQuantile_unsubscribe
+          description: "Method name. Fixed value: `ADLQuantile_unsubscribe`."
+        params:
+          type: array
+          items: {}
+          maxItems: 0
+          description: Empty array for unsubscribe

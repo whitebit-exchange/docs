@@ -1,0 +1,97 @@
+---
+title: Premium index
+tag: "WSS"
+description: "Subscribe to real-time mark price, index price, and funding rate updates for futures markets via WhiteBIT WebSocket."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  premiumIndexUpdateAll,
+  premiumIndexRecordTupleFields,
+  premiumIndexRecordWithTimestampTupleFields,
+  exSubscribeAllMarkets,
+  exSubscribeSpecificMarkets,
+  exPremiumIndexSubscribeResponse,
+  exPremiumIndexUpdate,
+  exPremiumIndexUpdatePerMarket,
+  exPremiumIndexUnsubscribe,
+} from '/snippets/ws-data/premium_index.jsx'
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+
+<RegionBaseUrl protocol="wss" />
+
+Subscribe to real-time mark price, index price, and funding rate updates for futures markets — the same data returned by [`GET /api/v4/public/futures`](/api-reference/market-data/available-futures-markets-list), delivered as a push stream instead of a poll. **Mark price** drives margin, PnL, liquidation, and [ADL](/concepts/auto-deleveraging) calculations; **index price** and **funding rate** are informational only and are not used in any trading calculation.
+
+<Note>
+This channel does **NOT** support query operations — only subscribe/update/unsubscribe.
+</Note>
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<WsChannelOverview operations={channelOperations} />
+
+<Note>Connect to `wss://wss.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Subscribe to all futures markets
+
+Passing an empty `params` array subscribes to every futures market. All subscribed markets arrive together in a single message on each poll cycle.
+
+<WsSubscribeSteps
+  subscribe={exSubscribeAllMarkets}
+  subscribeNote="params — empty array subscribes to every futures market."
+  confirmation={exPremiumIndexSubscribeResponse}
+  update={exPremiumIndexUpdate}
+  updateNote="params — an array of records, one per subscribed market, all delivered together. Each record is a positional array: [market, mark_price, futures_index_price, futures_funding_rate, futures_funding_time]."
+  updateExtra={<WsTupleTable fields={premiumIndexRecordTupleFields} />}
+  unsubscribe={exPremiumIndexUnsubscribe}
+/>
+
+## Subscribe to specific markets
+
+Passing one or more market names instead delivers a **separate message per market** on each poll cycle, with a `server_timestamp` field appended.
+
+<Note>
+Subscribing with named markets replaces the previous scope on this channel rather than adding to it — resubscribe with the full target list to change which markets are streamed.
+</Note>
+
+**Request**
+
+<WsMessageExample data={exSubscribeSpecificMarkets} />
+
+**Update — one message per market**
+
+<WsMessageExample data={exPremiumIndexUpdatePerMarket} />
+
+<WsTupleTable fields={premiumIndexRecordWithTimestampTupleFields} />
+
+## Update frequency
+
+The server polls the matching engine and pushes a fresh snapshot every **0.5 seconds**, regardless of whether any value changed since the last cycle — this is a periodic poll, not an event triggered by a price or funding-rate change. After a `market.mark_price_update`, allow up to one poll cycle (0.5 sec) for the new value to appear on this channel.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+## Premium index update object
+
+<WsSchemaTable fields={premiumIndexUpdateAll} />
+
+<RelatedResources>
+- [Available futures markets list](/api-reference/market-data/available-futures-markets-list) — one-time HTTP snapshot of the same `mark_price`, `index_price`, and funding-rate fields.
+- [Auto-Deleveraging concept](/concepts/auto-deleveraging) — how mark price feeds the liquidation and ADL rating formulas.
+- [Funding history](/api-reference/market-data/funding-history) — historical funding rate records for futures markets.
+</RelatedResources>

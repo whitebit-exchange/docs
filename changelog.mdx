@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 18, 2026">
+## ADL quantile and premium index over WebSocket
+**Two new push streams for data previously available only by polling**
+
+The WebSocket API adds two channels that were already implemented but undocumented: `ADLQuantile_subscribe` (private) pushes the account's ADL deleveraging-priority rank for open futures positions — immediately on subscribe, then every 30 seconds — as an alternative to polling the ADL quantile REST endpoint. `premiumIndex_subscribe` (public) pushes mark price, index price, and funding rate for futures markets every 0.5 seconds, mirroring the data on the futures markets list endpoint.
+
+<CardGroup cols={2}>
+  <Card title="ADL Quantile (WebSocket)" href="/websocket/account-streams/adl-quantile" icon="gauge-high" horizontal/>
+  <Card title="Premium Index (WebSocket)" href="/websocket/market-streams/premium-index" icon="chart-line-up" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 15, 2026">
 ## Borrow history on Collateral Trading
 **New `POST /api/v4/collateral-account/borrow-history` endpoint**
