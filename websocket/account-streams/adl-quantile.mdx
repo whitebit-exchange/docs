@@ -1,0 +1,77 @@
+---
+title: ADL quantile
+tag: "WSS"
+description: "Subscribe to real-time ADL (Auto-Deleveraging) quantile updates for open futures positions via WhiteBIT WebSocket."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsSchemaTable } from '/snippets/WsSchemaTable.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  aDLQuantileUpdate,
+  aDLQuantileRecordTupleFields,
+  exSubscribeAllPositions,
+  exAdlQuantileSubscribeResponse,
+  exAdlQuantileUpdate,
+  exAdlQuantileUnsubscribe,
+} from '/snippets/ws-data/adl_quantile.jsx'
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+
+<RegionBaseUrl protocol="wss" />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+Subscribe to the ADL quantile — the 0–4 deleveraging-priority rank for the account's open futures positions — delivered as a push stream instead of a client-side poll of the [ADL quantile endpoint](/api-reference/trading/adl-quantile). A higher quantile means a position closes sooner if a liquidation on that market exhausts order-book liquidity. See [ADL Grade](/concepts/auto-deleveraging#adl-grade) for the ranking mechanism and formula behind the value.
+
+<Note>
+This channel does **NOT** support query operations — only subscribe/update/unsubscribe. For a one-time snapshot, call [`POST /api/v4/collateral-account/adl-quantile`](/api-reference/trading/adl-quantile).
+</Note>
+
+<WsChannelOverview operations={channelOperations} />
+
+<Note>Connect to `wss://wss.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Subscribe to ADL quantile
+
+<WsSubscribeSteps
+  subscribe={exSubscribeAllPositions}
+  subscribeNote="params — empty array subscribes to every futures market where the account has an open position. params[0] (string) subscribes to a single futures market only (e.g. BTC_PERP). Only one ADL quantile subscription is active per connection at a time — a new subscribe call replaces the previous scope rather than adding to it."
+  confirmation={exAdlQuantileSubscribeResponse}
+  update={exAdlQuantileUpdate}
+  updateNote="params — one record per subscribed market, all delivered together in a single ADLQuantile_update message. Each record is a positional array: [market, quantile_long, quantile_short]."
+  updateExtra={<WsTupleTable fields={aDLQuantileRecordTupleFields} />}
+  unsubscribe={exAdlQuantileUnsubscribe}
+/>
+
+<Tip>
+The server pushes an update immediately on subscribe, then re-pushes the current quantile for all active subscriptions every **30 seconds**, whether or not a position changed. A client sees a position's updated quantile no later than 30 seconds after the change, without needing to resubscribe.
+</Tip>
+
+## Update frequency
+
+The server pushes an update immediately after a successful subscribe, then independently re-pushes the current quantile for all active subscriptions every **30 seconds** — a periodic poll, not an event triggered by a position or mark price change.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+## ADL quantile update object
+
+<WsSchemaTable fields={aDLQuantileUpdate} />
+
+<RelatedResources>
+- [ADL quantile (REST)](/api-reference/trading/adl-quantile) — one-time HTTP snapshot of the same data.
+- [Auto-Deleveraging concept](/concepts/auto-deleveraging#adl-grade) — rating formula and grade thresholds behind the quantile values.
+- [Open positions](/api-reference/trading/open-positions) — list all currently open collateral trading positions.
+</RelatedResources>
