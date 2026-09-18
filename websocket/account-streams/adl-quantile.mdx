@@ -49,6 +49,7 @@ This channel does **NOT** support query operations — only subscribe/update/uns
   subscribeNote="params — empty array subscribes to every futures market where the account has an open position. params[0] (string) subscribes to a single futures market only (e.g. BTC_PERP). Only one ADL quantile subscription is active per connection at a time — a new subscribe call replaces the previous scope rather than adding to it."
   confirmation={exAdlQuantileSubscribeResponse}
   update={exAdlQuantileUpdate}
+  updateStepTitle="Receive updates"
   updateNote="params — one record per subscribed market, all delivered together in a single ADLQuantile_update message. Each record is a positional array: [market, quantile_long, quantile_short]."
   updateExtra={<WsTupleTable fields={aDLQuantileRecordTupleFields} />}
   unsubscribe={exAdlQuantileUnsubscribe}
