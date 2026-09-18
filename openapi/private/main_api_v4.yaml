@@ -945,6 +945,10 @@ paths:
       description: |
         The endpoint creates withdraw for the specified ticker.
 
+        <Note>
+        A withdrawal created with a [sub-account](/glossary#sub-account) API key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and is held until the main account approves it. List the pending withdrawals with [`POST /api/v4/sub-account/withdraw/unconfirmed-list`](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and approve each one by transaction id with [`POST /api/v4/sub-account/withdraw/confirm`](/api-reference/sub-accounts/confirm-sub-account-withdrawal).
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
