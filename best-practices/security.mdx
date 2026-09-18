@@ -84,7 +84,7 @@ WhiteBIT signs all webhook payloads using HMAC-SHA512.
 
 1. Read the raw request body
 2. Base64-encode the body — compare with the `X-TXC-PAYLOAD` header
-3. Compute `HMAC_SHA512(base64_encoded_body, api_secret)`
+3. Compute `HMAC_SHA512(base64_encoded_body, api_secret)`, where `api_secret` is the secret of the webhook key
 4. Convert to hex string — compare with the `X-TXC-SIGNATURE` header
 5. If the signature does not match, reject the request (return non-200 status)
 
