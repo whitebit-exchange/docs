@@ -1,0 +1,16 @@
+---
+title: "Borrow history"
+openapi: "/openapi/private/http-trade-v4.yaml POST /api/v4/collateral-account/borrow-history"
+playground: none
+---
+import { RelatedResources } from '/snippets/RelatedResources.jsx';
+import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
+import { signerFields } from '/snippets/signer-fields/collateral-account-borrow-history.jsx';
+
+<WhitebitSigner path="/api/v4/collateral-account/borrow-history" fields={signerFields} />
+
+<RelatedResources>
+- [Collateral account summary](/api-reference/trading/collateral-account-summary) — View account-level margin and equity
+- [Positions history](/api-reference/trading/positions-history) — View per-event position state changes
+- [Funding history](/api-reference/trading/funding-history) — Review funding payments on positions
+</RelatedResources>

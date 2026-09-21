@@ -22,7 +22,7 @@ Move funds into and out of WhiteBIT programmatically: generate deposit addresses
 Before integrating any flow on this page:
 
 - **API key** — create an API key with the required permissions in the WhiteBIT dashboard. Every endpoint on this page requires [HMAC-signed requests](/api-reference/authentication) (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE` headers). Store the secret per [Security Best Practices](/best-practices/security).
-- **Webhook URL** — configure the webhook endpoint in the API key settings to receive transaction notifications. See [Webhooks](/platform/webhook).
+- **Webhook URL** — configure the webhook endpoint to receive transaction notifications. See [Webhooks](/platform/webhook) for the setup flow.
 - **Fiat access** — fiat operations additionally require completed [institutional onboarding](/institutional/onboarding) with approved fiat access.
 
 ## Use cases
@@ -1103,8 +1103,8 @@ Reliable fund tracking requires both webhook-based and polling-based reconciliat
 
 **Primary method — webhooks for real-time notifications:**
 
-- Configure the webhook URL in API key settings (see [Webhooks](/platform/webhook))
-- Verify the HMAC-SHA512 signature on every incoming webhook. Each delivery includes three headers — `X-TXC-APIKEY` (the API key the webhook is bound to), `X-TXC-PAYLOAD` (base64-encoded JSON body), and `X-TXC-SIGNATURE` (HMAC-SHA512 of the payload with the API secret). See [Security Best Practices](/best-practices/security) for the verification algorithm.
+- Configure the webhook URL (see [Webhooks](/platform/webhook))
+- Verify the HMAC-SHA512 signature on every incoming webhook. Each delivery includes three headers — `X-TXC-APIKEY` (the WhiteBIT webhook API key), `X-TXC-PAYLOAD` (base64-encoded JSON body), and `X-TXC-SIGNATURE` (HMAC-SHA512 of the payload with the webhook key's secret). See [Security Best Practices](/best-practices/security) for the verification algorithm.
 - Track the `nonce` field — each webhook nonce is strictly greater than the previous. The nonce travels inside the JSON payload, not in a separate header.
 
 **Retry policy:** The platform retries failed deliveries over a 24-hour window — see [Webhooks](/platform/webhook) for the retry schedule.
