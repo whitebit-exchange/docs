@@ -6425,7 +6425,7 @@ paths:
         </Note>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (default and max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6469,8 +6469,8 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 500
-                  default: 50
-                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500"
+                  default: 500
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 500, Min: 1, Max: 500"
                   example: 50
                 request:
                   type: string
@@ -6554,7 +6554,7 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (max: 100) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6593,9 +6593,9 @@ paths:
                   example: 0
                 limit:
                   type: integer
-                  default: 50
                   minimum: 1
-                  description: "Maximum number of records to return. Default: `50`."
+                  maximum: 100
+                  description: "Maximum number of records to return. Minimum: `1`. Maximum: `100`."
                   example: 50
                 request:
                   type: string
