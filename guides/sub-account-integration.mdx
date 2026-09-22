@@ -98,7 +98,7 @@ The KYC branch is selected at creation via the `shareKyc` parameter: with `share
     A KYC URL can be generated only for a sub-account that is activated (has an associated user), active, and does not use shared KYC. Poll `POST /api/v4/sub-account/list` and read the `status` and `userId` fields for the new sub-account — [API Reference](/api-reference/sub-accounts/list-of-sub-accounts). Calling `kyc-url` before activation returns `400 "Account is not confirmed"`.
   </Step>
   <Step title="Generate the KYC URL and pass it to the customer">
-    Call `POST /api/v4/sub-account/kyc-url` with the sub-account `id` — [API Reference](/api-reference/sub-accounts/kyc-url). The end customer opens the temporary link and completes the WhiteBIT-branded identity verification. Track the sub-account state via the list endpoint.
+    Call `POST /api/v4/sub-account/kyc-url` with the sub-account `id` — [API Reference](/api-reference/sub-accounts/kyc-url). The end customer opens the temporary link and completes the WhiteBIT-branded identity verification, which also confirms the sub-account email address. Track the sub-account state via the list endpoint.
   </Step>
   <Step title="Fund the account and enable trading">
     Transfer initial funds fee-free via `POST /api/v4/sub-account/transfer`, and create a dedicated API key via `POST /api/v4/sub-account/api-key/create` for customers needing direct API access.
