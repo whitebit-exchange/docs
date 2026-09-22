@@ -36,7 +36,7 @@ A crypto network can have two confirmation counts, and a deposit becomes usable 
 | `confirmations_for_trading` | Earlier | Trading only. The amount cannot be withdrawn, transferred to a collateral balance, or used as collateral. |
 | `confirmations` | Later | Everything, including withdrawal, transfer, and collateral operations. |
 
-`confirmations_for_trading` is present only for networks where the earlier threshold is configured, and it disappears for every asset while the platform has early trading availability switched off. Where it is absent, the deposit becomes usable at `confirmations`. Read it on every poll rather than caching it as a static setting.
+`confirmations_for_trading` is present only for networks where the earlier threshold is configured. Where it is absent, the deposit becomes usable at `confirmations`. While the platform has early trading availability switched off, the field keeps its place and repeats the `confirmations` value for those networks, so the response shape never changes under you — read the value on every poll rather than caching it as a static setting.
 
 ## Used in these guides
 
