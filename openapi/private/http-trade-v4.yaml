@@ -2584,7 +2584,7 @@ paths:
                         status:
                           type: string
                           enum: [active, repaid, liquidated]
-                          description: "State of the borrow position within the requested `startTime`/`endTime` window. `repaid` and `liquidated` are reported only when that window contains a record that moved the borrowed principal — `liquidated` when the outstanding balance reached zero through the risk engine, `repaid` when the outstanding balance reached zero by any other route. A window holding only funding accruals or discounts leaves the position `active` even when the outstanding balance across that window nets to zero, so a position closed outside the window reports `active`. Widen the window to see the settled state."
+                          description: "State of the borrow position within the requested `startTime`/`endTime` window. `repaid` and `liquidated` are reported only when the records returned for that position include one that moved the borrowed principal — `liquidated` when the outstanding balance reached zero through the risk engine, `repaid` when it reached zero by any other route. A position whose returned records hold only funding accruals or discounts stays `active` even when the outstanding balance nets to zero."
                           example: "active"
                         timestamp:
                           type: integer
