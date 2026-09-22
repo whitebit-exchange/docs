@@ -2529,7 +2529,7 @@ paths:
                   maximum: 100
                   default: 100
                   description: "Maximum number of records to return. Default: `100`. Minimum: `1`. Maximum: `100`."
-                  example: 50
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
@@ -2547,7 +2547,7 @@ paths:
               asset: "BTC"
               startTime: 1700000000
               endTime: 1700100000
-              limit: 50
+              limit: 100
               offset: 0
               request: "{{request}}"
               nonce: 1594297865000
@@ -2593,7 +2593,7 @@ paths:
                   limit:
                     type: integer
                     description: "The `limit` applied to this response — the request's `limit`, or `100` when the request omitted the field."
-                    example: 50
+                    example: 100
                   offset:
                     type: integer
                     description: "Echoes the request's `offset`."
@@ -2606,7 +2606,7 @@ paths:
                     interest: "6.15"
                     status: "active"
                     timestamp: 1700000000
-                limit: 50
+                limit: 100
                 offset: 0
         '400':
           description: |
@@ -2623,7 +2623,7 @@ paths:
             Request validation failed
 
             Error codes:
-            - `30` - collecting the requested window would exceed the endpoint's budget of 10000 underlying engine records (tag: `startTime`); narrow `startTime`/`endTime` or page with `offset` instead
+            - `30` - collecting the requested window would exceed the endpoint's budget of 10000 underlying engine records (tag: `startTime`); narrow `startTime`/`endTime` instead. Paging with `offset` does not help — the rejection happens while the history is being collected, before `offset` is applied
           content:
             application/json:
               schema:
@@ -6471,7 +6471,7 @@ paths:
                   maximum: 500
                   default: 500
                   description: "LIMIT is a special clause used to limit records a particular query can return. Default: 500, Min: 1, Max: 500"
-                  example: 50
+                  example: 500
                 request:
                   type: string
                   example: "{{request}}"
