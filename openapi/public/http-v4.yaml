@@ -1295,11 +1295,10 @@ components:
           description: "Blockchain confirmations after which a deposit is credited for trading,
             mapped by network name (e.g., {\"BTC\": 1}). Until the count in confirmations is
             reached, the credited amount can be traded but not withdrawn, transferred to a
-            collateral balance, or used as collateral. Absent for assets and networks where no
-            such threshold is configured; in that case the deposit is credited once the
-            confirmations count is reached. While the platform has early trading availability
-            switched off, the field stays in the response and repeats the confirmations count,
-            because trading then opens at the same point as withdrawal."
+            collateral balance, or used as collateral. This map carries exactly the same network
+            keys as confirmations. Where a network has no earlier threshold configured, or while
+            the platform has early trading availability switched off, the value repeats the
+            confirmations count, because trading then opens at the same point as withdrawal."
           additionalProperties:
             type: integer
           example:
