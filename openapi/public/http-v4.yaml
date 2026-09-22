@@ -1297,7 +1297,9 @@ components:
             reached, the credited amount can be traded but not withdrawn, transferred to a
             collateral balance, or used as collateral. Absent for assets and networks where no
             such threshold is configured; in that case the deposit is credited once the
-            confirmations count is reached."
+            confirmations count is reached. The field also disappears while the platform has
+            early trading availability switched off, so treat its presence as the current
+            state rather than as a static per-network setting."
           additionalProperties:
             type: integer
           example:
