@@ -282,7 +282,7 @@ Colocation is available across EEA/EMEA and APAC regions. Access is limited to a
 <Accordion title="Sub-account permissions not applied after creation">
 A sub-account created with its own email address (dedicated KYC, `shareKyc: false`) must have that email confirmed before permissions can be configured. The end customer confirms it by opening the personal link from [`POST /api/v4/sub-account/kyc-url`](/api-reference/sub-accounts/kyc-url) and completing verification, which covers both identity verification and email confirmation.
 
-Permissions configured before that confirmation are not retained. Re-apply them with [`POST /api/v4/sub-account/edit`](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active, and send the full `permissions` object on every edit: flags omitted from an edit request are turned off without a warning.
+Permissions configured before that confirmation are not retained. Re-apply the permission set with [`POST /api/v4/sub-account/edit`](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active, and send the full `permissions` object on every edit: flags omitted from an edit request are turned off without a warning.
 
 A sub-account created with `shareKyc: true` accepts permissions immediately at creation. See the [Sub-account integration guide](/guides/sub-account-integration) for the full flow.
 </Accordion>

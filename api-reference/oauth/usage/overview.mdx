@@ -22,7 +22,7 @@ The OAuth 2.0 endpoints documented in this section cover three integration surfa
 
 ## OAuth API key flow
 
-The OAuth API key flow uses Authorization Code with PKCE (S256) and a 4-hour access token without refresh. The partner redirects the user to the WhiteBIT consent screen; on consent and MFA approval, the WhiteBIT platform issues a partner-issued API key for the authenticated `(user, OAuth2 client)` pair. The partner detects key creation through `GET /oauth2/api-key/info`, retrieves the secret exactly once through `GET /oauth2/api-key/{externalId}/secret`, and deletes the key when no longer needed through `DELETE /oauth2/api-key/{externalId}`. See the [Fast API Key integration guide](/guides/fast-api-key-integration) for the full integration walkthrough.
+The OAuth API key flow uses Authorization Code with PKCE (S256) and issues a short-lived access token together with a refresh token. The partner redirects the user to the WhiteBIT consent screen; on consent and MFA approval, the WhiteBIT platform issues a partner-issued API key for the authenticated `(user, OAuth2 client)` pair. The partner detects key creation through `GET /oauth2/api-key/info`, retrieves the secret exactly once through `GET /oauth2/api-key/{externalId}/secret`, and deletes the key when no longer needed through `DELETE /oauth2/api-key/{externalId}`. See the [Fast API Key integration guide](/guides/fast-api-key-integration) for the full integration walkthrough.
 
 ## Required scopes
 
