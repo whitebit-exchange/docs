@@ -4,6 +4,22 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 23, 2026">
+## Account-level maximum leverage on Collateral Trading
+**`POST /api/v4/collateral-account/leverage` can accept a lower maximum per account**
+
+<Note>
+Coming soon: the account-level maximum is not yet enforced by the endpoint.
+</Note>
+
+The accepted `leverage` values stay `1`, `2`, `3`, `5`, `10`, `20`, `50` and `100`, but trading restrictions on an account can set a lower maximum. A request above the account's maximum returns HTTP 422 with error code `30` and the message under `errors.leverage`. Leverage already set above the new maximum stays in effect until the next change, so read the current value before assuming a request will be accepted.
+
+<CardGroup cols={2}>
+  <Card title="Change collateral account leverage" href="/api-reference/trading/change-collateral-account-leverage" icon="sliders" horizontal/>
+  <Card title="Collateral account summary" href="/api-reference/trading/collateral-account-summary" icon="wallet" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 18, 2026">
 ## ADL quantile and premium index over WebSocket
 **Two new push streams for data previously available only by polling**
