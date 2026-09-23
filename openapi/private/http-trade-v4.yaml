@@ -6554,7 +6554,7 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (default: 500, max: 500) and `offset` (default: 0, max: 1000) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6589,13 +6589,15 @@ paths:
                   type: integer
                   default: 0
                   minimum: 0
-                  description: "Number of records to skip. Default: `0`."
+                  maximum: 1000
+                  description: "Number of records to skip. Default: `0`. Maximum: `1000`."
                   example: 0
                 limit:
                   type: integer
-                  default: 50
+                  default: 500
                   minimum: 1
-                  description: "Maximum number of records to return. Default: `50`."
+                  maximum: 500
+                  description: "Maximum number of records to return. Default: `500`. Minimum: `1`. Maximum: `500`."
                   example: 50
                 request:
                   type: string
