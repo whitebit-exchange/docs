@@ -410,6 +410,8 @@ paths:
       description: |
         The endpoint returns whether a partner-issued API key already exists for the authenticated user and OAuth2 client pair. The endpoint is Bearer-authenticated, so it is reachable only once the partner holds a token for that user: a returning partner calls it before redirecting the user again, while a first-time authorization reaches it only after the authorization code has been exchanged. When a key already exists, skip the redirect and surface the appropriate message to the user.
 
+        The endpoint reports absence through the payload, never through an error status. A key that was deleted, a key belonging to a different OAuth2 client, and a manually created key are all reported as `exists: false` with an empty `permissions` list. The only failure status is `401`, which covers every problem with the token itself.
+
         **Required scope:** `apikeys.read`.
 
         **Region availability:** The endpoint is available on the global server (`https://whitebit.com`) only.
@@ -433,7 +435,7 @@ paths:
                     properties:
                       exists:
                         type: boolean
-                        description: A partner-issued API key exists for the authenticated user and OAuth2 client pair.
+                        description: A partner-issued API key exists for the authenticated user and OAuth2 client pair. `false` covers every absence case — no key was ever created, the key was deleted by the user or by the system, the key belongs to a different OAuth2 client, or the key was created manually rather than through OAuth.
                         example: true
                       isEnabled:
                         type: boolean
@@ -474,7 +476,7 @@ paths:
                                     description: The user granted the action during the OAuth handshake.
                                     example: true
         "401":
-          description: Missing or invalid Bearer token.
+          description: Missing, invalid, or expired Bearer token. A token that does not carry the `apikeys.read` scope returns the same status — an insufficient scope is not reported separately.
           content:
             application/json:
               schema:
@@ -488,36 +490,6 @@ paths:
                         items:
                           type: string
                         example: ["Unauthorized."]
-        "403":
-          description: The token does not carry the `apikeys.read` scope, or the key belongs to a different OAuth2 client. Manually created API keys are never exposed through the OAuth2 endpoints.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      message:
-                        type: array
-                        items:
-                          type: string
-                        example: ["Forbidden."]
-        "404":
-          description: The key has been deleted. A system-initiated deletion (14-day inactivity, account freeze, password change) is indistinguishable from a user-initiated one, and a key owned by a different user returns the same status.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      message:
-                        type: array
-                        items:
-                          type: string
-                        example: ["Not found."]
 
   /oauth2/api-key/{externalId}/secret:
     get:
