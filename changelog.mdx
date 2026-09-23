@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 23, 2026">
+## RPI and retail flags on the same limit order
+**`POST /api/v4/order/new` and `POST /api/v4/order/bulk` accept `rpi=true` together with `retail=true`**
+
+A limit order may now set both `rpi=true` and `retail=true`; the API no longer rejects the combination with error code `41`, and code `41` is retired. The order rests as an RPI maker and matches exactly like an order with only `rpi=true` — the Retail flag has no effect on it, as on any post-only order. The account still needs both flags enabled: error codes `42` and `43` apply unchanged.
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Retail flag" href="/glossary#retail-flag" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 18, 2026">
 ## ADL quantile and premium index over WebSocket
 **Two new push streams for data previously available only by polling**

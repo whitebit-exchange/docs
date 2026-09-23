@@ -80,24 +80,6 @@ Contact the account manager to enable the RPI flag. After enablement, retry the 
 
 ---
 
-## RPI and retail flag
-
-The [Retail flag](/glossary#retail-flag) designates an order as a retail-source taker. The [RPI](/glossary#retail-price-improvement-rpi) flag designates an order as a post-only RPI maker. The two flags cannot be combined on a single order.
-
-### Issue
-
-A request to [`POST /api/v4/order/new`](/api-reference/trading/create-limit-order) or [`POST /api/v4/order/bulk`](/api-reference/trading/bulk-limit-order) sets both `rpi=true` and `retail=true`.
-
-### Result
-
-The API rejects the request and returns error code `41`. The error payload is `{"retail": ["api.tradeErrors.flagsCantBeCombined.rpiRetail"]}`.
-
-### Fix
-
-Set only one of `rpi` or `retail` per order. Set `rpi=true` to provide RPI maker liquidity; set `retail=true` to take RPI liquidity.
-
----
-
 ## Retail flag without account permission
 
 Sending `retail=true` from a private-API source requires the [Retail flag](/glossary#retail-flag) to be enabled on the account.
