@@ -347,12 +347,13 @@ When a deposit is canceled (status 4 or 9), a refund may be available.
 - The deposit must have status `canceled`.
 - Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface.
 
-**Required parameters:**
+**Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `transactionId` | string | Transaction UUID of the canceled deposit. |
-| `address` | string | Destination wallet address for the refund. |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `transactionId` | string | Yes | Transaction UUID of the canceled deposit. |
+| `address` | string | Yes | Destination wallet address for the refund. |
+| `memo` | string | No | Destination [memo](/glossary#memodestination-tag) for the refund address. Without it, the refund goes to the address with no memo. |
 
 The refund `address` must satisfy three constraints:
 
@@ -364,6 +365,8 @@ The refund `address` must satisfy three constraints:
 
 - `refund.successful` — refund completed (includes `refundAmount`, `refundNetworkFee`, `refundHash`)
 - `refund.failed` — refund failed (the destination address does not support the required network or asset, or address validation fails; use a different address or contact support)
+
+**Track refund status:** [`POST /api/v4/main-account/refund-history`](/api-reference/account-wallet/get-refund-history) returns every refund on the account with its current status. A refund with status `canceled` is final. A refund with status `in_process` is not final yet, including after a `refund.failed` webhook caused by an internal failure. Filter by `depositId` to check one deposit.
 
 **Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
 
@@ -401,6 +404,7 @@ The refund `address` must satisfy three constraints:
 | `POST /api/v4/main-account/create-new-address` | Generate a unique deposit address per user | [Create New Address](/api-reference/account-wallet/create-new-address-for-deposit) |
 | Webhooks (`deposit.accepted`, `deposit.updated`, `deposit.processed`) | Deposit status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/refund-deposit` | Refund a canceled deposit | [Refund Deposit](/api-reference/account-wallet/refund-deposit) |
+| `POST /api/v4/main-account/refund-history` | Track refund status | [Get Refund History](/api-reference/account-wallet/get-refund-history) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/fee` | Available currencies, networks, and deposit limits | [Get Fees](/api-reference/account-wallet/get-fees) |

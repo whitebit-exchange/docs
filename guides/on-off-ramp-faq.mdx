@@ -75,7 +75,10 @@ The identifier is named differently across the API surface:
 |-------|-----------------|---------|
 | `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters |
 | `unique_id` | History filter and records | The deposit/withdraw identifier in history responses |
-| `transactionId` | `refund-deposit` request | Transaction UUID, sourced from the `deposit.canceled` webhook |
+| `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the `deposit.canceled` webhook |
+| `id` | `refund-deposit` response | The same deposit transaction UUID, echoed back — not a refund identifier |
+| `depositId` | `refund-history` filter and records | The same deposit transaction UUID |
+| `refundId` | `refund-history` records | The refund's own UUID, returned only by refund history |
 | `transaction_id` | History records | System-wide transaction UUID, never reused |
 
 Match on the correct casing per surface when reconciling across webhooks, history, and refunds.

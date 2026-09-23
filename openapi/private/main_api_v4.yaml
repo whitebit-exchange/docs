@@ -859,7 +859,7 @@ paths:
         </Note>
 
         <Note>
-        Refund processing does not complete instantly. Use the [refund.successful](/platform/webhook#whitebit-refund-successful) and [refund.failed](/platform/webhook#whitebit-refund-failed) webhooks to receive refund status updates.
+        Refund processing does not complete instantly. Use the [refund.successful](/platform/webhook#whitebit-refund-successful) and [refund.failed](/platform/webhook#whitebit-refund-failed) webhooks to receive refund status updates, or check the current status with [Get refund history](/api-reference/account-wallet/get-refund-history).
         </Note>
       operationId: refundDeposit
       requestBody:
@@ -885,6 +885,14 @@ paths:
                   description: |
                     Destination wallet address for the refund. The address must support the same network and asset as the original deposit. Cannot be a WhiteBIT address. Does not have to match the original deposit address.
                   example: "0x1234567890abcdef1234567890abcdef12345678"
+                memo:
+                  type: string
+                  maxLength: 255
+                  description: |
+                    Destination [memo](/glossary#memodestination-tag) for the refund address. Optional — without it, the refund goes to the address with no memo.
+
+                    For a currency that uses memos, the system validates the value; an invalid memo fails the request with a validation error. For other currencies, the value is not validated. It is stored on the refund and returned in the [refund history](/api-reference/account-wallet/get-refund-history) and in the refund webhooks.
+                  example: "1234567890"
                 request:
                   type: string
                   description: |
@@ -913,7 +921,7 @@ paths:
                   id:
                     type: string
                     format: uuid
-                    description: Transaction ID of the deposit (echoed from request)
+                    description: Transaction UUID of the deposit, echoed from the request. This is not a refund identifier — the refund's own `refundId` is returned by [Get refund history](/api-reference/account-wallet/get-refund-history).
                 example:
                   id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
         "400":
@@ -936,6 +944,162 @@ paths:
                     errors:
                       transactionId: ["The transaction id field is required."]
                       address: ["The address field is required."]
+
+  /api/v4/main-account/refund-history:
+    post:
+      tags:
+        - Deposit
+      summary: Get refund history
+      description: |
+        The endpoint returns the account's deposit refunds, including refunds requested through the WhiteBIT interface, by support, or through the API.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+
+        <Note>
+        Results are sorted by refund creation, newest first.
+        </Note>
+
+        <Note>
+        The endpoint lists full refunds only. A deposit with at least one partial refund is excluded from the results.
+        </Note>
+
+        <Note>
+        The response does not include a total count. To read the full history, increase `offset` by `limit` until `records` contains fewer than `limit` entries. The maximum `offset` is 10000.
+        </Note>
+      operationId: getRefundHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                depositId:
+                  type: string
+                  maxLength: 255
+                  description: |
+                    Deposit transaction UUID. Returns refunds for this deposit only.
+                  example: "8f2b0a2e-1c4e-4a2f-9a1d-6f1f4a0d7e31"
+                ticker:
+                  type: string
+                  maxLength: 255
+                  description: |
+                    Currency ticker. Exact match, case-insensitive. Matches the currency on every network — for example, `USDT` returns refunds of USDT deposits on all networks. The network of each refund is in the `network` response field.
+                  example: "BTC"
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 100
+                  description: Maximum number of records to return.
+                  example: 100
+                offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                  description: Number of records to skip.
+                  example: 0
+                request:
+                  type: string
+                  description: |
+                    Request path. See the [authentication guide](/private/http-auth) for signature generation details.
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: |
+                    A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
+                  example: 1594297865000
+            example:
+              ticker: "BTC"
+              limit: 100
+              offset: 0
+              request: "{{request}}"
+              nonce: 1594297865000
+      responses:
+        "200":
+          description: Refund history returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - limit
+                  - offset
+                  - records
+                properties:
+                  limit:
+                    type: integer
+                    description: Applied `limit` value
+                  offset:
+                    type: integer
+                    description: Applied `offset` value
+                  records:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RefundHistoryRecord"
+              example:
+                limit: 100
+                offset: 0
+                records:
+                  - depositId: "8f2b0a2e-1c4e-4a2f-9a1d-6f1f4a0d7e31"
+                    currency: "Bitcoin"
+                    ticker: "BTC"
+                    network: "BTC"
+                    depositAmount: "0.5"
+                    refundId: "2c9a1f77-9b13-4f0e-9a8b-0d1f7c33ab90"
+                    refundAddress: "bc1q..."
+                    refundAmount: "0.5"
+                    refundHash: "9d0f..."
+                    memo: null
+                    status: "successful"
+                    createdAt: 1756200000
+                    processedAt: 1756203600
+                  - depositId: "5e112b38-9652-11ed-a1eb-0242ac120002"
+                    currency: "Stellar"
+                    ticker: "XLM"
+                    network: "XLM"
+                    depositAmount: "100"
+                    refundId: "7d4e2b10-3a8c-4f61-b5e2-9c0a1d3f6e47"
+                    refundAddress: "GDTSOI56..."
+                    refundAmount: "100"
+                    refundHash: null
+                    memo: "1234567890"
+                    status: "in_process"
+                    createdAt: 1756190000
+                    processedAt: null
+        "400":
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                exceedsMaximum:
+                  summary: "Exceeds maximum values"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      limit: ["The limit may not be greater than 100."]
+                      offset: ["The offset may not be greater than 10000."]
+                belowMinimum:
+                  summary: "Below minimum values"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      limit: ["The limit must be at least 1."]
+                      offset: ["The offset must be at least 0."]
 
   /api/v4/main-account/withdraw:
     post:
@@ -8408,6 +8572,87 @@ components:
           type: string
           description: "Code external identifier"
           example: "id1"
+
+    RefundHistoryRecord:
+      type: object
+      required:
+        - depositId
+        - depositAmount
+        - refundId
+        - refundAddress
+        - refundAmount
+        - status
+      properties:
+        depositId:
+          type: string
+          format: uuid
+          description: Transaction UUID of the refunded deposit
+          example: "8f2b0a2e-1c4e-4a2f-9a1d-6f1f4a0d7e31"
+        currency:
+          type: string
+          nullable: true
+          description: Currency name. `null` if the currency was removed after the refund.
+          example: "Bitcoin"
+        ticker:
+          type: string
+          nullable: true
+          description: Currency [ticker](/glossary#ticker). `null` if the currency was removed after the refund.
+          example: "BTC"
+        network:
+          type: string
+          nullable: true
+          description: Deposit network. `null` if the currency was removed after the refund.
+          example: "BTC"
+        depositAmount:
+          type: string
+          description: Amount of the original deposit
+          example: "0.5"
+        refundId:
+          type: string
+          format: uuid
+          description: Refund UUID
+          example: "2c9a1f77-9b13-4f0e-9a8b-0d1f7c33ab90"
+        refundAddress:
+          type: string
+          description: Destination address of the refund
+          example: "bc1q..."
+        refundAmount:
+          type: string
+          description: Refund amount
+          example: "0.5"
+        refundHash:
+          type: string
+          nullable: true
+          description: Blockchain transaction hash of the refund. `null` unless `status` is `successful`.
+          example: "9d0f..."
+        memo:
+          type: string
+          nullable: true
+          description: |
+            Destination [memo](/glossary#memodestination-tag) sent in the [refund request](/api-reference/account-wallet/refund-deposit). `null` if no memo was sent.
+          example: "1234567890"
+        status:
+          type: string
+          enum:
+            - in_process
+            - successful
+            - canceled
+          description: |
+            Refund status:
+            - `in_process` — the refund is not final. Every non-final state maps to this value.
+            - `successful` — the refund is complete.
+            - `canceled` — the refund is canceled. Final.
+          example: "successful"
+        createdAt:
+          type: integer
+          nullable: true
+          description: Refund creation time, Unix timestamp in seconds
+          example: 1756200000
+        processedAt:
+          type: integer
+          nullable: true
+          description: Time the refund reached its current status, Unix timestamp in seconds. `null` while `status` is `in_process`.
+          example: 1756203600
 
     FixedPlan:
       type: object

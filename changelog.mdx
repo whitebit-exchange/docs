@@ -4,6 +4,20 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 23, 2026">
+## Refund history and memo for deposit refunds
+**New `POST /api/v4/main-account/refund-history` endpoint and `memo` support for refunds**
+
+The Main Account API now returns the account's deposit refunds with their current status: `in_process`, `successful`, or `canceled`. The list includes refunds requested through the WhiteBIT interface, by support, and through the API. Filter by `depositId` or `ticker`, and page through results with `limit` and `offset`. Only full refunds are listed.
+
+`POST /api/v4/main-account/refund-deposit` accepts an optional `memo` for the destination address. The `refund.successful` and `refund.failed` webhooks now include `memo`, which is `null` when no memo was sent.
+
+<CardGroup cols={2}>
+  <Card title="Get refund history" href="/api-reference/account-wallet/get-refund-history" icon="clock-rotate-left" horizontal/>
+  <Card title="Refund deposit" href="/api-reference/account-wallet/refund-deposit" icon="rotate-left" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 18, 2026">
 ## ADL quantile and premium index over WebSocket
 **Two new push streams for data previously available only by polling**
