@@ -3,5 +3,5 @@
 // Regenerate: node scripts/generate-signer-fields.mjs
 
 export const signerFields = [
-  {"name":"leverage","type":"integer","required":true,"description":"Target leverage level. Accepted values: 1, 2, 3, 5, 10, 20, 50, 100. The effective maximum depends on the market's max_leverage. Coming soon: the account's trading restrictions …","example":"5"},
+  {"name":"leverage","type":"integer","required":true,"description":"Target leverage level: 1, 2, 3, 5, 10, 20, 50 or 100. Coming soon: trading restrictions can set a lower maximum for the account. The market's max_leverage also applies.","example":"5"},
 ];
