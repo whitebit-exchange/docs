@@ -336,6 +336,8 @@ paths:
                         min: "0.002"
                   confirmations:
                     BTC: 2
+                  confirmations_for_trading:
+                    BTC: 1
                 USDT:
                   name: "Tether US"
                   unified_cryptoasset_id: 825
@@ -372,6 +374,9 @@ paths:
                   confirmations:
                     ERC20: 20
                     TRC20: 20
+                  confirmations_for_trading:
+                    ERC20: 6
+                    TRC20: 6
         'default':
           description: Error response
           content:
@@ -1285,6 +1290,19 @@ components:
             type: integer
           example:
             BTC: 2
+        confirmations_for_trading:
+          type: object
+          description: "Blockchain confirmations after which a deposit is credited for trading,
+            mapped by network name (e.g., {\"BTC\": 1}). Until the count in confirmations is
+            reached, the credited amount can be traded but not withdrawn, transferred to a
+            collateral balance, or used as collateral. This map carries exactly the same network
+            keys as confirmations. Where a network has no earlier threshold configured, or while
+            the platform has early trading availability switched off, the value repeats the
+            confirmations count, because trading then opens at the same point as withdrawal."
+          additionalProperties:
+            type: integer
+          example:
+            BTC: 1
         providers:
           type: object
           description: "Payment provider identifiers for fiat assets (e.g., VISAMASTER,

@@ -27,6 +27,17 @@ The endpoint returns three structurally distinct asset types. Use the presence o
 
 **Fiat payment methods** (e.g., `EUR_ADVCASH`, `USD_VISAMASTER`) represent individual payment channels. These entries include neither `confirmations` nor `providers`. The network identifier in the `networks` field matches the asset ticker.
 
+### Deposit confirmation thresholds
+
+A crypto network can have two confirmation counts, and a deposit becomes usable in two steps.
+
+| Field | Reached at | What the deposit can be used for |
+|---|---|---|
+| `confirmations_for_trading` | Earlier | Trading only. The amount cannot be withdrawn, transferred to a collateral balance, or used as collateral. |
+| `confirmations` | Later | Everything, including withdrawal, transfer, and collateral operations. |
+
+Both maps always carry the same network keys, so a network listed in `confirmations` is listed in `confirmations_for_trading` too. Where a network has no earlier threshold, or while the platform has early trading availability switched off, the two values are equal — trading then opens at the same point as withdrawal. Compare the values rather than checking whether the field is there, and read them on every poll rather than caching them as a static setting.
+
 ## Used in these guides
 
 - [On/Off-Ramp integration](/guides/on-off-ramp-integration) — corporate fiat ↔ crypto over EUR/SEPA rails.
