@@ -5023,8 +5023,7 @@ paths:
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
           - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
-          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set.
-          - `retail=true` has no effect on a `postOnly=true` order. Post-only orders are makers and cannot be retail takers.
+          - `retail=true` has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are makers and cannot be retail takers; an order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
         </Note>
       tags:
         - Spot Trading
@@ -5057,7 +5056,6 @@ paths:
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
             - `40` - `ioc=true` cannot be combined with `rpi=true`
-            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
           content:
@@ -5201,14 +5199,6 @@ paths:
                     errors:
                       maker_fee:
                       - Incorrect maker fee
-                retail41:
-                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
-                  value:
-                    code: 41
-                    message: Validation failed
-                    errors:
-                      retail:
-                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:
@@ -5244,8 +5234,7 @@ paths:
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
           - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
-          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set on an item.
-          - `retail=true` has no effect on a `postOnly=true` item. Post-only orders are makers and cannot be retail takers.
+          - `retail=true` has no effect on a `postOnly=true` or `rpi=true` item. Post-only and RPI orders are makers and cannot be retail takers; an item with both `rpi=true` and `retail=true` matches exactly like an RPI order.
         </Note>
       tags:
         - Spot Trading
@@ -5329,7 +5318,6 @@ paths:
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
             - `40` - `ioc=true` cannot be combined with `rpi=true`
-            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
           content:
@@ -5383,14 +5371,6 @@ paths:
                     errors:
                       price:
                       - Price field should be numeric string or number.
-                retail41:
-                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
-                  value:
-                    code: 41
-                    message: Validation failed
-                    errors:
-                      retail:
-                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:
@@ -7714,9 +7694,7 @@ components:
 
             The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
 
-            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when a request sets both `retail=true` and `rpi=true`.
-
-            The flag has no effect on a `postOnly=true` order. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+            The flag has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
 
             Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
@@ -7999,9 +7977,7 @@ components:
 
             The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
 
-            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when an item sets both `retail=true` and `rpi=true`.
-
-            The flag has no effect on a `postOnly=true` item. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+            The flag has no effect on a `postOnly=true` or `rpi=true` item. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An item with both `rpi=true` and `retail=true` matches exactly like an RPI order.
 
             Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
