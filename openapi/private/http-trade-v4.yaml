@@ -2492,7 +2492,7 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination via `limit` (default: 50, max: 100) and `offset` (default: 0, max: 10000 — a value above the maximum is rejected outright). `startTime` (default: `0`) and `endTime` (default: now) filter by position time and must satisfy `endTime` > `startTime`. Independently of `offset`, a `startTime`/`endTime` window wide enough to contain more than 10000 matching positions is rejected rather than scanned slowly or served partially — narrow the window instead.
+        This endpoint supports pagination via `limit` (default and max: 100) and `offset` (default: 0, max: 10000 — a value above the maximum is rejected outright). `startTime` (default: `0`) and `endTime` (default: now) filter by position time and must satisfy `endTime` > `startTime`. Independently of `offset`, a `startTime`/`endTime` window is rejected rather than scanned slowly or served partially when collecting the matching history would exceed the endpoint's budget of 10000 underlying engine records. One position spans several engine records, so that budget is reached well below 10000 positions — narrow the window instead.
         </Note>
 
         <Note>
@@ -2527,15 +2527,15 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100
-                  default: 50
-                  description: "Maximum number of records to return. Default: `50`. Minimum: `1`. Maximum: `100`."
-                  example: 50
+                  default: 100
+                  description: "Maximum number of records to return. Default: `100`. Minimum: `1`. Maximum: `100`."
+                  example: 100
                 offset:
                   type: integer
                   minimum: 0
                   maximum: 10000
                   default: 0
-                  description: "Number of records to skip. Default: `0`. Maximum: `10000`."
+                  description: "Number of borrow positions to skip. Paging applies after engine state changes are grouped into positions, so page boundaries do not follow the count of underlying engine records. Default: `0`. Maximum: `10000`."
                   example: 0
                 request:
                   type: string
@@ -2547,7 +2547,7 @@ paths:
               asset: "BTC"
               startTime: 1700000000
               endTime: 1700100000
-              limit: 50
+              limit: 100
               offset: 0
               request: "{{request}}"
               nonce: 1594297865000
@@ -2584,16 +2584,16 @@ paths:
                         status:
                           type: string
                           enum: [active, repaid, liquidated]
-                          description: "Current state of the borrow position."
+                          description: "State of the borrow position within the requested `startTime`/`endTime` window. `repaid` and `liquidated` are reported only when the records returned for that position include one that moved the borrowed principal — `liquidated` when the outstanding balance reached zero through the risk engine, `repaid` when it reached zero by any other route. A position whose returned records hold only funding accruals or discounts stays `active` even when the outstanding balance nets to zero."
                           example: "active"
                         timestamp:
                           type: integer
-                          description: "Unix timestamp in seconds of the record."
+                          description: "Unix timestamp in seconds of the borrow position's open time — not of any later state change on the position. Positions are grouped with sub-second precision while this field is truncated to whole seconds, so two positions in the same asset opened within one second are returned as separate records carrying the same `timestamp`."
                           example: 1700000000
                   limit:
                     type: integer
-                    description: "Echoes the request's `limit`."
-                    example: 50
+                    description: "The `limit` applied to this response — the request's `limit`, or `100` when the request omitted the field."
+                    example: 100
                   offset:
                     type: integer
                     description: "Echoes the request's `offset`."
@@ -2606,7 +2606,7 @@ paths:
                     interest: "6.15"
                     status: "active"
                     timestamp: 1700000000
-                limit: 50
+                limit: 100
                 offset: 0
         '400':
           description: |
@@ -2623,7 +2623,7 @@ paths:
             Request validation failed
 
             Error codes:
-            - `30` - the requested window would return more than 10000 borrow positions (tag: `startTime`); narrow `startTime`/`endTime` or page with `offset` instead
+            - `30` - collecting the requested window would exceed the endpoint's budget of 10000 underlying engine records (tag: `startTime`); narrow `startTime`/`endTime` instead. Paging with `offset` does not help — the rejection happens while the history is being collected, before `offset` is applied
           content:
             application/json:
               schema:
@@ -6409,7 +6409,7 @@ paths:
         </Note>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (default and max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6453,9 +6453,9 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 500
-                  default: 50
-                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500"
-                  example: 50
+                  default: 500
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 500, Min: 1, Max: 500"
+                  example: 500
                 request:
                   type: string
                   example: "{{request}}"
