@@ -134,40 +134,6 @@ Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three
       &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
       &code_challenge_method=S256
     ```
-
-    <Tabs>
-      <Tab title="Python">
-        ```python
-        import base64, hashlib, secrets
-        from urllib.parse import urlencode
-
-        code_verifier = secrets.token_urlsafe(64)[:128]           # 43-128 chars, unreserved alphabet
-        code_challenge = base64.urlsafe_b64encode(
-            hashlib.sha256(code_verifier.encode()).digest()
-        ).rstrip(b"=").decode()
-        state = secrets.token_urlsafe(32)
-
-        session["oauth"] = {"code_verifier": code_verifier, "state": state}  # server-side session
-
-        authorize_url = "https://whitebit.com/auth/login?" + urlencode({
-            "clientId": CLIENT_ID,
-            "redirect_uri": REDIRECT_URI,
-            "state": state,
-            "code_challenge": code_challenge,
-            "code_challenge_method": "S256",
-        })
-        # redirect the browser to authorize_url
-        ```
-      </Tab>
-      <Tab title="cURL">
-        ```bash
-        # The authorization step is a browser redirect, not an API call.
-        # Use the Python tab to derive code_challenge, then open the resulting URL in the user's browser.
-        ```
-      </Tab>
-    </Tabs>
-
-    For Go and PHP examples, see [SDKs](/sdks).
   </Step>
   <Step title="WhiteBIT runs the eligibility gate">
     Before showing the consent screen, WhiteBIT checks the account behind the request — sign-in state, 2FA, verification level, and whether the feature is available for the OAuth2 client and for the account's region. Each blocking outcome renders as a variant of the same screen and stops the flow on WhiteBIT's page: no authorization code is issued and the partner receives no callback. Whether a key already exists is enforced separately, at the moment key creation is attempted. [Account status and eligibility](#account-status-and-eligibility) lists every outcome and what the partner can observe.
@@ -188,38 +154,6 @@ Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three
   </Step>
   <Step title="Exchange the code for an access token">
     POST to [`/oauth2/token`](/api-reference/oauth/usage/get-access-token) with `client_id`, `client_secret`, `code`, and `code_verifier`, server-to-server, as `application/x-www-form-urlencoded`.
-
-    <Tabs>
-      <Tab title="cURL">
-        ```bash
-        curl -X POST https://whitebit.com/oauth2/token \
-          -H "Content-Type: application/x-www-form-urlencoded" \
-          -d "client_id=YOUR_CLIENT_ID" \
-          -d "client_secret=YOUR_CLIENT_SECRET" \
-          -d "code=AUTHORIZATION_CODE" \
-          -d "code_verifier=YOUR_CODE_VERIFIER"
-        ```
-      </Tab>
-      <Tab title="Python">
-        ```python
-        import requests
-
-        resp = requests.post(
-            "https://whitebit.com/oauth2/token",
-            data={
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "code": callback_code,
-                "code_verifier": session["oauth"]["code_verifier"],
-            },
-            timeout=10,
-        )
-        resp.raise_for_status()
-        token = resp.json()["data"]
-        # persist token alongside the partner-side user record
-        ```
-      </Tab>
-    </Tabs>
 
     ```json
     {
@@ -243,46 +177,6 @@ Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three
   </Step>
   <Step title="Retrieve the secret">
     Call `GET /oauth2/api-key/{externalId}/secret`. The response returns `apiSecret` exactly once; persist `(externalId, apiSecret)` in encrypted server-side storage immediately — `externalId` is the public key value sent in the `X-TXC-APIKEY` header. On `423 Locked`, retry with exponential backoff starting at 5–10 seconds, doubling per attempt, capped at 60 seconds, total budget 3–5 minutes. On `409 Conflict`, the secret has already been retrieved for this key — delete the key via `DELETE /oauth2/api-key/{externalId}` and restart the flow from step 2.
-
-    <Tabs>
-      <Tab title="cURL">
-        ```bash
-        # Step 9 — poll until exists and isEnabled are both true
-        curl https://whitebit.com/oauth2/api-key/info \
-          -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-
-        # Step 10 — one-time secret retrieval
-        curl https://whitebit.com/oauth2/api-key/YOUR_EXTERNAL_ID/secret \
-          -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-        ```
-      </Tab>
-      <Tab title="Python">
-        ```python
-        import time, requests
-
-        headers = {"Authorization": f"Bearer {token['access_token']}"}
-        base = "https://whitebit.com/oauth2/api-key"
-
-        deadline = time.monotonic() + 30                          # step 9 budget
-        while time.monotonic() < deadline:
-            info = requests.get(f"{base}/info", headers=headers, timeout=10).json()["data"]
-            if info["exists"] and info["isEnabled"]:
-                break
-            time.sleep(2)
-        else:
-            raise TimeoutError("key not created yet — keep the Connect entry point available")
-
-        resp = requests.get(f"{base}/{info['externalId']}/secret", headers=headers, timeout=10)
-        if resp.status_code == 423:
-            ...  # retry with backoff: 5-10 s start, doubling, cap 60 s, budget 3-5 min
-        elif resp.status_code == 409:
-            ...  # secret already released: DELETE the key and restart from step 2
-        resp.raise_for_status()
-        api_secret = resp.json()["data"]["apiSecret"]
-        # persist (info["externalId"], api_secret) in encrypted server-side storage
-        ```
-      </Tab>
-    </Tabs>
   </Step>
   <Step title="Use the key">
     Sign V4 trade API requests with HMAC: send `externalId` as the `X-TXC-APIKEY` value and use `apiSecret` for the signature. The OAuth-issued key follows the same signing rules as a manually-created key. See [Private HTTP API authentication](/api-reference/authentication) for the canonical signing process.
