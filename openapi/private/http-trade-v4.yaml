@@ -20,6 +20,10 @@ servers:
     description: WhiteBIT Global Server
   - url: https://whitebit.eu
     description: WhiteBIT EU Server
+  - url: https://whitebit.tr
+    description: WhiteBIT TR Server
+  - url: https://whitebit.ge
+    description: WhiteBIT GE Server
 
 security:
   - ApiKeyAuth: []
@@ -226,6 +230,8 @@ paths:
         - `amount` must be ≥ `minAmount`
         - `amount × price` must be ≥ `minTotal`
         - `amount × price` must be ≤ `maxTotal` (when `maxTotal` is not `"0"`)
+
+        **Price and amount steps:** from September 18, 2026, `price` and an attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -502,7 +508,7 @@ paths:
             - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
             - `115` - order would open a position in the opposite direction (one-way mode)
             - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account
           content:
             application/json:
               schema:
@@ -516,6 +522,8 @@ paths:
       operationId: createCollateralBulkOrder
       description: |
         The endpoint creates multiple collateral [limit orders](/glossary#limit-order) in a single request. Each order in the `orders` array is validated and processed individually. The `stopOnFail` parameter controls whether processing stops at the first failure or continues through all orders. The response array contains a result or error object for each submitted order, in the same order as the request.
+
+        **Price and amount steps:** from September 18, 2026, the `price` of each order and any attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and its `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -843,7 +851,7 @@ paths:
             - `114` - hedge mode position side does not match (per-order; sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
             - `115` - order would open a position in the opposite direction (one-way mode)
             - `116` - reduce-only validation failed (no position exists or order side matches position direction). For bulk orders, this error appears per-order inside the response array.
-            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (per-order; coming soon — not yet returned)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (per-order)
           content:
             application/json:
               schema:
@@ -863,6 +871,8 @@ paths:
       operationId: createCollateralMarketOrder
       description: |
         The endpoint creates a [market order](/glossary#market-order) using [collateral balance](/glossary#balance-collateral). The order executes immediately at the best available market price. Optionally attach `stopLoss` and `takeProfit` prices to create an [OTO](/glossary#one-triggers-the-other-oto) order that activates after the market order fills.
+
+        **Price and amount steps:** from September 18, 2026, `amount` must be a multiple of the market `stepSize`, and an attached `stopLoss` or `takeProfit` price a multiple of `tickSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1077,7 +1087,7 @@ paths:
             - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
             - `115` - order would open a position in the opposite direction (one-way mode)
             - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account
           content:
             application/json:
               schema:
@@ -1091,6 +1101,8 @@ paths:
       operationId: createCollateralStopLimitOrder
       description: |
         The endpoint creates a collateral [stop-limit order](/glossary#stop-limit-order) using [collateral balance](/glossary#balance-collateral). The order remains inactive until the market price reaches `activation_price`, then places a limit order at `price`. Optionally attach `stopLoss` and `takeProfit` prices to create an [OTO](/glossary#one-triggers-the-other-oto) order that activates after the stop-limit order fills.
+
+        **Price and amount steps:** from September 18, 2026, `price`, `activation_price` and an attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1331,7 +1343,7 @@ paths:
             - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
             - `115` - order would open a position in the opposite direction (one-way mode)
             - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account
           content:
             application/json:
               schema:
@@ -1351,6 +1363,8 @@ paths:
       operationId: createCollateralTriggerMarketOrder
       description: |
         The endpoint creates a collateral trigger [market order](/glossary#market-order) using [collateral balance](/glossary#balance-collateral). The order remains inactive until the market price reaches `activation_price`, then executes immediately at the best available market price. Optionally attach `stopLoss` and `takeProfit` prices to create an [OTO](/glossary#one-triggers-the-other-oto) order that activates after the trigger market order fills.
+
+        **Price and amount steps:** from September 18, 2026, `activation_price` and an attached `stopLoss` or `takeProfit` price must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -1576,7 +1590,7 @@ paths:
             - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
             - `115` - order would open a position in the opposite direction (one-way mode)
             - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account
           content:
             application/json:
               schema:
@@ -2327,14 +2341,14 @@ paths:
       summary: Funding History
       operationId: getFundingHistory
       description: |
-        The endpoint returns the funding rate payment history for [collateral](/glossary#balance-collateral) positions. Each record includes the funding rate, settlement price, position amount, and the resulting funding payment. Use the optional `market` parameter to filter results to a single trading pair. The response supports pagination via `limit` and `offset` parameters. Results are ordered by funding time (`fundingTime`), newest first.
+        The endpoint returns the funding rate payment history for [collateral](/glossary#balance-collateral) positions. Each record includes the funding rate, settlement price, position amount, and the resulting funding payment. The `market` parameter is required — the endpoint returns funding for one market per request and has no all-markets mode. The response supports pagination via `limit` and `offset` parameters. Results are ordered by funding time (`fundingTime`), newest first.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 100) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (default: 100) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when you receive fewer than `limit` records. When nothing matches, the response omits the `records` key entirely rather than returning an empty array, so check that the key is present before reading it. Receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
       tags:
         - Collateral Trading
@@ -2348,13 +2362,17 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - market
+                - request
+                - nonce
               properties:
                 market:
                   type: string
                   description: |
-                    Filter by specific market. For example: BTC_PERP
+                    Market to return funding history for. For example: BTC_PERP
 
-                    If not specified, returns funding history for all markets.
+                    Required — there is no all-markets mode. Spot markets are rejected.
                   example: BTC_PERP
                 limit:
                   type: integer
@@ -2454,11 +2472,164 @@ paths:
 
             Error codes:
             - `30` - default validation error code (invalid pagination — `limit` outside 1–100 or negative `offset`)
-            - `31` - market validation failed (the `market` filter is unknown or not available for collateral trading)
+            - `31` - market validation failed — either `market` was omitted (`"The Market field is required."`) or it is unknown / not available for collateral trading, e.g. a spot market (`"Incorrect market"`)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+
+  /api/v4/collateral-account/borrow-history:
+    post:
+      summary: Borrow History
+      operationId: getBorrowHistory
+      description: |
+        The endpoint returns the [collateral](/glossary#balance-collateral) account's borrow history for the authenticated account — one record per borrow position, not per underlying engine state change. Use the optional `asset` parameter to filter to a single asset; when omitted, the response covers every asset the caller's region allows to borrow. An `asset` that is unknown or blocked in the caller's region returns a validation error rather than an empty result. Records are ordered by creation time descending (newest first). Records created in the same second are ordered by `asset` ascending, then by the trading engine's sub-second creation time descending; `limit` and `offset` page over this order.
+
+        <Warning>
+        Rate limit: 12000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        This endpoint supports pagination via `limit` (default and max: 100) and `offset` (default: 0, max: 10000 — a value above the maximum is rejected outright). `startTime` (default: `0`) and `endTime` (default: now) filter by position time and must satisfy `endTime` > `startTime`. Independently of `offset`, a `startTime`/`endTime` window is rejected rather than scanned slowly or served partially when collecting the matching history would exceed the endpoint's budget of 10000 underlying engine records. One position spans several engine records, so that budget is reached well below 10000 positions — narrow the window instead.
+        </Note>
+
+        <Note>
+        **Field semantics:** `amount`, `principal` and `interest` are independently computed peak values, not a running formula — `amount` does not always equal `principal` + `interest`, because funding can keep accruing after a position's balance has already peaked. Treat any apparent `amount = principal + interest` relationship as usually true, never as a guarantee.
+        </Note>
+      tags:
+        - Collateral Trading
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                asset:
+                  type: string
+                  description: "Filter to a single asset. Optional — when omitted or empty, returns borrow history for every asset the caller's region allows to borrow. An unknown or region-blocked asset returns a validation error."
+                  example: "BTC"
+                startTime:
+                  type: integer
+                  description: "Start of the query window as a Unix timestamp in seconds. Optional, default `0`. Must be less than `endTime`."
+                  example: 1700000000
+                endTime:
+                  type: integer
+                  description: "End of the query window as a Unix timestamp in seconds. Optional, default: now. Must be greater than `startTime`."
+                  example: 1700100000
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 100
+                  description: "Maximum number of records to return. Default: `100`. Minimum: `1`. Maximum: `100`."
+                  example: 100
+                offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                  default: 0
+                  description: "Number of borrow positions to skip. Paging applies after engine state changes are grouped into positions, so page boundaries do not follow the count of underlying engine records. Default: `0`. Maximum: `10000`."
+                  example: 0
+                request:
+                  type: string
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  example: 1594297865000
+            example:
+              asset: "BTC"
+              startTime: 1700000000
+              endTime: 1700100000
+              limit: 100
+              offset: 0
+              request: "{{request}}"
+              nonce: 1594297865000
+      responses:
+        '200':
+          description: Successful response - returns paginated borrow history. `records` is an empty array, not omitted, when nothing matches.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    description: One entry per borrow position, not per underlying engine state change.
+                    items:
+                      type: object
+                      properties:
+                        asset:
+                          type: string
+                          description: "Borrowed asset."
+                          example: "BTC"
+                        amount:
+                          type: string
+                          description: "Peak total amount owed to the engine for the position, already including accrued funding. Not always equal to `principal` + `interest` — see the field-semantics note above."
+                          example: "108.32"
+                        principal:
+                          type: string
+                          description: "Peak borrowed balance, excluding funding accrued in the position at that point."
+                          example: "100"
+                        interest:
+                          type: string
+                          description: "Magnitude of realized funding on the position."
+                          example: "6.15"
+                        status:
+                          type: string
+                          enum: [active, repaid, liquidated]
+                          description: "State of the borrow position within the requested `startTime`/`endTime` window. `repaid` and `liquidated` are reported only when the records returned for that position include one that moved the borrowed principal — `liquidated` when the outstanding balance reached zero through the risk engine, `repaid` when it reached zero by any other route. A position whose returned records hold only funding accruals or discounts stays `active` even when the outstanding balance nets to zero."
+                          example: "active"
+                        timestamp:
+                          type: integer
+                          description: "Unix timestamp in seconds of the borrow position's open time — not of any later state change on the position. Positions are grouped with sub-second precision while this field is truncated to whole seconds, so two positions in the same asset opened within one second are returned as separate records carrying the same `timestamp`."
+                          example: 1700000000
+                  limit:
+                    type: integer
+                    description: "The `limit` applied to this response — the request's `limit`, or `100` when the request omitted the field."
+                    example: 100
+                  offset:
+                    type: integer
+                    description: "Echoes the request's `offset`."
+                    example: 0
+              example:
+                records:
+                  - asset: "BTC"
+                    amount: "108.32"
+                    principal: "100"
+                    interest: "6.15"
+                    status: "active"
+                    timestamp: 1700000000
+                limit: 100
+                offset: 0
+        '400':
+          description: |
+            Inner validation failed
+
+            Error codes:
+            - `30` - default validation error code (`asset` unknown or not available in the caller's region, invalid pagination, or `endTime` not strictly greater than `startTime`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: |
+            Request validation failed
+
+            Error codes:
+            - `30` - collecting the requested window would exceed the endpoint's budget of 10000 underlying engine records (tag: `startTime`); narrow `startTime`/`endTime` instead. Paging with `offset` does not help — the rejection happens while the history is being collected, before `offset` is applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
         '503':
           description: Service temporarily unavailable
 
@@ -2477,6 +2648,10 @@ paths:
 
         <Note>
         A market's `max_leverage` field (from `GET /api/v4/public/futures`) may be lower than `100`. Setting leverage above a market's maximum results in an error.
+        </Note>
+
+        <Note>
+        Coming soon: the maximum accepted `leverage` can be lower than `100` for an account due to trading restrictions. A value above the account's maximum is rejected with `422` and error code `30` on `leverage`. Leverage already set above the new maximum stays in effect until the next change.
         </Note>
 
         <Warning>
@@ -2503,7 +2678,7 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100
-                  description: "Target leverage level. Accepted values: `1`, `2`, `3`, `5`, `10`, `20`, `50`, `100`. The effective maximum depends on the market's `max_leverage`."
+                  description: "Target leverage level: `1`, `2`, `3`, `5`, `10`, `20`, `50` or `100`. Coming soon: trading restrictions can set a lower maximum for the account. The market's `max_leverage` also applies."
                   example: 5
                 request:
                   type: string
@@ -2534,7 +2709,7 @@ paths:
             Inner validation failed
 
             Error codes:
-            - `30` - invalid `leverage` value (out of range, non-integer, or wrong type). Setting leverage above a market's `max_leverage` also surfaces here as an out-of-range value
+            - `30` - invalid `leverage` value (out of range, non-integer, or wrong type). Setting leverage above a market's `max_leverage` also surfaces here as an out-of-range value. Coming soon: a value above the maximum allowed for the account by trading restrictions also returns `30`
             - `17` - the requested leverage is valid but available balance is insufficient to support it
             - `113` - leverage cannot be changed while open positions or orders exist
           content:
@@ -3117,6 +3292,8 @@ paths:
       description: |
         The endpoint creates a collateral [OCO](/glossary#oco-orders) (one-cancels-the-other) order using [collateral balance](/glossary#balance-collateral). An OCO order combines a limit order (take-profit leg) and a stop-limit order (stop-loss leg) into a single conditional group. When one leg executes, the system cancels the other automatically.
 
+        **Price and amount steps:** from September 18, 2026, `price`, `activation_price` and `stop_limit_price` must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -3293,7 +3470,7 @@ paths:
                         example: false
                       mtime:
                         type: number
-                        description: Timestamp of order modification
+                        description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
                         example: 1662478154.941582
                       price:
                         type: string
@@ -3388,7 +3565,7 @@ paths:
                         example: false
                       mtime:
                         type: number
-                        description: Timestamp of order modification
+                        description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
                         example: 1662478154.941582
                       price:
                         type: string
@@ -3469,7 +3646,7 @@ paths:
             - `114` - hedge mode position side does not match (sent `BOTH` or omitted `positionSide` in hedge mode, or sent `LONG`/`SHORT` in one-way mode)
             - `115` - order would open a position in the opposite direction (one-way mode)
             - `116` - reduce-only validation failed (no position exists or order side matches position direction)
-            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account (coming soon — not yet returned)
+            - `10011` - the market is a TradFi market and TradFi trading is restricted for the account
           content:
             application/json:
               schema:
@@ -4112,6 +4289,219 @@ paths:
                     errors:
                       quoteId: ["validation.numeric_field_length"]
 
+  /api/v4/convert/auto-confirm:
+    post:
+      summary: Convert Auto Confirm
+      description: |
+        The endpoint requests a conversion quote and accepts it in a single call. No separate confirm step and no expiry window apply, so the 10-second quote lifetime that governs [Convert Estimate](/api-reference/convert/convert-estimate) followed by [Convert Confirm](/api-reference/convert/convert-confirm) cannot elapse mid-flow. The spot balance funds the conversion and receives the converted amount, matching the two-step flow.
+
+        The endpoint reports a conversion as executed only when the quote is filled and the converted amount is non-zero.
+
+        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time.
+
+        The key is bound to the request that first executed it. Reuse with different parameters returns `409` (`frontendServerSide.converter.idempotencyKeyReused`) instead of replaying the earlier conversion.
+
+        The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
+
+        **Rate limit:** 10,000 requests / 10 sec per IP address — the default for all endpoints. See [Rate limits](/api-reference/rate-limits).
+
+        <Warning>
+        The idempotency claim is held for a few seconds and is configurable. The claim is taken once and is never renewed, and execution can outlast it. A retry sent after the claim lapses but before the original request finishes converts a second time.
+        </Warning>
+
+        <Note>
+        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic value `api.httpErrors.invalidRequest`. The specific condition appears in `errors.<field>[0]`. Branch on the HTTP status code rather than on `code`.
+        </Note>
+
+        <Warning>
+        Do not retry a `502`, with the same key or a new one — contact support to reconcile. A retry with the same key returns the same `502`.
+        </Warning>
+
+        <Note>
+        Error `message` values may be returned as translation keys (for example `validation.balance`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        </Note>
+      operationId: convertAutoConfirm
+      security:
+        - ApiKeyAuth: []
+          PayloadAuth: []
+          SignatureAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from
+                - to
+                - direction
+                - amount
+              properties:
+                from:
+                  type: string
+                  description: "From currency. Example: BTC"
+                  example: "BTC"
+                to:
+                  type: string
+                  description: "To currency. Example: USDT"
+                  example: "USDT"
+                direction:
+                  type: string
+                  description: "Convert amount direction, defines in which currency corresponding \"amount\" field is populated. Use \"to\" in case amount is in \"to\" currency, use \"from\" if amount is in \"from\" currency"
+                  enum: ["from", "to"]
+                  example: "from"
+                amount:
+                  type: string
+                  description: "Amount to convert or receive. The value is silently truncated to 8 decimal places before evaluation; excess decimals do not raise an error."
+                  example: "0.1"
+                idempotencyKey:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                  description: "Optional idempotency key. Any characters are accepted; the bounds are a length check on a free-form string and never a comparison of a digits-only key as a number, so `\"12345678\"` is valid and `\"123\"` is too short. A UUID is the usual choice."
+                  example: "9f1c2b7e-4d3a-4f21-9c88-6e5b0a71d240"
+                nonce:
+                  type: integer
+                  description: "Nonce for request"
+                  example: 1699260637
+                request:
+                  type: string
+                  description: "Request path"
+                  example: "{{request}}"
+            example:
+              from: "BTC"
+              to: "USDT"
+              direction: "from"
+              amount: "0.1"
+              idempotencyKey: "9f1c2b7e-4d3a-4f21-9c88-6e5b0a71d240"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: "Quote ID of the executed conversion. Accepted as the `quoteId` filter on the convert history endpoint."
+                    example: "987654321"
+                  finalGive:
+                    type: string
+                    description: "Final amount given, in the `from` currency"
+                    example: "0.10000000"
+                  finalReceive:
+                    type: string
+                    description: "Final amount received, in the `to` currency"
+                    example: "6543.21000000"
+              example:
+                id: "987654321"
+                finalGive: "0.10000000"
+                finalReceive: "6543.21000000"
+        '400':
+          description: Inner validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficientBalance:
+                  summary: "Insufficient Balance"
+                  value:
+                    code: 37
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.balance"]
+                amountTooBig:
+                  summary: "Amount Above Maximum"
+                  value:
+                    code: 32
+                    message: "Validation failed"
+                    errors:
+                      amount: ["frontendServerSide.converter.amountIsTooBig"]
+        '409':
+          description: |
+            Idempotency key conflict. The endpoint executed no conversion.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                requestInFlight:
+                  summary: "Duplicate Request Still Running"
+                  value:
+                    code: 0
+                    message: "api.httpErrors.invalidRequest"
+                    errors:
+                      request: ["frontendServerSide.converter.requestInFlight"]
+                idempotencyKeyReused:
+                  summary: "Key Reused For A Different Request"
+                  value:
+                    code: 0
+                    message: "api.httpErrors.invalidRequest"
+                    errors:
+                      request: ["frontendServerSide.converter.idempotencyKeyReused"]
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingRequiredField:
+                  summary: "Missing Required Field"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.required"]
+                directionInvalid:
+                  summary: "Direction Invalid"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      direction: ["Direction field does not exist in [from,to]."]
+                amountTooSmall:
+                  summary: "Amount Below Minimum"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["validation.amount_too_small"]
+                termsNotAccepted:
+                  summary: "Terms Not Accepted"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      user: ["Terms of exchange are not accepted"]
+                marketsNotAvailable:
+                  summary: "Markets Not Available"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      from: ["Conversion markets not available"]
+        '502':
+          description: |
+            The conversion service returned no usable verdict. The conversion may have executed. Two states produce a `502` and the response does not distinguish between the two: a transfer may still be outstanding, or the conversion was delivered and only the idempotency record failed to persist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 0
+                message: "api.httpErrors.invalidRequest"
+                errors:
+                  request: ["frontendServerSide.converter.outcomeUnknown"]
+        '503':
+          description: Conversion is disabled on the platform by the convert kill switch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v4/convert/history:
     post:
       summary: Convert History
@@ -4626,6 +5016,8 @@ paths:
         - `amount × price` must be ≥ `minTotal`
         - `amount × price` must be ≤ `maxTotal` (when `maxTotal` is not `"0"`)
 
+        **Price and amount steps:** from September 18, 2026, `price` must be a multiple of the market `tickSize` and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -4635,8 +5027,7 @@ paths:
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
           - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
-          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set.
-          - `retail=true` has no effect on a `postOnly=true` order. Post-only orders are makers and cannot be retail takers.
+          - `retail=true` has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are makers and cannot be retail takers; an order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
         </Note>
       tags:
         - Spot Trading
@@ -4669,7 +5060,6 @@ paths:
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
             - `40` - `ioc=true` cannot be combined with `rpi=true`
-            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
           content:
@@ -4813,14 +5203,6 @@ paths:
                     errors:
                       maker_fee:
                       - Incorrect maker fee
-                retail41:
-                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
-                  value:
-                    code: 41
-                    message: Validation failed
-                    errors:
-                      retail:
-                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:
@@ -4845,6 +5227,8 @@ paths:
       description: |
         The endpoint creates bulk [limit trading orders](/glossary#limit-order). Each order in the batch follows the same validation rules as a single limit order. The `stopOnFail` parameter controls whether processing stops at the first failure or continues through all orders. The response contains a result-or-error pair for each submitted order.
 
+        **Price and amount steps:** from September 18, 2026, the `price` of each order must be a multiple of the market `tickSize` and its `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
           Limit: From 1 to 20 orders per request.
         </Warning>
@@ -4854,8 +5238,7 @@ paths:
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
           - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
-          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set on an item.
-          - `retail=true` has no effect on a `postOnly=true` item. Post-only orders are makers and cannot be retail takers.
+          - `retail=true` has no effect on a `postOnly=true` or `rpi=true` item. Post-only and RPI orders are makers and cannot be retail takers; an item with both `rpi=true` and `retail=true` matches exactly like an RPI order.
         </Note>
       tags:
         - Spot Trading
@@ -4939,7 +5322,6 @@ paths:
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
             - `40` - `ioc=true` cannot be combined with `rpi=true`
-            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
           content:
@@ -4993,14 +5375,6 @@ paths:
                     errors:
                       price:
                       - Price field should be numeric string or number.
-                retail41:
-                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
-                  value:
-                    code: 41
-                    message: Validation failed
-                    errors:
-                      retail:
-                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:
@@ -5024,6 +5398,8 @@ paths:
       operationId: createMarketOrder
       description: |
         The endpoint creates a [market trading order](/glossary#market-order). The matching engine executes the order immediately at the best available price. For buy orders, `amount` represents the total in quote (money) currency to spend. For sell orders, `amount` represents the quantity in base (stock) currency to sell. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, and `maxTotal`.
+
+        **Amount step:** from September 18, 2026, `amount` on a sell order must be a multiple of the market `stepSize`. A buy order carries the quote-currency total in `amount`, so the step does not apply to it. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -5154,6 +5530,8 @@ paths:
       description: |
         The endpoint creates a [stock](/glossary#stock) market trading [order](/glossary#orders). Unlike `POST /api/v4/order/market`, the `amount` parameter always represents the quantity in the base (stock) currency for both buy and sell sides. The matching engine executes the order immediately at the best available price. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, and `maxTotal`.
 
+        **Amount step:** from September 18, 2026, `amount` must be a multiple of the market `stepSize` on both sides. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -5274,6 +5652,8 @@ paths:
       operationId: createStopLimitOrder
       description: |
         The endpoint creates a [stop-limit trading order](/glossary#stop-limit-order). The order remains inactive until the market price reaches the `activation_price`, at which point the system places a limit order at the specified `price`. For buy orders, activation triggers when the market price rises to or above `activation_price`. For sell orders, activation triggers when the market price falls to or below `activation_price`. Minimum and maximum values for `amount`, `price`, and `activation_price` are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, `maxTotal`, `stockPrec` (amount precision), and `moneyPrec` (price precision).
+
+        **Price and amount steps:** from September 18, 2026, `price` and `activation_price` must be multiples of the market `tickSize`, and `amount` a multiple of `stepSize`. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -5425,6 +5805,8 @@ paths:
       description: |
         The endpoint creates a [stop-market trading order](/glossary#stop-market-order). The order remains inactive until the market price reaches the `activation_price`, at which point the system executes a market order immediately at the best available price. For buy orders, `amount` represents the total in quote currency and activation triggers when the market price rises to or above `activation_price`. For sell orders, `amount` represents the quantity in base currency and activation triggers when the market price falls to or below `activation_price`. Minimum and maximum values are market-dependent. Query `GET /api/v4/public/markets` for `minAmount`, `minTotal`, and `maxTotal`.
 
+        **Price and amount steps:** from September 18, 2026, `activation_price` must be a multiple of the market `tickSize` on both sides. `amount` on a sell order must be a multiple of `stepSize`; a buy order carries the quote-currency total in `amount`, so the step does not apply to it. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -5573,6 +5955,7 @@ paths:
         <Note>
         - The request accepts exactly one identifier: either `orderId` or `clientOrderId`.
         - Sending both identifiers, or neither, returns a validation error.
+        - `timestamp` is the order's creation time. `mtime` is the time the matching engine last modified the order, which on a cancellation is the moment the cancellation was processed.
         </Note>
       tags:
         - Spot Trading
@@ -5615,7 +5998,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderResponse'
+                $ref: '#/components/schemas/CancelOrderResponse'
         '400':
           description: Inner validation failed
           content:
@@ -5702,6 +6085,10 @@ paths:
         - Provide exactly one of `orderId` or `clientOrderId` per item. Sending both, or neither, returns a per-item validation error.
         - The endpoint always processes every item independently. There is no `stopOnFail`-style switch.
         - When the caller is not authenticated, the API returns the standard authorization error and skips per-item validation.
+        </Note>
+
+        <Note>
+        **`timestamp` and `mtime` on a successful item:** a canceled item's `result` may echo the order's `timestamp` (creation time) and `mtime` (the last time the matching engine modified the order — the moment of cancellation, since a cancellation is an order's final modification). Both are best-effort echoes: either may be omitted, so do not rely on either field's presence. For a cancel response that always includes `mtime`, use the single [Cancel order](/api-reference/trading/cancel-order) endpoint instead.
         </Note>
 
       tags:
@@ -6022,7 +6409,7 @@ paths:
         </Note>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50, max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (default and max: 500) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when fewer than `limit` records are returned (sum the records across all markets when no `market` filter is set). An empty response means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6066,9 +6453,9 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 500
-                  default: 50
-                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500"
-                  example: 50
+                  default: 500
+                  description: "LIMIT is a special clause used to limit records a particular query can return. Default: 500, Min: 1, Max: 500"
+                  example: 500
                 request:
                   type: string
                   example: "{{request}}"
@@ -6151,7 +6538,7 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (default: 500, max: 500) and `offset` (default: 0, max: 1000) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6186,13 +6573,15 @@ paths:
                   type: integer
                   default: 0
                   minimum: 0
-                  description: "Number of records to skip. Default: `0`."
+                  maximum: 1000
+                  description: "Number of records to skip. Default: `0`. Maximum: `1000`."
                   example: 0
                 limit:
                   type: integer
-                  default: 50
+                  default: 500
                   minimum: 1
-                  description: "Maximum number of records to return. Default: `50`."
+                  maximum: 500
+                  description: "Maximum number of records to return. Default: `500`. Minimum: `1`. Maximum: `500`."
                   example: 50
                 request:
                   type: string
@@ -6759,6 +7148,8 @@ paths:
         
         Request must contain at least one of the following parameters: amount, total, price, activationPrice.
 
+        **Price and amount steps:** from September 18, 2026, a `price` or `activationPrice` sent in the request must be a multiple of the market `tickSize`, and `amount` a multiple of `stepSize`. A buy stop-market modification sends `total` in quote currency, which the step does not apply to. See [Price and amount steps](/concepts/markets#price-and-amount-steps).
+
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
@@ -6871,9 +7262,9 @@ paths:
           description: |
             Unprocessable entity. Business-logic validation failed: balance insufficient, trading restrictions, order type conflicts, price bands exceeded.
 
-            Error codes: `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `25`, `27`, `40`, `42`, `51`, `103`, `104`, `105`, `106`, `111`, `112`, `113`, `114`, `115`, `150`, `151`, `152`, `153`, `155`, `157`, `159`, `160`, `161`, `162`, `163`, `250`, `251`, `300`, `302`, `330`, `10011` (coming soon).
+            Error codes: `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `25`, `27`, `40`, `42`, `51`, `103`, `104`, `105`, `106`, `111`, `112`, `113`, `114`, `115`, `150`, `151`, `152`, `153`, `155`, `157`, `159`, `160`, `161`, `162`, `163`, `250`, `251`, `300`, `302`, `330`, `10011`.
 
-            Coming soon: `10011` is returned when the order being modified belongs to a TradFi market and TradFi trading is restricted for the account. Canceling such an order is always allowed.
+            `10011` is returned when the order being modified belongs to a TradFi market and TradFi trading is restricted for the account. Canceling such an order is always allowed.
           content:
             application/json:
               schema:
@@ -7309,9 +7700,7 @@ components:
 
             The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
 
-            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when a request sets both `retail=true` and `rpi=true`.
-
-            The flag has no effect on a `postOnly=true` order. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+            The flag has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
 
             Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
@@ -7594,9 +7983,7 @@ components:
 
             The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
 
-            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when an item sets both `retail=true` and `rpi=true`.
-
-            The flag has no effect on a `postOnly=true` item. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+            The flag has no effect on a `postOnly=true` or `rpi=true` item. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An item with both `rpi=true` and `retail=true` matches exactly like an RPI order.
 
             Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
@@ -7725,6 +8112,17 @@ components:
             activation_price value submitted in the request. Returned for stop
             orders; omitted on other order shapes."
           example: "40000"
+    CancelOrderResponse:
+      type: object
+      description: "Final state of a canceled order."
+      allOf:
+        - $ref: '#/components/schemas/OrderResponse'
+        - type: object
+          properties:
+            mtime:
+              type: number
+              description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order. On a cancel response the value is the moment the engine processed the cancellation, because a cancellation is the order's final modification. The cancel response always includes the field."
+              example: 1595792412.443301
     OcoOrderLeg:
       type: object
       description: "OCO order leg as returned by `/api/v4/oco-orders` and `/api/v4/order/oco-cancel`. Field names use snake_case (`post_only`, `activation_price`) — unlike the camelCase legs returned by `/api/v4/conditional-orders`."
@@ -7801,7 +8199,7 @@ components:
           example: false
         mtime:
           type: number
-          description: Timestamp of order modification
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
           example: 1662478154.941582
         price:
           type: string
@@ -7893,7 +8291,7 @@ components:
           example: false
         mtime:
           type: number
-          description: Timestamp of order modification
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order."
           example: 1662478154.941582
         price:
           type: string
@@ -7948,20 +8346,28 @@ components:
           example: "my-client-id"
     BulkCancelOrderResult:
       type: object
-      description: "Acknowledgement that a single item was cancelled. The endpoint echoes the identifiers from the request item; full order state is not returned. Use the single Cancel order endpoint when post-cancel order state is required."
+      description: "Acknowledgement that a single item was canceled. The endpoint echoes the identifiers from the request item and, when available, the order's `timestamp` and `mtime`. Full order state is not returned. Use the single Cancel order endpoint when post-cancel order state is required."
       properties:
         orderId:
           type: integer
-          description: "System-assigned order ID of the cancelled order."
+          description: "System-assigned order ID of the canceled order."
           example: 4326248250
         clientOrderId:
           type: string
-          description: "Client-defined order ID of the cancelled order, if one was set at order creation."
+          description: "Client-defined order ID of the canceled order, if one was set at order creation."
           example: "my-client-id"
         market:
           type: string
-          description: "Trading pair of the cancelled order. Format: `BASE_QUOTE` (e.g. `BTC_USDT`)."
+          description: "Trading pair of the canceled order. Format: `BASE_QUOTE` (e.g. `BTC_USDT`)."
           example: "BTC_USDT"
+        timestamp:
+          type: number
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of order creation. Optional. May be omitted; do not rely on its presence."
+          example: 1595792396.165973
+        mtime:
+          type: number
+          description: "Unix timestamp in seconds (UTC), with microsecond precision, of the last time the matching engine modified the order. When present, the value is the moment the engine processed the cancellation, because a cancellation is the order's final modification. Optional — may be omitted; do not rely on its presence."
+          example: 1595792412.443301
     BulkCancelOrderResponse:
       type: array
       description: "Per-item cancel results. `response[i]` corresponds to `request.orders[i]`. Each item contains either `result` (cancellation succeeded) or `error` (cancellation failed for that item) — never both."

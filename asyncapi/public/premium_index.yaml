@@ -1,0 +1,374 @@
+asyncapi: 3.0.0
+info:
+  title: WhiteBit Premium Index
+  version: 1.0.0
+  description: |
+    Subscribe to mark price, index price, and funding rate updates for futures
+    markets. The channel does not support query operations — only subscribe, update, and
+    unsubscribe. For a one-time snapshot, use `GET /api/v4/public/futures` instead (see
+    [Available futures markets list](/api-reference/market-data/available-futures-markets-list)).
+  x-auth-required: false
+  x-rate-limits:
+    connections-per-minute: 1000
+    requests-per-10-seconds: 12000
+  x-error-codes:
+    - code: 1
+      message: invalid argument
+      description: "The market passed in `params` is not a futures market, or does not exist. Premium index subscriptions are available only for futures markets (the `_PERP` suffix)."
+
+servers:
+  production:
+    host: wss.whitebit.com
+    protocol: wss
+    description: WhiteBIT Global Server
+  eu:
+    host: api.whitebit.eu
+    protocol: wss
+    description: WhiteBIT EU Server
+
+channels:
+  /ws:
+    address: /ws
+    description: |
+      Premium index operations for futures markets.
+
+      **Update Interval**: every 0.5 seconds (periodic poll, not event-driven — the server
+      re-sends the current snapshot on every cycle regardless of whether any value changed)
+    messages:
+      premiumIndexSubscribe:
+        $ref: '#/components/messages/premiumIndexSubscribe'
+      premiumIndexSubscribeResponse:
+        $ref: '#/components/messages/premiumIndexSubscribeResponse'
+      premiumIndexUpdate:
+        $ref: '#/components/messages/premiumIndexUpdate'
+      premiumIndexUpdatePerMarket:
+        $ref: '#/components/messages/premiumIndexUpdatePerMarket'
+      premiumIndexUnsubscribe:
+        $ref: '#/components/messages/premiumIndexUnsubscribe'
+      premiumIndexUnsubscribeResponse:
+        $ref: '#/components/messages/premiumIndexUnsubscribeResponse'
+
+operations:
+  sendPremiumIndexSubscribe:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/premiumIndexSubscribe'
+
+  receivePremiumIndexSubscribeResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/premiumIndexSubscribeResponse'
+
+  receivePremiumIndexUpdates:
+    action: send
+    description: "Receive periodic premium index updates every 0.5 sec"
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/premiumIndexUpdate'
+
+  sendPremiumIndexUnsubscribe:
+    action: receive
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/premiumIndexUnsubscribe'
+
+  receivePremiumIndexUnsubscribeResponse:
+    action: send
+    channel:
+      $ref: '#/channels/~1ws'
+    messages:
+      - $ref: '#/channels/~1ws/messages/premiumIndexUnsubscribeResponse'
+
+components:
+  messages:
+    premiumIndexSubscribe:
+      name: PremiumIndexSubscribe
+      title: Subscribe to Premium Index
+      summary: Subscribe to mark price, index price, and funding rate updates
+      payload:
+        $ref: '#/components/schemas/PremiumIndexSubscribe'
+      examples:
+        - name: subscribeAllMarkets
+          summary: |
+            Subscribe to every futures market — pushes arrive as one all-markets message
+            per poll cycle:
+            - params: Empty array
+          payload:
+            method: premiumIndex_subscribe
+            params: []
+            id: 1
+        - name: subscribeSpecificMarkets
+          summary: |
+            Subscribe to named futures markets — pushes arrive as a separate message per
+            market per poll cycle:
+            - params: Array of market names
+          payload:
+            method: premiumIndex_subscribe
+            params:
+              - BTC_PERP
+              - ADA_PERP
+            id: 1
+
+    premiumIndexSubscribeResponse:
+      name: PremiumIndexSubscribeResponse
+      title: Subscribe Response
+      summary: Subscription confirmation
+      payload:
+        $ref: '#/components/schemas/SubscriptionResponse'
+      examples:
+        - name: subscriptionSuccess
+          summary: Subscription successful
+          payload:
+            error: null
+            result:
+              status: success
+            id: 1
+
+    premiumIndexUpdate:
+      name: PremiumIndexUpdate
+      title: Premium Index Update (all markets)
+      summary: "Snapshot for every subscribed market in one message (every 0.5 sec)"
+      payload:
+        $ref: '#/components/schemas/PremiumIndexUpdateAll'
+      examples:
+        - name: premiumIndexUpdateAllMarkets
+          summary: |
+            Update delivered after subscribing with an empty params array — every subscribed
+            market arrives together in one message:
+            - Each record: [market, mark_price, futures_index_price, futures_funding_rate, futures_funding_time]
+          payload:
+            method: premiumIndex_update
+            params:
+              - - BTC_PERP
+                - "10000"
+                - "10003"
+                - "0.1"
+                - 9999999
+              - - ADA_PERP
+                - "0.1111"
+                - "0.132"
+                - "-0.1"
+                - 123123124
+            id: null
+
+    premiumIndexUpdatePerMarket:
+      name: PremiumIndexUpdatePerMarket
+      title: Premium Index Update (specific market)
+      summary: "Update for one subscribed market — a separate message per market (every 0.5 sec)"
+      payload:
+        $ref: '#/components/schemas/PremiumIndexUpdatePerMarket'
+      examples:
+        - name: premiumIndexUpdateSpecificMarket
+          summary: |
+            Update delivered after subscribing to named markets — one message per market,
+            with a server timestamp appended:
+            - [market, mark_price, futures_index_price, futures_funding_rate, futures_funding_time, server_timestamp]
+          payload:
+            method: premiumIndex_update
+            params:
+              - BTC_PERP
+              - "10000"
+              - "10003"
+              - "0.1"
+              - 9999999
+              - 1779892807.794
+            id: null
+
+    premiumIndexUnsubscribe:
+      name: PremiumIndexUnsubscribe
+      title: Unsubscribe from Premium Index
+      summary: Stop receiving premium index updates
+      payload:
+        $ref: '#/components/schemas/UnsubscribeRequest'
+      examples:
+        - name: unsubscribe
+          summary: Unsubscribe from premium index updates
+          payload:
+            method: premiumIndex_unsubscribe
+            params: []
+            id: 2
+
+    premiumIndexUnsubscribeResponse:
+      name: PremiumIndexUnsubscribeResponse
+      title: Unsubscribe Response
+      summary: Unsubscription confirmation
+      payload:
+        $ref: '#/components/schemas/SubscriptionResponse'
+      examples:
+        - name: unsubscribeSuccess
+          summary: Unsubscription successful
+          payload:
+            error: null
+            result:
+              status: success
+            id: 2
+
+  schemas:
+    PremiumIndexSubscribe:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier
+        method:
+          type: string
+          const: premiumIndex_subscribe
+          description: "Method name. Fixed value: `premiumIndex_subscribe`."
+        params:
+          type: array
+          description: "[Market](/glossary#market) names — futures markets only (e.g., BTC_PERP). Empty array subscribes to every futures market and delivers all of them together in a single push per poll cycle; naming one or more markets instead delivers a separate push per market per poll cycle."
+          items:
+            type: string
+            description: "[Market](/glossary#market) name — futures market only"
+
+    SubscriptionResponse:
+      type: object
+      required:
+        - id
+        - result
+        - error
+      properties:
+        id:
+          type: integer
+          description: Request identifier matching the request
+        result:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              const: success
+              description: "Fixed value: `success`."
+        error:
+          type: "null"
+          description: Error object (null on success)
+
+    PremiumIndexRecord:
+      type: array
+      description: |
+        Premium index record — one per market, delivered together in a single message when
+        subscribed to every futures market (empty `params` on subscribe):
+        - [0] Market name
+        - [1] Mark price
+        - [2] Futures index price
+        - [3] Futures funding rate
+        - [4] Futures funding time
+      minItems: 5
+      maxItems: 5
+      items:
+        - type: string
+          description: "[Market](/glossary#market) name"
+          x-field-name: market
+        - type: string
+          description: "Mark price, decimal string at market precision. Used for margin, PnL, liquidation, and [ADL](/concepts/auto-deleveraging) calculations."
+          x-field-name: mark_price
+        - type: string
+          description: "Index price, decimal string at market precision. Reference spot price — not used in any trading calculation."
+          x-field-name: futures_index_price
+        - type: string
+          description: "Funding rate, decimal string in the range -0.1 to 0.1 with up to 16 decimal places. Not used in calculations — stored and returned only."
+          x-field-name: futures_funding_rate
+        - type: integer
+          description: "Unix time (seconds) of the next funding settlement"
+          x-field-name: futures_funding_time
+
+    PremiumIndexRecordWithTimestamp:
+      type: array
+      description: |
+        Premium index record with a server timestamp — delivered as its own message when
+        subscribed to a named market:
+        - [0] Market name
+        - [1] Mark price
+        - [2] Futures index price
+        - [3] Futures funding rate
+        - [4] Futures funding time
+        - [5] Server timestamp
+      minItems: 6
+      maxItems: 6
+      items:
+        - type: string
+          description: "[Market](/glossary#market) name"
+          x-field-name: market
+        - type: string
+          description: "Mark price, decimal string at market precision. Used for margin, PnL, liquidation, and [ADL](/concepts/auto-deleveraging) calculations."
+          x-field-name: mark_price
+        - type: string
+          description: "Index price, decimal string at market precision. Reference spot price — not used in any trading calculation."
+          x-field-name: futures_index_price
+        - type: string
+          description: "Funding rate, decimal string in the range -0.1 to 0.1 with up to 16 decimal places. Not used in calculations — stored and returned only."
+          x-field-name: futures_funding_rate
+        - type: integer
+          description: "Unix time (seconds) of the next funding settlement"
+          x-field-name: futures_funding_time
+        - type: number
+          description: "Moment the server sent this push, as a Unix timestamp. Not deterministic — match with a wildcard in automated checks."
+          x-field-name: server_timestamp
+
+    PremiumIndexUpdateAll:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: "null"
+          description: Update events have null id
+        method:
+          type: string
+          const: premiumIndex_update
+          description: "Method name. Fixed value: `premiumIndex_update`."
+        params:
+          type: array
+          description: "One PremiumIndexRecord per subscribed market. All subscribed markets arrive together in a single message."
+          items:
+            $ref: '#/components/schemas/PremiumIndexRecord'
+
+    PremiumIndexUpdatePerMarket:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: "null"
+          description: Update events have null id
+        method:
+          type: string
+          const: premiumIndex_update
+          description: "Method name. Fixed value: `premiumIndex_update`."
+        params:
+          $ref: '#/components/schemas/PremiumIndexRecordWithTimestamp'
+
+    UnsubscribeRequest:
+      type: object
+      required:
+        - id
+        - method
+        - params
+      properties:
+        id:
+          type: integer
+          description: Unique request identifier
+        method:
+          type: string
+          const: premiumIndex_unsubscribe
+          description: "Method name. Fixed value: `premiumIndex_unsubscribe`."
+        params:
+          type: array
+          items: {}
+          maxItems: 0
+          description: Empty array — unsubscribes from all currently subscribed markets

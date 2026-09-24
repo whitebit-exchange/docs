@@ -125,6 +125,8 @@ Computation:
 
 Grade depends on Rating and on the number of other traders on the same market. As prices and unrealized PnL change, Grade values update accordingly.
 
+Fetch the current Grade for open positions via [`POST /api/v4/collateral-account/adl-quantile`](/api-reference/trading/adl-quantile), or subscribe to [ADL quantile](/websocket/account-streams/adl-quantile) over WebSocket for a live push instead of polling.
+
 ### Grade 4 in thin markets
 
 Grade 4 corresponds to the asymptotic top 5% of ranked positions on the market. For thin markets, the actual Grade 4 fraction is `(n − ⌈0.95n⌉ + 1) / n`:

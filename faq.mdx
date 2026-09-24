@@ -189,8 +189,16 @@ Immediately delete the compromised key, review account activity for unauthorized
 For details, see the [Authentication guide](/api-reference/authentication).
 </Accordion>
 
-<Accordion title="API key expiration and auto-deactivation">
-API keys without IP address binding are automatically deactivated after 14 days of inactivity. Bind keys to specific IP addresses to prevent unexpected deactivation. See [Authentication](/api-reference/authentication) for API key management details.
+<Accordion title="API key auto-deactivation after inactivity">
+The platform automatically deactivates an API key that receives no requests for 14 consecutive days. An IP whitelist does not exempt a key from this rule — whitelisted and non-whitelisted keys deactivate on the same schedule. Reactivate a deactivated key at [whitebit.com/settings/api](https://whitebit.com/settings/api). See [Key rotation](/best-practices/security#key-rotation).
+</Accordion>
+
+<Accordion title="Keeping spare API keys active">
+Send at least one authenticated request from each spare key every 14 days. Any authenticated endpoint resets the inactivity timer — a balance check via `POST /api/v4/main-account/balance` is sufficient. Keys held in reserve without periodic traffic deactivate on the same schedule as unused keys. See [Main balance](/api-reference/account-wallet/main-balance).
+</Accordion>
+
+<Accordion title="Reasons an API key becomes disabled">
+An API key becomes disabled after 14 consecutive days without requests, or when deactivated from the account settings. Check the key status at [whitebit.com/settings/api](https://whitebit.com/settings/api), resolve the cause, then re-enable the key. See [Security best practices](/best-practices/security).
 </Accordion>
 </AccordionGroup>
 
@@ -269,6 +277,14 @@ WhiteBIT holds licenses in multiple EU jurisdictions and maintains ISO 27001, PC
 
 <Accordion title="Colocation for low-latency trading">
 Colocation is available across EEA/EMEA and APAC regions. Access is limited to a subset of 35 trading endpoints. See [Colocation](/platform/colocation) for setup details and the [Market Maker Guide](/guides/market-maker-integration) for the full endpoint list.
+</Accordion>
+
+<Accordion title="Sub-account permissions not applied after creation">
+A sub-account created with its own email address (dedicated KYC, `shareKyc: false`) must have that email confirmed before permissions can be configured. The end customer confirms it by opening the personal link from [`POST /api/v4/sub-account/kyc-url`](/api-reference/sub-accounts/kyc-url) and completing verification, which covers both identity verification and email confirmation.
+
+Permissions configured before that confirmation are not retained. Re-apply the permission set with [`POST /api/v4/sub-account/edit`](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active, and send the full `permissions` object on every edit: flags omitted from an edit request are turned off without a warning.
+
+A sub-account created with `shareKyc: true` accepts permissions immediately at creation. See the [Sub-account integration guide](/guides/sub-account-integration) for the full flow.
 </Accordion>
 </AccordionGroup>
 

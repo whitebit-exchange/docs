@@ -155,7 +155,7 @@ An EUR IBAN transfer (SEPA) request body:
 
 ## Reconciliation and monitoring
 
-Webhooks are the primary channel: verify the domain, then configure the webhook URL in the API key settings — see [Webhooks](/platform/webhook) for the setup flow. Verify the HMAC-SHA512 signature on every delivery using the `X-TXC-APIKEY`, `X-TXC-PAYLOAD`, and `X-TXC-SIGNATURE` headers, and track the strictly increasing `nonce` in each payload. Delivery is retried a small number of times spaced roughly an hour apart over a window of about one day; treat the cadence as best-effort. There is no webhook replay mechanism, so pair webhooks with polling: query `POST /api/v4/main-account/history` (`transactionMethod: 1` for deposits, `2` for withdrawals) on a regular cycle and deduplicate against received events. The [reconciliation pattern](/guides/payment-integration#webhook-reconciliation) in the Payment Integration guide walks through the full loop.
+Webhooks are the primary channel: verify the domain, then configure the webhook URL — see [Webhooks](/platform/webhook) for the setup flow. Verify the HMAC-SHA512 signature on every delivery using the `X-TXC-APIKEY`, `X-TXC-PAYLOAD`, and `X-TXC-SIGNATURE` headers, and track the strictly increasing `nonce` in each payload. Delivery is retried a small number of times spaced roughly an hour apart over a window of about one day; treat the cadence as best-effort. There is no webhook replay mechanism, so pair webhooks with polling: query `POST /api/v4/main-account/history` (`transactionMethod: 1` for deposits, `2` for withdrawals) on a regular cycle and deduplicate against received events. The [reconciliation pattern](/guides/payment-integration#webhook-reconciliation) in the Payment Integration guide walks through the full loop.
 
 The identifier appears under different names across the API surface:
 
@@ -163,7 +163,10 @@ The identifier appears under different names across the API surface:
 |-------|-----------------|---------|
 | `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters |
 | `unique_id` | History filter and records | The deposit/withdraw identifier in history responses |
-| `transactionId` | `refund-deposit` request | Transaction UUID, sourced from the `deposit.canceled` webhook |
+| `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the `deposit.canceled` webhook |
+| `id` | `refund-deposit` response | The same deposit transaction UUID, echoed back — not a refund identifier |
+| `depositId` | `refund-history` filter and records | The same deposit transaction UUID |
+| `refundId` | `refund-history` records | The refund's own UUID, returned only by refund history |
 | `transaction_id` | History records | System-wide transaction UUID, never reused |
 
 Mark transactions complete only at terminal statuses: 3/7 for success, 4/9 for canceled deposits, 4 for canceled withdrawals. Platform availability is published at [status.whitebit.com](https://status.whitebit.com); per-asset deposit and withdrawal availability is reported by the [Asset Status](/api-reference/market-data/asset-status-list) endpoint.

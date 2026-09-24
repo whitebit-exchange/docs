@@ -3,7 +3,7 @@
 // Regenerate: node scripts/generate-signer-fields.mjs
 
 export const signerFields = [
-  {"name":"market","type":"string","required":false,"description":"Filter by specific market. For example: BTC_PERP If not specified, returns funding history for all markets.","example":"BTC_PERP"},
+  {"name":"market","type":"string","required":true,"description":"Market to return funding history for. For example: BTC_PERP Required — there is no all-markets mode. Spot markets are rejected.","example":"BTC_PERP"},
   {"name":"limit","type":"integer","required":false,"description":"Number of records to return","example":"100","default":100},
   {"name":"offset","type":"integer","required":false,"description":"Number of records to skip","example":"0","default":0},
 ];

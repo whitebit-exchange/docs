@@ -45,7 +45,7 @@ An OAuth-issued key is revoked when the end user changes the account password, t
 
 ### Access token lifetime
 
-The OAuth access token used for key management lasts 4 hours with no refresh — obtain a new one through a fresh consent when it expires. See the [Integration flow](/guides/fast-api-key-integration#integration-flow).
+The OAuth access token used for key management is short-lived and is issued together with a refresh token — read `expires_in` from the token response and renew through [`POST /oauth2/refresh_token`](/api-reference/oauth/usage/refresh-token) instead of re-running consent. See the [Integration flow](/guides/fast-api-key-integration#integration-flow).
 
 ### Test environment availability
 

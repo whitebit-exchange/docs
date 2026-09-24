@@ -8,7 +8,7 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Convert provides instant currency conversion at a quoted rate. Unlike [spot trading](/products/spot/overview), Convert requires no orderbook interaction — request a quote, confirm before the quote expires, and the conversion executes immediately.
+Convert provides instant currency conversion at a quoted rate. Unlike [spot trading](/products/spot/overview), Convert requires no orderbook interaction — request a quote and confirm it before it expires, or do both in a single call, and the conversion executes immediately.
 
 ## When to use Convert
 
@@ -25,7 +25,7 @@ Convert provides instant currency conversion at a quoted rate. Unlike [spot trad
 
 ## Conversion flow
 
-The conversion flow has two steps: estimate and confirm.
+The quoted-rate flow has two steps: estimate and confirm.
 
 <Steps>
   <Step title="Request a quote">
@@ -40,14 +40,17 @@ The conversion flow has two steps: estimate and confirm.
   Each estimate response includes an `expireAt` timestamp — confirm before that moment. Honour the value returned per quote rather than hard-coding a fixed window. If the quote expires before confirmation, request a new estimate.
 </Note>
 
+[Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) collapses both steps into one request: the quote is requested and accepted in one call, so no expiry window applies and no `quoteId` round-trip is needed. The endpoint accepts an optional idempotency key that makes a retry safe.
+
 ## API endpoints
 
-Convert uses 3 authenticated endpoints. All require HMAC-SHA512 signing.
+Convert uses 4 authenticated endpoints. All require HMAC-SHA512 signing.
 
 | Endpoint | Purpose | Rate limit |
 |----------|---------|------------|
 | [`POST /api/v4/convert/estimate`](/api-reference/convert/convert-estimate) | Request a conversion quote | 10,000 req / 10 sec |
 | [`POST /api/v4/convert/confirm`](/api-reference/convert/convert-confirm) | Confirm and execute a quote | 10,000 req / 10 sec |
+| [`POST /api/v4/convert/auto-confirm`](/api-reference/convert/convert-auto-confirm) | Request and accept a quote in a single call | 10,000 req / 10 sec |
 | [`POST /api/v4/convert/history`](/api-reference/convert/convert-history) | Retrieve conversion history (max 6 months) | 10,000 req / 10 sec |
 
 ## Estimate parameters

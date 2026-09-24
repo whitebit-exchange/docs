@@ -4,6 +4,98 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 23, 2026">
+## Refund history and memo for deposit refunds
+**New `POST /api/v4/main-account/refund-history` endpoint and `memo` support for refunds**
+
+The Main Account API now returns the account's deposit refunds with the current status of each: `in_process`, `successful`, or `canceled`. The list includes refunds requested through the WhiteBIT interface, by support, and through the API. Filter by `depositId` or `ticker`, and page through results with `limit` and `offset`. Only full refunds are listed.
+
+`POST /api/v4/main-account/refund-deposit` accepts an optional `memo` for the destination address. The `refund.successful` and `refund.failed` webhooks now include `memo`, which is `null` when no memo was sent.
+
+<CardGroup cols={2}>
+  <Card title="Get refund history" href="/api-reference/account-wallet/get-refund-history" icon="clock-rotate-left" horizontal/>
+  <Card title="Refund deposit" href="/api-reference/account-wallet/refund-deposit" icon="rotate-left" horizontal/>
+</CardGroup>
+## RPI and retail flags on the same limit order
+**`POST /api/v4/order/new` and `POST /api/v4/order/bulk` accept `rpi=true` together with `retail=true`**
+
+A limit order may now set both `rpi=true` and `retail=true`; the API no longer rejects the combination with error code `41`, and code `41` is retired. The order rests as an RPI maker and matches exactly like an order with only `rpi=true` — the Retail flag has no effect on it, as on any post-only order. The account still needs both flags enabled: error codes `42` and `43` apply unchanged.
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Retail flag" href="/glossary#retail-flag" icon="tag" horizontal/>
+</CardGroup>
+
+  
+## Account-level maximum leverage on Collateral Trading
+**`POST /api/v4/collateral-account/leverage` can accept a lower maximum per account**
+
+<Note>
+Coming soon: the account-level maximum is not yet enforced by the endpoint.
+</Note>
+
+The accepted `leverage` values stay `1`, `2`, `3`, `5`, `10`, `20`, `50` and `100`, but trading restrictions on an account can set a lower maximum. A request above the account's maximum returns HTTP 422 with error code `30` and the message under `errors.leverage`. Leverage already set above the new maximum stays in effect until the next change, so read the current value before assuming a request will be accepted.
+
+<CardGroup cols={2}>
+  <Card title="Change collateral account leverage" href="/api-reference/trading/change-collateral-account-leverage" icon="sliders" horizontal/>
+  <Card title="Collateral account summary" href="/api-reference/trading/collateral-account-summary" icon="wallet" horizontal/>
+</CardGroup>  
+</Update>
+
+<Update label="September 18, 2026">
+## ADL quantile and premium index over WebSocket
+**Two new push streams for data previously available only by polling**
+
+The WebSocket API adds two channels that were already implemented but undocumented: `ADLQuantile_subscribe` (private) pushes the account's ADL deleveraging-priority rank for open futures positions — immediately on subscribe, then every 30 seconds — as an alternative to polling the ADL quantile REST endpoint. `premiumIndex_subscribe` (public) pushes mark price, index price, and funding rate for futures markets every 0.5 seconds, mirroring the data on the futures markets list endpoint.
+
+<CardGroup cols={2}>
+  <Card title="ADL Quantile (WebSocket)" href="/websocket/account-streams/adl-quantile" icon="gauge-high" horizontal/>
+  <Card title="Premium Index (WebSocket)" href="/websocket/market-streams/premium-index" icon="chart-line-up" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="September 15, 2026">
+## Borrow history on Collateral Trading
+**New `POST /api/v4/collateral-account/borrow-history` endpoint**
+
+The Collateral Trading API now returns the borrow history for a collateral account — one record per borrow position, not per underlying engine state change. Each record carries `amount`, `principal`, and `interest` (independently computed peak values — `amount` is not always `principal` + `interest`), plus `status` (`active`, `repaid`, or `liquidated`) and `timestamp`. Filter to one asset with the optional `asset` parameter, and page through results with `startTime`/`endTime`, `limit`, and `offset`.
+
+<CardGroup cols={2}>
+  <Card title="Borrow history" href="/api-reference/trading/borrow-history" icon="hand-holding-dollar" horizontal/>
+  <Card title="Funding history" href="/api-reference/trading/funding-history" icon="money-bill-transfer" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="September 11, 2026">
+## Which order fields carry a step, and what a rejection looks like
+**Per-endpoint `tickSize` and `stepSize` rules ahead of the September 18, 2026 enforcement**
+
+The [markets concept page](/concepts/markets#price-and-amount-steps) now lists which request field each step applies to — `price`, `activation_price`, `stop_limit_price` and attached `stopLoss` / `takeProfit` prices against `tickSize`, `amount` against `stepSize` — and every order endpoint states its own rule. An order rejected for a step mismatch returns HTTP 422 with trade error code `1` and the failing field as the key in `errors` — distinct from the endpoints' own validation codes `30`, `32` and `33` — so branch on the code together with the key rather than on the localized message.
+
+The amount step does not apply to `POST /api/v4/order/market` and `POST /api/v4/order/stop_market` buy orders, where `amount` is the quote-currency total rather than a quantity. The `activation_price` of a buy stop-market order is still checked.
+
+<CardGroup cols={2}>
+  <Card title="Price and amount steps" href="/concepts/markets#price-and-amount-steps" icon="ruler" horizontal/>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="September 10, 2026">
+## Single-call currency conversion
+**Request and accept a conversion quote in one request**
+
+`POST /api/v4/convert/auto-confirm` requests a conversion quote and accepts it in a single call, so the 10-second quote lifetime cannot elapse between requesting a rate and executing at it. The request takes the same `from`, `to`, `direction`, and `amount` fields as [Convert Estimate](/api-reference/convert/convert-estimate), and the response returns `finalGive`, `finalReceive`, and the executed conversion's `id` — usable as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
+
+An optional `idempotencyKey` of 8 to 128 characters deduplicates retries: the first request claims the key and converts, and a repeat returns the recorded conversion instead of converting again. The claim is short-lived and is never renewed, so review the retry-timing caveat on [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) before building retry logic. Send a key from any automated caller — without one, a retry converts a second time.
+
+The two-step [Convert Estimate](/api-reference/convert/convert-estimate) and [Convert Confirm](/api-reference/convert/convert-confirm) endpoints are unchanged and remain available. The new endpoint is additive.
+
+<CardGroup cols={2}>
+  <Card title="Convert Auto Confirm" href="/api-reference/convert/convert-auto-confirm" icon="bolt" horizontal/>
+  <Card title="Convert" href="/platform/convert" icon="rotate" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 2, 2026">
 ## Order placement over WebSocket
 **Place, modify, and cancel orders on the WebSocket connection**

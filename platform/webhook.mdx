@@ -64,9 +64,15 @@ Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT ac
 
 ## How to use
 
+A webhook is a separate entity with its own generated key and secret. It is not a property of a trading API key, and a trading API key never carries a webhook URL.
+
+An account has at most one webhook. The platform enforces this limit, so a second webhook cannot be created on the same account. A sub-account counts as a separate account, so the main account and each sub-account can have one webhook.
+
+Event types are selected on the webhook itself, so a single URL receives every event type subscribed on it.
+
 1. Log in to whitebit.com.
 2. Open the API keys tab.
-3. Select the web-hook configuration tab for the API keys.
+3. Select the web-hook configuration tab.
 4. Paste the correct URI for the web server to process web-hook calls.
 5. Press Generate a new key button and toggle the activation switcher to "Activated".
 
@@ -119,7 +125,7 @@ Also, all request contains additional data in headers:
 1. `'Content-type': 'application/json'`
 2. `'X-TXC-APIKEY': api_key` - the WhiteBIT webhook API key
 3. `'X-TXC-PAYLOAD': payload'` - where payload is base64-encoded body data
-4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload), key=api_secret))`
+4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload), key=api_secret))`. `api_secret` is the secret of the generated webhook key.
 
 On the consumer side, process the security headers to verify the request originated from WhiteBIT.
 
@@ -373,7 +379,7 @@ Performed when withdraw was completed. Request example:
 
 ### WhiteBIT refund successful
 
-Triggered after the system successfully completes a refund. Request example:
+Triggered after the system successfully completes a refund. `memo` is the destination memo sent in the [refund request](/api-reference/account-wallet/refund-deposit). Unlike deposit and withdraw webhooks, which send `""`, refund webhooks send `null` when no memo was provided. Request example:
 
 ```json
 {
@@ -391,6 +397,7 @@ Triggered after the system successfully completes a refund. Request example:
     "refundNetworkFee": "1",
     "refundAmount": "99",
     "refundHash": "0x767ebd2...",
+    "memo": null, // refund destination memo, null if not provided
     "nonce": 0
   },
   "id": "uuid"
@@ -414,11 +421,16 @@ Triggered after the system fails to complete a refund. The system rejects the re
     "network": "ERC-20",
     "createdAt": 1733924412,
     "processedAt": 1733925012,
+    "memo": null, // refund destination memo, null if not provided
     "nonce": 0
   },
   "id": "uuid"
 }
 ```
+
+<Note>
+`refund.failed` is also sent when a refund attempt fails for an internal reason. In that case, [Get refund history](/api-reference/account-wallet/get-refund-history) still shows the refund as `in_process` and the refund is not final. A refund with status `canceled` in the refund history is final.
+</Note>
 
 ## What's Next
 

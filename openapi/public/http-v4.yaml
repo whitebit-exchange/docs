@@ -44,6 +44,10 @@ servers:
     description: WhiteBIT Global Server
   - url: https://whitebit.eu
     description: WhiteBIT EU Server
+  - url: https://whitebit.tr
+    description: WhiteBIT TR Server
+  - url: https://whitebit.ge
+    description: WhiteBIT GE Server
 
 paths:
   /api/v4/public/platform/status:
@@ -332,6 +336,8 @@ paths:
                         min: "0.002"
                   confirmations:
                     BTC: 2
+                  confirmations_for_trading:
+                    BTC: 1
                 USDT:
                   name: "Tether US"
                   unified_cryptoasset_id: 825
@@ -368,6 +374,9 @@ paths:
                   confirmations:
                     ERC20: 20
                     TRC20: 20
+                  confirmations_for_trading:
+                    ERC20: 6
+                    TRC20: 6
         'default':
           description: Error response
           content:
@@ -781,16 +790,16 @@ paths:
       description: |
         The endpoint returns the list of [market](/glossary#market) pair names available for [collateral](/glossary#collateral) trading. Use the response to determine which markets support margin positions. Each item in the result array is a market pair name in `BASE_QUOTE` format (e.g., `BTC_USDT`).
 
-        Coming soon: TradFi futures markets that are enabled for collateral trading will join this list alongside crypto markets. TradFi entries will be ordinary market pair names in the same array — the response carries no per-market type field, so read `type` and `isTradFiFutures` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info) to tell the market types apart.
+        The list includes TradFi futures markets that are enabled for collateral trading, alongside crypto markets. TradFi entries are ordinary market pair names in the same array — the response carries no per-market type field, so read `type` and `isTradFiFutures` from [`GET /api/v4/public/markets`](/api-reference/market-data/market-info) to tell the market types apart.
 
-        TradFi futures markets will stay region-gated: a TradFi market not assigned to the caller's region will be omitted from that region's response, exactly as on `GET /api/v4/public/markets`.
+        TradFi futures markets stay region-gated: a TradFi market not assigned to the caller's region is omitted from that region's response, exactly as on `GET /api/v4/public/markets`.
 
         <Note>
         The collateral market list is reference data, re-synced approximately every 10 seconds. Polling more frequently returns identical data. The cache is shared across all callers.
         </Note>
 
         <Note>
-        Coming soon: a market in this list is configured for collateral trading; that is not the same as the account being entitled to trade it. Once TradFi markets join the list, placing an order on a TradFi market will additionally require TradFi futures to be enabled for the account — without it the order request is rejected with HTTP 422, `api.tradeErrors.tradFi.restricted`.
+        A market in this list is configured for collateral trading; that is not the same as the account being entitled to trade it. Placing an order on a TradFi market additionally requires TradFi futures to be enabled for the account — without it the order request is rejected with HTTP 422, `api.tradeErrors.tradFi.restricted`.
         </Note>
 
         <Warning>
@@ -818,12 +827,12 @@ paths:
                     type: array
                     items:
                       type: string
-                      description: "Market pair name in `BASE_QUOTE` format."
-                    example: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
+                      description: "Market pair name in `BASE_QUOTE` format. Crypto and TradFi futures markets share the same array."
+                    example: ["AAPL_USD", "ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
               example:
                 success: true
                 message: null
-                result: ["ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
+                result: ["AAPL_USD", "ADA_USDT", "BCH_USDT", "BTC_USDT", "DOGE_USDT"]
         '451':
           description: "Returned when the service is not available in the caller's region."
           content:
@@ -1281,6 +1290,19 @@ components:
             type: integer
           example:
             BTC: 2
+        confirmations_for_trading:
+          type: object
+          description: "Blockchain confirmations after which a deposit is credited for trading,
+            mapped by network name (e.g., {\"BTC\": 1}). Until the count in confirmations is
+            reached, the credited amount can be traded but not withdrawn, transferred to a
+            collateral balance, or used as collateral. This map carries exactly the same network
+            keys as confirmations. Where a network has no earlier threshold configured, or while
+            the platform has early trading availability switched off, the value repeats the
+            confirmations count, because trading then opens at the same point as withdrawal."
+          additionalProperties:
+            type: integer
+          example:
+            BTC: 1
         providers:
           type: object
           description: "Payment provider identifiers for fiat assets (e.g., VISAMASTER,
