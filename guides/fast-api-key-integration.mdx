@@ -29,6 +29,20 @@ Partners operating accounts *for* customers — a dedicated sub-account per end 
 - End user with a WhiteBIT account, 2FA enabled, the required verification level passed, and operating in a region where the feature is available. A user who meets none of these can still start the flow — WhiteBIT walks the user through registration, 2FA, and KYC on its own pages, as described under [Account status and eligibility](#account-status-and-eligibility). The OAuth API key endpoints are available on the global server (`https://whitebit.com`) only.
 - Partner backend that supports HTTPS, server-side secret storage, and OAuth 2.0 Authorization Code with PKCE (S256).
 
+### What to prepare for client registration
+
+WhiteBIT registers the OAuth2 client manually, so the request to `institutional@whitebit.com` should carry everything the administrator needs in one message. The company-level items are the ones listed under [How to apply](/guides/partner-solutions#how-to-apply); the integration-level items below are specific to this flow.
+
+| Item | Provided by | Notes |
+|------|-------------|-------|
+| Redirect URI(s) | Partner | Exact HTTPS URLs where the authorization code is delivered. Matching is exact: no wildcards and no path prefixes, so each environment's callback URL is registered on its own. |
+| Scopes | Partner | Which of `apikeys.create`, `apikeys.read`, `apikeys.delete` the client needs — see [Scopes](#scopes). Fixed at registration. |
+| Partner display name and logo | Partner | Shown to the user on the WhiteBIT consent screen as "Create an API key for [Partner Name]". |
+| Intended use case and key type | Partner | Copy trading, bot, aggregator, or other, and the [key type](#api-key-types) requested. Withdrawal access requires the Custom type and KYB. |
+| Technical contact | Partner | Email WhiteBIT uses for questions about the OAuth2 client. |
+| `client_id` | WhiteBIT | Permanent identifier, sent as the `clientId` query parameter. |
+| `client_secret` | WhiteBIT | Server-side only. Used in the token exchange and never sent to the browser. |
+
 ## Endpoint surface
 
 | Method | Path | Auth | Required scope | Purpose |
@@ -36,6 +50,16 @@ Partners operating accounts *for* customers — a dedicated sub-account per end 
 | `GET` | [`/oauth2/api-key/info`](/api-reference/oauth/usage/api-key-info) | Bearer | `apikeys.read` | Check whether a key exists for the `(user, OAuth2 client)` pair |
 | `GET` | [`/oauth2/api-key/{externalId}/secret`](/api-reference/oauth/usage/api-key-secret) | Bearer | `apikeys.read` | Retrieve the API secret once |
 | `DELETE` | [`/oauth2/api-key/{externalId}`](/api-reference/oauth/usage/api-key-delete) | Bearer | `apikeys.delete` | Delete a partner-owned key |
+
+### Scopes
+
+Three scopes govern the flow, and the consent screen names the ones the OAuth2 client holds:
+
+- `apikeys.create` — permits key creation. The scope authorizes the consent screen the user completes in step 8; no partner-facing endpoint consumes it, which is why it carries no row above.
+- `apikeys.read` — permits reading key state and retrieving the secret once.
+- `apikeys.delete` — permits deleting a key the OAuth2 client owns.
+
+Holding at least one of the three admits a client to the flow; holding all three is not required. A client that issues keys and retrieves the secrets needs `apikeys.create` and `apikeys.read`, and adds `apikeys.delete` to revoke keys from its own side. Scopes are fixed when the OAuth2 client is registered and cannot be varied per authorization request.
 
 ## Integration flow
 
@@ -80,7 +104,7 @@ sequenceDiagram
 
 For the remaining failure modes (401, 403, 404) and both consent-screen error codes, see [Error handling](#error-handling) below.
 
-Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three can be called until the partner backend holds an OAuth token for that specific user. Steps 1 through 8 cover everything that runs before that point — client registration, and the consent journey WhiteBIT hosts on its own pages. The partner writes code for steps 1, 2, 3, 5, 6, and 9 through 12; steps 4, 7, and 8 happen on WhiteBIT's side and are observable to the partner only as an authorization code on the callback, or as no callback at all.
+Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three can be called until the partner backend holds an OAuth token for that specific user. Steps 1 through 8 cover everything that runs before that point — client registration, and the consent journey WhiteBIT hosts on its own pages. The partner writes code for steps 1, 2, 3, 6, 7, and 9 through 12; steps 4, 5, and 8 happen on WhiteBIT's side and are observable to the partner only as an authorization code on the callback, or as no callback at all.
 
 <Steps>
   <Step title="Register the OAuth2 client">
@@ -90,19 +114,126 @@ Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three
     Applies to a returning user whose token from an earlier authorization is still valid — a first-time user has no token yet, so the flow starts at step 3. Call `GET /oauth2/api-key/info` and interpret the `(exists, isEnabled)` response using the decision matrix on the endpoint page: `(false, false)` proceeds to step 3; `(true, true)` reuses the existing key instead of running the flow again; `(true, false)` asks the user to delete the disabled key from the WhiteBIT dashboard first. See [Returning users](#returning-users).
   </Step>
   <Step title="Build the authorization URL and send the user to WhiteBIT">
-    The user starts the connection in the partner's app ("Connect WhiteBIT"). Generate a cryptographically secure `code_verifier` (43–128 characters, unreserved alphabet) and derive `code_challenge = BASE64URL(SHA256(code_verifier))`. Build the authorization URL using `/auth/login` with query parameters `clientId`, `redirect_uri`, `state`, `code_challenge`, and `code_challenge_method=S256`. Store `code_verifier` and `state` in a server-side session keyed by a short-lived cookie, then redirect the browser.
+    The user starts the connection in the partner's app ("Connect WhiteBIT"). Generate a cryptographically secure `code_verifier` (43–128 characters, unreserved alphabet) and derive `code_challenge = BASE64URL(SHA256(code_verifier))`. Store `code_verifier` and `state` in a server-side session keyed by a short-lived cookie, then redirect the browser to [`GET /auth/login`](/api-reference/oauth/usage/authorize) with the following query parameters:
+
+    | Parameter | Required | Description |
+    |-----------|----------|-------------|
+    | `clientId` | Yes | The `client_id` issued at registration. |
+    | `redirect_uri` | Yes | One of the registered redirect URIs, character-for-character. |
+    | `state` | Optional in the spec; always send it | Opaque random string, at least 32 bytes of entropy, bound to the user's session. Returned unchanged on the callback. |
+    | `code_challenge` | Yes | `BASE64URL(SHA256(code_verifier))`, without padding. |
+    | `code_challenge_method` | Yes | Always `S256`. |
+
+    Scopes are not passed in the URL. The scopes registered on the OAuth2 client apply (see [Scopes](#scopes)).
+
+    ```text
+    https://whitebit.com/auth/login
+      ?clientId=YOUR_CLIENT_ID
+      &redirect_uri=https%3A%2F%2Fpartner.example%2Foauth%2Fwhitebit%2Fcallback
+      &state=Zm9vYmFyLXN0YXRlLTMyLWJ5dGVz
+      &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      &code_challenge_method=S256
+    ```
+
+    <Tabs>
+      <Tab title="Python">
+        ```python
+        import base64, hashlib, secrets
+        from urllib.parse import urlencode
+
+        code_verifier = secrets.token_urlsafe(64)[:128]           # 43-128 chars, unreserved alphabet
+        code_challenge = base64.urlsafe_b64encode(
+            hashlib.sha256(code_verifier.encode()).digest()
+        ).rstrip(b"=").decode()
+        state = secrets.token_urlsafe(32)
+
+        session["oauth"] = {"code_verifier": code_verifier, "state": state}  # server-side session
+
+        authorize_url = "https://whitebit.com/auth/login?" + urlencode({
+            "clientId": CLIENT_ID,
+            "redirect_uri": REDIRECT_URI,
+            "state": state,
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
+        })
+        # redirect the browser to authorize_url
+        ```
+      </Tab>
+      <Tab title="cURL">
+        ```bash
+        # The authorization step is a browser redirect, not an API call.
+        # Use the Python tab to derive code_challenge, then open the resulting URL in the user's browser.
+        ```
+      </Tab>
+    </Tabs>
+
+    For Go and PHP examples, see [SDKs](/sdks).
   </Step>
   <Step title="WhiteBIT runs the eligibility gate">
     Before showing the consent screen, WhiteBIT checks the account behind the request — sign-in state, 2FA, verification level, and whether the feature is available for the OAuth2 client and for the account's region. Each blocking outcome renders as a variant of the same screen and stops the flow on WhiteBIT's page: no authorization code is issued and the partner receives no callback. Whether a key already exists is enforced separately, at the moment key creation is attempted. [Account status and eligibility](#account-status-and-eligibility) lists every outcome and what the partner can observe.
   </Step>
   <Step title="The user grants the OAuth scopes">
-    The consent screen names the partner and the scopes the OAuth2 client holds — `apikeys.create`, `apikeys.read`, and `apikeys.delete`. Holding at least one of the three admits a client to this flow; holding all three is not required, though a full issue-and-retrieve integration needs `apikeys.create` and `apikeys.read`. The user approves or declines. Approval is what produces the short-lived authorization code on the registered `redirect_uri`.
+    The consent screen names the partner and the `apikeys.*` scopes the OAuth2 client holds — see [Scopes](#scopes). The user approves or declines. Approval is what produces the short-lived authorization code on the registered `redirect_uri`.
   </Step>
   <Step title="Handle the callback">
     On the redirect back to the registered `redirect_uri`, validate the returned `state` matches the stored value (anti-CSRF). Capture the `code` query parameter. Reject the callback when `state` is missing, mismatched, or expired.
+
+    ```text
+    https://partner.example/oauth/whitebit/callback
+      ?code=AUTHORIZATION_CODE
+      &state=Zm9vYmFyLXN0YXRlLTMyLWJ5dGVz
+    ```
+
+    The code is single-use and short-lived; exchange it immediately in step 7.
   </Step>
   <Step title="Exchange the code for an access token">
-    POST to `/oauth2/token` with `client_id`, `client_secret`, `code`, and `code_verifier`, server-to-server. The response carries a short-lived access token and a refresh token; read the lifetime from `expires_in` rather than hardcoding it. The token pair is bound to the `(user, OAuth2 client)` pair, not to the partner as a whole: a partner serving 1,000 users holds 1,000 token pairs. WhiteBIT does not store the mapping between its user and the partner's own account — persist the token alongside the partner-side user record. Renew through [`POST /oauth2/refresh_token`](/api-reference/oauth/usage/refresh-token) and replace the stored pair on every refresh. Re-run the consent flow only when the refresh token itself has expired.
+    POST to [`/oauth2/token`](/api-reference/oauth/usage/get-access-token) with `client_id`, `client_secret`, `code`, and `code_verifier`, server-to-server, as `application/x-www-form-urlencoded`.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        curl -X POST https://whitebit.com/oauth2/token \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -d "client_id=YOUR_CLIENT_ID" \
+          -d "client_secret=YOUR_CLIENT_SECRET" \
+          -d "code=AUTHORIZATION_CODE" \
+          -d "code_verifier=YOUR_CODE_VERIFIER"
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import requests
+
+        resp = requests.post(
+            "https://whitebit.com/oauth2/token",
+            data={
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "code": callback_code,
+                "code_verifier": session["oauth"]["code_verifier"],
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        token = resp.json()["data"]
+        # persist token alongside the partner-side user record
+        ```
+      </Tab>
+    </Tabs>
+
+    ```json
+    {
+      "data": {
+        "access_token": "MZM1MDBMMJYTNWM4MI0ZNTIYLTKXNDATNZY1MZHKM2Y2MJY3",
+        "expires_in": 300,
+        "refresh_token": "ODK5ZTVKZDUTYTI5ZC01NWJHLTGZZDMTYWFKYTNMNJHHMGZM",
+        "scope": "apikeys.create,apikeys.read,apikeys.delete",
+        "token_type": "Bearer"
+      }
+    }
+    ```
+
+    The response carries a short-lived access token and a refresh token; read the lifetime from `expires_in` rather than hardcoding it. The token pair is bound to the `(user, OAuth2 client)` pair, not to the partner as a whole: a partner serving 1,000 users holds 1,000 token pairs. WhiteBIT does not store the mapping between its user and the partner's own account — persist the token alongside the partner-side user record. Renew through [`POST /oauth2/refresh_token`](/api-reference/oauth/usage/refresh-token) and replace the stored pair on every refresh. Re-run the consent flow only when the refresh token itself has expired.
   </Step>
   <Step title="The user creates the key on WhiteBIT">
     The user selects the key permissions on WhiteBIT's own page, reviews the selection in a confirmation modal, and confirms with a second factor — a passkey or an authenticator-app code. A key cannot be created without 2FA, and the partner never calls the creation endpoint. WhiteBIT creates the key and withholds the secret from the browser by design, which is why the secret is fetched server-side in step 10.
@@ -112,6 +243,46 @@ Every `/oauth2/api-key/*` endpoint is Bearer-authenticated, so none of the three
   </Step>
   <Step title="Retrieve the secret">
     Call `GET /oauth2/api-key/{externalId}/secret`. The response returns `apiSecret` exactly once; persist `(externalId, apiSecret)` in encrypted server-side storage immediately — `externalId` is the public key value sent in the `X-TXC-APIKEY` header. On `423 Locked`, retry with exponential backoff starting at 5–10 seconds, doubling per attempt, capped at 60 seconds, total budget 3–5 minutes. On `409 Conflict`, the secret has already been retrieved for this key — delete the key via `DELETE /oauth2/api-key/{externalId}` and restart the flow from step 2.
+
+    <Tabs>
+      <Tab title="cURL">
+        ```bash
+        # Step 9 — poll until exists and isEnabled are both true
+        curl https://whitebit.com/oauth2/api-key/info \
+          -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+        # Step 10 — one-time secret retrieval
+        curl https://whitebit.com/oauth2/api-key/YOUR_EXTERNAL_ID/secret \
+          -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+        ```
+      </Tab>
+      <Tab title="Python">
+        ```python
+        import time, requests
+
+        headers = {"Authorization": f"Bearer {token['access_token']}"}
+        base = "https://whitebit.com/oauth2/api-key"
+
+        deadline = time.monotonic() + 30                          # step 9 budget
+        while time.monotonic() < deadline:
+            info = requests.get(f"{base}/info", headers=headers, timeout=10).json()["data"]
+            if info["exists"] and info["isEnabled"]:
+                break
+            time.sleep(2)
+        else:
+            raise TimeoutError("key not created yet — keep the Connect entry point available")
+
+        resp = requests.get(f"{base}/{info['externalId']}/secret", headers=headers, timeout=10)
+        if resp.status_code == 423:
+            ...  # retry with backoff: 5-10 s start, doubling, cap 60 s, budget 3-5 min
+        elif resp.status_code == 409:
+            ...  # secret already released: DELETE the key and restart from step 2
+        resp.raise_for_status()
+        api_secret = resp.json()["data"]["apiSecret"]
+        # persist (info["externalId"], api_secret) in encrypted server-side storage
+        ```
+      </Tab>
+    </Tabs>
   </Step>
   <Step title="Use the key">
     Sign V4 trade API requests with HMAC: send `externalId` as the `X-TXC-APIKEY` value and use `apiSecret` for the signature. The OAuth-issued key follows the same signing rules as a manually-created key. See [Private HTTP API authentication](/api-reference/authentication) for the canonical signing process.
