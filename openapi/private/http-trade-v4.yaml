@@ -2485,7 +2485,7 @@ paths:
       summary: Borrow History
       operationId: getBorrowHistory
       description: |
-        The endpoint returns the [collateral](/glossary#balance-collateral) account's borrow history for the authenticated account — one record per borrow position, not per underlying engine state change. Use the optional `asset` parameter to filter to a single asset; when omitted, the response covers every asset the caller's region allows to borrow. An `asset` that is unknown or blocked in the caller's region returns a validation error rather than an empty result. Records are ordered by creation time ascending (oldest first), tie-broken by `asset` ascending.
+        The endpoint returns the [collateral](/glossary#balance-collateral) account's borrow history for the authenticated account — one record per borrow position, not per underlying engine state change. Use the optional `asset` parameter to filter to a single asset; when omitted, the response covers every asset the caller's region allows to borrow. An `asset` that is unknown or blocked in the caller's region returns a validation error rather than an empty result. Records are ordered by creation time descending (newest first). Records created in the same second are ordered by `asset` ascending, then by the trading engine's sub-second creation time descending; `limit` and `offset` page over this order.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -2650,6 +2650,10 @@ paths:
         A market's `max_leverage` field (from `GET /api/v4/public/futures`) may be lower than `100`. Setting leverage above a market's maximum results in an error.
         </Note>
 
+        <Note>
+        Coming soon: the maximum accepted `leverage` can be lower than `100` for an account due to trading restrictions. A value above the account's maximum is rejected with `422` and error code `30` on `leverage`. Leverage already set above the new maximum stays in effect until the next change.
+        </Note>
+
         <Warning>
         Changing leverage affects **all open positions** across margin and futures trading. Decreasing leverage increases margin requirements — if available funds are insufficient to support the new level, the request returns an error.
         </Warning>
@@ -2674,7 +2678,7 @@ paths:
                   type: integer
                   minimum: 1
                   maximum: 100
-                  description: "Target leverage level. Accepted values: `1`, `2`, `3`, `5`, `10`, `20`, `50`, `100`. The effective maximum depends on the market's `max_leverage`."
+                  description: "Target leverage level: `1`, `2`, `3`, `5`, `10`, `20`, `50` or `100`. Coming soon: trading restrictions can set a lower maximum for the account. The market's `max_leverage` also applies."
                   example: 5
                 request:
                   type: string
@@ -2705,7 +2709,7 @@ paths:
             Inner validation failed
 
             Error codes:
-            - `30` - invalid `leverage` value (out of range, non-integer, or wrong type). Setting leverage above a market's `max_leverage` also surfaces here as an out-of-range value
+            - `30` - invalid `leverage` value (out of range, non-integer, or wrong type). Setting leverage above a market's `max_leverage` also surfaces here as an out-of-range value. Coming soon: a value above the maximum allowed for the account by trading restrictions also returns `30`
             - `17` - the requested leverage is valid but available balance is insufficient to support it
             - `113` - leverage cannot be changed while open positions or orders exist
           content:
@@ -5023,8 +5027,7 @@ paths:
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
           - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
-          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set.
-          - `retail=true` has no effect on a `postOnly=true` order. Post-only orders are makers and cannot be retail takers.
+          - `retail=true` has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are makers and cannot be retail takers; an order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
         </Note>
       tags:
         - Spot Trading
@@ -5057,7 +5060,6 @@ paths:
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
             - `40` - `ioc=true` cannot be combined with `rpi=true`
-            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
           content:
@@ -5201,14 +5203,6 @@ paths:
                     errors:
                       maker_fee:
                       - Incorrect maker fee
-                retail41:
-                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
-                  value:
-                    code: 41
-                    message: Validation failed
-                    errors:
-                      retail:
-                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:
@@ -5244,8 +5238,7 @@ paths:
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
           - RPI orders apply post-only behavior automatically — do not also send `postOnly=true`: a request combining `rpi=true` with an explicit `postOnly=true` fails validation.
           - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
-          - `retail=true` and `rpi=true` cannot be combined. The API returns error code `41` when both flags are set on an item.
-          - `retail=true` has no effect on a `postOnly=true` item. Post-only orders are makers and cannot be retail takers.
+          - `retail=true` has no effect on a `postOnly=true` or `rpi=true` item. Post-only and RPI orders are makers and cannot be retail takers; an item with both `rpi=true` and `retail=true` matches exactly like an RPI order.
         </Note>
       tags:
         - Spot Trading
@@ -5329,7 +5322,6 @@ paths:
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
             - `40` - `ioc=true` cannot be combined with `rpi=true`
-            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
           content:
@@ -5383,14 +5375,6 @@ paths:
                     errors:
                       price:
                       - Price field should be numeric string or number.
-                retail41:
-                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
-                  value:
-                    code: 41
-                    message: Validation failed
-                    errors:
-                      retail:
-                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:
@@ -6554,7 +6538,7 @@ paths:
         </Warning>
 
         <Note>
-        This endpoint supports pagination. Use `limit` (default: 50) and `offset` (default: 0) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
+        This endpoint supports pagination. Use `limit` (default: 500, max: 500) and `offset` (default: 0, max: 1000) to page through results. The response does not include a `total` field — detect the last page when `records.length < limit`. An empty `records` array means you have paged past the end; receiving exactly `limit` records does not guarantee that another page exists.
         </Note>
 
         <Note>
@@ -6589,13 +6573,15 @@ paths:
                   type: integer
                   default: 0
                   minimum: 0
-                  description: "Number of records to skip. Default: `0`."
+                  maximum: 1000
+                  description: "Number of records to skip. Default: `0`. Maximum: `1000`."
                   example: 0
                 limit:
                   type: integer
-                  default: 50
+                  default: 500
                   minimum: 1
-                  description: "Maximum number of records to return. Default: `50`."
+                  maximum: 500
+                  description: "Maximum number of records to return. Default: `500`. Minimum: `1`. Maximum: `500`."
                   example: 50
                 request:
                   type: string
@@ -7714,9 +7700,7 @@ components:
 
             The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
 
-            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when a request sets both `retail=true` and `rpi=true`.
-
-            The flag has no effect on a `postOnly=true` order. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+            The flag has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
 
             Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
@@ -7999,9 +7983,7 @@ components:
 
             The Retail flag must be enabled on the account before a private-API request can set `retail=true`. Contact the account manager to enable the Retail flag.
 
-            The Retail flag cannot be combined with `rpi`. The API returns error code `41` when an item sets both `retail=true` and `rpi=true`.
-
-            The flag has no effect on a `postOnly=true` item. Post-only orders are [makers](/glossary#maker); only takers carry the retail designation.
+            The flag has no effect on a `postOnly=true` or `rpi=true` item. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An item with both `rpi=true` and `retail=true` matches exactly like an RPI order.
 
             Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
           example: false
