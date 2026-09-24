@@ -2485,7 +2485,7 @@ paths:
       summary: Borrow History
       operationId: getBorrowHistory
       description: |
-        The endpoint returns the [collateral](/glossary#balance-collateral) account's borrow history for the authenticated account — one record per borrow position, not per underlying engine state change. Use the optional `asset` parameter to filter to a single asset; when omitted, the response covers every asset the caller's region allows to borrow. An `asset` that is unknown or blocked in the caller's region returns a validation error rather than an empty result. Records are ordered by creation time ascending (oldest first), tie-broken by `asset` ascending.
+        The endpoint returns the [collateral](/glossary#balance-collateral) account's borrow history for the authenticated account — one record per borrow position, not per underlying engine state change. Use the optional `asset` parameter to filter to a single asset; when omitted, the response covers every asset the caller's region allows to borrow. An `asset` that is unknown or blocked in the caller's region returns a validation error rather than an empty result. Records are ordered by creation time descending (newest first). Records created in the same second are ordered by `asset` ascending, then by the trading engine's sub-second creation time descending; `limit` and `offset` page over this order.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
