@@ -8,7 +8,7 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ## Refund history and memo for deposit refunds
 **New `POST /api/v4/main-account/refund-history` endpoint and `memo` support for refunds**
 
-The Main Account API now returns the account's deposit refunds with their current status: `in_process`, `successful`, or `canceled`. The list includes refunds requested through the WhiteBIT interface, by support, and through the API. Filter by `depositId` or `ticker`, and page through results with `limit` and `offset`. Only full refunds are listed.
+The Main Account API now returns the account's deposit refunds with the current status of each: `in_process`, `successful`, or `canceled`. The list includes refunds requested through the WhiteBIT interface, by support, and through the API. Filter by `depositId` or `ticker`, and page through results with `limit` and `offset`. Only full refunds are listed.
 
 `POST /api/v4/main-account/refund-deposit` accepts an optional `memo` for the destination address. The `refund.successful` and `refund.failed` webhooks now include `memo`, which is `null` when no memo was sent.
 
