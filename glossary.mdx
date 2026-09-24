@@ -465,9 +465,9 @@ The Retail flag must be enabled on the account before `retail=true` can be sent 
 
 A retail taker is eligible to match against RPI-maker liquidity and may receive price improvement at execution. The flag has no effect when combined with `postOnly=true` — post-only orders are makers, never takers.
 
-**Mutual exclusivity**
+**Combination with RPI**
 
-The Retail flag cannot be combined with the `rpi` flag. The API returns error code `41` when a request sets both `retail=true` and `rpi=true`. See [Order Parameter Rules](/guides/order-parameter-rules) for the complete list of unsupported parameter combinations.
+The Retail flag can be sent together with the `rpi` flag. An order with both `retail=true` and `rpi=true` is an RPI maker and matches exactly like an order with only `rpi=true`: the Retail flag has no effect on it, as on any post-only order. See [Order Parameter Rules](/guides/order-parameter-rules) for the complete list of unsupported parameter combinations.
 </Accordion>
 
 <Accordion title="Reduce-only">

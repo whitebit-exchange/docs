@@ -163,7 +163,10 @@ The identifier appears under different names across the API surface:
 |-------|-----------------|---------|
 | `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters |
 | `unique_id` | History filter and records | The deposit/withdraw identifier in history responses |
-| `transactionId` | `refund-deposit` request | Transaction UUID, sourced from the `deposit.canceled` webhook |
+| `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the `deposit.canceled` webhook |
+| `id` | `refund-deposit` response | The same deposit transaction UUID, echoed back — not a refund identifier |
+| `depositId` | `refund-history` filter and records | The same deposit transaction UUID |
+| `refundId` | `refund-history` records | The refund's own UUID, returned only by refund history |
 | `transaction_id` | History records | System-wide transaction UUID, never reused |
 
 Mark transactions complete only at terminal statuses: 3/7 for success, 4/9 for canceled deposits, 4 for canceled withdrawals. Platform availability is published at [status.whitebit.com](https://status.whitebit.com); per-asset deposit and withdrawal availability is reported by the [Asset Status](/api-reference/market-data/asset-status-list) endpoint.

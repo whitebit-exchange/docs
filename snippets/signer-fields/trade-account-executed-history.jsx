@@ -8,5 +8,5 @@ export const signerFields = [
   {"name":"startDate","type":"integer","required":false,"description":"Start date in Unix-time format","example":"1593233939"},
   {"name":"endDate","type":"integer","required":false,"description":"End date in Unix-time format","example":"1593233939"},
   {"name":"offset","type":"integer","required":false,"description":"Starting line index (OFFSET). Default: 0, Min: 0","example":"0","default":0},
-  {"name":"limit","type":"integer","required":false,"description":"LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500","example":"50","default":50},
+  {"name":"limit","type":"integer","required":false,"description":"LIMIT is a special clause used to limit records a particular query can return. Default: 500, Min: 1, Max: 500","example":"500","default":500},
 ];
