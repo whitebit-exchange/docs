@@ -41,16 +41,11 @@ Leveraged trading on [spot pairs](/concepts/markets) with up to 10x leverage usi
 
 ## Risk Context
 
-**Borrowed funds fee:** A commission is charged for using borrowed funds — only applied when an order is at least partially executed. Unexecuted orders incur no borrowing fee. See the [trading fees page](https://whitebit.com/trading-data/trading-fees) for the current rate.
+**Borrowed funds fee:** A commission is charged for using borrowed funds — only applied when an order is at least partially executed. Unexecuted orders incur no borrowing fee. See the [trading fees page](https://whitebit.com/trading-data/trading-fees) for the current rate. No public endpoint returns the rate itself; accrued cost per open borrow arrives as `unrealized_funding` on the [Borrows](/websocket/account-streams/borrows) stream.
 
-Liquidation can occur when the maintenance margin threshold is breached. Key details:
+Liquidation can occur when the maintenance margin threshold is breached. The Maintenance Margin Rate is 3% for leverage 1x–10x, and partial liquidation closes part of the position before full liquidation.
 
-- **Partial liquidation** is the primary mechanism: only a portion (e.g., 20–30%) of the position is closed first to restore margin. If partial liquidation is insufficient, full liquidation follows.
-- **Liquidation sequence:** margin positions first (smallest to largest initial margin value) → crypto borrowings → futures positions last
-- **Maintenance Margin Rate (MMR):** 3% for leverage 1x–10x. Per-market leverage limits and collateral brackets: [collateral brackets page](https://whitebit.com/trading-data/collateral-brackets)
-- The API returns a `liquidationPrice` field in position responses — monitor the liquidation price alongside the collateral account balance to manage risk
-
-> **Coming soon:** Detailed mark price methodology and liquidation price formulas will be published here. For institutional inquiries, contact institutional@whitebit.com.
+Full mechanics — the maintenance margin schedule, leverage brackets, the liquidation sequence, and the `liquidationPrice` / `liquidationState` / `marginFraction` fields for risk monitoring: [Liquidation and margin requirements](/concepts/liquidation).
 
 <Tip>
   **WBT holder benefit:** Holding WBT (WhiteBIT Token) can reduce the maker commission by up to

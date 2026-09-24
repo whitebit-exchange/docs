@@ -60,7 +60,8 @@ Check the current margin configuration via the [collateral account summary endpo
 
 ### Liquidation
 
-Positions face liquidation when the maintenance margin requirement is breached. Key details:
+Positions face liquidation when the maintenance margin requirement is breached. Liquidation is evaluated against the **mark price**, not the last traded price, and the Maintenance Margin Rate is 3% for leverage 1x–10x. Partial liquidation closes part of the position first; [Auto-Deleveraging](/concepts/auto-deleveraging) is the final stage when order-book liquidity cannot absorb the liquidation order.
+Full mechanics — mark price derivation, leverage brackets, the liquidation sequence, and the `liquidationPrice` / `liquidationState` / `marginFraction` fields for risk monitoring: [Liquidation and margin requirements](/concepts/liquidation).
 
 - **Mark price** (not last traded price) is used for liquidation calculations. Temporary price wicks do not trigger liquidation. Subscribe to [Premium index](/websocket/market-streams/premium-index) over WebSocket for a live push of mark price, index price, and funding rate, or fetch a one-time snapshot from the [futures markets endpoint](/api-reference/market-data/available-futures-markets-list).
 - **Partial liquidation** is the primary mechanism: only a portion (e.g., 20–30%) of the position is closed first to restore margin. If partial liquidation is insufficient, full liquidation follows.
