@@ -379,7 +379,7 @@ Performed when withdraw was completed. Request example:
 
 ### WhiteBIT refund successful
 
-Triggered after the system successfully completes a refund. Request example:
+Triggered after the system successfully completes a refund. `memo` is the destination memo sent in the [refund request](/api-reference/account-wallet/refund-deposit). Unlike deposit and withdraw webhooks, which send `""`, refund webhooks send `null` when no memo was provided. Request example:
 
 ```json
 {
@@ -397,6 +397,7 @@ Triggered after the system successfully completes a refund. Request example:
     "refundNetworkFee": "1",
     "refundAmount": "99",
     "refundHash": "0x767ebd2...",
+    "memo": null, // refund destination memo, null if not provided
     "nonce": 0
   },
   "id": "uuid"
@@ -420,11 +421,16 @@ Triggered after the system fails to complete a refund. The system rejects the re
     "network": "ERC-20",
     "createdAt": 1733924412,
     "processedAt": 1733925012,
+    "memo": null, // refund destination memo, null if not provided
     "nonce": 0
   },
   "id": "uuid"
 }
 ```
+
+<Note>
+`refund.failed` is also sent when a refund attempt fails for an internal reason. In that case, [Get refund history](/api-reference/account-wallet/get-refund-history) still shows the refund as `in_process` and the refund is not final. A refund with status `canceled` in the refund history is final.
+</Note>
 
 ## What's Next
 
