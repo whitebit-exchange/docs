@@ -5,11 +5,8 @@ description: "Place, modify, and cancel spot, margin, and futures orders over th
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
-import WsOrderComingSoon from '/snippets/ws-order-coming-soon.mdx';
 
 <RegionBaseUrl protocol="wss" />
-
-<WsOrderComingSoon />
 
 The WebSocket transport carries order flow as well as market data and account streams. The transport exposes 21 JSON-RPC methods that place, modify, and cancel orders on spot, margin, and futures markets over the same connection used for subscriptions.
 
@@ -283,7 +280,7 @@ The transport limits are per connection: order placements count against a budget
 
 ## Regional availability
 
-At launch on September 2, 2026, order placement over WebSocket is available on the global platform only; the EU platform is not yet supported. Once available in a region, the region of the authorized connection decides which trading types — spot, margin, futures — and which individual markets are reachable. On this transport the region is carried by the authorization token; no per-request override exists.
+Order placement over WebSocket is available on the global platform only; the EU platform is not yet supported. Once available in a region, the region of the authorized connection decides which trading types — spot, margin, futures — and which individual markets are reachable. On this transport the region is carried by the authorization token; no per-request override exists.
 
 Region checks run before market and balance validation, so a region error masks any other problem with the request. When an order is rejected with one of the codes below, nothing else about it was evaluated.
 
