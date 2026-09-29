@@ -100,10 +100,6 @@ The two-step [Convert Estimate](/api-reference/convert/convert-estimate) and [Co
 ## Order placement over WebSocket
 **Place, modify, and cancel orders on the WebSocket connection**
 
-<Note>
-Coming soon: order placement over WebSocket becomes available on September 2, 2026, on the global platform only. The EU platform is not yet supported.
-</Note>
-
 From September 2, 2026, the WebSocket API carries order flow alongside market and account streams: 21 JSON-RPC methods place, modify, and cancel spot, margin, and futures orders over the same authorized connection that carries subscriptions. The methods are an alternative transport to the REST order endpoints for latency-sensitive integrations that hold one connection open. Authorize the connection first with the `authorize` frame; an order method on an unauthorized connection is rejected. The transport numbers its errors independently of REST — the same numeric code carries a different meaning on each surface — so branch on the codes documented on the Order Management page rather than reusing REST codes.
 
 <CardGroup cols={2}>
