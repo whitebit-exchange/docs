@@ -4,6 +4,26 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="September 30, 2026">
+## Trading on deposits awaiting confirmation
+**Deposits become tradable at the first confirmations, and the part still awaiting the network is reported separately**
+
+A crypto deposit can now be credited before the network fully confirms it, so the funds are tradable earlier. Until confirmation completes, that part of the balance is held back: it can be moved to the [trade balance](/glossary#balance-spotbalance-trade) and traded, but it cannot be withdrawn, sent as a WhiteBIT Code, or moved to the [collateral balance](/glossary#balance-collateral).
+
+[Main balance](/api-reference/account-wallet/main-balance) gains a `pending_deposit_amount` field per currency — the part of `main_balance` that is still held back. It is `0` when nothing is held.
+
+A new endpoint, [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance), reports the same picture for the whole account: the total, the held value, and what remains withdrawable, in a stable-coin equivalent, plus a per-currency breakdown of the free amount.
+
+Requests that would move held funds off the platform are rejected with code `20` on the `amount` field: [Withdraw](/api-reference/account-wallet/create-withdraw-request), [Withdraw Pay](/api-reference/account-wallet/create-withdraw-request-with-specific-amount), [Express Withdraw](/api-reference/account-wallet/create-express-withdraw-token), and [WhiteBIT Code creation](/api-reference/account-wallet/create-code). [Transfer](/api-reference/account-wallet/transfer-between-balances) to the collateral balance is rejected the same way; transfers to the trade balance are never restricted.
+
+Two limits apply at once — the free amount of the currency itself and the free value of the whole account. Whichever is smaller decides, so holding a large balance in other currencies does not make a held currency withdrawable.
+
+<CardGroup cols={2}>
+  <Card title="Withdrawable balance" href="/api-reference/account-wallet/withdrawable-balance" icon="wallet" horizontal/>
+  <Card title="Main balance" href="/api-reference/account-wallet/main-balance" icon="coins" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 23, 2026">
 ## Refund history and memo for deposit refunds
 **New `POST /api/v4/main-account/refund-history` endpoint and `memo` support for refunds**
