@@ -8,7 +8,7 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ## Retail flag on collateral limit orders
 **`POST /api/v4/order/collateral/limit` and `POST /api/v4/order/collateral/bulk` accept `retail=true`**
 
-Collateral limit orders now accept the `retail` flag with the same rules as spot limit orders. The Retail flag must be enabled on the account, otherwise the API returns error code `42`. The flag has no effect on a `postOnly=true` or `rpi=true` order, and an order with both `rpi=true` and `retail=true` matches exactly like an RPI order. Previously the collateral endpoints ignored `retail` and placed the order without it.
+Collateral limit orders now accept the `retail` flag with the same rules as spot limit orders. The Retail flag must be enabled on the account; otherwise the API returns error code `42`. The flag has no effect on a `postOnly=true` or `rpi=true` order, and an order with both `rpi=true` and `retail=true` matches exactly like an RPI order. Previously the collateral endpoints ignored `retail` and placed the order without it.
 
 <CardGroup cols={2}>
   <Card title="Collateral Limit Order" href="/api-reference/trading/collateral-limit-order" icon="chart-line" horizontal/>
