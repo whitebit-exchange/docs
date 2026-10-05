@@ -32,9 +32,6 @@ info:
     - code: 155
       message: conditional order modification
       description: "The target is an OCO or OTO leg. Cancel the group and place a new one instead."
-    - code: 160
-      message: tpsl order modification
-      description: "The target is a TPSL leg. Cancel the leg and attach a new pair instead."
     - code: 156
       message: wrong order type
       description: "The order type cannot be modified."
@@ -182,7 +179,7 @@ components:
           example: "1831.41"
         activation_price:
           type: string
-          description: "New trigger price, for conditional orders."
+          description: "New trigger price, for conditional orders and TP/SL legs."
 
     OrderModifyResponse:
       type: object
