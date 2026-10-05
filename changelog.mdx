@@ -4,6 +4,20 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="October 5, 2026">
+## TP/SL legs can be modified over WebSocket
+**`order_modify` accepts TP/SL legs; `collateral_order_tpsl_place` documented as additive**
+
+Legs created by `collateral_order_tpsl_place` can be changed with `order_modify` — send the leg's `order_id` or `client_order_id` with a new `activation_price`. Earlier documentation said `order_modify` returned error `160` for a TPSL leg; that statement was incorrect and is removed.
+
+Each `collateral_order_tpsl_place` call creates a new pair of TP/SL orders. It does not replace or cancel TP/SL orders already on the position, including those created through the REST API (`takeProfit` / `stopLoss`) or by OTO orders. To change levels, modify the existing orders with `order_modify`, or cancel them with `order_cancel` and place new ones. When a TP/SL order triggers and closes the position, the remaining TP/SL orders for that position are cancelled automatically.
+
+<CardGroup cols={2}>
+  <Card title="Attach take-profit and stop-loss" href="/websocket/order-management/collateral-order-tpsl-place" icon="crosshairs" horizontal/>
+  <Card title="Modify order" href="/websocket/order-management/order-modify" icon="pen" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 23, 2026">
 ## Refund history and memo for deposit refunds
 **New `POST /api/v4/main-account/refund-history` endpoint and `memo` support for refunds**
