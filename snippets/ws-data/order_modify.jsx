@@ -67,11 +67,6 @@ export const channelMeta = {
       "description": "The `amount` and `total` parameters are mutually exclusive."
     },
     {
-      "code": 155,
-      "message": "conditional order modification",
-      "description": "The target is an OCO or OTO leg. Cancel the group and place a new one instead."
-    },
-    {
       "code": 156,
       "message": "wrong order type",
       "description": "The order type cannot be modified."
