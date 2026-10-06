@@ -51,7 +51,20 @@ The `result` object holds the `take_profit` and `stop_loss` legs, each reporting
 
 <Warning>An open position is required. Without one the call fails with error `104`, so arm the pair after the entry fills rather than alongside it. For an entry that arms its own exit in a single request, use [`collateral_order_oto_place`](/websocket/order-management/collateral-order-oto-place) instead.</Warning>
 
-<Note>Cancellation differs from the group methods. The two legs are independent orders with separate ids, so cancel each one with [`order_cancel`](/websocket/order-management/order-cancel). A TPSL pair has no group id, so [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) does not apply; separately, [`order_modify`](/websocket/order-management/order-modify) returns error `160` for a TPSL leg.</Note>
+<Warning>Each call is additive. Every request creates a new pair of TP/SL orders. It does not replace or cancel the TP/SL orders already on the position, including those created through the REST API (`takeProfit` / `stopLoss` parameters) or by OTO orders. Calling the method twice leaves two pairs armed.</Warning>
+
+### Change TP/SL levels
+
+Two approaches move the levels of existing TP/SL orders:
+
+1. Modify the existing legs with [`order_modify`](/websocket/order-management/order-modify), for example to change the activation price.
+2. Cancel the existing legs with [`order_cancel`](/websocket/order-management/order-cancel), then place a new pair with `collateral_order_tpsl_place`.
+
+### Behavior on position close
+
+When a TP/SL order triggers and closes the position, the remaining TP/SL orders for that position are cancelled automatically.
+
+<Note>The two legs are independent orders with separate ids, so cancel each one with [`order_cancel`](/websocket/order-management/order-cancel). A TPSL pair has no group id, so [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) does not apply. TPSL legs can be modified with [`order_modify`](/websocket/order-management/order-modify).</Note>
 
 ## Error codes
 

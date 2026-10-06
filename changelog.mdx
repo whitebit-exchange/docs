@@ -4,6 +4,40 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="October 5, 2026">
+## TP/SL legs can be modified over WebSocket
+**`order_modify` accepts TP/SL legs; `collateral_order_tpsl_place` documented as additive**
+
+Legs created by `collateral_order_tpsl_place` can be changed with `order_modify` — send the leg's `order_id` or `client_order_id` with a new `activation_price`. Earlier documentation said `order_modify` returned error `160` for a TPSL leg; that statement was incorrect and is removed.
+
+Each `collateral_order_tpsl_place` call creates a new pair of TP/SL orders. It does not replace or cancel TP/SL orders already on the position, including those created through the REST API (`takeProfit` / `stopLoss`) or by OTO orders. To change levels, modify the existing orders with `order_modify`, or cancel those orders with `order_cancel` and place new ones. When a TP/SL order triggers and closes the position, the remaining TP/SL orders for that position are cancelled automatically.
+
+<CardGroup cols={2}>
+  <Card title="Attach take-profit and stop-loss" href="/websocket/order-management/collateral-order-tpsl-place" icon="crosshairs" horizontal/>
+  <Card title="Modify order" href="/websocket/order-management/order-modify" icon="pen" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="September 30, 2026">
+## Trading on deposits awaiting confirmation
+**Deposits become tradable at the first confirmations, and the part still awaiting the network is reported separately**
+
+A crypto deposit can now be credited before the network fully confirms it, so the funds are tradable earlier. Until confirmation completes, that part of the balance is held back: it can be moved to the [trade balance](/glossary#balance-spotbalance-trade) and traded, but it cannot be withdrawn, sent as a WhiteBIT Code, or moved to the [collateral balance](/glossary#balance-collateral).
+
+[Main balance](/api-reference/account-wallet/main-balance) gains a `pending_deposit_amount` field per currency — the part of `main_balance` that is still held back. It is `0` when nothing is held.
+
+A new endpoint, [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance), reports the same picture for the whole account: the total, the held value, and what remains withdrawable, in a stable-coin equivalent, plus a per-currency breakdown of the free amount.
+
+Requests that would move held funds off the platform are rejected with code `20` on the `amount` field: [Withdraw](/api-reference/account-wallet/create-withdraw-request), [Withdraw Pay](/api-reference/account-wallet/create-withdraw-request-with-specific-amount), [Express Withdraw](/api-reference/account-wallet/create-express-withdraw-token), and [WhiteBIT Code creation](/api-reference/account-wallet/create-code). [Transfer](/api-reference/account-wallet/transfer-between-balances) to the collateral balance is rejected the same way; transfers to the trade balance are never restricted.
+
+Two limits apply at once — the free amount of the currency itself and the free value of the whole account. Whichever is smaller decides, so holding a large balance in other currencies does not make a held currency withdrawable.
+
+<CardGroup cols={2}>
+  <Card title="Withdrawable balance" href="/api-reference/account-wallet/withdrawable-balance" icon="wallet" horizontal/>
+  <Card title="Main balance" href="/api-reference/account-wallet/main-balance" icon="coins" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="September 23, 2026">
 ## Refund history and memo for deposit refunds
 **New `POST /api/v4/main-account/refund-history` endpoint and `memo` support for refunds**

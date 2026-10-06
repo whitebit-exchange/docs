@@ -70,7 +70,11 @@ Moving a trigger works the same way — send `activation_price` on a conditional
 }
 ```
 
-<Note>Group legs cannot be modified. An OCO or OTO leg returns error `155`, and a TPSL leg returns error `160`. Cancel the group and place a new one instead — see [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional) for OCO and OTO, and [`order_cancel`](/websocket/order-management/order-cancel) for TPSL legs.</Note>
+### Modify a TP/SL leg
+
+A leg created by [`collateral_order_tpsl_place`](/websocket/order-management/collateral-order-tpsl-place) can be modified with this method. Send the leg's `order_id` or `client_order_id` together with a new `activation_price` to move its trigger. The take-profit and stop-loss legs are independent orders, so each one is modified with its own request.
+
+<Note>OCO and OTO legs cannot be modified — a modify request for such a leg returns error `155`. Cancel the group and place a new one instead — see [`order_cancel_conditional`](/websocket/order-management/order-cancel-conditional).</Note>
 
 ## Error codes
 
