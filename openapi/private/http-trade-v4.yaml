@@ -4175,14 +4175,14 @@ paths:
       description: |
         The endpoint confirms an estimated quote.
 
-        An expired quote returns code `20` (`api.converter.quoteExpired`), which is distinct from a quote that could not be found (code `0`). Balance is re-checked at confirm time and can fail with code `37` even when the estimate succeeded, because balance may change within the 10-second quote window.
+        An expired quote returns `400` with code `20`, which is distinct from a quote that could not be found (`422`, code `0`). Balance is re-checked at confirm time and can fail with code `37` even when the estimate succeeded, because balance may change within the 10-second quote window.
 
         <Note>
-        A re-confirmed (already used) quote and a quote that never existed both return code `0` with the `quoteId` field key `frontendServerSide.converter.quoteInvalid`. The response alone does not distinguish "already used" from "never existed".
+        A re-confirmed (already used) quote and a quote that cannot be found both return `422` with code `0` under `errors.quoteId`. They differ only in the error text, which is not part of the contract, so do not branch on it: in both cases, request a new estimate.
         </Note>
 
         <Note>
-        Error `message` values may be returned as translation keys (for example `api.converter.quoteExpired`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        Error text is not part of the contract. The `message` value and the strings under `errors` may change wording or be returned as translation keys rather than finalized English strings. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
         </Note>
 
         <Warning>
@@ -4243,9 +4243,9 @@ paths:
                   summary: "Quote Expired"
                   value:
                     code: 20
-                    message: "Validation failed"
+                    message: "Invalid request."
                     errors:
-                      quoteId: ["api.converter.quoteExpired"]
+                      quoteId: ["Your quote has expired. Request a new one to get the current rate."]
                 insufficientBalance:
                   summary: "Insufficient Balance At Confirm"
                   value:
@@ -4266,28 +4266,35 @@ paths:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      quoteId: ["Quote could not be found"]
+                      quoteId: ["The quote does not exist or has expired. Request a new one to get the current rate."]
                 quoteAlreadyUsed:
                   summary: "Quote Already Confirmed"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      quoteId: ["frontendServerSide.converter.quoteInvalid"]
+                      quoteId: ["Invalid Quote"]
                 quoteIdNonNumeric:
                   summary: "Quote ID Not Numeric"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      quoteId: ["validation.numeric_integer"]
+                      quoteId: ["The QuoteId must be an integer."]
                 quoteIdTooLong:
-                  summary: "Quote ID Exceeds Max Length"
+                  summary: "Quote ID Too Long"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      quoteId: ["validation.numeric_field_length"]
+                      quoteId: ["The QuoteId must be an integer."]
+                emptyBody:
+                  summary: "Empty Request Body"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      quoteId: ["The QuoteId field is required."]
 
   /api/v4/convert/auto-confirm:
     post:
