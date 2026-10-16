@@ -3996,14 +3996,16 @@ paths:
       description: |
         The endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
 
-        The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. Account balance is pre-checked at estimate time and re-checked at confirm time, because balance can change within the 10-second quote window. There is an absolute server-side maximum on the conversion amount.
+        The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. Account balance is pre-checked at estimate time and re-checked at confirm time, because balance can change within the 10-second quote window. An amount above the absolute server-side maximum is rejected with `422`.
+
+        Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
 
         <Note>
         The endpoint can be used to obtain a pre-execution price estimate for a market order. Call the endpoint with the desired amount before placing a market order to see the approximate execution price.
         </Note>
 
         <Note>
-        Error `message` values may be returned as translation keys (for example `validation.required`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        Error text is not part of the contract. The `message` value and the strings under `errors` may change wording or be returned as translation keys rather than finalized English strings. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
         </Note>
 
         <Warning>
@@ -4112,20 +4114,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                amountTooBig:
-                  summary: "Amount Above Maximum"
+                amountNotProcessable:
+                  summary: "Amount Cannot Be Processed"
                   value:
                     code: 32
-                    message: "Validation failed"
+                    message: "Invalid request."
                     errors:
-                      amount: ["frontendServerSide.converter.amountIsTooBig"]
+                      request: ["Unable to process the current amount. Please reduce it or try again later."]
                 insufficientBalance:
                   summary: "Insufficient Balance"
                   value:
                     code: 37
-                    message: "Validation failed"
+                    message: "Invalid request."
                     errors:
-                      amount: ["validation.balance"]
+                      request: ["Not enough balance"]
         '422':
           description: Validation failed
           content:
@@ -4146,7 +4148,7 @@ paths:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      direction: ["Direction field does not exist in [from,to]."]
+                      direction: ["The Direction field does not exist in [From,To]."]
                 marketsNotAvailable:
                   summary: "Markets Not Available"
                   value:
@@ -4154,20 +4156,34 @@ paths:
                     message: "Validation failed"
                     errors:
                       from: ["Conversion markets not available"]
+                currencyInvalid:
+                  summary: "Unknown Currency"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      to: ["The selected To is invalid."]
                 amountTooSmall:
                   summary: "Amount Below Minimum"
                   value:
                     code: 0
                     message: "Validation failed"
                     errors:
-                      amount: ["validation.amount_too_small"]
-                missingRequiredField:
-                  summary: "Missing Required Field"
+                      amount: ["Amount is too small"]
+                amountAboveMaximum:
+                  summary: "Amount Above Maximum"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      amount: ["validation.required"]
+                      amount: ["The Amount may not be greater than 100000000000."]
+                missingRequiredField:
+                  summary: "Missing Required Field"
+                  value:
+                    code: 32
+                    message: "Validation failed"
+                    errors:
+                      amount: ["Amount field should not be empty string."]
 
   /api/v4/convert/confirm:
     post:
