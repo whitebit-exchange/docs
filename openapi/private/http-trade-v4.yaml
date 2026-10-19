@@ -4508,14 +4508,16 @@ paths:
       description: |
         The endpoint returns convert history, sorted by `id` descending (newest first).
 
-        The `from`–`to` window is capped at 30 days per request, even though data is retained for 6 months. A wider range is rejected with code `30` (`api.validation.dateTime.maxRange`).
+        The `from`–`to` window is capped at 30 days per request, even though data is retained for 6 months. A wider range is rejected with `422` and code `0`, reported under both `from` and `to`.
+
+        `total` is the number of records in the returned page, not the number of all matching records, so it never exceeds `limit`. A full page does not mean more records exist. To read every record, request the next `offset` until a page returns fewer than `limit` records or none.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
         </Warning>
 
         <Note>
-        Error `message` values may be returned as translation keys (for example `api.validation.dateTime.maxRange`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        Error text is not part of the contract and may change. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
         </Note>
 
         **Note:** The endpoint can retrieve data not older than 6 months from the current month. For older data, use the Report on the History page.
@@ -4582,6 +4584,7 @@ paths:
                 properties:
                   records:
                     type: array
+                    description: "Conversion records. Field order inside a record is not part of the contract."
                     items:
                       type: object
                       properties:
@@ -4589,6 +4592,20 @@ paths:
                           type: string
                           description: "Convert record ID"
                           example: "4030"
+                        path:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              from:
+                                type: string
+                                example: "BTC"
+                              to:
+                                type: string
+                                example: "USDT"
+                              rate:
+                                type: string
+                                example: "34470.87211306"
                         date:
                           type: integer
                           description: "Conversion timestamp"
@@ -4605,24 +4622,10 @@ paths:
                           type: string
                           description: "Conversion rate"
                           example: "34470.87211306"
-                        path:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              from:
-                                type: string
-                                example: "BTC"
-                              to:
-                                type: string
-                                example: "USDT"
-                              rate:
-                                type: string
-                                example: "34470.87211306"
                   total:
                     type: integer
-                    description: "Total number of records"
-                    example: 4
+                    description: "Number of records in the returned page, not the number of all matching records. Never greater than `limit`."
+                    example: 1
                   limit:
                     type: integer
                     description: "Limit used in request"
@@ -4661,39 +4664,55 @@ paths:
                 dateRangeExceeded:
                   summary: "Date Range Exceeds 30 Days"
                   value:
-                    code: 30
+                    code: 0
                     message: "Validation failed"
                     errors:
-                      from: ["api.validation.dateTime.maxRange"]
-                      to: ["api.validation.dateTime.maxRange"]
+                      from: ["The time range between from and to dates cannot exceed 30 days."]
+                      to: ["The time range between from and to dates cannot exceed 30 days."]
+                dateOrderInvalid:
+                  summary: "From Later Than To"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      from: ["The From may not be greater than <to>."]
+                      to: ["The To must be at least <from>"]
                 dateNonInteger:
                   summary: "Date Not An Integer Timestamp"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      from: ["validation.numeric_integer"]
+                      from: ["The From must be an integer."]
                 dateOutOfRange:
                   summary: "Date Outside Allowed Range"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      from: ["validation.numeric_field_length"]
-                limitOutOfRange:
-                  summary: "Limit Out Of Range"
+                      from: ["The From must be at least <timestamp>"]
+                limitBelowMinimum:
+                  summary: "Limit Below Minimum"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      limit: ["validation.numeric_field_length"]
+                      limit: ["The Limit must be at least 1"]
+                limitAboveMaximum:
+                  summary: "Limit Above Maximum"
+                  value:
+                    code: 30
+                    message: "Validation failed"
+                    errors:
+                      limit: ["The Limit may not be greater than 100."]
                 offsetNegative:
                   summary: "Offset Below Minimum"
+                  description: "The message currently appears twice in the array. Do not rely on the number of entries under a field."
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      offset: ["validation.length_min"]
+                      offset: ["The Offset must be at least 0", "The Offset must be at least 0"]
 
   /api/v4/market/fee:
     post:
