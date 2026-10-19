@@ -4299,7 +4299,7 @@ paths:
 
         `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time.
 
-        The key is bound to the request that first executed it. Reuse with different parameters returns `409` (`frontendServerSide.converter.idempotencyKeyReused`) instead of replaying the earlier conversion.
+        The key is bound to the request that first executed it.
 
         The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
 
