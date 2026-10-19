@@ -28,6 +28,8 @@ The Maintenance Margin Rate (MMR) is **3% for leverage 1x–10x**. Per-market le
 | Maximum leverage | 10x | 100x |
 | Documented MMR | 3% for 1x–10x | 3% for 1x–10x |
 
+The account-level requirement in force is returned as `maintenanceMarginFraction` on the [Collateral account summary](/api-reference/trading/collateral-account-summary) endpoint. The value is not a constant: it ranges from 0.5% to 3% depending on the open margin and futures positions, with futures positions weighted by risk bracket. Liquidation starts when `marginFraction` — account value (`equity` + `pnl`) divided by the total notional value of open positions — is strictly below `maintenanceMarginFraction`. Use the returned values as the trigger condition; the underlying formula is not published, so a requirement recomputed from position data can differ from the returned value.
+
 The [leverage endpoint](/api-reference/trading/change-collateral-account-leverage) accepts `1`, `2`, `3`, `5`, `10`, `20`, `50`, and `100`. Leverage is an account-level setting — a change affects all open positions across both products. A market's `max_leverage` field may be lower than `100`, and setting leverage above a market maximum returns an error.
 
 The `brackets` object on `GET /api/v4/public/futures` maps each leverage multiplier to the **maximum open position size in USDT equivalent** at that level. Brackets are position-size limits, not MMR percentages. A position that exceeds a bracket limit moves to higher tiers with progressively lower leverage.
@@ -50,13 +52,14 @@ On futures markets, [Auto-Deleveraging](/concepts/auto-deleveraging) is the fina
 |-------|---------|---------|
 | `liquidationPrice` | [Open positions](/api-reference/trading/open-positions) | Liquidation price for the current position state. Nullable — a position already under a margin call can return `null` |
 | `liquidationState` | [Open positions](/api-reference/trading/open-positions) | `margin_call` or `liquidation`. Nullable while neither state applies |
-| `marginFraction` | [Collateral account summary](/api-reference/trading/collateral-account-summary) | Ratio of used margin to account equity, returned alongside `equity`, `margin`, `freeMargin`, and `pnl` |
+| `marginFraction` | [Collateral account summary](/api-reference/trading/collateral-account-summary) | Account value (`equity` + `pnl`) divided by total position notional. Lower means higher risk. Returns `1000000000000000000000` with no open positions |
+| `maintenanceMarginFraction` | [Collateral account summary](/api-reference/trading/collateral-account-summary) | Account-level maintenance margin requirement. Liquidation starts when `marginFraction` is strictly below this value |
 | `liq_price`, `liq_stage` | [Positions](/websocket/account-streams/positions) stream | Liquidation price and stage per position, pushed every second. `liq_stage` is `margin_call`, `liquidation`, or `null` when healthy |
 | `liq_price` | [Borrows](/websocket/account-streams/borrows) stream | Liquidation price of an individual borrow |
 | Event type | [Borrows events](/websocket/account-streams/borrows-events) stream | `1` = margin call, `2` = liquidation |
 | `liq_stage` | [Margin positions events](/websocket/account-streams/margin-positions-events) stream | Event-driven margin call and liquidation notifications; no snapshot on subscribe |
 
-Because `liquidationPrice` is nullable, a risk monitor treats a missing value as "not yet computed" rather than "no liquidation risk", and tracks `marginFraction` alongside.
+Because `liquidationPrice` is nullable, a risk monitor treats a missing value as "not yet computed" rather than "no liquidation risk", and tracks `marginFraction` against `maintenanceMarginFraction` alongside.
 
 ## Cost of borrowed funds
 
