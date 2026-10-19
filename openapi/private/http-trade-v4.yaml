@@ -4435,14 +4435,14 @@ paths:
                     code: 0
                     message: "Invalid request."
                     errors:
-                      request: ["frontendServerSide.converter.requestInFlight"]
+                      request: ["This conversion is already in progress."]
                 idempotencyKeyReused:
                   summary: "Key Reused For A Different Request"
                   value:
                     code: 0
                     message: "Invalid request."
                     errors:
-                      idempotencyKey: ["frontendServerSide.converter.idempotencyKeyReused"]
+                      idempotencyKey: ["This idempotency key was already used for a different conversion request. Use a new key for each new request."]
         '422':
           description: Validation failed
           content:
@@ -4496,7 +4496,7 @@ paths:
                 code: 0
                 message: "Invalid request."
                 errors:
-                  request: ["frontendServerSide.converter.outcomeUnknown"]
+                  request: ["We couldn't confirm this conversion. Check your history before trying again."]
         '503':
           description: Conversion is disabled on the platform by the convert kill switch
           content:
