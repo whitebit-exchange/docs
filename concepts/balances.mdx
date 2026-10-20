@@ -64,6 +64,12 @@ Total balance = `available` + `freeze`. Only `available` funds can be transferre
 
 USDTB is a bonus collateral token used for futures trading. USDTB cannot be deposited or withdrawn — the platform grants USDTB as a bonus asset. USDTB appears in the Collateral balance and counts toward futures margin requirements.
 
+USDTB enters futures margin calculations through the futures-specific parameters:
+
+- `futuresEquity` = `equity` + USDTB. Returned by [Collateral account summary](/api-reference/trading/collateral-account-summary).
+- `futuresFreeMargin` = `freeMargin` + USDTB. Returned by [Collateral account summary](/api-reference/trading/collateral-account-summary).
+- Futures Margin Fraction — used in the [ADL execution price](/concepts/auto-deleveraging#execution-price) formula.
+
 ## Deposit flow
 
 1. Generate a deposit address. Use `POST /api/v4/main-account/create-new-address` ([API Reference](/api-reference/account-wallet/create-new-address-for-deposit)) to generate a unique address per request, or `POST /api/v4/main-account/address` ([API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address)) to retrieve a persistent reusable address. Alternatively, create an address through the platform UI.
