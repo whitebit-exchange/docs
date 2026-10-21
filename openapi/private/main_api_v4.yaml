@@ -71,6 +71,8 @@ paths:
 
         An unknown or non-existent `ticker` is not an error: the endpoint returns a zero balance (`{"main_balance": "0"}`) for it. Omitting `ticker` returns balances for every currency.
 
+        `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
+
         Beyond the validation error above, this endpoint can return only the [common authentication errors](/api-reference/authentication).
 
         <Warning>
@@ -116,17 +118,26 @@ paths:
                     main_balance:
                       type: string
                       description: Main balance volume
+                    pending_deposit_amount:
+                      type: string
+                      description: |
+                        Part of `main_balance` that comes from deposits credited before the network fully confirmed them. Tradable, but not withdrawable until confirmation completes. `0` when nothing is held back.
               example:
                 BSV:
                   main_balance: "0"
+                  pending_deposit_amount: "0"
                 BTC:
                   main_balance: "0"
+                  pending_deposit_amount: "0"
                 BTG:
                   main_balance: "0"
+                  pending_deposit_amount: "0"
                 BTT:
                   main_balance: "0"
+                  pending_deposit_amount: "0"
                 XLM:
                   main_balance: "36.48"
+                  pending_deposit_amount: "12.5"
         "422":
           description: Validation failed
           content:
@@ -142,6 +153,80 @@ paths:
                     errors:
                       ticker:
                       - validation.string
+
+  /api/v4/main-account/withdrawable-balance:
+    post:
+      tags:
+        - Main Account
+      summary: Get withdrawable balance
+      description: |
+        The endpoint reports how much of the account is held back because deposits were credited before the network fully confirmed them, and how much remains withdrawable.
+
+        Amounts ending in `Stable` are expressed in a stable-coin equivalent, so figures for different currencies can be summed. `assets` breaks the free amount down per currency, in that currency's own units.
+
+        The held amount is tradable: it can be moved to the trade balance and traded. It cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. Two limits apply at once — the free amount of the currency itself, shown in `assets`, and the free value of the whole account, shown in `availableBalanceStable`. Whichever is smaller decides.
+
+        `assets` lists a currency when it has a free amount, and lists it with `"0"` when the currency is fully held back. Currencies with neither a balance nor a hold are omitted.
+
+        The collateral balance is excluded from every figure here, because funds moved there are already outside the hold.
+
+        Beyond the [common authentication errors](/api-reference/authentication), this endpoint returns no errors of its own.
+
+        <Warning>
+          Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+      operationId: getWithdrawableBalance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request
+                - nonce
+              properties:
+                request:
+                  type: string
+                  description: Request signature
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: Unique request identifier
+                  example: 1594297865000
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalBalanceStable:
+                    type: string
+                    description: Total value of the main and trade balances, in a stable-coin equivalent.
+                  lockedBalanceStable:
+                    type: string
+                    description: Value held back by unconfirmed deposits, in a stable-coin equivalent.
+                  availableBalanceStable:
+                    type: string
+                    description: Value that can still be withdrawn, in a stable-coin equivalent. Never negative.
+                  assets:
+                    type: object
+                    description: Free amount per currency, in that currency's own units. A currency that is fully held back is reported as `"0"`.
+                    additionalProperties:
+                      type: string
+              example:
+                totalBalanceStable: "795.738"
+                lockedBalanceStable: "247.869"
+                availableBalanceStable: "547.869"
+                assets:
+                  ETH: "0.1"
+                  USDT: "300"
 
   /api/v4/main-account/address:
     post:
@@ -1707,6 +1792,7 @@ paths:
             - 7 - amount should be integer (can happen for currencies with zero [precision](/glossary#precision) like Neo)
             - 8 - target withdraw amount without [fee](/glossary#fee) equals zero
             - 9 - address is unavailable (occurs for withdraws to own address)
+            - 20 - the amount is not withdrawable yet because deposits credited before full network confirmation are still held back; see [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance)
 
             Additional account-state outcomes are also returned here with `code: 0`
             (the message is localized, so match on the condition rather than the exact string):
@@ -1728,6 +1814,13 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       address: ["The address is invalid"]
+                pendingDeposit:
+                  summary: "Amount still held back by an unconfirmed deposit"
+                  value:
+                    code: 20
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Insufficient available balance. Recent deposits are awaiting final network confirmation."]
                 notEnoughBalance:
                   summary: "Not enough balance"
                   value:
@@ -1854,6 +1947,7 @@ paths:
             - 7 - amount should be integer (can happen for currencies with zero [precision](/glossary#precision) like Neo)
             - 8 - target withdraw amount without [fee](/glossary#fee) equals zero
             - 9 - address is unavailable (occurs for withdraws to own address)
+            - 20 - the amount is not withdrawable yet because deposits credited before full network confirmation are still held back; see [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance)
           content:
             application/json:
               schema:
@@ -1866,6 +1960,13 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       address: ["The address is invalid"]
+                pendingDeposit:
+                  summary: "Amount still held back by an unconfirmed deposit"
+                  value:
+                    code: 20
+                    message: "Inner validation failed"
+                    errors:
+                      amount: ["Insufficient available balance. Recent deposits are awaiting final network confirmation."]
                 notEnoughBalance:
                   summary: "Not enough balance"
                   value:
@@ -1987,6 +2088,7 @@ paths:
             - 18 - token invalid: a pending `externalId` re-submitted with a different `ticker` or `amount`. Parameters of a pending payment cannot change — use a new `externalId`.
             - 19 - token already used: the `externalId` belongs to a payment the user already confirmed.
             - 191 - amount exceeds the limit: the amount converts to more than the 10,000 USDT-equivalent per-payment cap.
+            - 20 - the amount is not withdrawable yet because deposits credited before full network confirmation are still held back; see [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance)
 
             Additional outcomes returned with HTTP 422:
             - **Currency not allowed** — the [ticker](/glossary#ticker) is [fiat](/glossary#fiat) or not withdrawal-enabled; the error is keyed to the currency field.
@@ -2199,6 +2301,11 @@ paths:
               `Not permitted for sub-account`.
             - **Maximum collateral balance exceeded** — the transfer would push the
               [collateral balance](/glossary#balance-collateral) past its cap; on field `form`.
+            - **Amount still held back by an unconfirmed deposit** — moving to the
+              [collateral balance](/glossary#balance-collateral) is rejected while deposits
+              credited before full network confirmation are held back; on field `amount`. Transfers
+              to the [trade balance](/glossary#balance-spotbalance-trade) are never restricted this
+              way. See [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
           content:
             application/json:
               schema:
@@ -2990,6 +3097,7 @@ paths:
             - 4 - amount is too small for the payment system
             - 5 - not enough balance
             - 6 - amount is less than or equals [fee](/glossary#fee)
+            - 20 - the amount is not withdrawable yet because deposits credited before full network confirmation are still held back; see [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance)
 
             Code creation reserves funds through the shared withdraw processor, so insufficient
             balance surfaces as code 5. The minimum amount is configured **per currency** (there

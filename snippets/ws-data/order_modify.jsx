@@ -22,7 +22,7 @@ export const orderModifyParams = [
   { name: "amount", type: "string", description: "New size in stock. Mutually exclusive with `total`." },
   { name: "total", type: "string", description: "New size expressed in money. Mutually exclusive with `amount`." },
   { name: "price", type: "string", description: "New limit price." },
-  { name: "activation_price", type: "string", description: "New trigger price, for conditional orders." },
+  { name: "activation_price", type: "string", description: "New trigger price, for conditional orders and TP/SL legs." },
 ];
 
 export const orderModifyResponse = [
@@ -65,16 +65,6 @@ export const channelMeta = {
       "code": 1,
       "message": "amount and total cannot be specified simultaneously",
       "description": "The `amount` and `total` parameters are mutually exclusive."
-    },
-    {
-      "code": 155,
-      "message": "conditional order modification",
-      "description": "The target is an OCO or OTO leg. Cancel the group and place a new one instead."
-    },
-    {
-      "code": 160,
-      "message": "tpsl order modification",
-      "description": "The target is a TPSL leg. Cancel the leg and attach a new pair instead."
     },
     {
       "code": 156,

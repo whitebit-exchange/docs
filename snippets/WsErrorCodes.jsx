@@ -21,7 +21,7 @@ export const WsErrorCodes = ({ errorCodes }) => {
           <tbody>
             {errorCodes.map((err, i) => (
               <tr key={i}>
-                <td><code>{err.code}</code></td>
+                <td style={{ whiteSpace: 'nowrap' }}><code>{err.code}</code></td>
                 <td>{err.message}</td>
                 <td>{err.description}</td>
               </tr>
