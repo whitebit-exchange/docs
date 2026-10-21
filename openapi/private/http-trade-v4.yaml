@@ -1639,8 +1639,10 @@ paths:
       summary: Collateral Account Summary
       operationId: collateralAccountSummary
       description: |
-        The endpoint returns a collateral account summary including total equity, used margin, free margin, unrealized profit and loss, and the current leverage level. The `marginFraction` field indicates the ratio of used margin to total equity.
-        
+        The endpoint returns an account-level summary of the [collateral](/glossary#balance-collateral) balance: equity, used margin, free margin, unrealized profit and loss, leverage, and the two risk ratios that drive [liquidation](/concepts/liquidation). Margin positions and futures positions share the collateral balance, so every value covers both products.
+
+        The account enters liquidation when `marginFraction` drops strictly below `maintenanceMarginFraction`. The platform computes both ratios server-side; compare the returned values instead of recomputing them from position data.
+
         <Warning>
         Rate limit: 12000 requests/10 sec.
         </Warning>
@@ -1676,23 +1678,23 @@ paths:
                 properties:
                   equity:
                     type: string
-                    description: Total equity value of the collateral account
+                    description: "Sum of the collateral balances: own funds minus unrealized funding on margin borrowings. Excludes unrealized profit and loss (`pnl`) and the [USDTB](/concepts/balances#usdtb-bonus-collateral) bonus balance — see `futuresEquity` for the value that includes USDTB."
                     example: "15000.50"
                   margin:
                     type: string
-                    description: Total margin used
+                    description: "Total margin in use, returned as a positive value. Covers open positions and open limit orders — placing a limit order increases `margin` before the order fills."
                     example: "5000.00"
                   freeMargin:
                     type: string
-                    description: Available margin for trading
-                    example: "10000.50"
+                    description: "Margin available for new orders and positions: `freeMargin` = `equity` + `pnl` − `margin`. Excludes the USDTB bonus balance — see `futuresFreeMargin` for the value that includes USDTB."
+                    example: "10150.75"
                   unrealizedFunding:
                     type: string
                     description: Unrealized funding payments
                     example: "25.75"
                   pnl:
                     type: string
-                    description: Unrealized profit and loss
+                    description: "Unrealized profit and loss across open positions. Not included in `equity`; included in `freeMargin` and `marginFraction`."
                     example: "150.25"
                   leverage:
                     type: integer
@@ -1700,16 +1702,31 @@ paths:
                     example: 3
                   marginFraction:
                     type: string
-                    description: Margin fraction ratio (margin / equity)
-                    example: "0.3333"
+                    description: "Ratio of account value (`equity` + `pnl`) to the total notional value of open positions. A lower value means higher risk; liquidation starts when `marginFraction` is strictly below `maintenanceMarginFraction`. With no open positions, the ratio tends to infinity and the field returns `\"1000000000000000000000\"`."
+                    example: "1.01005"
+                  maintenanceMarginFraction:
+                    type: string
+                    description: "Account-level maintenance margin requirement (MMR), as a fraction. The value ranges from `0.005` (0.5%) to `0.03` (3%) and covers both margin and futures positions; futures positions are weighted by risk bracket. The value is not a flat rate per position, so small deviations from a round percentage are expected, and multiplying it by the summed position notional does not reproduce the account's maintenance margin. Use the returned value as the liquidation threshold for `marginFraction`."
+                    example: "0.03"
+                  futuresEquity:
+                    type: string
+                    description: "`equity` plus the [USDTB](/concepts/balances#usdtb-bonus-collateral) bonus balance. Equals `equity` when the account holds no USDTB."
+                    example: "15100.50"
+                  futuresFreeMargin:
+                    type: string
+                    description: "`freeMargin` plus the USDTB bonus balance. Equals `freeMargin` when the account holds no USDTB."
+                    example: "10250.75"
               example:
                 equity: "15000.50"
                 margin: "5000.00"
-                freeMargin: "10000.50"
+                freeMargin: "10150.75"
                 unrealizedFunding: "25.75"
                 pnl: "150.25"
                 leverage: 3
-                marginFraction: "0.3333"
+                marginFraction: "1.01005"
+                maintenanceMarginFraction: "0.03"
+                futuresEquity: "15100.50"
+                futuresFreeMargin: "10250.75"
         '422':
           description: Request validation failed
           content:
