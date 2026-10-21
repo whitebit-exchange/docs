@@ -4335,9 +4335,11 @@ paths:
 
         `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time.
 
-        The key is bound to the request that first executed it. Reuse with different parameters returns `409` (`frontendServerSide.converter.idempotencyKeyReused`) instead of replaying the earlier conversion.
+        The key is bound to the request that first executed it.
 
         The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
+
+        Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
 
         **Rate limit:** 10,000 requests / 10 sec per IP address — the default for all endpoints. See [Rate limits](/api-reference/rate-limits).
 
@@ -4346,7 +4348,7 @@ paths:
         </Warning>
 
         <Note>
-        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic value `api.httpErrors.invalidRequest`. The specific condition appears in `errors.<field>[0]`. Branch on the HTTP status code rather than on `code`.
+        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic `Invalid request.`. The specific condition appears in `errors.<field>[0]`: under `errors.idempotencyKey` when the key was reused for a different request, under `errors.request` otherwise. Branch on the HTTP status code and the field name rather than on `code`.
         </Note>
 
         <Warning>
@@ -4354,7 +4356,7 @@ paths:
         </Warning>
 
         <Note>
-        Error `message` values may be returned as translation keys (for example `validation.balance`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+        Error text is not part of the contract and may change. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
         </Note>
       operationId: convertAutoConfirm
       security:
@@ -4394,7 +4396,7 @@ paths:
                   type: string
                   minLength: 8
                   maxLength: 128
-                  description: "Optional idempotency key. Any characters are accepted; the bounds are a length check on a free-form string and never a comparison of a digits-only key as a number, so `\"12345678\"` is valid and `\"123\"` is too short. A UUID is the usual choice."
+                  description: "Optional idempotency key. Any characters are accepted; the bounds are a length check on a free-form string and never a comparison of a digits-only key as a number, so `\"12345678\"` is valid and `\"123\"` is too short. A UUID is the usual choice. Omit the field rather than sending an empty string: an empty string does not claim a key, so a retry converts a second time, the same as with no key."
                   example: "9f1c2b7e-4d3a-4f21-9c88-6e5b0a71d240"
                 nonce:
                   type: integer
@@ -4424,16 +4426,16 @@ paths:
                     example: "987654321"
                   finalGive:
                     type: string
-                    description: "Final amount given, in the `from` currency"
-                    example: "0.10000000"
+                    description: "Final amount given, in the `from` currency. The string carries no fixed number of decimal places: `10`, not `10.00000000`."
+                    example: "0.1"
                   finalReceive:
                     type: string
-                    description: "Final amount received, in the `to` currency"
-                    example: "6543.21000000"
+                    description: "Final amount received, in the `to` currency. The string carries no fixed number of decimal places."
+                    example: "6543.21"
               example:
                 id: "987654321"
-                finalGive: "0.10000000"
-                finalReceive: "6543.21000000"
+                finalGive: "0.1"
+                finalReceive: "6543.21"
         '400':
           description: Inner validation failed
           content:
@@ -4445,16 +4447,16 @@ paths:
                   summary: "Insufficient Balance"
                   value:
                     code: 37
-                    message: "Validation failed"
+                    message: "Invalid request."
                     errors:
-                      amount: ["validation.balance"]
+                      request: ["Not enough balance"]
                 amountTooBig:
                   summary: "Amount Above Maximum"
                   value:
                     code: 32
-                    message: "Validation failed"
+                    message: "Invalid request."
                     errors:
-                      amount: ["frontendServerSide.converter.amountIsTooBig"]
+                      request: ["Amount too high — try a lower amount"]
         '409':
           description: |
             Idempotency key conflict. The endpoint executed no conversion.
@@ -4467,16 +4469,16 @@ paths:
                   summary: "Duplicate Request Still Running"
                   value:
                     code: 0
-                    message: "api.httpErrors.invalidRequest"
+                    message: "Invalid request."
                     errors:
-                      request: ["frontendServerSide.converter.requestInFlight"]
+                      request: ["This conversion is already in progress."]
                 idempotencyKeyReused:
                   summary: "Key Reused For A Different Request"
                   value:
                     code: 0
-                    message: "api.httpErrors.invalidRequest"
+                    message: "Invalid request."
                     errors:
-                      request: ["frontendServerSide.converter.idempotencyKeyReused"]
+                      idempotencyKey: ["This idempotency key was already used for a different conversion request. Use a new key for each new request."]
         '422':
           description: Validation failed
           content:
@@ -4487,17 +4489,17 @@ paths:
                 missingRequiredField:
                   summary: "Missing Required Field"
                   value:
-                    code: 30
+                    code: 32
                     message: "Validation failed"
                     errors:
-                      amount: ["validation.required"]
+                      amount: ["Amount field should not be empty string."]
                 directionInvalid:
                   summary: "Direction Invalid"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      direction: ["Direction field does not exist in [from,to]."]
+                      direction: ["The Direction field does not exist in [From,To]."]
                 amountTooSmall:
                   summary: "Amount Below Minimum"
                   value:
@@ -4528,9 +4530,9 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 code: 0
-                message: "api.httpErrors.invalidRequest"
+                message: "Invalid request."
                 errors:
-                  request: ["frontendServerSide.converter.outcomeUnknown"]
+                  request: ["We couldn't confirm this conversion. Check your history before trying again."]
         '503':
           description: Conversion is disabled on the platform by the convert kill switch
           content:
