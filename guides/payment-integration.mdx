@@ -1019,12 +1019,12 @@ Common synchronous rejections from `/convert/confirm` and the recovery for each:
 
 | Error code | Cause | Recovery |
 |------------|-------|----------|
-| `20` (`api.converter.quoteExpired`) | The quote expired before confirmation | Request a new estimate and confirm within the quote window |
+| `20` (HTTP `400`) | The quote expired before confirmation | Request a new estimate and confirm within the quote window |
 | `37` | Insufficient balance at confirm time — the platform re-checks the balance on confirm, and the balance can change within the quote window even when the estimate succeeded | Top up the Main balance or request a new estimate for a smaller amount |
-| `0` with the `quoteId` field key `frontendServerSide.converter.quoteInvalid` | The quote was already used or never existed — the response does not distinguish the two | Request a new estimate |
+| `0` (HTTP `422`) under `errors.quoteId` | The quote was already used or cannot be found — only the error text differs, and the text is not part of the contract | Request a new estimate |
 
 <Note>
-  Error `message` values may arrive as translation keys (e.g., `api.converter.quoteExpired`) rather than finalized English strings. Treat the `code` and the field name under `errors` as the stable contract.
+  Error text is not part of the contract and may change. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
 </Note>
 
 ## Code example
