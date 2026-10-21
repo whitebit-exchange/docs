@@ -243,6 +243,8 @@ paths:
 
         <Note>
           - RPI orders are post-only by design and cannot be used with the IOC flag. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
+          - `retail=true` marks the order as a retail-source taker eligible to match RPI-maker liquidity. The Retail flag must be enabled on the account; contact the account manager to enable it.
+          - `retail=true` has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are makers and cannot be retail takers; an order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
         </Note>
       tags:
         - Collateral Trading
@@ -317,6 +319,18 @@ paths:
 
                     RPI orders are post-only by design and cannot be used with `ioc=true`. The API returns error code `40` when both `rpi=true` and `ioc=true` are used.
                   example: true
+                retail:
+                  type: boolean
+                  default: false
+                  description: |
+                    Retail-source taker flag. When `true`, the order is eligible to match against orders submitted by RPI makers and may receive price improvement at execution. Default: `false`.
+
+                    The Retail flag must be enabled on the account before a private-API request can set `retail=true`. The API returns error code `42` when the flag is not enabled. Contact the account manager to enable the Retail flag.
+
+                    The flag has no effect on a `postOnly=true` or `rpi=true` order. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An order with both `rpi=true` and `retail=true` matches exactly like an RPI order.
+
+                    Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
+                  example: false
                 positionSide:
                   type: string
                   enum: [LONG, SHORT, BOTH]
@@ -460,6 +474,10 @@ paths:
                     type: boolean
                     description: Retail Price Improvement flag
                     example: true
+                  retail:
+                    type: boolean
+                    description: "Retail-source taker flag. The field is present only when the order was placed with `retail=true`. See [Retail flag](/glossary#retail-flag)."
+                    example: true
                   reduceOnly:
                     type: boolean
                     description: Reduce-only flag
@@ -500,6 +518,7 @@ paths:
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
             - `40` - `ioc=true` cannot be combined with `rpi=true`
+            - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
             - `10` - insufficient balance to place the order
             - `111` - resulting position would exceed the market maximum
@@ -604,6 +623,18 @@ paths:
                           RPI orders use post-only behavior by design. An RPI order does not support `ioc=true`.
                           The API returns error code `40` when an order item sets both `rpi=true` and `ioc=true`.
                         example: true
+                      retail:
+                        type: boolean
+                        default: false
+                        description: |
+                          Retail-source taker flag for the bulk-order item. When `true`, the item is eligible to match against orders submitted by RPI makers and may receive price improvement at execution. Default: `false`.
+
+                          The Retail flag must be enabled on the account before a private-API request can set `retail=true`. The API returns error code `42` for the item when the flag is not enabled. Contact the account manager to enable the Retail flag.
+
+                          The flag has no effect on a `postOnly=true` or `rpi=true` item. Post-only and RPI orders are [makers](/glossary#maker); only takers carry the retail designation. An item with both `rpi=true` and `retail=true` matches exactly like an RPI order.
+
+                          Refer to [Retail flag](/glossary#retail-flag) and [Order Parameter Rules](/guides/order-parameter-rules) for unsupported parameter combinations.
+                        example: false
                       positionSide:
                         type: string
                         enum: [LONG, SHORT, BOTH]
@@ -758,6 +789,10 @@ paths:
                           type: boolean
                           description: Retail Price Improvement flag
                           example: true
+                        retail:
+                          type: boolean
+                          description: "Retail-source taker flag. The field is present only when the order was placed with `retail=true`. See [Retail flag](/glossary#retail-flag)."
+                          example: true
                         reduceOnly:
                           type: boolean
                           description: Reduce-only flag
@@ -844,6 +879,7 @@ paths:
             - `33` - price validation failed
             - `36` - clientOrderId validation failed
             - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+            - `42` - `retail=true` is not allowed for the account (per-order)
             - `10` - insufficient balance to place the order
             - `111` - resulting position would exceed the market maximum
             - `112` - pending orders value would exceed the allowed maximum
