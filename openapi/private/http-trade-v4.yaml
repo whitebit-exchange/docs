@@ -4051,6 +4051,8 @@ paths:
 
         The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. Account balance is pre-checked at estimate time and re-checked at confirm time, because balance can change within the 10-second quote window. An amount above the absolute server-side maximum is rejected with `422`.
 
+        `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits; do not rely on the tolerance. An amount inside the allowed range can still be rejected as too small for the pair when it converts to zero.
+
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
         An amount that the conversion engine cannot fill returns `400` with code `32` under `errors.request`, for one of two reasons: the amount exceeds the engine's amount limit (`amountTooHigh` example) or liquidity is insufficient (`amountNotProcessable` example). When the account balance is insufficient, the endpoint returns the balance error (`400`, code `37`, `insufficientBalance` example) before either of these checks.
@@ -4097,12 +4099,12 @@ paths:
                       example: "USDT"
                     direction:
                       type: string
-                      description: "Convert amount direction, defines in which currency corresponding \"amount\" field is populated. Use \"to\" in case amount is in \"to\" currency, use \"from\" if amount is in \"from\" currency"
+                      description: "Currency that `amount` is given in: `from` for the source currency, `to` for the target currency."
                       enum: ["from", "to"]
                       example: "to"
                     amount:
                       type: string
-                      description: "Amount to convert or receive, sent as a string such as `\"35103.1\"`. Allowed range: `0.00000001` to `100000000000`, both inclusive; a value outside the range returns `422` with code `30`. The value is silently truncated to 8 decimal places before evaluation; excess decimals do not raise an error. Thousands separators (`\"35,103.1\"`), a leading dot (`\".5\"`), exponent notation (`\"1e5\"`), and spaces are rejected with `422`. An amount inside the allowed range can still be rejected as too small for the pair when it converts to zero; that minimum is pair-dependent. Must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits; do not rely on the tolerance."
+                      description: "Amount as a string, such as `\"35103.1\"`. Range: `0.00000001` to `100000000000`, inclusive; truncated to 8 decimals. No thousands separators, leading dot, exponent or spaces."
                       example: "35103.1"
                 - type: object
                   title: Authentication
