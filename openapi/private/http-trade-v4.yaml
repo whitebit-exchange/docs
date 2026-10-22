@@ -4623,11 +4623,11 @@ paths:
                       example: "USDT"
                     from:
                       type: string
-                      description: "Start of the time filter, as a Unix timestamp in seconds, sent as a string or integer. Must be no earlier than now − 180 days, no later than 23:59:59 UTC today, earlier than `to`, and no more than 30 days before `to`. Default: now − 30 days. Example: 1699260637."
+                      description: "Start time, Unix seconds (string or integer). Default: now − 30 days. No earlier than now − 180 days, no later than 23:59:59 UTC today, earlier than `to`, at most 30 days before `to`."
                       example: "1699260637"
                     to:
                       type: string
-                      description: "End of the time filter, as a Unix timestamp in seconds, sent as a string or integer. Must be no earlier than now − 180 days and no more than 30 days after `from`. Default: now; a value later than now is treated as now. Example: 1699260637."
+                      description: "End time, Unix seconds (string or integer). Default: now; a later value is treated as now. No earlier than now − 180 days, at most 30 days after `from`."
                       example: "1699260637"
                     quoteId:
                       type: string
