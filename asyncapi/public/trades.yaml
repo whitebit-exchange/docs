@@ -31,12 +31,16 @@ channels:
       </Warning>
 
       <Note>
-      To subscribe to all markets, send the request with an empty `params` array.
+      To subscribe to all markets, send the request with an empty `params` array. No snapshot is sent in this mode, and newly listed markets are included automatically.
       </Note>
 
       <Note>
-      On subscribe, the server first sends an initial snapshot — one `trades_update` carrying up to 100 of the latest trades per market, ordered newest first — then streams new trades in real time. Because every resubscribe replays this snapshot, deduplicate by trade `id`.
+      On subscribe to specific markets, the server first sends an initial snapshot — one `trades_update` carrying up to 100 of the latest trades per market, ordered newest first — then streams new trades in real time. Because every resubscribe replays this snapshot, deduplicate by trade `id`.
       </Note>
+
+      <Warning>
+      Pass no more than 100 markets in a single `trades_subscribe` request. With a larger list, the snapshot volume can exceed what the client reads in time, and the connection is dropped. To track more than 100 markets, use separate connections or subscribe to all markets.
+      </Warning>
     messages:
       tradesRequest:
         $ref: '#/components/messages/tradesRequest'

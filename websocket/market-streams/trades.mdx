@@ -63,8 +63,12 @@ For each WebSocket connection, subscribe to either specific markets or all marke
 To add or remove markets on an active subscription, resubscribe with the full target list — see [Managing subscriptions](/websocket/market-streams/overview#managing-subscriptions).
 
 <Note>
-**Initial snapshot.** On subscribe, the server first sends a snapshot — one `trades_update` carrying up to 100 of the latest trades per market, ordered newest first — then streams new trades in real time. Resubscribing replays this snapshot, so deduplicate by trade `id`.
+**Initial snapshot.** On subscribe to specific markets, the server first sends a snapshot — one `trades_update` carrying up to 100 of the latest trades per market, ordered newest first — then streams new trades in real time. Resubscribing replays this snapshot, so deduplicate by trade `id`.
 </Note>
+
+<Warning>
+Pass no more than 100 markets in a single `trades_subscribe` request. With a larger list, the snapshot volume can exceed what the client reads in time, and the connection is dropped. To track more than 100 markets, use separate connections or subscribe to all markets.
+</Warning>
 
 <WsSubscribeSteps
   subscribe={exSubscribeSpecificMarkets}
@@ -76,6 +80,8 @@ To add or remove markets on an active subscription, resubscribe with the full ta
 />
 
 **Subscribe to all markets:**
+
+Send an empty `params` array. No snapshot is sent in this mode, and newly listed markets are included automatically. Filter the required markets on the client side.
 
 <WsMessageExample data={exSubscribeAllMarkets} />
 

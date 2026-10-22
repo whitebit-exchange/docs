@@ -93,7 +93,7 @@ Key fields for a dashboard: `last_price` (most recent trade price in the quote c
 
 ## Stream price updates
 
-Polling covers one-shot lookups; a live board needs continuous updates. Subscribe to the [Last Price channel](/websocket/market-streams/lastprice) — the server pushes an update every second when the price changes, and each update replaces the displayed value. One connection carries the full watchlist: the subscription accepts an array of market names. A single connection maintains subscriptions across 200 or more markets (see [WebSocket Rate Limits](/websocket/rate-limits)).
+Polling covers one-shot lookups; a live board needs continuous updates. Subscribe to the [Last Price channel](/websocket/market-streams/lastprice) — the server pushes an update every second when the price changes, and each update replaces the displayed value. One connection carries the full watchlist: the subscription accepts an array of market names.
 
 <Tabs>
   <Tab title="Python">
