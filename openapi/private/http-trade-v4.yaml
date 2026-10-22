@@ -4373,13 +4373,15 @@ paths:
 
         The endpoint reports a conversion as executed only when the quote is filled and the converted amount is non-zero.
 
-        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time.
+        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time. The key length is checked on the string, and a digits-only key is never compared as a number, so `"12345678"` is valid and `"123"` is too short.
 
         The key is bound to the request that first executed it.
 
         The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
 
         Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
+
+        An amount inside the allowed range is still rejected as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; that minimum is pair-dependent. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance.
 
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
@@ -4429,18 +4431,18 @@ paths:
                       example: "USDT"
                     direction:
                       type: string
-                      description: "Convert amount direction, defines in which currency corresponding \"amount\" field is populated. Use \"to\" in case amount is in \"to\" currency, use \"from\" if amount is in \"from\" currency"
+                      description: "Currency that `amount` is given in: `from` for the source currency, `to` for the target currency."
                       enum: ["from", "to"]
                       example: "from"
                     amount:
                       type: string
-                      description: "Amount to convert or receive, sent as a string such as `\"0.1\"`. Allowed range: `0.00000001` to `100000000000`, both inclusive; a value outside the range returns `422` with code `30`. The value is silently truncated to 8 decimal places before evaluation; excess decimals do not raise an error. An amount inside the allowed range is still rejected as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; that minimum is pair-dependent. Must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance."
+                      description: "Amount as a string, such as `\"0.1\"`. Range: `0.00000001` to `100000000000`, inclusive; truncated to 8 decimals. A JSON number may be rounded, and the rounded value is converted."
                       example: "0.1"
                     idempotencyKey:
                       type: string
                       minLength: 8
                       maxLength: 128
-                      description: "Optional idempotency key. Any characters are accepted; the bounds are a length check on a free-form string and never a comparison of a digits-only key as a number, so `\"12345678\"` is valid and `\"123\"` is too short. A UUID is the usual choice. Omit the field rather than sending an empty string: an empty string does not claim a key, so a retry converts a second time, the same as with no key."
+                      description: "Optional key, 8 to 128 characters of any kind; a UUID is typical. Omit the field instead of sending an empty string: an empty string claims no key, so a retry converts again."
                       example: "9f1c2b7e-4d3a-4f21-9c88-6e5b0a71d240"
                 - type: object
                   title: Authentication
