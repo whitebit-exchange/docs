@@ -4588,7 +4588,7 @@ paths:
 
         The `from`–`to` window is capped at 30 days per request. A wider range is rejected with `422` and code `0`, reported under both `from` and `to`. Both `from` and `to` must be no earlier than now − 180 days. The bound is rolling and recalculated on every request, so the timestamp in the `dateOutOfRange` error message changes with each request.
 
-        `total` is currently always `0`; do not use `total` for pagination. To read every record, request the next `offset` until a page returns fewer than `limit` records or none.
+        `total` is the number of records in the returned page, not the number of all matching records, so it never exceeds `limit`. A full page does not mean more records exist. To read every record, request the next `offset` until a page returns fewer than `limit` records or none.
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -4708,8 +4708,8 @@ paths:
                           example: "34470.87211306"
                   total:
                     type: integer
-                    description: "Currently always `0`. Do not use `total` for pagination."
-                    example: 0
+                    description: "Number of records in the returned page, not the number of all matching records. Never greater than `limit`."
+                    example: 1
                   limit:
                     type: integer
                     description: "Limit used in request"
