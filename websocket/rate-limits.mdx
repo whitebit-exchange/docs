@@ -35,10 +35,8 @@ Reuse a single WebSocket connection for multiple subscriptions. Opening a new co
 | Scope | Limit |
 |-------|-------|
 | Active subscriptions per connection | None |
-| Markets per subscription request | None |
+| Markets per subscription request | None — `trades_subscribe` accepts up to `100` markets per request; see [Market Trades subscriptions](#market-trades-subscriptions) |
 | Per-channel-type limits | None — the same `12000` requests per `10` seconds budget applies uniformly across all public and private channels |
-
-A single connection comfortably maintains subscriptions across `200` or more markets. Distributing markets across multiple connections is not required for high-market-count workloads.
 
 ```json
 {
@@ -53,6 +51,22 @@ The request above counts as one message regardless of the number of markets in `
 <Note>
 Repeating a subscription replaces the previous one for the same channel. To track additional markets on an active channel, send a new subscribe request with the full target list — the server does not merge incremental subscribes.
 </Note>
+
+### Market Trades subscriptions
+
+When subscribing to specific markets via `trades_subscribe`, the server sends a snapshot of recent trades for each market. With a large market list, the snapshot volume can exceed what the client reads in time, and the connection is dropped.
+
+Pass no more than `100` markets in a single `trades_subscribe` request. Each new `trades_subscribe` request replaces the existing subscription on the connection, so to track more than `100` specific markets, use separate connections.
+
+To subscribe to all markets, send `trades_subscribe` with an empty `params` array. No snapshots are sent in this mode, and newly listed markets are included automatically. Filter the required markets on the client side.
+
+```json
+{
+  "id": 1234,
+  "method": "trades_subscribe",
+  "params": []
+}
+```
 
 ## Rate limit handling
 
