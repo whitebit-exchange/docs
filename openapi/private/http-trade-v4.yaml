@@ -4381,7 +4381,7 @@ paths:
 
         Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
 
-        An amount inside the allowed range is still rejected as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; that minimum is pair-dependent. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance.
+        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. An amount inside the allowed range is still rejected as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; that minimum is pair-dependent. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance.
 
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
