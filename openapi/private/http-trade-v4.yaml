@@ -4051,7 +4051,7 @@ paths:
 
         The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. Account balance is pre-checked at estimate time and re-checked at confirm time, because balance can change within the 10-second quote window. An amount above the absolute server-side maximum is rejected with `422`.
 
-        `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits; do not rely on the tolerance. An amount inside the allowed range can still be rejected as too small for the pair when it converts to zero.
+        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits; do not rely on the tolerance. An amount inside the allowed range can still be rejected as too small for the pair when it converts to zero.
 
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
