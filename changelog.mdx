@@ -4,6 +4,19 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="October 22, 2026">
+## Bank transfer deposits through the API
+**New `POST /api/v4/main-account/deposit` endpoint and virtual account endpoints for `SEPA_BCB_GROUP`**
+
+The Main Account API now creates bank transfer deposits without the WhiteBIT interface. `POST /api/v4/main-account/deposit` accepts the `SEPA_BCB_GROUP`, `SEPA_CLEAR_JUNCTION`, `FINCI`, or `SEPA_FINSEI` provider and returns the bank details for the transfer; the request `uniqueId` identifies the deposit in the deposit/withdraw history. `SEPA_BCB_GROUP` deposits require an active [virtual account](/glossary#virtual-account): register it with `POST /api/v4/main-account/payment/virtual-accounts`, then poll `POST /api/v4/main-account/payment/virtual-accounts/status` until the status is `active`. Enable the endpoints in the API key settings, and contact WhiteBIT support to enable each provider for API deposits.
+
+<CardGroup cols={2}>
+  <Card title="Create fiat deposit" href="/api-reference/account-wallet/create-fiat-deposit" icon="landmark" horizontal/>
+  <Card title="Create virtual account" href="/api-reference/account-wallet/create-virtual-account" icon="building-columns" horizontal/>
+  <Card title="Get virtual account status" href="/api-reference/account-wallet/get-virtual-account-status" icon="circle-check" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="October 2, 2026">
 ## Retail flag on collateral limit orders
 **`POST /api/v4/order/collateral/limit` and `POST /api/v4/order/collateral/bulk` accept `retail=true`**

@@ -689,6 +689,588 @@ paths:
         "503":
           description: Service temporary unavailable
 
+  /api/v4/main-account/payment/virtual-accounts:
+    post:
+      tags:
+        - Deposit
+      summary: Create virtual account
+      description: |
+        The endpoint registers a [virtual account](/glossary#virtual-account) for bank transfer deposits with the `SEPA_BCB_GROUP` [provider](/glossary#provider). A [fiat deposit](/api-reference/account-wallet/create-fiat-deposit) through `SEPA_BCB_GROUP` requires an active virtual account.
+
+        Registration is asynchronous. The endpoint returns `pending`, and the provider allocates the account afterward. Poll [Get virtual account status](/api-reference/account-wallet/get-virtual-account-status) until `status` is `active`.
+
+        The request carries no identity data. WhiteBIT builds the account holder details from the [KYC](/glossary#kyc) data and profile of the account. Before registering, complete KYC verification and set the billing name, billing address, or tax ID in the account profile.
+
+        An account with a `pending` or `active` virtual account cannot register another one. After the status changes to `rejected` or `closed`, the account can register again.
+
+        Two settings control access to the endpoint:
+        - **Endpoint access.** Enable the endpoint in the [API key settings](/api-reference/authentication#setting-up-api-keys).
+        - **Provider access.** WhiteBIT support enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+      operationId: createVirtualAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticker
+                - provider
+                - request
+                - nonce
+              properties:
+                ticker:
+                  type: string
+                  description: |
+                    Base currency [ticker](/glossary#ticker) of the [fiat](/glossary#fiat) currency. Use `EUR`.
+                  example: "EUR"
+                provider:
+                  type: string
+                  description: |
+                    [Fiat](/glossary#fiat) [provider](/glossary#provider) that issues the virtual account. Use `SEPA_BCB_GROUP`. Confirm the providers enabled for the account with the [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+                  example: "SEPA_BCB_GROUP"
+                request:
+                  type: string
+                  description: |
+                    Request path. See the [authentication guide](/api-reference/authentication) for signature generation details.
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: |
+                    A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
+                  example: 1594297865000
+            example:
+              ticker: "EUR"
+              provider: "SEPA_BCB_GROUP"
+              request: "{{request}}"
+              nonce: 1594297865000
+      responses:
+        "200":
+          description: Registration accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    enum: [pending]
+                    description: Registration status. The endpoint always returns `pending` on success.
+              example:
+                status: "pending"
+        "400":
+          description: |
+            Validation failed. The endpoint also returns `400` when KYC verification of the account is incomplete or when the account profile has no billing address.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FiatDepositError"
+              examples:
+                requiredFields:
+                  summary: "Required fields missing"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: ["The ticker field is required."]
+                      provider: ["The provider field is required."]
+                invalidProvider:
+                  summary: "Provider not available"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: ["The selected provider is invalid."]
+                providerNotSupported:
+                  summary: "Provider not supported for the currency"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Provider is not supported for this currency"
+                virtualAccountsNotSupported:
+                  summary: "Provider does not issue virtual accounts"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Provider does not support virtual accounts"
+                alreadyExists:
+                  summary: "Virtual account already exists"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Virtual account already exists"
+                inProgress:
+                  summary: "Registration already in progress"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Virtual account registration is already in progress"
+                rejectedByProvider:
+                  summary: "Provider rejected the registration"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Virtual account registration was rejected by the provider"
+                categoryRestricted:
+                  summary: "Currency not available for the account category"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: "Currency is not available for this account category"
+                notDepositable:
+                  summary: "Currency not depositable"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: "Currency is not depositable"
+                registrationFailed:
+                  summary: "Registration failed on the provider side"
+                  value:
+                    code: 0
+                    message: "Something went wrong"
+                    errors:
+                      message: "Failed to register virtual account"
+        "403":
+          description: API deposits are not enabled for the provider on the account. Contact WhiteBIT support to enable the provider.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FiatDepositError"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
+        "423":
+          description: |
+            Another registration request from the same account is in progress. The endpoint processes registration requests from the same account one at a time: a concurrent request waits until the earlier request completes and fails with `423` only if the wait period runs out. Retry after the earlier request completes.
+        "451":
+          description: The currency is unavailable for the jurisdiction of the account.
+
+  /api/v4/main-account/payment/virtual-accounts/status:
+    post:
+      tags:
+        - Deposit
+      summary: Get virtual account status
+      description: |
+        The endpoint returns the status of the account's [virtual account](/glossary#virtual-account) for the `SEPA_BCB_GROUP` [provider](/glossary#provider). When `status` is `active`, the response includes the bank details for incoming bank transfers in `paymentDetails`.
+
+        An account without a virtual account is not an error: the endpoint returns `notFound`. To register a virtual account, use [Create virtual account](/api-reference/account-wallet/create-virtual-account).
+
+        Two settings control access to the endpoint:
+        - **Endpoint access.** Enable the endpoint in the [API key settings](/api-reference/authentication#setting-up-api-keys).
+        - **Provider access.** WhiteBIT support enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
+
+        <Warning>
+        Rate limit: 20 requests/1 min.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+      operationId: getVirtualAccountStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticker
+                - provider
+                - request
+                - nonce
+              properties:
+                ticker:
+                  type: string
+                  description: |
+                    Base currency [ticker](/glossary#ticker) of the [fiat](/glossary#fiat) currency. Use `EUR`.
+                  example: "EUR"
+                provider:
+                  type: string
+                  description: |
+                    [Fiat](/glossary#fiat) [provider](/glossary#provider) of the virtual account. Use `SEPA_BCB_GROUP`.
+                  example: "SEPA_BCB_GROUP"
+                request:
+                  type: string
+                  description: |
+                    Request path. See the [authentication guide](/api-reference/authentication) for signature generation details.
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: |
+                    A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
+                  example: 1594297865000
+            example:
+              ticker: "EUR"
+              provider: "SEPA_BCB_GROUP"
+              request: "{{request}}"
+              nonce: 1594297865000
+      responses:
+        "200":
+          description: Virtual account status returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    enum: [pending, active, rejected, closed, notFound]
+                    description: |
+                      Virtual account status:
+                      - `pending` — registration accepted, the provider has not allocated the account yet.
+                      - `active` — the account is allocated and accepts deposits.
+                      - `rejected` — the provider refused to open the account. Submit a new registration request.
+                      - `closed` — the account is closed. Submit a new registration request.
+                      - `notFound` — the account has no virtual account with the provider.
+                  paymentDetails:
+                    type: object
+                    description: Bank details of the virtual account. Present only when `status` is `active`.
+                    properties:
+                      beneficiary:
+                        type: string
+                        description: Beneficiary name for the bank transfer.
+                      iban:
+                        type: string
+                        description: IBAN of the virtual account.
+                      bic:
+                        type: string
+                        description: BIC (SWIFT code) of the bank that holds the virtual account.
+              examples:
+                active:
+                  summary: "Active virtual account"
+                  value:
+                    status: "active"
+                    paymentDetails:
+                      beneficiary: "Acme Trading Ltd"
+                      iban: "DE89370400440532013000"
+                      bic: "COBADEFFXXX"
+                pending:
+                  summary: "Registration pending"
+                  value:
+                    status: "pending"
+                notFound:
+                  summary: "No virtual account"
+                  value:
+                    status: "notFound"
+        "400":
+          description: |
+            Validation failed. The endpoint also returns `400` when KYC verification of the account is incomplete.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FiatDepositError"
+              examples:
+                requiredFields:
+                  summary: "Required fields missing"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: ["The ticker field is required."]
+                      provider: ["The provider field is required."]
+                providerNotSupported:
+                  summary: "Provider not supported for the currency"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Provider is not supported for this currency"
+                virtualAccountsNotSupported:
+                  summary: "Provider does not issue virtual accounts"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Provider does not support virtual accounts"
+                categoryRestricted:
+                  summary: "Currency not available for the account category"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: "Currency is not available for this account category"
+                notDepositable:
+                  summary: "Currency not depositable"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: "Currency is not depositable"
+                statusFailed:
+                  summary: "Status request failed on the provider side"
+                  value:
+                    code: 0
+                    message: "Something went wrong"
+                    errors:
+                      message: "Failed to get virtual account status"
+        "403":
+          description: API deposits are not enabled for the provider on the account. Contact WhiteBIT support to enable the provider.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FiatDepositError"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
+        "429":
+          description: Rate limit exceeded
+        "451":
+          description: The currency is unavailable for the jurisdiction of the account.
+
+  /api/v4/main-account/deposit:
+    post:
+      tags:
+        - Deposit
+      summary: Create fiat deposit
+      description: |
+        The endpoint creates a bank transfer [fiat](/glossary#fiat) deposit request and returns the bank details for the transfer in `paymentDetails`. Supported [providers](/glossary#provider): `SEPA_BCB_GROUP`, `SEPA_CLEAR_JUNCTION`, `FINCI`, and `SEPA_FINSEI`.
+
+        `SEPA_BCB_GROUP` requires an active [virtual account](/glossary#virtual-account). Register the account with [Create virtual account](/api-reference/account-wallet/create-virtual-account) and wait until [Get virtual account status](/api-reference/account-wallet/get-virtual-account-status) returns `active`. Without an active virtual account, the endpoint rejects the request with `Virtual account is missing`. The other providers have no virtual account prerequisite.
+
+        Send the bank transfer to the account in `paymentDetails`. To track the deposit, call [Get deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) with `unique_id` set to the `uniqueId` from the request.
+
+        The minimum and maximum deposit amounts of the provider and the daily and monthly deposit limits of the account apply. Fees match the fees for deposits made in the WhiteBIT interface.
+
+        Two settings control access to the endpoint:
+        - **Endpoint access.** Enable the endpoint in the [API key settings](/api-reference/authentication#setting-up-api-keys).
+        - **Provider access.** WhiteBIT support enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
+
+        <Warning>
+        Rate limit: 1000 requests/10 sec.
+        </Warning>
+
+        <Note>
+        The API does not cache the response.
+        </Note>
+      operationId: createFiatDeposit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticker
+                - provider
+                - amount
+                - uniqueId
+                - request
+                - nonce
+              properties:
+                ticker:
+                  type: string
+                  description: |
+                    Base currency [ticker](/glossary#ticker) of the [fiat](/glossary#fiat) currency. Use `EUR`.
+                  example: "EUR"
+                provider:
+                  type: string
+                  description: |
+                    [Fiat](/glossary#fiat) [provider](/glossary#provider) for the deposit: `SEPA_BCB_GROUP`, `SEPA_CLEAR_JUNCTION`, `FINCI`, or `SEPA_FINSEI`. Confirm the providers enabled for the account with the [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+                  example: "SEPA_BCB_GROUP"
+                amount:
+                  type: string
+                  description: |
+                    Deposit amount in `ticker` units. The amount must be within the minimum and maximum deposit amounts of the provider and the deposit limits of the account.
+                  example: "100"
+                uniqueId:
+                  type: string
+                  maxLength: 255
+                  description: |
+                    Unique deposit identifier on the client side. Any string up to 255 characters; must be unique for the account. Use the value to find the deposit in the deposit/withdraw history.
+                  example: "a7d3c9e2-6f14-4b8e-9d21-3c5e7f9a1b04"
+                request:
+                  type: string
+                  description: |
+                    Request path. See the [authentication guide](/api-reference/authentication) for signature generation details.
+                  example: "{{request}}"
+                nonce:
+                  type: integer
+                  description: |
+                    A unique identifier for the request. Use a monotonically increasing value such as a Unix timestamp in milliseconds.
+                  example: 1594297865000
+            example:
+              ticker: "EUR"
+              provider: "SEPA_BCB_GROUP"
+              amount: "100"
+              uniqueId: "a7d3c9e2-6f14-4b8e-9d21-3c5e7f9a1b04"
+              request: "{{request}}"
+              nonce: 1594297865000
+      responses:
+        "200":
+          description: Deposit request created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - depositId
+                  - uniqueId
+                  - paymentDetails
+                properties:
+                  depositId:
+                    type: string
+                    description: Deposit identifier assigned by WhiteBIT.
+                  uniqueId:
+                    type: string
+                    description: The `uniqueId` from the request.
+                  paymentDetails:
+                    type: object
+                    additionalProperties: true
+                    description: |
+                      Bank details for the transfer. The set of keys depends on the provider: `SEPA_BCB_GROUP` and `SEPA_CLEAR_JUNCTION` return `beneficiary`, `iban`, and `bic`. Other providers return provider-specific keys.
+                    properties:
+                      beneficiary:
+                        type: string
+                        description: Beneficiary name for the bank transfer.
+                      iban:
+                        type: string
+                        description: IBAN of the receiving account.
+                      bic:
+                        type: string
+                        description: BIC (SWIFT code) of the receiving bank.
+              example:
+                depositId: "4b8a7c1e-5d2f-4e3a-9b6c-1f0e2d3c4b5a"
+                uniqueId: "a7d3c9e2-6f14-4b8e-9d21-3c5e7f9a1b04"
+                paymentDetails:
+                  beneficiary: "Acme Trading Ltd"
+                  iban: "DE89370400440532013000"
+                  bic: "COBADEFFXXX"
+        "400":
+          description: |
+            Validation failed. The endpoint also returns `400` when KYC verification of the account is incomplete, or when the provider requires a billing address and the account profile has none.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FiatDepositError"
+              examples:
+                requiredFields:
+                  summary: "Required fields missing"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: ["The ticker field is required."]
+                      provider: ["The provider field is required."]
+                      amount: ["The amount field is required."]
+                      uniqueId: ["The unique id field is required."]
+                invalidProvider:
+                  summary: "Provider not available"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: ["The selected provider is invalid."]
+                amountNotNumber:
+                  summary: "Amount is not a number"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: ["The amount must be a number."]
+                uniqueIdTaken:
+                  summary: "Unique ID already used"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      uniqueId: ["The unique id has already been taken."]
+                providerNotSupported:
+                  summary: "Provider not supported for the currency"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Provider is not supported for this currency"
+                virtualAccountMissing:
+                  summary: "No active virtual account (SEPA_BCB_GROUP)"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      provider: "Virtual account is missing"
+                amountTooLittle:
+                  summary: "Amount below the deposit minimum"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: "Amount is too little for deposit"
+                amountTooBig:
+                  summary: "Amount above the deposit maximum"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: "Amount is too big for deposit"
+                dailyLimit:
+                  summary: "Daily limit reached"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: "Daily limit reached"
+                monthlyLimit:
+                  summary: "Monthly limit reached"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: "Monthly limit reached"
+                amountBelowProviderMinimum:
+                  summary: "Amount below the provider minimum"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      amount: "Amount is too little for payment system"
+                categoryRestricted:
+                  summary: "Currency not available for the account category"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: "Currency is not available for this account category"
+                notDepositable:
+                  summary: "Currency not depositable"
+                  value:
+                    code: 0
+                    message: "Validation failed"
+                    errors:
+                      ticker: "Currency is not depositable"
+        "403":
+          description: API deposits are not enabled for the provider on the account. Contact WhiteBIT support to enable the provider.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FiatDepositError"
+              example:
+                code: 0
+                message: "You don't have permission to use this endpoint. Please contact support for more details"
+        "423":
+          description: |
+            Another deposit request from the same account is in progress. The endpoint processes deposit requests from the same account one at a time: a concurrent request waits until the earlier request completes and fails with `423` only if the wait period runs out. Retry after the earlier request completes.
+        "451":
+          description: The currency is unavailable for the jurisdiction of the account.
+
   /api/v4/jwt:
     post:
       tags:
@@ -1238,7 +1820,8 @@ paths:
                   example: "0.9"
                 address:
                   type: string
-                  description: Target address (wallet address for cryptocurrencies, identifier/[card token](/glossary#card-token) for [fiat](/glossary#fiat) currencies)
+                  description: |
+                    Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted.
                   example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
                 memo:
                   type: string
@@ -1291,37 +1874,37 @@ paths:
                   description: |
                     Beneficiary information.
 
-                    ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR.
+                    ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
 
-                    Per-field requirements vary by currency and provider. Card-related fields (`cardToken`, `card.*`, `cardTokenSave`, `fingerprintSession`) apply only to card-acquiring rails; bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for VISAMASTER/Mercuryo rails. See `/asset-status-list` for the active provider per currency.
+                    Per-field requirements vary by currency and provider. Bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for the VISAMASTER_PAYCORE [provider](/glossary#provider). The card token for a VISAMASTER withdrawal goes in `address`, not in `beneficiary`. See `/asset-status-list` for the active provider per currency.
                   properties:
                     firstName:
                       type: string
                       description: |
                         Beneficiary first name. Max length: 40 symbols, latin letters and special characters.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, USD, EUR
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
                       example: "Firstname"
                     lastName:
                       type: string
                       description: |
                         Beneficiary last name. Max length: 40 symbols, latin letters and special characters.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, USD, EUR
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
                       example: "Lastname"
                     phone:
                       type: string
                       description: |
                         Beneficiary phone number.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER_PAYCORE [provider](/glossary#provider).
                       example: "1234567891"
                     email:
                       type: string
                       description: |
                         Beneficiary email.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER_PAYCORE [provider](/glossary#provider).
                       example: "john_doe@email.com"
                     birthDate:
                       type: string
@@ -1329,61 +1912,13 @@ paths:
                       description: |
                         Beneficiary birth date. Format: YYYY-MM-DD.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, or when withdrawing through Mercuryo.
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER_PAYCORE [provider](/glossary#provider), or when withdrawing through Mercuryo.
                       example: "1990-01-01"
                     code:
                       type: string
                       description: |
                         Beneficiary verification code returned by a prior verification step. Used by some card-acquiring flows that require a one-time verification challenge before settlement.
                       example: "123456"
-                    cardToken:
-                      type: string
-                      description: |
-                        Tokenized payment-card identifier for card-acquiring rails. Use instead of raw PAN; obtain from the card-tokenisation endpoint or from a prior successful settlement on the same card.
-                      example: "tok_4f7c8e2a"
-                    cardTokenSave:
-                      type: boolean
-                      description: |
-                        If `true`, request the acquiring provider to persist the card token for reuse on subsequent withdrawals to the same beneficiary.
-                      example: false
-                    fingerprintSession:
-                      type: string
-                      description: |
-                        Anti-fraud device-fingerprint session identifier captured at the partner's checkout surface and forwarded to the acquiring provider. Required by some VISAMASTER configurations.
-                      example: "fps_abc123"
-                    card:
-                      type: object
-                      description: |
-                        Card details for card-acquiring rails. Use `cardToken` instead when available; raw card details apply only when a fresh card is being added.
-                      properties:
-                        save:
-                          type: boolean
-                          description: If `true`, persist the card for reuse on subsequent withdrawals.
-                          example: false
-                        name:
-                          type: string
-                          description: Cardholder name as embossed on the card.
-                          example: "John Doe"
-                        firstName:
-                          type: string
-                          description: Cardholder first name.
-                          example: "John"
-                        lastName:
-                          type: string
-                          description: Cardholder last name.
-                          example: "Doe"
-                        number:
-                          type: string
-                          description: Primary Account Number (PAN). Treat as PCI-scope sensitive data on the partner side.
-                          example: "4111111111111111"
-                        month:
-                          type: string
-                          description: Card expiry month as a two-digit string (`01`-`12`).
-                          example: "12"
-                        year:
-                          type: string
-                          description: Card expiry year as a four-digit string.
-                          example: "2030"
                     address:
                       type: object
                       description: |
@@ -1553,6 +2088,9 @@ paths:
                   ticker: "USD"
                   amount: "150.00"
                   address: "t6XIpyirkiLP+I++XHWfSeGrn5p38g=="
+                  beneficiary:
+                    firstName: "Firstname"
+                    lastName: "Lastname"
                   provider: "VISAMASTER"
                   uniqueId: "ab12cd34-9101-4abc-9def-1234567890ab"
                   customerIp: "203.0.113.42"
@@ -1572,7 +2110,7 @@ paths:
                   request: "{{request}}"
                   nonce: 1594297865000
               fiatVisamaster:
-                summary: "Fiat USD/EUR VISAMASTER"
+                summary: "Fiat USD/EUR VISAMASTER_PAYCORE (extended beneficiary)"
                 value:
                   ticker: "USD"
                   amount: "30000"
@@ -1582,7 +2120,8 @@ paths:
                     lastName: "Lastname"
                     phone: "1234567891"
                     email: "john_doe@email.com"
-                  provider: "USD_VISAMASTER"
+                    birthDate: "1990-01-01"
+                  provider: "VISAMASTER_PAYCORE"
                   uniqueId: "24529045"
                   request: "{{request}}"
                   nonce: 1594297865000
@@ -8259,6 +8798,24 @@ components:
             items:
               type: string
 
+    FiatDepositError:
+      type: object
+      description: |
+        Error response of the fiat deposit and virtual account endpoints. Request-rule failures return each `errors` value as an array of messages. Business-rule failures return each `errors` value as a single message string.
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+
     TravelRuleDepositVerificationRequest:
       type: object
       required:
@@ -8470,7 +9027,7 @@ components:
           example: "0.9"
         address:
           type: string
-          description: "Target address (wallet address for cryptocurrencies, identifier/[card token](/glossary#card-token) for [fiat](/glossary#fiat) currencies)"
+          description: "Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted."
           example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
         memo:
           type: string
@@ -8502,7 +9059,7 @@ components:
           example: "DEUTDEFF"
         beneficiary:
           type: object
-          description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
+          description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is USD or EUR."
         travelRule:
           type: object
           description: "Travel Rule information data. Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)"

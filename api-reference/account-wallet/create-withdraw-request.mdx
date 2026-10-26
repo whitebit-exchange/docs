@@ -48,14 +48,15 @@ All fiat withdrawals require KYC verification. Ensure the account is verified be
 
 #### **Scenario 4: Basic Fiat Withdrawal**
 Standard fiat withdrawal via VISAMASTER provider.
-- **Required fields**: `ticker`, `amount`, `provider`, `uniqueId`, plus a `beneficiary` object with `firstName` and `lastName`
+- **Required fields**: `ticker`, `amount`, `address`, `provider`, `uniqueId`, plus a `beneficiary` object with `firstName` and `lastName`
+- **`address`**: the card token returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted, and the API does not read a card token from `beneficiary`.
 - **Currencies**: USD, EUR
 - **Use when**: Standard fiat withdrawal within normal limits
 - **USD/EUR with VISAMASTER**: also requires `customerIp` — the end-customer IP address forwarded to the provider for antifraud checks.
 
 #### **Scenario 5: Fiat with Partial Enable**
 For withdrawals exceeding standard limits with "partially successful" status support.
-- **Required fields**: Same as basic + `partialEnable: true` + `address` (encrypted card token)
+- **Required fields**: Same as basic + `partialEnable: true` + `address` (encrypted card token from [Issue card token](/api-reference/account-wallet/issue-card-token))
 - **Use when**: Withdrawing larger amounts eligible for partial processing
 - **Important**: The application must handle "Partially successful" withdrawal status
 
@@ -72,7 +73,7 @@ Withdrawals with extended beneficiary information.
 - **Required fields**: Standard fields + `beneficiary` object with:
   - `firstName`, `lastName`, `phone`, `email`, `birthDate` (YYYY-MM-DD)
 - **Use when**: Withdrawing USD or EUR via VISAMASTER_PAYCORE provider
-- **Currencies**: USD_VISAMASTER, EUR_VISAMASTER
+- **Currencies**: `ticker` is `USD` or `EUR`; the card rail goes in `provider`. Do not pass `USD_VISAMASTER` or `EUR_VISAMASTER` as `ticker`.
 
 #### **Scenario 8: SEPA / Bank-Rail Transfers**
 Bank transfers to an IBAN via SEPA and related fiat providers.
