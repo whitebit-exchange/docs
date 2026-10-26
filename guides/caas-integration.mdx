@@ -56,9 +56,8 @@ secrets outside application code. See [Authentication](/api-reference/authentica
 ### Wallets and payments
 
 - **Deposit addresses.** Generate a unique address per end user with
-  `POST /api/v4/main-account/create-new-address`. The endpoint is not available by default — see
-  [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit) for
-  access. Each call creates a new address, within a per-currency address limit, so store every
+  `POST /api/v4/main-account/create-new-address`. The endpoint is not available by default; the account manager enables it on request — see
+  [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit). Each call creates a new address, within a per-currency address limit, so store every
   address — and its memo on memo networks — against the end user before showing it. Credit deposits
   from webhooks and reconcile against the deposit history, because webhooks have no replay. Part of
   a new deposit can stay held until full confirmation;
@@ -70,8 +69,8 @@ secrets outside application code. See [Authentication](/api-reference/authentica
   rate, then withdraw in the destination currency. See
   [Payment Integration](/guides/payment-integration) and [Convert](/platform/convert).
 - **Fiat (EUR/SEPA).** Available on the partner's WhiteBIT account after Phase 2 onboarding —
-  SEPA withdrawals, and API-generated deposit invoices once the invoice endpoint is enabled on
-  request. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration).
+  SEPA withdrawals, and API-generated deposit invoices once the account manager enables the
+  invoice endpoint. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration).
 - **WhiteBIT Codes.** Fee-free internal crypto transfers between WhiteBIT accounts, useful for
   settlement flows. See [WhiteBIT Codes](/platform/whitebit-codes).
 - **Crypto Lending.** Fixed and Flex lending endpoints are restricted to B2B partners and require
@@ -81,7 +80,7 @@ secrets outside application code. See [Authentication](/api-reference/authentica
 
 Travel Rule affects deposits and withdrawals for EEA and Turkey accounts. The Travel Rule API for
 programmatic verification is enabled per
-account via institutional@whitebit.com; see [Regulatory Compliance](/institutional/compliance).
+account by the account manager on request; see [Regulatory Compliance](/institutional/compliance).
 
 <TravelRuleNote />
 

@@ -18,7 +18,7 @@ The Sub-Accounts API provides full programmatic control over multi-account archi
 - **Fee-free instant transfers** -- move assets between the main account and any sub-account without fees or delays via `POST /api/v4/sub-account/transfer`
 - **Per-sub-account API keys** -- generate dedicated API keys for each sub-account with independent IP whitelists (up to 50 IPs per key). The 50-key limit applies per sub-account, independent from the main account and from other sub-accounts. Supports create, edit, delete, reset, and IP management.
 - **KYC URL generation** -- generate temporary KYC verification links for sub-account users via `POST /api/v4/sub-account/kyc-url`. Requirements: sub-account must be activated, active, and not using shared KYC.
-- **Withdrawal approval flow** -- list pending sub-account withdrawals via `POST /api/v4/sub-account/withdraw/unconfirmed-list`, then approve each one via `POST /api/v4/sub-account/withdraw/confirm`. Not available by default -- request access via institutional@whitebit.com.
+- **Withdrawal approval flow** -- list pending sub-account withdrawals via `POST /api/v4/sub-account/withdraw/unconfirmed-list`, then approve each one via `POST /api/v4/sub-account/withdraw/confirm`. Not available by default -- request access through the assigned account manager.
 - **Direct crypto deposits** -- once enabled for the account, sub-accounts receive crypto directly at dedicated deposit addresses, generated via the standard [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using the sub-account's own API key. Disabled by default (see note below).
 
 ## Who Uses This
@@ -42,7 +42,7 @@ The Sub-Accounts API provides full programmatic control over multi-account archi
 <Note>
   **Crypto deposits are disabled by default.** Once enabled for the account, the capability
   applies to the account and its sub-accounts; enablement is not available via API. To request
-  it, contact the assigned Account Manager or email institutional@whitebit.com.
+  it, contact the assigned account manager.
 </Note>
 
 **Prop Trading Firm** -- Create isolated sub-accounts per trading strategy or desk. Assign different risk budgets by controlling the balance in each sub-account. Use per-sub-account API keys to run independent trading bots — traders, risk managers, operations, and finance teams can each have separately permissioned access. Block or unblock sub-accounts via API to enforce risk controls. *(Source: [institutional.whitebit.com/sub-accounts](https://institutional.whitebit.com/sub-accounts))*
@@ -53,7 +53,7 @@ The Sub-Accounts API provides full programmatic control over multi-account archi
 - **Endpoint groups:** account management (4), transfers (2), blocking (2), balances (1), withdrawals (2), API key management (5), IP whitelist management (3), KYC (1)
 - **Authentication:** HMAC-SHA512 ([guide](/api-reference/authentication))
 - **Rate limits:** 1000 requests per 10 seconds per endpoint ([details](/api-reference/rate-limits))
-- **Availability:** the withdrawal endpoints are not available by default; request access via institutional@whitebit.com
+- **Availability:** the withdrawal endpoints are not available by default; request access through the assigned account manager
 
 For full endpoint documentation, see the [Sub-Accounts API Reference](/api-reference/sub-accounts/overview).
 

@@ -237,7 +237,7 @@ paths:
         Get an existing cryptocurrency deposit address for a given currency and network.
 
         <Note>
-        Sub-accounts use this endpoint with a sub-account API key once deposits are enabled for the account. Crypto deposits are disabled by default. To enable deposits, contact the assigned account manager or email institutional@whitebit.com.
+        Sub-accounts use this endpoint with a sub-account API key once deposits are enabled for the account. Crypto deposits are disabled by default. To enable deposits, contact the assigned account manager.
         </Note>
 
         <Warning>
@@ -368,7 +368,7 @@ paths:
       description: |
         The endpoint retrieves a deposit url of the [fiat](/glossary#fiat) invoice.
 
-        The endpoint works on demand. Contact WhiteBIT support and provide the API key to get access to the functionality.
+        The endpoint works on demand. Request access through the account manager and provide the API key.
 
 
         <Warning>
@@ -483,11 +483,11 @@ paths:
                           example: "ES"
                 successLink:
                   type: string
-                  description: Customer will be redirected to this URL by acquiring [provider](/glossary#provider) after success deposit. To activate this feature, please contact support
+                  description: Customer will be redirected to this URL by acquiring [provider](/glossary#provider) after success deposit. To activate this feature, contact the account manager
                   example: "https://success.example.com"
                 failureLink:
                   type: string
-                  description: Customer will be redirected to this URL in case of fail or rejection on acquiring provider side. To activate this feature, please contact support
+                  description: Customer will be redirected to this URL in case of fail or rejection on acquiring provider side. To activate this feature, contact the account manager
                   example: "https://failure.example.com"
                 returnLink:
                   type: string
@@ -2079,7 +2079,7 @@ paths:
                 expireAt: "2026-07-10 12:34:56"
         "403":
           description: |
-            The account does not have the Express Withdraw permission. WhiteBIT grants the permission through the B2B partner approval process — request access at https://institutional.whitebit.com/.
+            The account does not have the Express Withdraw permission. WhiteBIT grants the permission through the B2B partner approval process — request access through the account manager.
         "422":
           description: |
             Inner validation failed.
@@ -2727,11 +2727,11 @@ paths:
         - Deposit
       summary: Create new address for deposit
       description: |
-        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default, contact support@whitebit.com to get permissions to use the endpoint.
+        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default; request access through the account manager.
 
         <Note>
         For sub-accounts, crypto deposits must also be enabled for the account (disabled by
-        default). To enable them, contact your assigned Account Manager or email institutional@whitebit.com.
+        default). To enable deposits, contact the assigned account manager.
         </Note>
 
         **Address types:**
@@ -5265,7 +5265,7 @@ paths:
         <Note>
         Crypto deposits are disabled by default. Once deposits are enabled for the account, the
         capability applies to the account and its sub-accounts; enablement is not available via
-        API. To request it, contact your assigned Account Manager or email institutional@whitebit.com.
+        API. To request it, contact the assigned account manager.
         Once enabled, a sub-account generates deposit addresses through the standard
         [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
         using its own API key with deposit permission.
@@ -5833,7 +5833,7 @@ paths:
         Results are ordered by creation time, newest first.
 
         <Note>
-        The sub-account withdrawal endpoints are not available by default. To request access, contact institutional@whitebit.com.
+        The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.
         A `404 Not Found` response indicates the endpoint is not enabled for the account.
         </Note>
 
@@ -5965,7 +5965,7 @@ paths:
         expires after a retention period. A successful call returns an empty object.
 
         <Note>
-        The sub-account withdrawal endpoints are not available by default. To request access, contact institutional@whitebit.com.
+        The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.
         A `404 Not Found` response indicates the endpoint is not enabled for the account.
         </Note>
 
@@ -6061,7 +6061,7 @@ paths:
         [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); until then
         `/api/v4/main-account/withdraw` returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
         Crypto deposits additionally require deposits to be enabled for the account — disabled by default,
-        contact your assigned Account Manager or email institutional@whitebit.com.
+        contact the assigned account manager.
         </Note>
 
         <Warning>

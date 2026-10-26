@@ -236,11 +236,11 @@ For Go and PHP examples, see [SDKs](/sdks).
 The `POST /api/v4/main-account/address` endpoint above returns the same address for the same ticker and network combination on every call. For payment provider integrations that assign a unique deposit address per end user, use `POST /api/v4/main-account/create-new-address` instead — this endpoint generates a fresh address on every call. See the [API Reference](/api-reference/account-wallet/create-new-address-for-deposit) for the full specification.
 
 <Warning>
-  The `/create-new-address` endpoint is not available by default. Contact support@whitebit.com to request access.
+  The `/create-new-address` endpoint is not available by default. Request access through the account manager.
 </Warning>
 
 <Note>
-  For sub-accounts, crypto deposits are disabled by default. To enable deposits, contact the assigned Account Manager or institutional@whitebit.com.
+  For sub-accounts, crypto deposits are disabled by default. To enable deposits, contact the assigned account manager.
 </Note>
 
 **Required parameters:**
@@ -426,7 +426,7 @@ Since May 18, 2025, WhiteBIT places inbound crypto deposits for EEA and Turkey a
 </Note>
 
 <Warning>
-  **Manual verification fallback:** If the Travel Rule API is not enabled for the account, frozen deposits require manual action at whitebit.com. Contact institutional@whitebit.com to request Travel Rule API access.
+  **Manual verification fallback:** If the Travel Rule API is not enabled for the account, frozen deposits require manual action at whitebit.com. Request Travel Rule API access through the account manager.
 </Warning>
 
 See [Regulatory Compliance](/institutional/compliance) for the full Travel Rule reference. See the [Travel Rule help center article](https://help.whitebit.com/hc/en-gb/articles/24093241373341-Travel-Rule-Requirements-Updates-to-Crypto-Withdrawals-Interface-and-API) for the complete requirements.
@@ -648,7 +648,7 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
 </Steps>
 
 <Note>
-  The fiat deposit endpoint requires per-account activation. Contact WhiteBIT support and provide the API key to request access.
+  The fiat deposit endpoint requires per-account activation. Request access through the account manager and provide the API key.
 </Note>
 
 **Required parameters:**
@@ -664,7 +664,7 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `successLink` | string | Redirect URL after successful deposit. HTTPS only. Redirect links require feature activation — contact support before use; unactivated or non-HTTPS links fail validation. |
+| `successLink` | string | Redirect URL after successful deposit. HTTPS only. Redirect links require feature activation through the account manager before use; unactivated or non-HTTPS links fail validation. |
 | `failureLink` | string | Redirect URL after failed deposit. Same HTTPS and activation requirement as `successLink`. |
 | `returnLink` | string | Redirect URL the end user lands on after the deposit flow (success or failure). Optional fallback target. |
 | `address` | string | For `provider: "VISAMASTER"` — the end user's card number (PAN). Required when funding by card. |
@@ -912,7 +912,7 @@ Charge a WhiteBIT user's balance in one confirmation with a single-use payment t
 Express Withdraw lets an approved partner charge a specific amount from a WhiteBIT user's balance in one confirmation. The partner integrates a single endpoint — `POST /api/v4/main-account/express-withdraw/token` ([API Reference](/api-reference/account-wallet/create-express-withdraw-token)) — and WhiteBIT hosts everything the paying user sees. Settlement is an internal balance move: instant, off-chain, and fee-free on both sides.
 
 <Note>
-  Express Withdraw is available only for B2B partner services and requires a separate approval process. Request access at https://institutional.whitebit.com/. Without the permission, the endpoint returns `403 Forbidden`.
+  Express Withdraw is available only for B2B partner services and requires a separate approval process. Request access through the account manager. Without the permission, the endpoint returns `403 Forbidden`.
 </Note>
 
 ## Token lifecycle

@@ -8,7 +8,7 @@ export const signerFields = [
   {"name":"amount","type":"string","required":true,"description":"Deposit amount","example":"100"},
   {"name":"uniqueId","type":"string","required":true,"description":"Unique transaction identifier on client's side. Any string up to 255 characters; not validated as a UUID.","example":"qw22"},
   {"name":"customer","type":"object","required":false,"description":"Customer information (required for USD/EUR with VISAMASTER provider)"},
-  {"name":"successLink","type":"string","required":false,"description":"Customer will be redirected to this URL by acquiring provider after success deposit. To activate this feature, please contact support","example":"https://success.example.com"},
-  {"name":"failureLink","type":"string","required":false,"description":"Customer will be redirected to this URL in case of fail or rejection on acquiring provider side. To activate this feature, please contact support","example":"https://failure.example.com"},
+  {"name":"successLink","type":"string","required":false,"description":"Customer will be redirected to this URL by acquiring provider after success deposit. To activate this feature, contact the account manager","example":"https://success.example.com"},
+  {"name":"failureLink","type":"string","required":false,"description":"Customer will be redirected to this URL in case of fail or rejection on acquiring provider side. To activate this feature, contact the account manager","example":"https://failure.example.com"},
   {"name":"returnLink","type":"string","required":false,"description":"Customer will be redirected to the URL defined if selects 'back' option after from the payment success or failure page. To activate this feature, define desired link. If not pop…","example":"https://return.example.com"},
 ];

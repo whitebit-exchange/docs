@@ -44,7 +44,7 @@ sequenceDiagram
 ```
 
 <Note>
-  The `fiat-deposit-url` endpoint works on demand. Contact WhiteBIT support and provide the API key to get access to the functionality. Without activation, the endpoint returns a permission error.
+  The `fiat-deposit-url` endpoint works on demand. Request access through the account manager and provide the API key. Without activation, the endpoint returns a permission error.
 </Note>
 
 Generate a deposit invoice with a client-side `uniqueId` (any string up to 255 characters). The `ticker` must be a [fiat](/glossary#fiat) currency with `can_deposit: true`, and the `provider` value comes from the Asset Status response — see the [provider](/glossary#provider) glossary entry:
@@ -101,7 +101,7 @@ For Go and PHP examples, see [SDKs](/sdks). The signing process is documented in
 Operational rules for the deposit leg:
 
 - **SEPA payment reference.** The `uniqueId` must appear in the SEPA payment-reference field of the bank transfer. If the end user omits or alters it, the deposit may settle unmatched and require manual reconciliation through institutional support — see [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
-- **Redirect links.** `successLink` and `failureLink` require feature activation through WhiteBIT support, which validates the destination domain; `returnLink` needs no activation.
+- **Redirect links.** `successLink` and `failureLink` require feature activation through the account manager, and WhiteBIT validates the destination domain; `returnLink` needs no activation.
 - **Card flows.** Card funding (the VISAMASTER provider) requires a `customer` billing block, and the browser must send the `Referer` header when opening the invoice link — messengers and email clients often strip it. See [Card-provider flows](/guides/payment-integration#card-provider-flows).
 - **Web-only currencies.** Not every fiat ticker is depositable via API; confirm `can_deposit` in the [Asset Status](/api-reference/market-data/asset-status-list) response before generating an invoice, and route unsupported tickers through the WhiteBIT web interface.
 
@@ -123,7 +123,7 @@ sequenceDiagram
     Partner->>WhiteBIT: POST /api/v4/main-account/history (reconciliation)
 ```
 
-Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from support@whitebit.com. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
+Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from the account manager. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
 
 For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider. The EUR SEPA IBAN example below uses the `SEPA_BCB_GROUP` provider, one of the SEPA/bank-rail providers (`SEPA`, `SEPA_CLEAR_JUNCTION`, `SEPA_BCB_GROUP`, `FINCI`, `ZEN`, `BANKING_CIRCLE`) that requires a top-level `bankBic` field carrying the beneficiary bank's BIC/SWIFT code; the active provider for the account is confirmed via the [Asset Status](/api-reference/market-data/asset-status-list) endpoint or the account manager.
 

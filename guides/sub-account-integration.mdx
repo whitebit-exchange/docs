@@ -61,8 +61,8 @@ Each end customer trades from a dedicated sub-account under the partner's master
 - **Up to 50 API keys per sub-account**, independent from the main account and from other sub-accounts, each with an IP whitelist and permission scope.
 - **Sub-account count per master** — the number of sub-accounts a master account can create is not a fixed published limit; confirm the ceiling that applies to the account with WhiteBIT during enrollment.
 {/* TODO: value gated on Product — maximum number of sub-accounts per master account (et-08). */}
-- **Withdrawal control at the master account** — sub-account withdrawals surface on the master account for confirmation via the [unconfirmed-withdrawals list](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and [confirm](/api-reference/sub-accounts/confirm-sub-account-withdrawal) endpoints. The sub-account withdrawal endpoints are not available by default — request access via `institutional@whitebit.com`; a `404` response indicates the endpoints are not yet enabled for the account.
-- **Crypto deposits are disabled by default.** Once deposits are enabled for the account (request via the assigned account manager or `institutional@whitebit.com`), the capability applies to the account and its sub-accounts; a sub-account then generates deposit addresses through the standard [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission.
+- **Withdrawal control at the master account** — sub-account withdrawals surface on the master account for confirmation via the [unconfirmed-withdrawals list](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and [confirm](/api-reference/sub-accounts/confirm-sub-account-withdrawal) endpoints. The sub-account withdrawal endpoints are not available by default — request access through the assigned account manager; a `404` response indicates the endpoints are not yet enabled for the account.
+- **Crypto deposits are disabled by default.** Once deposits are enabled for the account (request via the assigned account manager), the capability applies to the account and its sub-accounts; a sub-account then generates deposit addresses through the standard [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission.
 
 **Endpoint map:**
 
@@ -198,7 +198,7 @@ WhiteBIT has no public testnet or sandbox. Validate the full flow — sub-accoun
 - [ ] **Master API key** — master account API key created with appropriate permissions.
 - [ ] **Sub-account creation** — test sub-account created with the intended `permissions` scope and KYC branch.
 - [ ] **Activation and KYC** — sub-account activation observed via `sub-account/list`; KYC URL generated and completed (dedicated-KYC branch).
-- [ ] **Deposit enablement** (if per-customer deposits apply) — crypto-deposit enablement requested via the account manager or `institutional@whitebit.com`.
+- [ ] **Deposit enablement** (if per-customer deposits apply) — crypto-deposit enablement requested via the account manager.
 - [ ] **Fund transfer** — fee-free transfer between master and sub-account verified in both directions.
 - [ ] **Per-customer API key** — API key created for a sub-account with IP whitelist configured.
 - [ ] **Balance monitoring** — `sub-account/balances` query working across all sub-accounts.
