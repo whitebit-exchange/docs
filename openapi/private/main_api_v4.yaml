@@ -237,7 +237,7 @@ paths:
         Get an existing cryptocurrency deposit address for a given currency and network.
 
         <Note>
-        Sub-accounts use this endpoint with a sub-account API key once deposits are enabled for the account. Crypto deposits are disabled by default. To enable deposits, contact the assigned account manager.
+        Sub-accounts use this endpoint with a sub-account API key once sub-account deposits are enabled for the account. Crypto deposits to sub-accounts are disabled by default. To enable deposits, contact the assigned account manager.
         </Note>
 
         <Warning>
@@ -5802,8 +5802,8 @@ paths:
         </Note>
 
         <Note>
-        Crypto deposits are disabled by default. Once deposits are enabled for the account, the
-        capability applies to the account and its sub-accounts; enablement is not available via
+        Crypto deposits to sub-accounts are disabled by default. Once deposits are enabled for the
+        account, the capability applies to all of its sub-accounts; enablement is not available via
         API. To request it, contact the assigned account manager.
         Once enabled, a sub-account generates deposit addresses through the standard
         [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
@@ -6599,8 +6599,8 @@ paths:
         Enable the ones the key uses (for example `/api/v4/main-account/withdraw`) with
         [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); until then
         `/api/v4/main-account/withdraw` returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
-        Crypto deposits additionally require deposits to be enabled for the account — disabled by default,
-        contact the assigned account manager.
+        Crypto deposits additionally require sub-account deposits to be enabled for the account (disabled by
+        default); to enable sub-account deposits, contact the assigned account manager.
         </Note>
 
         <Warning>
