@@ -667,7 +667,7 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
 | `successLink` | string | Redirect URL after successful deposit. HTTPS only. Redirect links require feature activation — contact support before use; unactivated or non-HTTPS links fail validation. |
 | `failureLink` | string | Redirect URL after failed deposit. Same HTTPS and activation requirement as `successLink`. |
 | `returnLink` | string | Redirect URL the end user lands on after the deposit flow (success or failure). Optional fallback target. |
-| `address` | string | For `provider: "VISAMASTER"` — the end user's card number (PAN). Required when funding by card. |
+| `address` | string | For `provider: "VISAMASTER"` — the end user's card number (PAN). Required when funding by card. Deposits only: a VISAMASTER withdrawal takes a card token in `address`, not a PAN — see [Fiat withdrawal](#fiat-withdrawal). |
 | `customer` | object | Customer identity block. Required for `provider: "VISAMASTER"` (USD/EUR) and `provider: "MERCURYO"`. Sub-fields: `firstName`, `lastName`, `email`, `birthDate` (YYYY-MM-DD), `address.{line1, line2, city, zipCode, countryCode}`. |
 | `expiresAfter` | integer | Invoice expiration in seconds. Maximum 86400 (24 hours). Accepted only for `provider: "VISAMASTER"` and `provider: "CHECKOUT"`. |
 
@@ -737,9 +737,11 @@ Common synchronous rejections from `/fiat-deposit-url` and the recovery for each
 
 Create a fiat withdrawal using the same `POST /api/v4/main-account/withdraw` endpoint used for crypto, specifying a fiat ticker.
 
-The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Use fiat-specific tickers such as `EUR`, `USD`, `USD_VISAMASTER`, `EUR_VISAMASTER`.
+The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Pass the currency in `ticker` (for example `EUR` or `USD`) and the payment provider in `provider` (for example `VISAMASTER`). Do not pass `USD_VISAMASTER` or `EUR_VISAMASTER` as `ticker`.
 
-The `beneficiary` object is required for fiat withdrawals with tickers `USD_VISAMASTER`, `EUR_VISAMASTER`, `USD`, and `EUR`. Set `partialEnable` to `true` for increased maximum limits — the application must then handle status 18 ("Partially successful").
+For a card withdrawal with `provider: "VISAMASTER"`, pass the card token returned by [Issue card token](/api-reference/account-wallet/issue-card-token) in `address`. A card number (PAN) is not accepted, and the API does not read a card token from `beneficiary`.
+
+The `beneficiary` object is required for fiat withdrawals with tickers `USD` and `EUR`. Set `partialEnable` to `true` for increased maximum limits — the application must then handle status 18 ("Partially successful").
 
 ### Beneficiary object fields
 
@@ -747,14 +749,12 @@ Sub-field requirements vary by ticker and provider. Verify the current contract 
 
 | Sub-field | Required for | Notes |
 |-----------|--------------|-------|
-| `firstName` | USD_VISAMASTER, USD, EUR | — |
-| `lastName` | USD_VISAMASTER, USD, EUR | — |
-| `email` | USD_VISAMASTER, EUR_VISAMASTER | — |
+| `firstName` | USD, EUR | — |
+| `lastName` | USD, EUR | — |
+| `email` | VISAMASTER_PAYCORE + USD/EUR | — |
 | `code` | Provider-dependent | — |
-| `phone` | VISAMASTER + USD/EUR | — |
-| `birthDate` | USD_VISAMASTER, EUR_VISAMASTER, MERCURYO | Format: `YYYY-MM-DD` |
-| `cardToken`, `cardTokenSave`, `fingerprintSession` | Card-tokenization flows | — |
-| `card.{save, name, firstName, lastName, number, month, year}` | Card-funded flows | — |
+| `phone` | VISAMASTER_PAYCORE + USD/EUR | — |
+| `birthDate` | VISAMASTER_PAYCORE + USD/EUR, MERCURYO | Format: `YYYY-MM-DD` |
 | `address.{line1, line2, city, zip, country}` | Address-required flows | — |
 | `bank.{routingNumber, name, address, country}` | Bank-direct flows | — |
 

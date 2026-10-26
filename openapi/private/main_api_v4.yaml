@@ -1238,7 +1238,8 @@ paths:
                   example: "0.9"
                 address:
                   type: string
-                  description: Target address (wallet address for cryptocurrencies, identifier/[card token](/glossary#card-token) for [fiat](/glossary#fiat) currencies)
+                  description: |
+                    Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted.
                   example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
                 memo:
                   type: string
@@ -1291,37 +1292,37 @@ paths:
                   description: |
                     Beneficiary information.
 
-                    ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR.
+                    ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
 
-                    Per-field requirements vary by currency and provider. Card-related fields (`cardToken`, `card.*`, `cardTokenSave`, `fingerprintSession`) apply only to card-acquiring rails; bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for VISAMASTER/Mercuryo rails. See `/asset-status-list` for the active provider per currency.
+                    Per-field requirements vary by currency and provider. Bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for the VISAMASTER_PAYCORE [provider](/glossary#provider). The card token for a VISAMASTER withdrawal goes in `address`, not in `beneficiary`. See `/asset-status-list` for the active provider per currency.
                   properties:
                     firstName:
                       type: string
                       description: |
                         Beneficiary first name. Max length: 40 symbols, latin letters and special characters.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, USD, EUR
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
                       example: "Firstname"
                     lastName:
                       type: string
                       description: |
                         Beneficiary last name. Max length: 40 symbols, latin letters and special characters.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, USD, EUR
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
                       example: "Lastname"
                     phone:
                       type: string
                       description: |
                         Beneficiary phone number.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER_PAYCORE [provider](/glossary#provider).
                       example: "1234567891"
                     email:
                       type: string
                       description: |
                         Beneficiary email.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER_PAYCORE [provider](/glossary#provider).
                       example: "john_doe@email.com"
                     birthDate:
                       type: string
@@ -1329,61 +1330,13 @@ paths:
                       description: |
                         Beneficiary birth date. Format: YYYY-MM-DD.
 
-                        ⚠️ Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, or when withdrawing through Mercuryo.
+                        ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR with VISAMASTER_PAYCORE [provider](/glossary#provider), or when withdrawing through Mercuryo.
                       example: "1990-01-01"
                     code:
                       type: string
                       description: |
                         Beneficiary verification code returned by a prior verification step. Used by some card-acquiring flows that require a one-time verification challenge before settlement.
                       example: "123456"
-                    cardToken:
-                      type: string
-                      description: |
-                        Tokenized payment-card identifier for card-acquiring rails. Use instead of raw PAN; obtain from the card-tokenisation endpoint or from a prior successful settlement on the same card.
-                      example: "tok_4f7c8e2a"
-                    cardTokenSave:
-                      type: boolean
-                      description: |
-                        If `true`, request the acquiring provider to persist the card token for reuse on subsequent withdrawals to the same beneficiary.
-                      example: false
-                    fingerprintSession:
-                      type: string
-                      description: |
-                        Anti-fraud device-fingerprint session identifier captured at the partner's checkout surface and forwarded to the acquiring provider. Required by some VISAMASTER configurations.
-                      example: "fps_abc123"
-                    card:
-                      type: object
-                      description: |
-                        Card details for card-acquiring rails. Use `cardToken` instead when available; raw card details apply only when a fresh card is being added.
-                      properties:
-                        save:
-                          type: boolean
-                          description: If `true`, persist the card for reuse on subsequent withdrawals.
-                          example: false
-                        name:
-                          type: string
-                          description: Cardholder name as embossed on the card.
-                          example: "John Doe"
-                        firstName:
-                          type: string
-                          description: Cardholder first name.
-                          example: "John"
-                        lastName:
-                          type: string
-                          description: Cardholder last name.
-                          example: "Doe"
-                        number:
-                          type: string
-                          description: Primary Account Number (PAN). Treat as PCI-scope sensitive data on the partner side.
-                          example: "4111111111111111"
-                        month:
-                          type: string
-                          description: Card expiry month as a two-digit string (`01`-`12`).
-                          example: "12"
-                        year:
-                          type: string
-                          description: Card expiry year as a four-digit string.
-                          example: "2030"
                     address:
                       type: object
                       description: |
@@ -1553,6 +1506,9 @@ paths:
                   ticker: "USD"
                   amount: "150.00"
                   address: "t6XIpyirkiLP+I++XHWfSeGrn5p38g=="
+                  beneficiary:
+                    firstName: "Firstname"
+                    lastName: "Lastname"
                   provider: "VISAMASTER"
                   uniqueId: "ab12cd34-9101-4abc-9def-1234567890ab"
                   customerIp: "203.0.113.42"
@@ -1572,7 +1528,7 @@ paths:
                   request: "{{request}}"
                   nonce: 1594297865000
               fiatVisamaster:
-                summary: "Fiat USD/EUR VISAMASTER"
+                summary: "Fiat USD/EUR VISAMASTER_PAYCORE (extended beneficiary)"
                 value:
                   ticker: "USD"
                   amount: "30000"
@@ -1582,7 +1538,8 @@ paths:
                     lastName: "Lastname"
                     phone: "1234567891"
                     email: "john_doe@email.com"
-                  provider: "USD_VISAMASTER"
+                    birthDate: "1990-01-01"
+                  provider: "VISAMASTER_PAYCORE"
                   uniqueId: "24529045"
                   request: "{{request}}"
                   nonce: 1594297865000
@@ -8470,7 +8427,7 @@ components:
           example: "0.9"
         address:
           type: string
-          description: "Target address (wallet address for cryptocurrencies, identifier/[card token](/glossary#card-token) for [fiat](/glossary#fiat) currencies)"
+          description: "Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted."
           example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
         memo:
           type: string
@@ -8502,7 +8459,7 @@ components:
           example: "DEUTDEFF"
         beneficiary:
           type: object
-          description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is one of: USD_VISAMASTER, EUR_VISAMASTER, USD, EUR"
+          description: "Beneficiary information data. Required if currency [ticker](/glossary#ticker) is USD or EUR."
         travelRule:
           type: object
           description: "Travel Rule information data. Required if currency is crypto and the account is from [EEA](/glossary#european-economic-area-eea)"
