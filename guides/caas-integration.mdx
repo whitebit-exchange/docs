@@ -25,7 +25,7 @@ detail.
 ## Prerequisites
 
 - **A CaaS engagement scoped with WhiteBIT** — see the [CaaS overview](/guides/caas-overview) for what the model delivers and the path to launch.
-- **Architecture alignment** — the instance, branding, and asset scope agreed during onboarding (see [Architecture alignment during onboarding](#architecture-alignment-during-onboarding)).
+- **Architecture alignment** — the account mapping and verification split agreed during onboarding (see [Architecture alignment during onboarding](#architecture-alignment-during-onboarding)).
 - **API access** — [HMAC-signed requests](/api-reference/authentication); each capability's endpoint and field detail lives in the linked product guide.
 
 ## Integration building blocks
@@ -56,55 +56,57 @@ secrets outside application code. See [Authentication](/api-reference/authentica
 ### Wallets and payments
 
 - **Deposit addresses.** Generate a unique address per end user with
-  `POST /api/v4/main-account/create-new-address`; incoming funds are reconciled by webhook. See the
-  [Payment Integration guide](/guides/payment-integration) and the
-  [Wallet-as-a-Service developer guide](/guides/waas-integration).
+  `POST /api/v4/main-account/create-new-address`. The endpoint is not available by default — see
+  [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit) for
+  access. Each call creates a new address, within a per-currency address limit, so store every
+  address — and its memo on memo networks — against the end user before showing it. Credit deposits
+  from webhooks and reconcile against the deposit history, because webhooks have no replay. Part of
+  a new deposit can stay held until full confirmation;
+  [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) reports held funds for the
+  whole account, not for each end user. See the
+  [Payment Integration guide](/guides/payment-integration).
 - **Withdrawals.** Fee-inclusive (`/withdraw`) and fee-on-top (`/withdraw-pay`) variants, plus
   withdrawal after conversion using the Convert service — request a quote, confirm at the quoted
   rate, then withdraw in the destination currency. See
   [Payment Integration](/guides/payment-integration) and [Convert](/platform/convert).
-- **Fiat rails (EUR/SEPA).** Available after Phase 2 onboarding — API-generated deposit invoices and
-  SEPA withdrawals. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration).
+- **Fiat (EUR/SEPA).** Available on the partner's WhiteBIT account after Phase 2 onboarding —
+  SEPA withdrawals, and API-generated deposit invoices once the invoice endpoint is enabled on
+  request. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration).
 - **WhiteBIT Codes.** Fee-free internal crypto transfers between WhiteBIT accounts, useful for
   settlement flows. See [WhiteBIT Codes](/platform/whitebit-codes).
 - **Crypto Lending.** Fixed and Flex lending endpoints are restricted to B2B partners and require
   access to be granted through the
-  [institutional services form](https://whitebit.com/institutional-services/b2b). See
+  [institutional services form](https://institutional.whitebit.com/). See
   [Crypto Lending](/products/lending/overview).
 
-Travel Rule affects deposits and withdrawals for EEA and Turkey accounts — the primary CaaS
-segments (banks, EMIs, fintechs). The Travel Rule API for programmatic verification is enabled per
+Travel Rule affects deposits and withdrawals for EEA and Turkey accounts. The Travel Rule API for
+programmatic verification is enabled per
 account via institutional@whitebit.com; see [Regulatory Compliance](/institutional/compliance).
 
 <TravelRuleNote />
 
-### Account architecture
+### Accounts and trading
+
+Which account arrangement applies is agreed during onboarding — see
+[Architecture alignment during onboarding](#architecture-alignment-during-onboarding).
 
 - **Sub-accounts.** Create and manage thousands of separate accounts under one umbrella, each with
   independent balances, API keys, and IP whitelists, with fee-free instant transfers between the
   main account and its sub-accounts. See [Sub-Accounts](/products/sub-accounts/overview).
 - **Fast API Key via OAuth.** For flows where end users hold personal WhiteBIT accounts, a partner
-  can issue user-scoped API keys through the OAuth API key flow. New partner integrations use this
-  flow. See [Fast API Key via OAuth](/guides/fast-api-key-integration) and the
+  can issue partner-scoped API keys through the OAuth API key flow. See
+  [Fast API Key via OAuth](/guides/fast-api-key-integration) and the
   [OAuth overview](/platform/oauth/overview).
-- **Trading and conversion.** Spot markets across 800+ pairs, and the Convert service for instant
+- **Trading and conversion.** Spot markets (see [Spot trading](/products/spot/overview)), and the Convert service for instant
   conversion at a quoted rate without placing orders on the order book. See
   [Convert](/platform/convert).
 
-<Note>
-The classic OAuth 2.0 Authorization Code Grant flow for direct account-data access is deprecated
-and will be removed on November 1, 2026. New integrations use the Fast API Key flow. See the
-[OAuth overview](/platform/oauth/overview).
-</Note>
-
 ## Architecture alignment during onboarding
 
-The public documentation covers the API surface, but not the full dedicated-instance model behind
-CaaS. The items below define the integration architecture and are agreed and documented with
-WhiteBIT during onboarding, before development starts.
+The public documentation covers the API surface. The items below define the integration
+architecture and are agreed and documented with WhiteBIT during onboarding, before development
+starts.
 
-- **Instance model** — how the dedicated, custom-branded instance relates to the public API
-  surface, and which base URL and credentials the environment uses.
 - **End-user account mapping** — how end customers map onto the WhiteBIT account model (for example,
   one sub-account per end user, versus a pooled account with the partner's own internal ledger), and
   the reconciliation and limit trade-offs of each.
