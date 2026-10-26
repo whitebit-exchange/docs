@@ -71,24 +71,24 @@ Negative-Rating positions are still ranked and receive a Grade for the indicator
 
 ## Execution price
 
-ADL fills execute at a price derived from **Last Price** (not Mark Price). The formula:
+ADL fills execute at a price derived from **Mark Price** (not Last Price). The formula:
 
 ```
-d = Margin Fraction − 2 × taker_fee_rate
+d = Futures Margin Fraction − 2 × taker_fee_rate
 
-Long  position : Price_ADL = LastPrice × (1 − d)
-Short position : Price_ADL = LastPrice × (1 + d)
+Long  position : Price_ADL = MarkPrice × (1 − d)
+Short position : Price_ADL = MarkPrice × (1 + d)
 ```
 
 Where:
 
-- `LastPrice` — the current last-traded price at the time of liquidation.
-- `Margin Fraction` — the system parameter from the published execution-price formula. The canonical publication is the [WhiteBIT help-center article on ADL](https://help.whitebit.com/hc/ru/articles/35218885148445).
-- `taker_fee_rate` — the **liquidated user's** taker fee rate.
+- `MarkPrice` — the Mark Price of the futures market at the time of liquidation.
+- `Futures Margin Fraction` — the Futures Margin Fraction at the moment borrowings and margin positions have been liquidated. Futures Margin Fraction includes the USDTB bonus balance — see [USDTB (bonus collateral)](/concepts/balances#usdtb-bonus-collateral).
+- `taker_fee_rate` — the taker fee rate of the specific futures market where ADL is executed.
 
 ## Worked example
 
-A 10 BTC short position on a perpetual market is liquidated at `LastPrice = $42,000`. The system computes Ratings for the long-side candidates:
+A 10 BTC short position on a perpetual market is liquidated at `MarkPrice = $42,000`. The system computes Ratings for the long-side candidates:
 
 | Trader | Rating | Position | PnL | Selection result |
 |--------|--------|----------|-----|------------------|
@@ -98,7 +98,7 @@ A 10 BTC short position on a perpetual market is liquidated at `LastPrice = $42,
 
 Price calculation for the Short liquidation:
 
-- Margin Fraction (of liquidated position) ≈ 0.02
+- Futures Margin Fraction ≈ 0.02
 - `taker_fee_rate` = 0.0005 (0.05%)
 - `d` = 0.02 − 2 × 0.0005 = 0.019
 - `Price_ADL` = 42,000 × (1 + 0.019) = **$42,798**

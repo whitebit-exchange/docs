@@ -1,0 +1,163 @@
+---
+title: Order book L2
+tag: "WSS"
+description: "Subscribe to the level 2 order book of a trading pair — a snapshot followed by incremental price-level updates — via WhiteBIT WebSocket."
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
+import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
+import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
+import { WsTupleTable } from '/snippets/WsTupleTable.jsx'
+import { WsAuthBadge } from '/snippets/WsAuthBadge.jsx'
+import { WsRateLimits } from '/snippets/WsRateLimits.jsx'
+import { WsErrorCodes } from '/snippets/WsErrorCodes.jsx'
+import {
+  channelOperations,
+  channelMeta,
+  orderbookL2SubscribeParamsTupleFields,
+  orderbookL2SnapshotParamsTupleFields,
+  orderbookL2UpdateRecordTupleFields,
+  exOrderbookL2Subscribe,
+  exOrderbookL2SubscribeResponse,
+  exOrderbookL2Snapshot,
+  exOrderbookL2Update,
+  exOrderbookL2DoubleUpdate,
+  exOrderbookL2Unsubscribe,
+} from '/snippets/ws-data/orderbook_l2.jsx'
+import { RelatedResources } from '/snippets/RelatedResources.jsx'
+
+<RegionBaseUrl protocol="wss" />
+
+Level 2 order book stream: volumes are aggregated by price level, and each level carries the total amount at that price. After subscription, the server sends a **snapshot** of the order book, then **incremental updates** that the client applies to a local copy. Use this channel to maintain a live local order book for trading logic or display.
+
+<Note>
+This channel does **NOT** support query operations — only subscribe, update, and unsubscribe. For a one-time order book snapshot, use [Orderbook](/api-reference/market-data/orderbook) over REST.
+</Note>
+
+<WsChannelOverview operations={channelOperations} />
+
+<WsAuthBadge required={channelMeta.authRequired} />
+
+<Note>Connect to `wss://wss.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
+
+## Rate limits
+
+<WsRateLimits {...channelMeta.rateLimits} />
+
+## Subscribe to order book L2
+
+Parameters are positional.
+
+<WsTupleTable fields={orderbookL2SubscribeParamsTupleFields} />
+
+<Warning>
+`multiple_subscription` is optional and defaults to `false`, and `false` cancels all other current `orderbook_l2` subscriptions. Pass `true` explicitly when subscribing to several markets on one connection; an omitted flag is the usual reason a previously subscribed market stops streaming.
+</Warning>
+
+<WsSubscribeSteps
+  subscribe={exOrderbookL2Subscribe}
+  confirmation={exOrderbookL2SubscribeResponse}
+  update={exOrderbookL2Snapshot}
+  updateStepTitle="Receive the snapshot and updates"
+  updateNote="The first orderbook_l2.update after subscription is a snapshot — params[0] is the string &quot;s&quot; and the data is flat. Initialize the local order book from it."
+  updateExtra={
+    <div>
+      <WsTupleTable fields={orderbookL2SnapshotParamsTupleFields} />
+      <p style={{fontSize: '0.875rem', marginTop: '1rem', marginBottom: '0.75rem'}}>Subsequent <code>orderbook_l2.update</code> messages carry an <strong>array of update records</strong> — <code>params[0]</code> is an array, not a string. Each record describes the change of one price level.</p>
+      <WsMessageExample data={exOrderbookL2Update} />
+      <WsTupleTable fields={orderbookL2UpdateRecordTupleFields} />
+      <p style={{fontSize: '0.875rem', marginTop: '1rem', marginBottom: '0.75rem'}}>A message holds one record, or two records when one price level is removed (<code>amount</code> is <code>"0"</code>) and a new level is added at the same time. Apply both records as a single change.</p>
+      <WsMessageExample data={exOrderbookL2DoubleUpdate} />
+    </div>
+  }
+  unsubscribe={exOrderbookL2Unsubscribe}
+  unsubscribeNote="Pass a market name in params to unsubscribe from that market only (`params[0]`: market name, e.g. `&quot;BTC_USDT&quot;`), or pass an empty array to unsubscribe from all markets."
+/>
+
+## Update frequency
+
+The server pushes updates in real time.
+
+## Update model
+
+**First message** (`params[0]` is `"s"`): Full snapshot of the order book, `limit` levels per side. Asks come first (`params[3]`), bids second (`params[4]`).
+
+**Subsequent messages** (`params[0]` is an array): Incremental updates. Each record carries the **new absolute amount** at a price level, not a delta.
+
+- Amount `"0"` removes the price level.
+- A non-zero amount on a price that is absent from the local book adds the level; on a price that is present, it replaces the current amount.
+- A repeated snapshot replaces the whole order book of the market — it does not merge with the existing state.
+
+## Maintaining a local order book
+
+1. Keep a separate order book for each market and remember the `limit` of its subscription. Messages for several markets arrive on one connection and differ by the `market` field.
+2. Discard updates received before the first snapshot of a market.
+3. On a snapshot, replace the local order book of the market.
+4. On an update, apply every record of the message in order, then check the state.
+5. After each message, keep only the `limit` best asks (ascending by price) and the `limit` best bids (descending by price).
+6. Store prices and amounts as decimals or strings, not floats — a float key stops matching the level on removal or replacement.
+
+<Warning>
+The server does **not** send a removal for a level that falls outside `limit`. When a new level enters the depth window and pushes the outermost level out, no record with amount `"0"` follows for the displaced level. Trimming the local order book to `limit` after every message is the client's responsibility; without it the book grows and keeps stale levels.
+</Warning>
+
+<CodeGroup>
+```python Python
+from decimal import Decimal
+
+def apply_l2(book, limit, params):
+    if params[0] == "s":  # snapshot: replace the book
+        _, _, _, asks, bids = params
+        book["a"], book["b"] = dict(asks), dict(bids)
+    else:  # update: one or two records
+        for _, _, _, side, price, amount in params:
+            if amount == "0":
+                book[side].pop(price, None)
+            else:
+                book[side][price] = amount
+    for side, reverse in (("a", False), ("b", True)):
+        best = sorted(book[side], key=Decimal, reverse=reverse)[:limit]
+        book[side] = {p: book[side][p] for p in best}
+```
+
+```javascript JavaScript
+function applyL2(book, limit, params) {
+  if (params[0] === "s") { // snapshot: replace the book
+    const [, , , asks, bids] = params;
+    book.a = new Map(asks);
+    book.b = new Map(bids);
+  } else { // update: one or two records
+    for (const [, , , side, price, amount] of params) {
+      if (amount === "0") book[side].delete(price);
+      else book[side].set(price, amount);
+    }
+  }
+  for (const [side, dir] of [["a", 1], ["b", -1]]) {
+    const best = [...book[side]]
+      .sort((x, y) => dir * (Number(x[0]) - Number(y[0])))
+      .slice(0, limit);
+    book[side] = new Map(best);
+  }
+}
+```
+</CodeGroup>
+
+## Ordering guarantees
+
+- Apply updates in the order of arrival.
+- Asks are sorted ascending and bids descending. The best ask must be strictly greater than the best bid. A crossed book indicates desynchronization — re-subscribe to receive a fresh snapshot.
+- After a connection loss, re-subscribe and wait for a new snapshot before applying updates.
+
+## Data exclusions
+
+Retail Price Improvement (RPI) orders are not included in the snapshot or in updates. The stream reflects only regular order book liquidity. When the local book differs from other sources (the exchange UI, REST, trades) in the best price or volume, RPI liquidity can be one of the causes. See [Order book depth](/websocket/market-streams/depth#including-rpi-orders-in-a-local-order-book) for overlaying an account's own RPI orders.
+
+## Error codes
+
+<WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+<RelatedResources>
+- [Order book depth](/websocket/market-streams/depth) — WebSocket order book with `update_id` sequencing, a one-time query, and price intervals.
+- [Orderbook](/api-reference/market-data/orderbook) — full order book snapshot via REST for polling use cases.
+</RelatedResources>
