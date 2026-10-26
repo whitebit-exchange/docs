@@ -31,7 +31,7 @@ Four scenarios cover the most common partner integrations. Each closes with a li
 
 ### UC1 — Payment provider with per-end-user deposit address
 
-A payment-provider partner assigns each end customer a unique deposit address and credits the customer's account when funds arrive. Reconciliation is webhook-driven by `uniqueId` (each deposit address corresponds to one customer in the partner's database).
+A payment-provider partner assigns each end customer a unique deposit address and credits the customer's account when funds arrive. Reconciliation is webhook-driven by `uniqueId` (each deposit address — plus memo on memo networks — corresponds to one customer in the partner's database).
 
 ```mermaid
 sequenceDiagram
@@ -49,7 +49,7 @@ sequenceDiagram
     W->>P: webhook: deposit.accepted (status 15)
     W->>P: webhook: deposit.updated (confirmation count)
     W->>P: webhook: deposit.processed (status 3 — terminal)
-    P->>P: Match by address / uniqueId → credit customer
+    P->>P: Match by address (+ memo if applicable) / uniqueId → credit customer
 ```
 
 See [Deposit address generation](#deposit-address-generation) for endpoint detail.
@@ -281,7 +281,7 @@ The `POST /api/v4/main-account/address` endpoint above returns the same address 
   </Tab>
 </Tabs>
 
-**Choosing between the two endpoints:** The choice depends on the partner's reconciliation model. Partners managing one consolidated wallet per asset (treasury, market-maker, single-merchant) use `/address`; repeat calls return the same address. Partners assigning one address per end customer (payment provider, per-user wallet) use `/create-new-address`; each call returns a fresh address, so an incoming deposit identifies the end user by address alone.
+**Choosing between the two endpoints:** The choice depends on the partner's reconciliation model. Partners managing one consolidated wallet per asset (treasury, market-maker, single-merchant) use `/address`; repeat calls return the same address. Partners assigning one address per end customer (payment provider, per-user wallet) use `/create-new-address`; each call returns a fresh address, so an incoming deposit identifies the end user by its address, plus the memo on memo networks.
 
 | Endpoint | Behavior | Best for |
 |----------|----------|----------|
