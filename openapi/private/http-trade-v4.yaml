@@ -4669,9 +4669,9 @@ paths:
     post:
       summary: Convert History
       description: |
-        The endpoint returns convert history, sorted by `id` descending (newest first).
+        The endpoint returns convert history, most recently executed first. The `date` field holds the quote creation time, and a quote can be executed later than it was created, so `date` is not always in descending order.
 
-        The `from`–`to` window is capped at 30 days per request, even though data is retained for 6 months. A wider range is rejected with `422` and code `0`, reported under both `from` and `to`.
+        The `from`–`to` window is capped at 30 days per request. A wider range is rejected with `422` and code `0`, reported under both `from` and `to`. Both `from` and `to` must be no earlier than now − 180 days. The bound is rolling and recalculated on every request, so the timestamp in the `dateOutOfRange` error message changes with each request.
 
         `total` is the number of records in the returned page, not the number of all matching records, so it never exceeds `limit`. A full page does not mean more records exist. To read every record, request the next `offset` until a page returns fewer than `limit` records or none.
 
@@ -4683,7 +4683,7 @@ paths:
         Error text is not part of the contract and may change. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
         </Note>
 
-        **Note:** The endpoint can retrieve data not older than 6 months from the current month. For older data, use the Report on the History page.
+        **Note:** The endpoint can retrieve data not older than 180 days. For older data, use the Report on the History page.
       operationId: convertHistory
       security:
         - ApiKeyAuth: []
@@ -4694,47 +4694,53 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                fromTicker:
-                  type: string
-                  description: "From currency. Example: BTC"
-                  example: "BTC"
-                toTicker:
-                  type: string
-                  description: "To currency. Example: USDT"
-                  example: "USDT"
-                from:
-                  type: string
-                  description: "From time filter (Unix seconds). Must be no more than 30 days before `to` and no older than 6 months. Example: 1699260637. Default: now()"
-                  example: "1699260637"
-                to:
-                  type: string
-                  description: "To time filter (Unix seconds). Must be no more than 30 days after `from`. Example: 1699260637. Default: now()"
-                  example: "1699260637"
-                quoteId:
-                  type: string
-                  description: "Quote Id. Example: 4050"
-                  example: "4050"
-                limit:
-                  type: integer
-                  description: "How many records to receive. Allowed range: 1–100. Default: 100"
-                  minimum: 1
-                  maximum: 100
-                  example: 100
-                offset:
-                  type: integer
-                  description: "Number of records to skip for pagination. Minimum: 0. Default: 0"
-                  minimum: 0
-                  example: 0
-                nonce:
-                  type: integer
-                  description: "Nonce for request"
-                  example: 1699260637
-                request:
-                  type: string
-                  description: "Request path"
-                  example: "{{request}}"
+              allOf:
+                - type: object
+                  title: Request parameters
+                  properties:
+                    fromTicker:
+                      type: string
+                      description: "From currency. Example: BTC"
+                      example: "BTC"
+                    toTicker:
+                      type: string
+                      description: "To currency. Example: USDT"
+                      example: "USDT"
+                    from:
+                      type: string
+                      description: "Start time, Unix seconds (string or integer). Default: now − 30 days. No earlier than now − 180 days, no later than 23:59:59 UTC today, earlier than `to`, at most 30 days before `to`."
+                      example: "1699260637"
+                    to:
+                      type: string
+                      description: "End time, Unix seconds (string or integer). Default: now; a later value is treated as now. No earlier than now − 180 days, at most 30 days after `from`."
+                      example: "1699260637"
+                    quoteId:
+                      type: string
+                      description: "Quote Id. Example: 4050"
+                      example: "4050"
+                    limit:
+                      type: integer
+                      description: "How many records to receive. Allowed range: 1–100. Default: 100"
+                      minimum: 1
+                      maximum: 100
+                      example: 100
+                    offset:
+                      type: integer
+                      description: "Number of records to skip for pagination. Minimum: 0. Default: 0"
+                      minimum: 0
+                      example: 0
+                - type: object
+                  title: Authentication
+                  description: "Signing fields added to the body when the request is signed. These fields are not filter parameters. See [First API Call](/guides/first-api-call) for the signing flow."
+                  properties:
+                    nonce:
+                      type: integer
+                      description: "Nonce for request"
+                      example: 1699260637
+                    request:
+                      type: string
+                      description: "Request path"
+                      example: "{{request}}"
             example:
               fromTicker: "BTC"
       responses:
@@ -4771,7 +4777,7 @@ paths:
                                 example: "34470.87211306"
                         date:
                           type: integer
-                          description: "Conversion timestamp"
+                          description: "Unix timestamp (seconds) when the quote was created. A quote can be executed later than it was created, so `date` is not always in descending order."
                           example: 1699020642
                         give:
                           type: string
@@ -4816,14 +4822,14 @@ paths:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      fromTicker: ["fromTicker is invalid."]
+                      fromTicker: ["The selected FromTicker is invalid."]
                 toTickerInvalid:
                   summary: "ToTicker Invalid"
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
-                      toTicker: ["toTicker is invalid."]
+                      toTicker: ["The selected ToTicker is invalid."]
                 dateRangeExceeded:
                   summary: "Date Range Exceeds 30 Days"
                   value:
@@ -4849,11 +4855,13 @@ paths:
                       from: ["The From must be an integer."]
                 dateOutOfRange:
                   summary: "Date Outside Allowed Range"
+                  description: "`from` and `to` are checked separately against now − 180 days. The timestamp in the message changes with every request."
                   value:
                     code: 30
                     message: "Validation failed"
                     errors:
                       from: ["The From must be at least <timestamp>"]
+                      to: ["The To must be at least <timestamp>"]
                 limitBelowMinimum:
                   summary: "Limit Below Minimum"
                   value:
