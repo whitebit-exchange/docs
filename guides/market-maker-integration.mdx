@@ -290,7 +290,7 @@ A placement carries the order parameters in a single-object `params` array — p
 
 The server answers with one frame echoing `id`: `result` holds the order object — with `side` inverted to `1` for sell or `2` for buy — and `error` is `null` on success. The full parameter set, the flag rules, and every method live on the [Order Management](/websocket/order-management/overview) reference and the [Place limit order](/websocket/order-management/order-limit-place) page.
 
-**When the socket wins.** Placing over the open connection removes the per-request HTTP round trip and the per-request HMAC signature that each REST order carries: the connection authorizes once, and every later order frame rides that session. For a quoter refreshing one price at a time, the socket is the shortest path to the book.
+**When the socket wins.** Placing over the open connection removes the per-request HTTP round trip and the per-request HMAC signature that each REST order carries: the connection authorizes once, and every later order frame rides that session. For a quoter refreshing one price at a time, the socket removes both costs. Colocation provides REST API access only, so the socket runs on the standard public WebSocket endpoint, outside the colocation setup.
 
 **When REST still wins.** Two market-making primitives run over REST, so a socket-first quoter keeps a REST client alongside the connection:
 
