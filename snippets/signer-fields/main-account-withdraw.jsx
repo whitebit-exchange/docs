@@ -3,7 +3,7 @@
 // Regenerate: node scripts/generate-signer-fields.mjs
 
 export const signerFields = [
-  {"name":"ticker","type":"string","required":true,"description":"Currency's ticker. Example: BTC ⚠️ Currencies ticker must have \"can_deposit\" status equal to \"true\". Use Asset Status endpoint to know more about currency.","example":"ETH"},
+  {"name":"ticker","type":"string","required":true,"description":"Currency's ticker. Example: BTC. Currencies ticker must have \"can_withdraw\" status equal to \"true\". Use Asset Status endpoint to know more about currency.","example":"ETH"},
   {"name":"amount","type":"string","required":true,"description":"Withdraw amount (including fee). To add the fee to the specified amount, use the /main-account/withdraw-pay request.","example":"0.9"},
   {"name":"address","type":"string","required":true,"description":"Target address: wallet address for cryptocurrencies; account identifier or IBAN for fiat bank rails. For the VISAMASTER provider, pass the card token returned by Issue card toke…","example":"0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"},
   {"name":"memo","type":"string","required":false,"description":"Memo. ⚠️ Required if currency is memoable.","example":"48565488244493"},
