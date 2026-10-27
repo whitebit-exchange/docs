@@ -21,7 +21,7 @@ Move funds into and out of WhiteBIT programmatically: generate deposit addresses
 
 Before integrating any flow on this page:
 
-- **API key** — create an API key with the required permissions in the WhiteBIT dashboard. Every endpoint on this page requires [HMAC-signed requests](/api-reference/authentication) (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE` headers). Store the secret per [Security Best Practices](/best-practices/security).
+- **API key** — create an API key with the required permissions in the WhiteBIT dashboard. Every authenticated endpoint on this page except Issue card token requires [HMAC-signed requests](/api-reference/authentication) (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE` headers). Store the secret per [Security Best Practices](/best-practices/security). Issue card token takes a JWT in the `Authorization` header, as its reference page describes; see [Fiat withdrawal](#fiat-withdrawal).
 - **Webhook URL** — configure the webhook endpoint to receive transaction notifications. See [Webhooks](/platform/webhook) for the setup flow.
 - **Fiat access** — fiat operations additionally require completed [institutional onboarding](/institutional/onboarding) with approved fiat access.
 
@@ -739,7 +739,7 @@ Create a fiat withdrawal using the same `POST /api/v4/main-account/withdraw` end
 
 The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Pass the currency in `ticker` (for example `EUR` or `USD`) and the payment provider in `provider` (for example `VISAMASTER`). Do not pass `USD_VISAMASTER` or `EUR_VISAMASTER` as `ticker`.
 
-For a card withdrawal with `provider: "VISAMASTER"`, pass the card token returned by [Issue card token](/api-reference/account-wallet/issue-card-token) in `address`. A card number (PAN) is not accepted, and the API does not read a card token from `beneficiary`.
+For a card withdrawal with `provider: "VISAMASTER"`, pass the card token returned by [Issue card token](/api-reference/account-wallet/issue-card-token) in `address`. The Issue card token call authenticates with a JWT from [Issue JWT token](/api-reference/account-wallet/issue-jwt-token). The Issue card token reference page lists the required headers. The API does not accept a card number (PAN) and does not read a card token from `beneficiary`.
 
 The `beneficiary` object is required for fiat withdrawals with tickers `USD` and `EUR`. Set `partialEnable` to `true` for increased maximum limits — the application must then handle status 18 ("Partially successful").
 
@@ -772,6 +772,8 @@ See [Institutional Onboarding](/institutional/onboarding) for the full fiat onbo
 |----------|---------|---------------|
 | `POST /api/v4/main-account/fiat-deposit-url` | Generate a fiat deposit invoice | [Fiat Deposit URL](/api-reference/account-wallet/get-fiat-deposit-url) |
 | `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a fiat withdrawal | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
+| `POST /api/v4/jwt` | Issue a JWT for the card token call | [Issue JWT token](/api-reference/account-wallet/issue-jwt-token) |
+| `POST /api/card-token` | Issue a card token for a VISAMASTER withdrawal | [Issue card token](/api-reference/account-wallet/issue-card-token) |
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/withdrawable-balance` | Check how much is withdrawable while deposits await confirmation | [Withdrawable Balance](/api-reference/account-wallet/withdrawable-balance) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
