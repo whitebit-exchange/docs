@@ -4,6 +4,59 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="October 26, 2026">
+## Collateral account summary: `marginFraction` definition and new fields
+**`POST /api/v4/collateral-account/summary` documents `maintenanceMarginFraction`, `futuresEquity`, and `futuresFreeMargin`**
+
+The Collateral account summary reference now documents three response fields: `maintenanceMarginFraction`, `futuresEquity`, and `futuresFreeMargin`. The reference defines `marginFraction` as the ratio of account value (`equity` + `pnl`) to the total notional value of open positions, so a lower value means higher risk. Earlier documentation described the field as used margin divided by equity. The reference defines `equity` as the sum of the collateral balances, excluding `pnl` and the USDTB bonus balance, and `freeMargin` as `equity` + `pnl` − `margin`. Review any risk alert built on `marginFraction` against the definition above.
+
+<CardGroup cols={2}>
+  <Card title="Collateral account summary" href="/api-reference/trading/collateral-account-summary" icon="wallet" horizontal/>
+  <Card title="Liquidation" href="/concepts/liquidation" icon="chart-line" horizontal/>
+</CardGroup>
+
+## Market Trades: 100-market limit per subscription
+**`trades_subscribe` accepts up to 100 markets per request, and all-markets mode sends no snapshot**
+
+The Market Trades and WebSocket Rate Limits pages now document a limit of 100 markets per `trades_subscribe` request. With a longer list, the snapshot volume can exceed what the client reads in time, and the connection drops. Track more than 100 markets with separate connections, or subscribe to all markets. In all-markets mode (an empty `params` array), the server sends no snapshot and includes newly listed markets automatically. The initial snapshot of up to 100 recent trades per market applies to subscriptions for specific markets.
+
+<CardGroup cols={2}>
+  <Card title="Market Trades" href="/websocket/market-streams/trades" icon="arrow-right-arrow-left" horizontal/>
+  <Card title="WebSocket Rate Limits" href="/websocket/rate-limits" icon="gauge-high" horizontal/>
+</CardGroup>
+
+## Convert: error codes and history limits
+**Confirm, Estimate, Auto Confirm, and History reference pages list the current error codes and limits**
+
+The Convert reference now documents the error codes and limits of the four Convert endpoints. Confirm returns `400` with code `24` for a quote that does not exist or was already confirmed (earlier documentation listed `422` with code `0`), and `400` with code `20` or `24` for an expired quote. Estimate and Auto Confirm accept an `amount` string from `0.00000001` to `100000000000` and return `422` with code `30` under `errors.amount` for a value outside the range. History reaches back 180 days from the time of the request (earlier documentation said 6 months from the current month), defaults `from` to 30 days before the request, and covers at most 30 days per request. Error `message` text is not part of the contract: branch on the HTTP status, the `code`, and the field name under `errors`.
+
+<CardGroup cols={2}>
+  <Card title="Convert Estimate" href="/api-reference/convert/convert-estimate" icon="calculator" horizontal/>
+  <Card title="Convert Confirm" href="/api-reference/convert/convert-confirm" icon="circle-check" horizontal/>
+  <Card title="Convert Auto Confirm" href="/api-reference/convert/convert-auto-confirm" icon="bolt" horizontal/>
+  <Card title="Convert History" href="/api-reference/convert/convert-history" icon="clock-rotate-left" horizontal/>
+</CardGroup>
+
+## Auto-Deleveraging: execution price derived from Mark Price
+**The Auto-Deleveraging page states Mark Price, not Last Price, as the basis of ADL fills**
+
+The Auto-Deleveraging (ADL) page now states that ADL fills execute at a price derived from Mark Price, not Last Price. The formula is `d = Futures Margin Fraction − 2 × taker_fee_rate`, with `Price_ADL = MarkPrice × (1 − d)` for a long position and `Price_ADL = MarkPrice × (1 + d)` for a short position. `taker_fee_rate` is the taker fee rate of the futures market where ADL executes. Earlier documentation used `LastPrice`, `Margin Fraction`, and the liquidated user's taker fee rate.
+
+<CardGroup cols={2}>
+  <Card title="Auto-deleveraging" href="/concepts/auto-deleveraging" icon="scale-unbalanced" horizontal/>
+</CardGroup>
+
+## Card withdrawals: card token in `address`
+**Request reference for fiat withdrawals with the `VISAMASTER` provider**
+
+The fiat withdrawal reference now documents the card withdrawal request: the currency goes in `ticker`, `VISAMASTER` in `provider`, and the card token returned by Issue card token in `address`. The reference states that the endpoint does not accept a card number (PAN) in `address` and does not read a card token from `beneficiary`. The withdrawal pages no longer list `USD_VISAMASTER` and `EUR_VISAMASTER` as `ticker` values, or `cardToken`, `cardTokenSave`, `fingerprintSession`, and `card.*` as `beneficiary` fields. The reference requires `beneficiary` when `ticker` is `USD` or `EUR`.
+
+<CardGroup cols={2}>
+  <Card title="Create Withdraw Request" href="/api-reference/account-wallet/create-withdraw-request" icon="money-bill-transfer" horizontal/>
+  <Card title="Issue Card Token" href="/api-reference/account-wallet/issue-card-token" icon="credit-card" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="October 22, 2026">
 ## Bank transfer deposits through the API
 **New `POST /api/v4/main-account/deposit` endpoint and virtual account endpoints for `SEPA_BCB_GROUP`**
