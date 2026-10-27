@@ -1821,7 +1821,7 @@ paths:
                 address:
                   type: string
                   description: |
-                    Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted.
+                    Target address: wallet address for cryptocurrencies, account identifier or IBAN for [fiat](/glossary#fiat) bank rails, or the [card token](/glossary#card-token) for VISAMASTER. Do not send a card number (PAN). Obtain the card token with [Issue card token](/api-reference/account-wallet/issue-card-token).
                   example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
                 memo:
                   type: string
@@ -1872,11 +1872,9 @@ paths:
                 beneficiary:
                   type: object
                   description: |
-                    Beneficiary information.
+                    Beneficiary information. Required if currency [ticker](/glossary#ticker) is USD or EUR. The card token for a VISAMASTER withdrawal goes in `address`, not in `beneficiary`.
 
-                    ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
-
-                    Per-field requirements vary by currency and provider. Bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for the VISAMASTER_PAYCORE [provider](/glossary#provider). The card token for a VISAMASTER withdrawal goes in `address`, not in `beneficiary`. See `/asset-status-list` for the active provider per currency.
+                    Per-field requirements vary by currency and provider. Bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for the VISAMASTER_PAYCORE [provider](/glossary#provider). See `/asset-status-list` for the active provider per currency.
                   properties:
                     firstName:
                       type: string
@@ -9027,7 +9025,7 @@ components:
           example: "0.9"
         address:
           type: string
-          description: "Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted."
+          description: "Target address: wallet address for cryptocurrencies, account identifier or IBAN for [fiat](/glossary#fiat) bank rails, or the [card token](/glossary#card-token) for VISAMASTER. Do not send a card number (PAN). Obtain the card token with [Issue card token](/api-reference/account-wallet/issue-card-token)."
           example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
         memo:
           type: string

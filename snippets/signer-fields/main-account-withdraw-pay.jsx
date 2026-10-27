@@ -5,7 +5,7 @@
 export const signerFields = [
   {"name":"ticker","type":"string","required":true,"description":"Currencies ticker. Example: BTC. Currencies ticker must have \"can_withdraw\" status equal to \"true\". Use Asset Status endpoint to know more about currency.","example":"ETH"},
   {"name":"amount","type":"string","required":true,"description":"Withdraw amount (including fee). To add the fee to the specified amount, use the /main-account/withdraw-pay request","example":"0.9"},
-  {"name":"address","type":"string","required":true,"description":"Target address: wallet address for cryptocurrencies; account identifier or IBAN for fiat bank rails. For the VISAMASTER provider, pass the card token returned by Issue card toke…","example":"0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"},
+  {"name":"address","type":"string","required":true,"description":"Target address: wallet address for cryptocurrencies, account identifier or IBAN for fiat bank rails, or the card token for VISAMASTER. Do not send a card number (PAN). Obtain th…","example":"0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"},
   {"name":"memo","type":"string","required":false,"description":"Required if currency is memoable. See memo for details.","example":"48565488244493"},
   {"name":"uniqueId","type":"string","required":true,"description":"Unique transaction identifier. Any string up to 255 characters; not validated as a UUID. ⚠️ Generate a new unique ID for each withdrawal request.","example":"24529041"},
   {"name":"provider","type":"string","required":false,"description":"Fiat currency provider. Example: VISAMASTER ⚠️ Currency provider should be taken from Asset Status endpoint response. Required if currency is fiat.","example":"VISAMASTER"},
