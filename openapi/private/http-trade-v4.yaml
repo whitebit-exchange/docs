@@ -1642,7 +1642,7 @@ paths:
       description: |
         The endpoint returns an account-level summary of the [collateral](/glossary#balance-collateral) balance: equity, used margin, free margin, unrealized profit and loss, leverage, and the two risk ratios that drive [liquidation](/concepts/liquidation). Margin positions and futures positions share the collateral balance, so every value covers both products.
 
-        The account enters liquidation when `marginFraction` drops strictly below `maintenanceMarginFraction`. The platform computes both ratios server-side; compare the returned values instead of recomputing them from position data.
+        The account enters liquidation when `marginFraction` drops strictly below `maintenanceMarginFraction`. The platform computes both ratios server-side; compare the returned values instead of recomputing the ratios from position data.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -1707,7 +1707,7 @@ paths:
                     example: "1.01005"
                   maintenanceMarginFraction:
                     type: string
-                    description: "Account-level maintenance margin requirement (MMR), as a fraction. The value ranges from `0.005` (0.5%) to `0.03` (3%) and covers both margin and futures positions; futures positions are weighted by risk bracket. The value is not a flat rate per position, so small deviations from a round percentage are expected, and multiplying it by the summed position notional does not reproduce the account's maintenance margin. Use the returned value as the liquidation threshold for `marginFraction`."
+                    description: "Account-level maintenance margin requirement, as a fraction. The value ranges from `0.005` (0.5%) to `0.03` (3%) and covers both margin and futures positions; the platform weights futures positions by risk bracket. The value is not a flat rate per position, so small deviations from a round percentage are expected, and multiplying it by the summed position notional does not reproduce the account's maintenance margin. Use the returned value as the liquidation threshold for `marginFraction`."
                     example: "0.03"
                   futuresEquity:
                     type: string
