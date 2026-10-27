@@ -4052,13 +4052,13 @@ paths:
 
         The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. Account balance is pre-checked at estimate time and re-checked at confirm time, because balance can change within the 10-second quote window. An amount above the absolute server-side maximum is rejected with `422`.
 
-        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits; do not rely on the tolerance. An amount inside the allowed range can still be rejected as too small for the pair when it converts to zero.
+        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. Send `amount` as a string. The endpoint currently tolerates a JSON number for `amount` but can lose precision beyond approximately 15 significant digits; do not rely on the tolerance. The endpoint can still reject an amount inside the allowed range as too small for the pair when the amount converts to zero.
 
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
         An amount that the conversion engine cannot fill returns `400` with code `32` under `errors.request`, for one of two reasons: the amount exceeds the engine's amount limit (`amountTooHigh` example) or liquidity is insufficient (`amountNotProcessable` example). When the account balance is insufficient, the endpoint returns the balance error (`400`, code `37`, `insufficientBalance` example) before either of these checks.
 
-        Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
+        The endpoint validates the request in stages. An empty body reports only `from` and `to` under `errors`; the endpoint checks `direction` and `amount` once `from` and `to` are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining parameters.
 
         <Note>
         The endpoint can be used to obtain a pre-execution price estimate for a market order. Call the endpoint with the desired amount before placing a market order to see the approximate execution price.
@@ -4433,15 +4433,15 @@ paths:
 
         The endpoint reports a conversion as executed only when the quote is filled and the converted amount is non-zero.
 
-        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time. The key length is checked on the string, and a digits-only key is never compared as a number, so `"12345678"` is valid and `"123"` is too short.
+        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time. The endpoint checks the key length on the string and never compares a digits-only key as a number, so `"12345678"` is valid and `"123"` is too short.
 
         The key is bound to the request that first executed it.
 
         The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
 
-        Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
+        The endpoint validates the request in stages. An empty body reports only `from` and `to` under `errors`; the endpoint checks `direction` and `amount` once `from` and `to` are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining parameters.
 
-        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. An amount inside the allowed range is still rejected as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; that minimum is pair-dependent. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance.
+        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. The endpoint still rejects an amount inside the allowed range as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; the minimum is pair-dependent. Send `amount` as a string. The endpoint currently tolerates a JSON number for `amount` but can lose precision beyond approximately 15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance.
 
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
@@ -4452,7 +4452,7 @@ paths:
         </Warning>
 
         <Note>
-        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic `Invalid request.`. The specific condition appears in `errors.<field>[0]`: under `errors.idempotencyKey` when the key was reused for a different request, under `errors.request` otherwise. Branch on the HTTP status code and the field name rather than on `code`.
+        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic `Invalid request.`. The specific condition appears in `errors.<field>[0]`: under `errors.idempotencyKey` when a different request already used the key, under `errors.request` otherwise. Branch on the HTTP status code and the field name rather than on `code`.
         </Note>
 
         <Warning>
