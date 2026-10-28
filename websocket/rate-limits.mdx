@@ -74,19 +74,9 @@ Implement request throttling on the client side.
 
 Queue subscription requests instead of sending bursts of requests.
 
-Apply exponential backoff with jitter after receiving error code `7`.
+Apply exponential backoff with jitter when the server rejects requests because a limit is exceeded.
 
 Reuse active connections instead of creating new connections.
-
-### Rate limit error example
-
-```json
-{
-  "error": { "code": 7, "message": "too many requests" },
-  "result": null,
-  "id": 2269
-}
-```
 
 ## Connection timeout
 
@@ -140,7 +130,6 @@ The server returns errors in the `error` field of a response message. The `error
 | `4` | method not found |
 | `5` | service timeout |
 | `6` | require authentication |
-| `7` | too many requests |
 
 The server returns code `6` when a client invokes a protected method — a private-channel subscription or a balance query, for example — without first calling `authorize` on the connection. Send an `authorize` request before any private-channel subscription. See [WebSocket Authentication](/websocket/authentication) for the authorization flow.
 
