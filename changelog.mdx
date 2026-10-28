@@ -4,6 +4,18 @@ sidebarTitle: "Changelog"
 description: "Track updates, improvements, and fixes to the WhiteBIT API platform including new endpoints and changes."
 ---
 
+<Update label="November 05, 2026">
+## Virtual account status webhook
+**New `deposit.virtual_account_status` webhook event**
+
+The webhook API now sends `deposit.virtual_account_status` when a [virtual account](/glossary#virtual-account) is activated, rejected, or closed, so integrations no longer need to poll `POST /api/v4/main-account/payment/virtual-accounts/status` for status changes. The event carries the provider, the new status, and, on activation, the bank details in `paymentDetails` with the same fields as the status endpoint. Enable the event in the deposit group of the webhook configuration; on existing webhooks the event is disabled by default. Polling remains available, and the status endpoint returns the current status after a failed delivery.
+
+<CardGroup cols={2}>
+  <Card title="Virtual account status webhook" href="/platform/webhook#whitebit-virtual-account-status" icon="bell" horizontal/>
+  <Card title="Get virtual account status" href="/api-reference/account-wallet/get-virtual-account-status" icon="circle-check" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="October 22, 2026">
 ## Bank transfer deposits through the API
 **New `POST /api/v4/main-account/deposit` endpoint and virtual account endpoints for `SEPA_BCB_GROUP`**

@@ -697,7 +697,7 @@ paths:
       description: |
         The endpoint registers a [virtual account](/glossary#virtual-account) for bank transfer deposits with the `SEPA_BCB_GROUP` [provider](/glossary#provider). A [fiat deposit](/api-reference/account-wallet/create-fiat-deposit) through `SEPA_BCB_GROUP` requires an active virtual account.
 
-        Registration is asynchronous. The endpoint returns `pending`, and the provider allocates the account afterward. Poll [Get virtual account status](/api-reference/account-wallet/get-virtual-account-status) until `status` is `active`.
+        Registration is asynchronous. The endpoint returns `pending`, and the provider allocates the account afterward. Poll [Get virtual account status](/api-reference/account-wallet/get-virtual-account-status) until `status` is `active`, or enable the [deposit.virtual_account_status](/platform/webhook#whitebit-virtual-account-status) webhook to receive the status change without polling.
 
         The request carries no identity data. WhiteBIT builds the account holder details from the [KYC](/glossary#kyc) data and profile of the account. Before registering, complete KYC verification and set the billing name, billing address, or tax ID in the account profile.
 
@@ -869,6 +869,8 @@ paths:
       summary: Get virtual account status
       description: |
         The endpoint returns the status of the account's [virtual account](/glossary#virtual-account) for the `SEPA_BCB_GROUP` [provider](/glossary#provider). When `status` is `active`, the response includes the bank details for incoming bank transfers in `paymentDetails`.
+
+        As an alternative to polling, the [deposit.virtual_account_status](/platform/webhook#whitebit-virtual-account-status) webhook delivers every status change with the same `status` and `paymentDetails` as the endpoint response.
 
         An account without a virtual account is not an error: the endpoint returns `notFound`. To register a virtual account, use [Create virtual account](/api-reference/account-wallet/create-virtual-account).
 
