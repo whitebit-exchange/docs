@@ -1,33 +1,112 @@
 ---
 title: "Crypto-as-a-Service FAQ"
 sidebarTitle: "FAQ"
-description: "Common questions about WhiteBIT Crypto-as-a-Service: scope and delivery, onboarding and access, integration, security and compliance, and support."
+description: "Common questions about WhiteBIT Crypto-as-a-Service: scope, deposit addresses, deposits and reconciliation, payouts, onboarding and access, security and compliance, and support."
 icon: "circle-question"
 pageType: "program-faq"
 program: "caas"
 ---
 
+import EuOnboarding from '/snippets/eu-onboarding.mdx';
+
 Answers to common questions about WhiteBIT Crypto-as-a-Service (CaaS).
 
-## Scope and delivery
+## Scope and model
 
-### Delivery model
+### What CaaS includes
 
-CaaS is a white-label offering integrated through the WhiteBIT API: the partner offers crypto functionality under its own brand. See the [CaaS overview](/guides/caas-overview).
+CaaS covers a deposit address per end user, crypto payouts, and conversion with Convert, run from the
+partner's own WhiteBIT account and offered under the partner's own brand; fiat is added after fiat
+onboarding. See the [CaaS overview](/guides/caas-overview).
+
+### Account model
+
+CaaS runs on the partner's own WhiteBIT account: the partner issues a deposit address per end user and
+keeps an end-user ledger. See [Integration models](/concepts/integration-models) and
+[Verification split](#verification-split).
+
+### CaaS, sub-accounts, and Fast API Key
+
+Sub-accounts and Fast API Key are separate from CaaS: a sub-account per end user under the partner's
+account is Model A, used by [Wallet-as-a-Service](/guides/waas-overview) and Embedded Trading, and a
+partner-scoped API key on an end user's own WhiteBIT account is
+[Fast API Key via OAuth](/guides/fast-api-key-integration). See
+[Integration models](/concepts/integration-models).
 
 ### End-customer capabilities
 
 End customers can create crypto wallets, store crypto in institutional custody, buy and sell with fiat, and send and receive crypto. See [What end customers can do](/guides/caas-overview#what-end-customers-can-do).
+
+## Deposit addresses
+
+### Crypto deposit enablement
+
+The partner's main account accepts crypto deposits after onboarding. Issuing a deposit address per end
+user uses `create-new-address`, which the account manager enables on request. See the
+[Integration guide](/guides/caas-integration#prerequisites).
+
+### Address limits
+
+Each `create-new-address` call creates a new address, within a per-currency address limit, so store every address against its end
+user. The account manager can discuss and adjust the limit for the account. See
+[Address issuance and end-user mapping](/guides/caas-integration#address-issuance-and-end-user-mapping).
+
+### Memo networks
+
+On memo networks, store the memo together with the address, show both exactly as issued, and match each
+deposit by address plus memo. See the [Integration guide](/guides/caas-integration#address-issuance-and-end-user-mapping).
+
+## Deposits and reconciliation
+
+### When to credit an end user
+
+Credit an end user on the `deposit.processed` webhook, or a successful status in the history;
+`deposit.accepted` and `deposit.updated` report progress only. Part of a new deposit can stay held until the
+network fully confirms it — see [Held deposits](#held-deposits) and
+[Deposits and crediting](/guides/caas-integration#deposits-and-crediting).
+
+### Missed webhooks
+
+Webhooks have no replay. Page the deposit and withdrawal history on a schedule and match the records
+locally against the stored addresses. See
+[Operating the integration](/guides/caas-integration#operating-the-integration).
+
+### Held deposits
+
+Part of a new deposit can stay held until the network fully confirms it. Withdrawals cannot draw on held
+funds, and the withdrawable balance reports the hold for the whole account, not for each end user. See
+[Deposits and crediting](/guides/caas-integration#deposits-and-crediting).
+
+### Travel Rule holds
+
+For EEA and Turkey accounts, inbound crypto deposits are held until Travel Rule verification completes,
+and no webhook reports these status changes. See
+[Travel Rule holds on deposits](/guides/caas-integration#travel-rule-holds-on-deposits).
+
+## Payouts and fees
+
+### Fee-inclusive and fee-on-top withdrawals
+
+`/withdraw` deducts the fee from the amount, so the recipient receives the amount minus the fee;
+`/withdraw-pay` sends the exact amount and charges the fee on top. See
+[Payouts](/guides/caas-integration#payouts).
+
+### Transfers between the partner's end users
+
+Settle a transfer between two of the partner's end users in the partner ledger: the withdrawal endpoint
+rejects a withdrawal to one of the account's own deposit addresses. See
+[Payouts](/guides/caas-integration#payouts).
+
+### Withdrawal IDs
+
+Store each payout's withdrawal ID before sending the request, and never use one ID for two payouts. See
+[Operating the integration](/guides/caas-integration#operating-the-integration).
 
 ## Onboarding and access
 
 ### Onboarding phases
 
 Institutional onboarding has two phases: Phase 1 grants crypto operations access after KYC of the director or responsible person and KYB of the company; optional Phase 2 adds fiat access ([Fiat access via SEPA](#fiat-access-via-sepa)). See [Institutional Onboarding](/institutional/onboarding).
-
-### Crypto deposit enablement
-
-Issuing a deposit address per client uses `create-new-address`, which the account manager enables on request — see the [Integration guide](/guides/caas-integration#wallets-and-payments).
 
 ### Fiat access via SEPA
 
@@ -37,29 +116,34 @@ Fiat access is added in Phase 2 of institutional onboarding and runs through the
 
 Fixed and Flex lending endpoints are restricted to B2B partners and return a permission error until access is granted. Request access through the account manager. See [Crypto Lending](/products/lending/overview).
 
-## Integration
-
 ### API base URL and regions
 
-The global REST base URL is `https://whitebit.com`. Regional environment options are confirmed during onboarding. See [First API Call](/guides/first-api-call).
+The global REST base URL is listed in the [Partner FAQ](/guides/partner-faq#api-base-url); the regional
+environment is confirmed during onboarding.
 
 ### Test environment availability
 
-WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum order sizes and low-minimum assets; Demo Tokens are available for risk-free spot practice. See the [Go-Live Checklist](/best-practices/go-live-checklist).
-
-### OAuth and Fast API Key
-
-For end users with personal WhiteBIT accounts, a partner can issue a partner-scoped API key on each user's account through the Fast API Key flow. For the status of the classic OAuth flow, see the [OAuth overview](/platform/oauth/overview). See [Fast API Key via OAuth](/guides/fast-api-key-integration).
+WhiteBIT does not offer a public testnet or sandbox — see the
+[Partner FAQ](/guides/partner-faq#sandbox-availability) and the
+[Go-Live Checklist](/best-practices/go-live-checklist).
 
 ### Rate limits
 
-Rate limits are set per scope and per endpoint rather than as a single global value. See [Rate limits](/api-reference/rate-limits).
+Rate limits are set per scope and per endpoint rather than as a single global value. See the
+[Partner FAQ](/guides/partner-faq#how-rate-limits-are-applied) and [Rate limits](/api-reference/rate-limits).
 
 ## Security and compliance
 
 ### Security certifications
 
 WhiteBIT's security certifications are listed in [Regulatory Compliance](/institutional/compliance); custody is described under [Security and compliance](/guides/caas-overview#security-and-compliance).
+
+### Verification split
+
+The partner verifies its own end users; WhiteBIT verifies the partner during institutional onboarding
+(KYB). See [Integration models](/concepts/integration-models#partners-own-account).
+
+<EuOnboarding />
 
 ### MiCA and Travel Rule for EEA end users
 
@@ -86,7 +170,7 @@ The assigned account manager is the primary contact. Programs and onboarding go 
     What Crypto-as-a-Service provides and the segments it fits.
   </Card>
   <Card title="Integration" icon="code" href="/guides/caas-integration">
-    How a CaaS integration is assembled from the documented API surface.
+    How a partner runs CaaS through the API: addresses, deposits, payouts, and reconciliation.
   </Card>
   <Card title="Partner FAQ" icon="circle-question" href="/guides/partner-faq">
     Cross-cutting answers shared across programs — KYB, sandbox, fees, and rate limits.

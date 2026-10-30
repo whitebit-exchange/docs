@@ -1,7 +1,7 @@
 ---
 title: "Crypto-as-a-Service integration"
 sidebarTitle: "Integration"
-description: "How a CaaS integration is assembled from WhiteBIT's documented API building blocks."
+description: "How a partner runs Crypto-as-a-Service from its own WhiteBIT account: a deposit address per end user, deposits, payouts, and reconciliation through the API."
 icon: "code"
 pageType: "integration"
 program: "caas"
@@ -9,42 +9,69 @@ program: "caas"
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 import TravelRuleNote from '/snippets/travel-rule-note.mdx';
+import EuOnboarding from '/snippets/eu-onboarding.mdx';
 
 <Note>
-**For developers.** This page routes each CaaS capability to the guide that documents it. For what
-CaaS is, the segments it fits, and the path to launch, see the
-[CaaS overview](/guides/caas-overview).
+**For developers.** This page covers the technical integration. For what CaaS is, the segments it fits,
+and the path to launch, see the [CaaS overview](/guides/caas-overview).
 </Note>
 
-A CaaS integration is assembled from the same documented API surface used across WhiteBIT's B2B
-products. It does not restate the schemas — each linked guide carries the endpoint and field
-detail.
+A CaaS integration runs on the partner's own WhiteBIT account. The partner issues a deposit address per
+end user, keeps an end-user ledger, credits end users from deposit events, and pays out from the account.
+[Integration models](/concepts/integration-models#partners-own-account) compares this arrangement with
+sub-accounts and with customers' own accounts.
 
 <RegionBaseUrl />
 
 ## Prerequisites
 
-- **A CaaS engagement scoped with WhiteBIT** — see the [CaaS overview](/guides/caas-overview) for what the model delivers and the path to launch.
-- **Architecture alignment** — the account mapping and verification split agreed during onboarding (see [Architecture alignment during onboarding](#architecture-alignment-during-onboarding)).
-- **API access** — [HMAC-signed requests](/api-reference/authentication); each capability's endpoint and field detail lives in the linked product guide.
+- **Institutional onboarding** — KYB of the company and KYC of the director or responsible person,
+  completed before provisioning. The main account accepts crypto deposits after onboarding. See
+  [Institutional Onboarding](/institutional/onboarding).
+- **API keys** — created after two-factor authentication is enabled; WhiteBIT recommends restricting each key
+  to the endpoints and IPs the integration uses. See [Authentication](/api-reference/authentication).
+- **Per-user deposit addresses** — `create-new-address` is not available by default; the account
+  manager enables it on request. See [Unique address per user](/guides/payment-integration#unique-address-per-user).
+- **Convert terms** — before the first conversion, the account owner accepts the Convert terms once on
+  whitebit.com. See [Convert](/platform/convert).
+- **Webhooks** — a webhook endpoint set up for the account, with the webhook key that verifies every
+  delivery. See [Webhooks](/platform/webhook#how-to-use).
+- **Fiat** — available only after fiat onboarding (Phase 2). See the
+  [On/Off-Ramp guide](/guides/on-off-ramp-integration).
+- **Other activations** — the account manager handles any other activation the account needs.
+
+## Architecture alignment during onboarding
+
+The items below are agreed and documented with WhiteBIT during onboarding, before development starts.
+
+- **End-user account mapping** — how end users map to deposit addresses and to the partner's end-user
+  ledger. A sub-account per end user is a different arrangement — see
+  [Other account arrangements](#other-account-arrangements).
+- **Verification split** — the partner verifies its own end users; WhiteBIT verifies the partner during
+  institutional onboarding (KYB).
+
+  <EuOnboarding />
+- **Data residency and privacy** — where end-user data is processed and stored, and the Data Processing
+  Agreement (available via compliance@whitebit.com).
+- **Operational roles** — which staff hold which permissions (API key scopes, withdrawal approval).
+- **Support model** — support tiers, response targets, and incident channels beyond the public
+  status page.
+- **Fee and settlement terms.**
 
 ## Integration building blocks
 
 ### Core API access
 
-- **REST and WebSocket.** 100+ authenticated REST endpoints and 14 public endpoints, plus WebSocket
-  market data and private account streams. Requests are signed with HMAC-SHA512 using the
-  `X-TXC-APIKEY`, `X-TXC-PAYLOAD`, and `X-TXC-SIGNATURE` headers. See
-  [First API Call](/guides/first-api-call).
-  [Order placement, modification, and cancellation](/websocket/order-management/overview) over the same
-  connection are available (global platform only), authorized once on the connection rather than
-  per request.
-- **SDKs and tooling.** Official Go, Python, and PHP SDKs, plus an MCP server and a CLI for
-  AI-assisted integration. See [SDKs](/sdks) and [AI tools](/guides/use-with-ai).
-- **API keys.** Two-factor authentication is required before key creation; the secret is shown only
-  once at creation; up to 50 trusted IPs can be whitelisted per key; keys auto-deactivate after 14
-  days of inactivity and are revoked on an account password change, block, or freeze. See
+- **REST and WebSocket.** Authenticated REST endpoints, WebSocket market data, and private account
+  streams; every private request is signed. See [First API Call](/guides/first-api-call) and
   [Authentication](/api-reference/authentication).
+  [Order placement, modification, and cancellation](/websocket/order-management/overview) over WebSocket
+  are available on the global platform only, authorized once on the connection rather than per request.
+- **SDKs and tooling.** Official SDKs, an MCP server, and a CLI for AI-assisted integration. See
+  [SDKs](/sdks) and [AI tools](/guides/use-with-ai).
+- **API keys.** The secret is shown only once, and inactive keys are deactivated. See
+  [Authentication](/api-reference/authentication) and [First API Call](/guides/first-api-call) for the
+  rules.
 - **Rate limits.** Limits are set per scope and per endpoint. See
   [Rate limits](/api-reference/rate-limits) for current values rather than assuming a single figure.
 
@@ -53,90 +80,134 @@ API keys grant account access. Restrict each key to the minimum scope and to kno
 secrets outside application code. See [Authentication](/api-reference/authentication).
 </Warning>
 
-### Wallets and payments
+### Address issuance and end-user mapping
 
-- **Deposit addresses.** Generate a unique address per end user with
-  `POST /api/v4/main-account/create-new-address`. The endpoint is not available by default; the account manager enables it on request — see
-  [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit). Each call creates a new address, within a per-currency address limit, so store every
-  address — and its memo on memo networks — against the end user before showing it. Credit deposits
-  from webhooks and reconcile against the deposit history, because webhooks have no replay. Part of
-  a new deposit can stay held until full confirmation;
-  [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) reports held funds for the
-  whole account, not for each end user. See the
-  [Payment Integration guide](/guides/payment-integration).
-- **Withdrawals.** Fee-inclusive (`/withdraw`) and fee-on-top (`/withdraw-pay`) variants, plus
-  withdrawal after conversion using the Convert service — request a quote, confirm at the quoted
-  rate, then withdraw in the destination currency. See
-  [Payment Integration](/guides/payment-integration) and [Convert](/platform/convert).
-- **Fiat (EUR/SEPA).** Available on the partner's WhiteBIT account after Phase 2 onboarding —
-  SEPA withdrawals, and API-generated deposit invoices once the account manager enables the
-  invoice endpoint. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration).
+Each end user gets a deposit address per currency and network, and the partner keeps the mapping in its
+own database.
+
+1. Prefetch the currencies, networks, memo rules, deposit limits, and confirmation thresholds from
+   [Asset Status](/api-reference/market-data/asset-status-list), and refresh the data on a schedule.
+1. Request an address with `POST /api/v4/main-account/create-new-address`.
+   The endpoint is not available by default; the account manager enables it on request — see
+   [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit). Each call creates a new address — even when the last one is unused — within a per-currency
+   address limit. The account manager can discuss and adjust the limit for the account.
+1. Store the address — and its memo on memo networks — against the end user before showing it, and show
+   the memo exactly as issued. See [Unique address per user](/guides/payment-integration#unique-address-per-user).
+
+
+### Deposits and crediting
+
+- **Progress and completion.** `deposit.accepted` and `deposit.updated` report progress only; credit the
+  end user when `deposit.processed` arrives or the history shows the deposit as successful. Verify every delivery with the webhook key. See
+  [Deposit lifecycle](/guides/payment-integration#deposit-lifecycle) and
+  [Webhooks](/platform/webhook#whitebit-deposit-to-main-balance).
+- **Matching.** Match each credited deposit to an end user by its address — plus the memo on memo networks —
+  and record it once, whether it arrives by webhook or by polling. See
+  [Webhook reconciliation](/guides/payment-integration#webhook-reconciliation).
+- **Held funds.** Part of a new deposit can stay held until the network fully confirms it. Held funds can
+  be traded but not withdrawn, and
+  [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) reports the hold for the
+  whole account, not for each end user.
+- **Unmatched deposits.** Route a deposit that matches no stored address and memo to manual review.
+- **Refunds.** A canceled deposit may be refundable to an external address the end user provides. See
+  [Refund flow](/guides/payment-integration#refund-flow).
+
+### Travel Rule holds on deposits
+
+Travel Rule affects deposits and withdrawals for EEA and Turkey accounts. Inbound crypto deposits to
+those accounts are held until Travel Rule verification completes, and no webhook reports these status
+changes: poll the history for the held statuses. See
+[Travel Rule (EEA and Turkey)](/guides/payment-integration#travel-rule-eea-and-turkey) and
+[Travel Rule deposit statuses](/platform/webhook#travel-rule-deposit-statuses-eea). The Travel Rule API
+for programmatic verification is enabled per account by the account manager on request; see
+[Regulatory Compliance](/institutional/compliance).
+
+<TravelRuleNote />
+
+### Payouts
+
+1. **Check the destination.** A withdrawal to one of the account's own deposit addresses is rejected (see
+   [Create withdraw request](/api-reference/account-wallet/create-withdraw-request)).
+   Check each payout destination against the stored addresses, and settle a transfer between two of the
+   partner's end users in the partner ledger, without a withdrawal.
+1. **Check the withdrawable amount.** Held deposit funds cannot be withdrawn; before large payouts, check
+   [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) for the whole account.
+1. **Record the payout.** Reserve the amount in the end user's ledger
+   balance and store a unique withdrawal ID before sending the request.
+1. **Send the withdrawal.** See [Create a withdrawal](/guides/payment-integration#create-a-withdrawal).
+1. **Settle.** Settle the reserved debit when the withdrawal succeeds, and act on each other final status as
+   the [Withdrawal status state machine](/guides/payment-integration#withdrawal-status-state-machine)
+   describes.
+
+**EEA payouts.** Withdrawals from EEA accounts carry Travel Rule data. See
+[Travel Rule for EEA withdrawals](/guides/payment-integration#travel-rule-for-eea-withdrawals).
+
+**Withdrawals.** Fee-inclusive (`/withdraw`) and fee-on-top (`/withdraw-pay`) variants, plus
+withdrawal after conversion using the Convert service — request a quote, confirm at the quoted
+rate, then withdraw in the destination currency. See
+[Payment Integration](/guides/payment-integration) and [Convert](/platform/convert).
+
+### Fiat
+
+Fiat (EUR/SEPA) is available on the partner's WhiteBIT account after Phase 2 onboarding: SEPA
+withdrawals, and API-generated deposit invoices once the account manager enables the invoice endpoint. See the
+[On/Off-Ramp guide](/guides/on-off-ramp-integration).
+
+### Other account arrangements
+
+CaaS runs on the partner's own account. Two other account arrangements serve end users — see
+[Integration models](/concepts/integration-models).
+
+- **A sub-account per end user (Model A).** Used by [Wallet-as-a-Service](/guides/waas-overview) and
+  [Embedded Trading](/guides/embedded-trading-overview). See [Sub-Accounts](/products/sub-accounts/overview).
+- **The end user's own WhiteBIT account (Model B).** A partner-scoped API key on each end user's account,
+  issued through [Fast API Key via OAuth](/guides/fast-api-key-integration) — the
+  [App Builders](/guides/app-builders-overview) path.
+
+### Conversion, trading, and related services
+
+- **Trading and conversion.** Spot markets (see [Spot trading](/products/spot/overview)), and the Convert service for instant
+  conversion at a quoted rate without placing orders on the order book. See
+  [Convert](/platform/convert).
 - **WhiteBIT Codes.** Fee-free internal crypto transfers between WhiteBIT accounts, useful for
   settlement flows. See [WhiteBIT Codes](/platform/whitebit-codes).
 - **Crypto Lending.** Fixed and Flex lending endpoints are restricted to B2B partners and require
   access to be granted through the account manager. See
   [Crypto Lending](/products/lending/overview).
 
-Travel Rule affects deposits and withdrawals for EEA and Turkey accounts. The Travel Rule API for
-programmatic verification is enabled per
-account by the account manager on request; see [Regulatory Compliance](/institutional/compliance).
+## API reference
 
-<TravelRuleNote />
+The building blocks above use these endpoints and pages:
 
-### Accounts and trading
-
-Which account arrangement applies is agreed during onboarding — see
-[Architecture alignment during onboarding](#architecture-alignment-during-onboarding).
-
-- **Sub-accounts.** Create and manage thousands of separate accounts under one umbrella, each with
-  independent balances, API keys, and IP whitelists, with fee-free instant transfers between the
-  main account and its sub-accounts. See [Sub-Accounts](/products/sub-accounts/overview).
-- **Fast API Key via OAuth.** For flows where end users hold personal WhiteBIT accounts, a partner
-  can issue partner-scoped API keys through the OAuth API key flow. See
-  [Fast API Key via OAuth](/guides/fast-api-key-integration) and the
-  [OAuth overview](/platform/oauth/overview).
-- **Trading and conversion.** Spot markets (see [Spot trading](/products/spot/overview)), and the Convert service for instant
-  conversion at a quoted rate without placing orders on the order book. See
-  [Convert](/platform/convert).
-
-## Architecture alignment during onboarding
-
-The public documentation covers the API surface. The items below define the integration
-architecture and are agreed and documented with WhiteBIT during onboarding, before development
-starts.
-
-- **End-user account mapping** — how end customers map onto the WhiteBIT account model (for example,
-  one sub-account per end user, versus a pooled account with the partner's own internal ledger), and
-  the reconciliation and limit trade-offs of each.
-- **KYC and KYB split** — which party verifies end customers, at which levels, and how verification
-  status is exchanged between the partner and WhiteBIT.
-- **Data residency and privacy** — where end-customer data is processed and stored, and the Data
-  Processing Agreement (available via compliance@whitebit.com).
-- **Operational roles** — which staff hold which permissions (API key scopes, sub-account
-  administration, withdrawal approval).
-- **Support model** — support tiers, response targets, and incident channels beyond the public
-  status page.
-- **Fee and settlement terms.**
-
-<Note>
-There is no public sandbox. Integrate against the live API with minimum amounts, run a limited
-pilot cohort, then scale to production. The [Go-Live Checklist](/best-practices/go-live-checklist)
-gates each stage.
-</Note>
+- Addresses: [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit),
+  [Asset Status](/api-reference/market-data/asset-status-list).
+- Deposits and reconciliation: [Deposit and withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history),
+  [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance),
+  [Refund deposit](/api-reference/account-wallet/refund-deposit),
+  [Refund history](/api-reference/account-wallet/get-refund-history), [Webhooks](/platform/webhook).
+- Payouts: [Create withdraw request](/api-reference/account-wallet/create-withdraw-request),
+  [Create withdraw request with specific amount](/api-reference/account-wallet/create-withdraw-request-with-specific-amount).
+- Access: [Authentication](/api-reference/authentication), [Rate limits](/api-reference/rate-limits).
 
 ## Operating the integration
 
-- **Webhooks.** Real-time notifications for deposits, withdrawals, code redemptions, and refunds,
-  verified with an HMAC-SHA512 signature. Pair webhooks with periodic history polling as a
-  reconciliation fallback. See [Webhooks](/platform/webhook).
+- **Reconciliation.** Webhooks have no replay, so reconcile on a schedule. Page the
+  [deposit and withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history) back to the
+  last reconciled record; results come newest first. Overlap the pages, drop duplicates, and match the
+  records locally against the stored addresses and withdrawal IDs, within the
+  [rate limits](/api-reference/rate-limits). See
+  [Webhook reconciliation](/guides/payment-integration#webhook-reconciliation).
+- **Withdrawal IDs.** Store each payout's unique withdrawal ID before sending the request, and never use
+  one ID for two payouts. See [Create a withdrawal](/guides/payment-integration#create-a-withdrawal).
 - **Monitoring.** [status.whitebit.com](https://status.whitebit.com) reports platform, API, and blog
   status; [whitebit.com/system-page](https://whitebit.com/system-page) reports per-asset deposit,
   withdrawal, and transfer availability.
-- **Testing.** WhiteBIT does not offer a public testnet. Test on the live API with minimum order
-  sizes and low-minimum assets; Demo Tokens are available for risk-free spot practice.
+- **Testing.** WhiteBIT offers no public testnet or sandbox. Test deposits and payouts on the live API with
+  the minimum amounts each network allows, run a limited pilot cohort, then scale to production. Demo
+  Tokens cover spot trading only.
 - **Go-live.** Work through the [Go-Live Checklist](/best-practices/go-live-checklist) — covering
   authentication, error handling, rate limits, compliance, WebSocket, webhooks, monitoring, and
-  testing.
+  testing — before each stage.
 
 ## Support
 
@@ -149,17 +220,14 @@ gates each stage.
 
 ## What's next
 
-<CardGroup cols={2}>
-  <Card title="Overview" icon="layer-group" href="/guides/caas-overview">
-    What CaaS is, who it is for, and the path to launch.
-  </Card>
+<CardGroup cols={3}>
   <Card title="FAQ" icon="circle-question" href="/guides/caas-faq">
-    Common questions on scope, onboarding, regions, and support.
+    Common questions on scope, deposit addresses, payouts, onboarding, and support.
   </Card>
-  <Card title="Institutional Onboarding" icon="clipboard-check" href="/institutional/onboarding">
-    KYB and the two-phase onboarding process.
+  <Card title="Payment Integration" icon="money-bill-transfer" href="/guides/payment-integration">
+    The deposit, withdrawal, and webhook mechanics the building blocks link to.
   </Card>
-  <Card title="Go-Live Checklist" icon="list-check" href="/best-practices/go-live-checklist">
-    Pre-launch verification across every integration concern.
+  <Card title="API Reference" icon="book" href="/api-reference/overview">
+    Every endpoint, with request and response detail.
   </Card>
 </CardGroup>

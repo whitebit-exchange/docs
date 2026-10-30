@@ -1,52 +1,95 @@
 ---
 title: "Crypto-as-a-Service"
 sidebarTitle: "Overview"
-description: "Offer crypto wallets, storage, fiat buy and sell, and transfers under a partner's own brand, integrated through the WhiteBIT API."
+description: "Offer end users crypto deposits, conversion, and payouts under the partner's own brand, run from the partner's own WhiteBIT account through the API."
 icon: "layer-group"
 pageType: "program-overview"
 program: "caas"
 ---
 
-Crypto-as-a-Service (CaaS) lets a partner offer digital-asset functionality under its own brand,
-integrated into its platform through the WhiteBIT API. For how the integration is assembled, see
-the [Integration guide](/guides/caas-integration).
+import EuOnboarding from '/snippets/eu-onboarding.mdx';
+
+Crypto-as-a-Service (CaaS) lets a bank, fintech, or other business offer crypto to its end users under its
+own brand. The partner runs the offering from its WhiteBIT account through the API: it issues a deposit
+address per end user, keeps an end-user ledger, and pays out from the account. For how the integration is
+assembled, see the [Integration guide](/guides/caas-integration).
 
 <Tip>
-CaaS orchestrates existing WhiteBIT building blocks rather than adding new API surface. The
-[Integration guide](/guides/caas-integration) routes each capability — wallets, payments,
-accounts, and compliance — to the guide that documents it.
+CaaS orchestrates existing WhiteBIT building blocks rather than adding new API surface.
 </Tip>
 
 ## What CaaS provides
 
-- API integration into the partner's platform, offered under the partner's brand.
-- End-customer crypto capabilities — wallets, custody, fiat buy and sell, and cross-border
-  transfers — delivered under the partner's brand.
-- Custody and the security certifications of the WhiteBIT platform — see
-  [Security and compliance](#security-and-compliance) and [Regulatory Compliance](/institutional/compliance).
-- Coverage across 80+ blockchain networks and hundreds of digital assets. Asset and market
-  coverage and program terms are confirmed during onboarding — see the
-  [CaaS product page](https://institutional.whitebit.com/crypto-as-a-service).
+- **A deposit address per end user** — issued from the partner's account for each currency and network. See
+  [Address issuance and end-user mapping](/guides/caas-integration#address-issuance-and-end-user-mapping).
+- **Conversion** — between supported assets at a quoted rate with [Convert](/platform/convert).
+- **Crypto payouts** — withdrawals from the partner's account to the addresses end users choose. See
+  [Payouts](/guides/caas-integration#payouts).
+- **Fiat** — added in optional Phase 2 onboarding and run through the partner's WhiteBIT account. See the
+  [On/Off-Ramp guide](/guides/on-off-ramp-integration).
+- **Custody and security** — custody and the security certifications of the WhiteBIT platform. See
+  [Security and compliance](#security-and-compliance).
 
 ## Who CaaS is for
 
 | Segment | Typical use |
 |---------|-------------|
-| Banks and EMIs (electronic money institutions) | Embed digital-asset functionality — wallets, custody, buy and sell, transfers — into an existing regulated product. |
-| Fintechs and neobanks | Let end customers accept, store, and move digital assets across borders inside the partner app. |
-| Telecom operators | Offer crypto buy and sell to subscribers. One implemented pattern is access through a USSD code (a carrier menu dialed as a short code). |
-| Core banking and Banking-as-a-Service (BaaS) providers | Integrate CaaS into the product suite and resell it as a white-label option to corporate customers. |
+| Banks | Offer digital assets to existing customers inside the bank's own product. |
+| Fintechs | Let customers accept, store, and move digital assets across borders inside the partner app. |
+| Telecom operators | Offer crypto buying and selling to subscribers. One implemented pattern is access through a USSD code (a carrier menu dialed as a short code). |
+| Core banking providers | Integrate CaaS into the product suite and resell it as a white-label option to corporate customers. |
+
+## How CaaS works
+
+CaaS runs on the partner's own WhiteBIT account: the partner issues a deposit address per end user and keeps
+the end-user ledger, and WhiteBIT processes deposits and payouts on the blockchain networks. See
+[Integration models](/concepts/integration-models#partners-own-account) for how this compares with
+sub-accounts and with customers' own accounts.
+
+```mermaid
+flowchart TB
+    Users["End users"]
+    subgraph Partner["Partner"]
+        direction LR
+        App["Partner app"] --> Backend["Partner backend<br/>end-user ledger<br/>address-to-end-user map"]
+    end
+    subgraph WhiteBIT["WhiteBIT"]
+        direction LR
+        API["WhiteBIT API"] --> Account["Partner's WhiteBIT account<br/>balances<br/>deposit address per end user"]
+        Account --- Custody["WhiteBIT custody"]
+    end
+    Chain["Blockchain networks"]
+    Users --> App
+    Backend <-->|"API requests and webhooks"| API
+    Chain -->|"Deposits to issued addresses"| Account
+    Account -->|"Payouts"| Chain
+```
+
+### Responsibilities
+
+| Area | Partner | WhiteBIT |
+|------|---------|----------|
+| Verification | Verifies its own end users | Verifies the partner during institutional onboarding (KYB) |
+| End-user records | Keeps the end-user ledger and the address-to-end-user map | Holds the account's balances and history |
+| Deposits | Issues addresses, credits end users, reconciles against the history | Credits deposits to the account and sends deposit webhooks |
+| Payouts | Approves each end-user payout and sends the withdrawal | Processes the withdrawal on the network |
+
+<EuOnboarding />
 
 ## What end customers can do
 
-- **Create crypto wallets** — a unique deposit address per end user across 80+ networks. See the
-  [Integration guide](/guides/caas-integration#wallets-and-payments).
+- **Create crypto wallets** — a unique deposit address per end user. See the
+  [Integration guide](/guides/caas-integration#address-issuance-and-end-user-mapping).
 - **Store crypto in institutional custody** — see [Security and compliance](#security-and-compliance).
 - **Buy and sell with fiat** — fiat access is added in optional Phase 2 onboarding and runs
-  through the partner's WhiteBIT account; whether Convert covers the fiat leg directly is confirmed
-  per account. See [Convert](/platform/convert) and the
+  through the partner's WhiteBIT account; Convert accepts the supported fiat currencies as either
+  leg of a conversion. See [Convert](/platform/convert) and the
   [On/Off-Ramp guide](/guides/on-off-ramp-integration).
 - **Send and receive crypto** — on-chain transfers to and from external addresses.
+
+## Program terms
+
+Commercial terms are agreed per contract during onboarding.
 
 ## Onboarding and launch path
 
@@ -70,9 +113,6 @@ The path from first conversation to a live offering has four stages.
     scope.
   </Step>
 </Steps>
-
-Some capabilities, such as issuing a deposit address per client, are enabled on request through the account manager — see the
-[Integration guide](/guides/caas-integration#wallets-and-payments).
 
 ## Security and compliance
 
@@ -108,15 +148,12 @@ For compliance, VASP, and DPA matters, contact compliance@whitebit.com.
 
 <CardGroup cols={2}>
   <Card title="Integration guide" icon="cubes" href="/guides/caas-integration">
-    Route each capability to its guide, agree the integration architecture, and operate in production.
+    Issue deposit addresses, credit deposits, pay out, and reconcile.
   </Card>
   <Card title="FAQ" icon="circle-question" href="/guides/caas-faq">
-    Common questions on scope, onboarding, regions, and support.
+    Common questions on scope, deposit addresses, payouts, onboarding, and support.
   </Card>
-  <Card title="Institutional Onboarding" icon="clipboard-check" href="/institutional/onboarding">
-    KYB and the two-phase onboarding process.
-  </Card>
-  <Card title="CaaS product page" icon="arrow-up-right-from-square" href="https://institutional.whitebit.com/crypto-as-a-service">
-    Program overview, segments, and figures on institutional.whitebit.com.
+  <Card title="Integration models" icon="sitemap" href="/concepts/integration-models">
+    How the partner's own account compares with sub-accounts and customers' own accounts.
   </Card>
 </CardGroup>

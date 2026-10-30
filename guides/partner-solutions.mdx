@@ -42,9 +42,12 @@ WhiteBIT partners integrate through program funnels — one per partner type. Pi
 
 Partner labels overlap (a single business can span two different architectures), so the fastest routing comes from three structural questions:
 
-1. **Account holding** — do end users hold personal WhiteBIT accounts, or does the partner operate accounts on the end users' behalf? Own accounts with a partner-held API key are **Model B** → [App Builders](/guides/app-builders-overview). Partner-operated [sub-accounts](/products/sub-accounts/overview) are **Model A** → [Embedded Trading](/guides/embedded-trading-overview). Compare the two models on the [integration models](/concepts/integration-models) concept.
+1. **Account holding** — the account structure follows from what the partner expects for each end user. Compare the models on the [integration models](/concepts/integration-models) concept.
+   - Do end users sign in to personal WhiteBIT accounts, with the partner acting through a partner-held API key? → **Model B** → [App Builders](/guides/app-builders-overview).
+   - Should WhiteBIT keep a separate balance for each end user, with separate API keys? → a partner-operated [sub-account](/products/sub-accounts/overview) per end user, **Model A** → [Embedded Trading](/guides/embedded-trading-overview) for trading, [Wallet-as-a-Service](/guides/waas-overview) for wallets, custody, and settlement.
+   - Does the partner keep each end user's balance in the partner's own ledger, with one WhiteBIT account and a deposit address per end user? → [Crypto-as-a-Service](/guides/caas-overview).
 2. **Direction** — is the partner building on the WhiteBIT API, or proposing WhiteBIT integrate into an external platform or network? The latter is a partnership conversation — contact `institutional@whitebit.com` directly (see [Funds & Institutions](/institutional/overview)).
-3. **Scope** — trading, payments, or both? Payment and payout integrations route to [Payments & Fiat](/guides/payments-overview) regardless of the answers above.
+3. **Scope** — trading, payments, or both? Payment and payout integrations route to [Payments & Fiat](/guides/payments-overview) regardless of the answers above. Exception: a crypto offering that a partner runs for its own end users under its own brand, from its own WhiteBIT account with a deposit address per end user, routes to [Crypto-as-a-Service](/guides/caas-overview).
 
 Common use cases mapped to a program:
 
@@ -52,7 +55,8 @@ Common use cases mapped to a program:
 |----------|---------|
 | Copy trading, trading bots, portfolio apps (users keep own accounts) | [App Builders](/guides/app-builders-overview) |
 | Hosted customer accounts under a partner master | [Embedded Trading](/guides/embedded-trading-overview) |
-| Wallets, neobanks (add wallet or payout capability) | [Wallet-as-a-Service](/guides/waas-overview) |
+| Wallets and neobanks that want a separate WhiteBIT balance per end user (sub-accounts) | [Wallet-as-a-Service](/guides/waas-overview) |
+| Wallets and neobanks that keep each end user's balance in the partner's own ledger | [Crypto-as-a-Service](/guides/caas-overview) |
 | White-label crypto offering under the partner's own brand | [Crypto-as-a-Service](/guides/caas-overview) |
 | Offer yield/earn to end users (Crypto Lending) | [Yield-as-a-Service](/guides/yaas-overview) |
 | Payment gateways, payouts, merchant flows | [Payments & Fiat](/guides/payments-overview) |
@@ -88,7 +92,7 @@ Partner-program applications go to `institutional@whitebit.com` and are individu
 **About the integration (all applicants):**
 
 4. Direction — building on the WhiteBIT API, or proposing WhiteBIT integrate into an external platform or network (the latter is a partnership conversation rather than an application).
-5. Intended account structure: (a) own main account only; (b) end users' own WhiteBIT accounts with a partner-held API key; (c) per-customer sub-accounts under the partner's master (main) account; (d) a pooled (omnibus) structure — a pooled account for end-user funds is not offered, but declaring the intent lets WhiteBIT propose the closest supported model (see [Integration models](/concepts/integration-models#why-not-a-pooled-account)).
+5. Intended account structure: (a) own main account only, including a deposit address per end user with the partner's own end-user ledger; (b) end users' own WhiteBIT accounts with a partner-held API key; (c) per-customer sub-accounts under the partner's master (main) account; (d) another structure, or not sure — describe what the partner expects for each end user (see the account-holding question under [Choose an integration path](#choose-an-integration-path)), and WhiteBIT proposes the closest supported model.
 6. Scope — crypto only, or fiat as well, and at which level (partner account or end users).
 
 **About end users (partners serving end users):**

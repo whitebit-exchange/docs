@@ -41,6 +41,7 @@ value is filled** in this initiative.
 | `asset-counts.mdx` | Asset / trading-pair counts ("X+" format) | Marketing |
 | `travel-rule-note.mdx` | Travel Rule note (links `/concepts/travel-rule`) | Compliance |
 | `partner-eligibility.mdx` | KYC-reliance eligibility wording (**already exists**) | Compliance |
+| `eu-onboarding.mdx` | EU onboarding sentence, placed wherever a page states the verification split | Compliance |
 
 `partner-eligibility.mdx` predates this initiative and is referenced, not modified.
 

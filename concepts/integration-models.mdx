@@ -1,9 +1,17 @@
 ---
 title: "Integration models"
-description: "How WhiteBIT partner programs connect end users: partner-operated sub-accounts (Model A) and customers' own accounts via Fast API Key (Model B)."
+description: "How WhiteBIT partner programs connect end users: partner-operated sub-accounts (Model A), customers' own accounts via Fast API Key (Model B), and the partner's own account with a deposit address per end user."
 ---
 
-An integration model defines who holds each end user's WhiteBIT account and who performs end-user identity verification (KYC). WhiteBIT partner programs offer more than one model because partners differ: some operate accounts on behalf of customers, and others connect customers who already hold personal WhiteBIT accounts. The chosen model sets the account structure and where compliance responsibility sits. Program overviews and integration guides link to the models below rather than restating the trade-off.
+import EuOnboarding from '/snippets/eu-onboarding.mdx';
+
+An integration model defines which account holds end users' funds — a sub-account the partner operates,
+the end user's own WhiteBIT account, or the partner's own account — and who performs end-user identity
+verification (KYC). WhiteBIT partner programs offer more than one model because partners differ: some
+operate accounts on behalf of customers, others connect customers who already hold personal WhiteBIT
+accounts, and others keep end users on the partner's own books. The chosen model sets the account structure and
+where compliance responsibility sits. Program overviews and integration guides link to the models below
+rather than restating the trade-off.
 
 ## Model A — partner-operated sub-accounts
 
@@ -22,18 +30,33 @@ Model B fits more partner types than embedded trading alone — a long tail of a
 
 Compliance review scales with the permission scope, not the partner label.
 
+## Partner's own account
+
+In this model the end users hold no WhiteBIT account and no sub-account. The partner holds one WhiteBIT
+account and issues a deposit address per end user with
+[Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit). The
+partner maps each address — plus its memo on memo networks — to the end user in its own database, keeps the
+end-user ledger, credits each end user from deposit events reconciled against the account history, and pays
+out from the account (see [Unique address per user](/guides/payment-integration#unique-address-per-user)).
+The partner verifies its own end users; WhiteBIT verifies the partner during
+[institutional onboarding](/institutional/onboarding).
+
+<EuOnboarding />
+
+The trade-off: holds and the withdrawable balance are reported for the whole account, not for each end
+user (see [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance)), so per-end-user
+balances exist only in the partner's ledger, and reconciling that ledger against the account history is the
+partner's task. The model suits a bank, fintech, or other business that offers crypto to its own end users
+under its own brand. Build it with the [Crypto-as-a-Service integration guide](/guides/caas-integration).
+
 ## Comparison
 
-| Dimension | Model A — sub-accounts | Model B — Fast API Key |
-|-----------|------------------------|------------------------|
-| Account holder | Partner (a sub-account per end user under a master account) | End user (a personal WhiteBIT account) |
-| KYC | WhiteBIT by default; the partner under gated KYC reliance | WhiteBIT |
-| Best fit | Account operators, WaaS backends, platforms operating customer accounts | Bots, copy trading, portfolio and tax tools, and other apps on customers' own accounts |
-| Where to build | [Sub-Accounts](/products/sub-accounts/overview), [Embedded Trading](/guides/sub-account-integration) | [Fast API Key via OAuth](/guides/fast-api-key-integration) |
-
-## Why not a pooled account
-
-A single pooled (omnibus) account holding all end users' funds together — sometimes called Model C — is not offered.
+| Dimension | Model A — sub-accounts | Model B — Fast API Key | Partner's own account |
+|-----------|------------------------|------------------------|-----------------------|
+| Account holder | Partner (a sub-account per end user under a master account) | End user (a personal WhiteBIT account) | Partner (one account; end users hold no WhiteBIT account) |
+| KYC | WhiteBIT by default; the partner under gated KYC reliance | WhiteBIT | The partner verifies its end users; WhiteBIT verifies the partner (KYB) |
+| Best fit | Account operators, WaaS backends, platforms operating customer accounts | Bots, copy trading, portfolio and tax tools, and other apps on customers' own accounts | A bank, fintech, or other business offering crypto to its own end users under its own brand |
+| Where to build | [Sub-Accounts](/products/sub-accounts/overview), [Embedded Trading](/guides/sub-account-integration) | [Fast API Key via OAuth](/guides/fast-api-key-integration) | [Crypto-as-a-Service integration](/guides/caas-integration) |
 
 ## What's next
 
@@ -44,7 +67,7 @@ A single pooled (omnibus) account holding all end users' funds together — some
   <Card title="Fast API Key integration" icon="key" href="/guides/fast-api-key-integration">
     Build Model B: the OAuth API key flow on customers' own accounts.
   </Card>
-  <Card title="Embedded Trading overview" icon="circle-info" href="/guides/embedded-trading-overview">
-    What Embedded Trading is and how enrollment works.
+  <Card title="Crypto-as-a-Service integration" icon="layer-group" href="/guides/caas-integration">
+    Build on the partner's own account: a deposit address per end user and the partner's own ledger.
   </Card>
 </CardGroup>
