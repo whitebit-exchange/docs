@@ -105,10 +105,10 @@ Settlement windows and cutoff behavior depend on the fiat rail in use, including
 
 <AccordionGroup>
 <Accordion title="Convert across the fiat and crypto legs">
-In both on/off-ramp flows, fiat enters and exits through the fiat deposit and withdrawal endpoints, and conversion runs on the crypto side of the balance — request a quote with `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. The convert service routes balances internally; no manual Main↔Trade transfers are required. See [Convert](/platform/convert).
+In both on/off-ramp flows, fiat enters and exits through the fiat deposit and withdrawal endpoints, and Convert converts between fiat and crypto — request a quote with `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. The convert service routes balances internally; no manual Main↔Trade transfers are required. See [Convert](/platform/convert).
 
 <Note>
-  Whether Convert accepts a fiat ticker directly as the conversion leg is confirmed per account; the conversion pairs available to the account are set with the account manager.
+  Convert accepts the supported fiat currencies as either leg of a conversion; the conversion pairs available to the account are set with the account manager.
 </Note>
 </Accordion>
 </AccordionGroup>

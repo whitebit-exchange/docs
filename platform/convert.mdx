@@ -37,7 +37,7 @@ The quoted-rate flow has two steps: estimate and confirm.
 </Steps>
 
 <Note>
-  Each estimate response includes an `expireAt` timestamp — confirm before that moment. Honour the value returned per quote rather than hard-coding a fixed window. If the quote expires before confirmation, request a new estimate.
+  Each estimate response includes an `expireAt` timestamp in Unix seconds — confirm before that moment. Honor the value returned per quote rather than hard-coding a fixed window. If the quote expires before confirmation, request a new estimate.
 </Note>
 
 [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) collapses both steps into one request: the quote is requested and accepted in one call, so no expiry window applies and no `quoteId` round-trip is needed. The endpoint accepts an optional idempotency key that makes a retry safe.

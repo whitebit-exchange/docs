@@ -987,7 +987,7 @@ When the currency held in Main balance differs from the currency the end user ne
     **Endpoint:** `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/main-balance)
   </Step>
   <Step title="Request a conversion estimate">
-    Request a quote for converting the source currency to the withdrawal currency. The response includes an `id` (quote identifier), the quoted `rate`, and `expireAt` (Unix timestamp).
+    Request a quote for converting the source currency to the withdrawal currency. The response includes an `id` (quote identifier), the quoted `rate`, and `expireAt` (Unix timestamp in seconds).
 
     **Endpoint:** `POST /api/v4/convert/estimate` — [API Reference](/api-reference/convert/convert-estimate)
   </Step>
@@ -1012,7 +1012,7 @@ When the currency held in Main balance differs from the currency the end user ne
 </Steps>
 
 <Note>
-  The convert service sets quote expiry per quote and returns the value in `expireAt` (Unix timestamp). Confirm the quote before that time elapses, or request a new estimate. See [Convert](/platform/convert) for full parameter details, direction options, and history queries.
+  The convert service sets quote expiry per quote and returns the value in `expireAt` (Unix timestamp in seconds). Confirm the quote before that time elapses, or request a new estimate. See [Convert](/platform/convert) for full parameter details, direction options, and history queries.
 </Note>
 
 ## Conversion errors
