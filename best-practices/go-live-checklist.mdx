@@ -36,6 +36,7 @@ See [Authentication](/api-reference/authentication) and [Security Best Practices
 - [ ] Authentication errors (`401`) do NOT trigger automatic retry — investigate the cause.
 - [ ] Validation errors (`400`, `422`) logged with the full response body for debugging.
 - [ ] Server errors (`500`, `503`) handled with retry and exponential backoff.
+- [ ] A timeout or a `5xx` on a transfer between balances or with a sub-account does not trigger an automatic retry — check the transfer history first, because the transfer requests take no idempotency key.
 - [ ] Error response JSON parsed for `code`, `message`, and `errors` fields.
 
 See [Errors and Error Handling](/api-reference/rate-limits) for the complete error code reference.

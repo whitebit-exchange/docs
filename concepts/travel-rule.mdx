@@ -75,7 +75,7 @@ sequenceDiagram
 
     Note over Client,Compliance: Deposit arrives and is detected as Travel Rule-eligible
 
-    Client->>WhiteBIT API: GET /api/v4/main-account/history
+    Client->>WhiteBIT API: POST /api/v4/main-account/history
     WhiteBIT API-->>Client: Deposit with status "ready for verification"
 
     Client->>WhiteBIT API: POST /api/v4/travel-rule/vasps

@@ -72,8 +72,8 @@ sequenceDiagram
 ```
 
 A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
-has no replay, so poll the sub-account balances from the master account (`POST /api/v4/sub-account/balances`)
-on a schedule as well, even when a webhook is configured. Deduplicate by `uniqueId`. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
+has no replay, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured.
+Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some wait in a frozen or uncredited status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
 [rate limits](/api-reference/rate-limits) apply per endpoint; sub-account limits are set per agreement.
 
 <Note>

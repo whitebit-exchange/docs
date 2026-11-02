@@ -1032,7 +1032,7 @@ paths:
                 code: 0
                 message: "You don't have permission to use this endpoint. Please contact support for more details"
         "429":
-          description: Rate limit exceeded
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
         "451":
           description: The currency is unavailable for the jurisdiction of the account.
 
@@ -1497,11 +1497,8 @@ paths:
                     message: "Validation failed"
                     errors:
                       cardNumber: ["The cardNumber field is invalid."]
-                tooManyAttempts:
-                  summary: "Too many attempts (throttling)"
-                  value:
-                    message: "Too Many Attempts."
-                    code: 0
+        "429":
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
 
   /api/v4/main-account/refund-deposit:
     post:
@@ -2310,11 +2307,6 @@ paths:
                     message: "Validation failed"
                     errors:
                       partialEnable: ["The partial enable field must be true or false."]
-                throttling:
-                  summary: "Rate limiting/throttling"
-                  value:
-                    message: "Too Many Attempts."
-                    code: 0
         "422":
           description: |
             Inner validation failed.
@@ -2389,6 +2381,8 @@ paths:
               example:
                 code: 4
                 message: "This API Key is not authorized to perform this action."
+        "429":
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
 
   /api/v4/main-account/withdraw-pay:
     post:
@@ -2654,6 +2648,15 @@ paths:
         <Note>
         Also, fiat currencies can't be transferred without KYC verification.
         </Note>
+
+        <Warning>
+        The request takes no idempotency key. After a timeout or a `5xx` response, check
+        [Get transfer history](/api-reference/account-wallet/get-transfer-history) for a record whose `from_balance`,
+        `to_balance`, `currency` and `amount` match the request, created after the failed request was sent. A transfer
+        between the spot and collateral balances appears as two records, `spot → main` and `main → collateral`. The history
+        lists a transfer only after the transfer completes, so repeat the check before resending, and resend only when no
+        matching record exists.
+        </Warning>
       operationId: transferBetweenBalances
       requestBody:
         required: true
@@ -2815,11 +2818,6 @@ paths:
                     message: "Validation failed"
                     errors:
                       amount: ["The amount must be a number.", "Invalid number"]
-                throttling:
-                  summary: "Rate limiting/throttling"
-                  value:
-                    message: "Too Many Attempts."
-                    code: 0
         "422":
           description: |
             Inner validation failed
@@ -2869,6 +2867,8 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       currency: ["Deposit to this currency is disabled"]
+        "429":
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
 
   /api/v4/main-account/transfer/history:
     post:
@@ -3126,6 +3126,8 @@ paths:
                     Can be used for filtering transactions by status codes.
 
                     ⚠️ Caution: Use this parameter with the appropriate `transactionMethod` and valid status codes for that method. See the endpoint description above for valid codes. Example: `"status": [3,7]`
+
+                    A filter on the successful codes alone (`[3,7]`) leaves out transactions in every other status, such as canceled, AML-frozen or uncredited deposits. To follow a transaction to its final status, omit `status` or include every status code that the endpoint description lists for the `transactionMethod`.
                   example: [3, 7]
                 request:
                   type: string
@@ -3264,7 +3266,7 @@ paths:
         - Deposit
       summary: Create new address for deposit
       description: |
-        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default; request access through the account manager.
+        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default; request access through the account manager. The number of addresses is limited; the account manager can discuss and adjust the limit for the account.
 
         <Note>
         For sub-accounts, crypto deposits must also be enabled for the account (disabled by
@@ -6075,6 +6077,13 @@ paths:
         <Note>
         The API does not cache the response.
         </Note>
+
+        <Warning>
+        The request takes no idempotency key. After a timeout or a `5xx` response, check
+        [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) for a record whose
+        `direction`, `currency` and `amount` match the request's `direction`, `ticker` and `amount`, created after the failed
+        request was sent, before sending the transfer again. Resend the transfer only when no such record exists.
+        </Warning>
       operationId: subAccountTransfer
       requestBody:
         required: true

@@ -92,7 +92,7 @@ Withdrawal amount plus fee must not exceed the available balance. Calculate the 
 </Accordion>
 
 <Accordion title="Network confirmation requirements for deposits">
-Each cryptocurrency network requires a specific number of block confirmations before a deposit is credited. The webhook payload includes `confirmations.actual` and `confirmations.required` fields. Check the [Asset Status endpoint](/api-reference/market-data/asset-status-list) for per-currency confirmation requirements.
+Each cryptocurrency network has two confirmation counts. At the earlier count (`confirmations_for_trading`), the platform credits the deposit for trading only. At the later count (`confirmations`), the deposit also becomes available for withdrawal, sending as a WhiteBIT Code, transfer to the Collateral balance, and use as collateral. The webhook payload includes `confirmations.actual` and `confirmations.required` fields. Check the [Asset Status endpoint](/api-reference/market-data/asset-status-list) for both counts per network.
 </Accordion>
 
 <Accordion title="USDT alternatives for EEA users (MiCA compliance)">
@@ -100,7 +100,7 @@ Since December 30, 2024, EEA users cannot deposit, withdraw, or create WhiteBIT 
 </Accordion>
 
 <Accordion title="Below-minimum deposit handling">
-Deposits below the minimum amount for a currency are not credited to the account balance. Check the minimum deposit amount via the [Asset Status endpoint](/api-reference/market-data/asset-status-list) before generating deposit addresses. No mechanism exists to recover below-minimum deposits.
+Deposits below the minimum amount for a currency are not credited to the account balance. Check the minimum deposit amount via the [Asset Status endpoint](/api-reference/market-data/asset-status-list) before generating deposit addresses. For a multi-network currency, `limits.deposit.<network>` carries each network's limits when the response includes `limits`; the top-level `min_deposit` can differ from the network limits. No mechanism exists to recover below-minimum deposits.
 </Accordion>
 </AccordionGroup>
 
@@ -122,7 +122,7 @@ Each webhook request includes an `X-TXC-APIKEY` header and an `X-TXC-PAYLOAD` + 
 </Accordion>
 
 <Accordion title="Webhook retry behavior">
-WhiteBIT retries failed webhook deliveries 5 times at 10-minute intervals, providing up to 50 minutes of coverage. There is no replay mechanism after the retry window expires. Implement polling of the deposit and withdrawal history endpoints as a fallback for outages exceeding 50 minutes. See [Webhook](/platform/webhook) for details.
+WhiteBIT retries failed webhook deliveries on a best-effort basis, with no guaranteed cadence. There is no replay mechanism: if every delivery attempt fails, the platform drops the event. Implement polling of the deposit and withdrawal history endpoints as a fallback to reconcile events missed during extended consumer downtime. See [Webhook](/platform/webhook) for the delivery window.
 </Accordion>
 </AccordionGroup>
 

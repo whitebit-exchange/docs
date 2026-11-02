@@ -174,7 +174,7 @@ Deposits to WhiteBIT are stricter than withdrawals. An HBAR memo that is not a w
 </Note>
 
 <Warning>
-Missing a required memo will result in **permanent loss of funds** or significant delays in recovery. Check currency requirements on [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+Missing a required memo results in **permanent loss of funds** or significant delays in recovery. The [Asset Status endpoint](/api-reference/market-data/asset-status-list) reports memo requirements per asset (`memo.deposit` and `memo.withdraw`), not per network; for network-specific cases such as USDC on STELLAR and USDT on TON, use the table above.
 </Warning>
 
 ### ⚠️ Provider Selection (Fiat)
@@ -190,10 +190,12 @@ Fiat withdrawals require the correct provider:
 
 ### Step 1: Pre-Withdrawal Checks
 
-```
-1. Check balance: GET /api/v4/main-account/balance
-2. Get withdrawal fees: POST /api/v4/main-account/fee  
-3. Verify currency is withdrawable: GET /api/v4/public/assets
+```text
+1. Check balance: POST /api/v4/main-account/balance
+   - Exclude pending_deposit_amount: deposits awaiting full confirmation are not withdrawable
+2. Check withdrawable amount: POST /api/v4/main-account/withdrawable-balance
+3. Get withdrawal fees: POST /api/v4/main-account/fee
+4. Verify currency is withdrawable: GET /api/v4/public/assets
    - Check "can_withdraw" status is "true"
    - Get available networks/providers
    - Check minimum/maximum amounts
@@ -300,6 +302,7 @@ For multi-network currencies (USDT, USDC, etc.), choosing the right network is c
 - `7` - Amount should be integer (zero precision currencies like NEO)
 - `8` - Target withdraw amount without fee equals zero
 - `9` - Address is unavailable (withdrawal to own address blocked)
+- `20` - Amount is not withdrawable yet: deposits credited before full network confirmation are still held back; see [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance)
 
 **Example**:
 ```json

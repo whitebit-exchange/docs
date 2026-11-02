@@ -233,7 +233,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 
 ## Unique address per user
 
-The `POST /api/v4/main-account/address` endpoint above returns the same address for the same ticker and network combination on every call. For payment provider integrations that assign a unique deposit address per end user, use `POST /api/v4/main-account/create-new-address` instead — this endpoint generates a fresh address on every call. See the [API Reference](/api-reference/account-wallet/create-new-address-for-deposit) for the full specification.
+The `POST /api/v4/main-account/address` endpoint above returns the same address for the same ticker and network combination on every call. For payment provider integrations that assign a unique deposit address per end user, use `POST /api/v4/main-account/create-new-address` instead — each successful call generates a fresh address, even when the previous address is unused. The endpoint returns `422` and no address while another address request is still in progress, or once the account reaches the per-currency address limit. See the [API Reference](/api-reference/account-wallet/create-new-address-for-deposit) for the full specification.
 
 <Warning>
   The `/create-new-address` endpoint is not available by default. Request access through the account manager.
@@ -281,12 +281,12 @@ The `POST /api/v4/main-account/address` endpoint above returns the same address 
   </Tab>
 </Tabs>
 
-**Choosing between the two endpoints:** The choice depends on the partner's reconciliation model. Partners managing one consolidated wallet per asset (treasury, market-maker, single-merchant) use `/address`; repeat calls return the same address. Partners assigning one address per end customer (payment provider, per-user wallet) use `/create-new-address`; each call returns a fresh address, so an incoming deposit identifies the end user by its address, plus the memo on memo networks.
+**Choosing between the two endpoints:** The choice depends on the partner's reconciliation model. Partners managing one consolidated wallet per asset (treasury, market-maker, single-merchant) use `/address`; repeat calls return the same address. Partners assigning one address per end customer (payment provider, per-user wallet) use `/create-new-address`; each successful call returns a fresh address, so an incoming deposit identifies the end user by its address, plus the memo on memo networks.
 
 | Endpoint | Behavior | Best for |
 |----------|----------|----------|
 | `POST /api/v4/main-account/address` | Returns the same address for the same ticker + network | Single-wallet setups, treasury management |
-| `POST /api/v4/main-account/create-new-address` | Generates a new address on every call | Payment providers assigning one address per end user |
+| `POST /api/v4/main-account/create-new-address` | Generates a new address on each successful call | Payment providers assigning one address per end user |
 
 ## Deposit lifecycle
 
@@ -321,14 +321,14 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
 
 <Note>
-  Use `POST /api/v4/main-account/history` with `transactionMethod: 1` and `status` filter to poll for deposits in specific states. See the [endpoint page](/api-reference/account-wallet/get-deposit-withdraw-history) for the current enforced rate limit.
+  Use `POST /api/v4/main-account/history` with `transactionMethod: 1` to poll deposits. Omit the `status` filter, or include every status in the table above. A filter on `3` and `7` alone leaves out deposits in every other status in the table, such as canceled, AML-frozen or uncredited deposits. A watcher that waits only for those codes never sees a canceled deposit and never closes. See the [endpoint page](/api-reference/account-wallet/get-deposit-withdraw-history) for the current enforced rate limit.
 </Note>
 
 ## Network confirmations
 
-Each cryptocurrency network requires a different number of block confirmations before the platform credits a deposit.
+Each cryptocurrency network has two confirmation counts. At the earlier count, `confirmations_for_trading`, the platform credits the deposit for trading only. At the later count, `confirmations`, the deposit also becomes available for withdrawal, sending as a WhiteBIT Code, transfer to the Collateral balance, and use as collateral. Until the deposit reaches `confirmations`, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`.
 
-Webhook payloads include `confirmations.actual` and `confirmations.required` fields — the `confirmations.required` value determines when the deposit completes. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint (`GET /api/v4/public/assets`) for per-currency confirmation requirements.
+Webhook payloads include `confirmations.actual` and `confirmations.required` fields. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint (`GET /api/v4/public/assets`) for both counts per network.
 
 Confirmation requirements vary by currency and network. Do not hardcode specific numbers — always retrieve the current values from the Asset Status endpoint.
 
@@ -408,7 +408,7 @@ The refund `address` must satisfy three constraints:
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/withdrawable-balance` | Check how much is withdrawable while deposits await confirmation | [Withdrawable Balance](/api-reference/account-wallet/withdrawable-balance) |
-| `POST /api/v4/main-account/fee` | Available currencies, networks, and deposit limits | [Get Fees](/api-reference/account-wallet/get-fees) |
+| `POST /api/v4/main-account/fee` | Available currencies, fees, and deposit limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
 <Note>
   For integrations that use a single persistent deposit address instead of unique addresses per user, substitute `POST /api/v4/main-account/address` ([API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address)) for the `/create-new-address` endpoint.
@@ -453,7 +453,6 @@ Two withdrawal endpoints are available:
 <Note>
   **Internal-transfer routing:** When the destination `address` belongs to another WhiteBIT user, the platform may route the transfer as an internal off-chain transfer rather than an on-chain broadcast, in which case no blockchain fee applies and the recipient sees the funds immediately. This routing is not guaranteed for every destination — confirm the behavior with WhiteBIT for the specific flow before designing around fee-free instant settlement, or funds may settle on-chain with the standard fee. For deterministic fee-free settlement between known WhiteBIT accounts, use [WhiteBIT Codes](#whitebit-codes-overview) rather than relying on withdrawal auto-routing.
 </Note>
-{/* TODO: confirm with Engineering whether a withdrawal to a WhiteBIT-owned address routes as a fee-free internal transfer, and under what conditions — payment-01. */}
 
 **Required parameters:**
 
@@ -608,7 +607,7 @@ Using /withdraw-pay:  Sender pays  0.5004 BTC,  receiver gets 0.5 BTC
 | `POST /api/v4/main-account/withdraw` or `/withdraw-pay` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | Webhooks (`withdraw.unconfirmed`, `withdraw.pending`, `withdraw.successful`, `withdraw.canceled`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
-| `POST /api/v4/main-account/fee` | Available currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
+| `POST /api/v4/main-account/fee` | Available currencies, fees, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
 <Note>
   For withdrawals that include currency conversion before sending, see [Withdrawal with conversion](#withdrawal-with-conversion) for the extended endpoint list.
@@ -777,7 +776,7 @@ See [Institutional Onboarding](/institutional/onboarding) for the full fiat onbo
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/withdrawable-balance` | Check how much is withdrawable while deposits await confirmation | [Withdrawable Balance](/api-reference/account-wallet/withdrawable-balance) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
-| `POST /api/v4/main-account/fee` | Available currencies, providers, and limits | [Get Fees](/api-reference/account-wallet/get-fees) |
+| `POST /api/v4/main-account/fee` | Available currencies, fees, and limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
 ## WhiteBIT Codes
 
@@ -1104,7 +1103,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 | `POST /api/v4/main-account/withdraw` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |
 | Webhooks (`withdraw.successful`) | Withdrawal status notifications | [Webhooks](/platform/webhook) |
 | `POST /api/v4/main-account/history` | Query deposit and withdrawal history | [History](/api-reference/account-wallet/get-deposit-withdraw-history) |
-| `POST /api/v4/main-account/fee` | Currencies, networks, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
+| `POST /api/v4/main-account/fee` | Currencies, fees, and withdrawal limits | [Get Fees](/api-reference/account-wallet/get-fees) |
 
 ## Webhook reconciliation
 
@@ -1116,7 +1115,7 @@ Reliable fund tracking requires both webhook-based and polling-based reconciliat
 - Verify the HMAC-SHA512 signature on every incoming webhook. Each delivery includes three headers — `X-TXC-APIKEY` (the WhiteBIT webhook API key), `X-TXC-PAYLOAD` (base64-encoded JSON body), and `X-TXC-SIGNATURE` (HMAC-SHA512 of the payload with the webhook key's secret). See [Security Best Practices](/best-practices/security) for the verification algorithm.
 - Track the `nonce` field — each webhook nonce is strictly greater than the previous. The nonce travels inside the JSON payload, not in a separate header.
 
-**Retry policy:** The platform retries failed deliveries over a 24-hour window — see [Webhooks](/platform/webhook) for the retry schedule.
+**Retry policy:** The platform retries failed deliveries on a best-effort basis, with no guaranteed cadence. See [Webhooks](/platform/webhook) for the delivery window.
 
 **Fallback method — poll `POST /api/v4/main-account/history`:**
 
@@ -1134,7 +1133,7 @@ For balance endpoints, WebSocket account streams, and polling-interval guidance 
 </Note>
 
 <Note>
-  WhiteBIT does not offer a webhook replay mechanism. Implement polling as a fallback for outages longer than the 24-hour retry window. Store all processed `uniqueId` values to prevent double-processing.
+  WhiteBIT does not offer a webhook replay mechanism. Implement polling as a fallback to reconcile events missed during extended consumer downtime. Store all processed `uniqueId` values to prevent double-processing.
 </Note>
 
 **Reconciliation pattern:**

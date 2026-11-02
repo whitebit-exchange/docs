@@ -96,3 +96,6 @@ retryStrategies:
   - errorType: "Server error (5xx)"
     retry: true
     strategy: "Exponential backoff. If persistent, check platform status or contact support."
+  - errorType: "Timeout or server error on a transfer"
+    retry: false
+    strategy: "Transfer between balances and Sub-Account Transfer take no idempotency key. Check the transfer history first, and resend only when no matching record exists."

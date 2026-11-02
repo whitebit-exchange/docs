@@ -43,7 +43,7 @@ Each sub-account has a separate crypto deposit address, requested with a call si
 
 ### Reconciliation approach
 
-A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but not replayed, so poll the sub-account balances from the master account on a schedule as well, even when a webhook is configured. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
+A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but not replayed, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured. Sign the history call with the sub-account's API key. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
 
 ### Fiat operations scope
 

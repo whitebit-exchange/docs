@@ -87,6 +87,7 @@ The following errors are returned by private REST endpoints when the request sig
 | Validation error | No | Fix the request parameters. Read the `errors` field for field-level feedback. |
 | Insufficient balance | No | Check the account balance and wait for pending operations to settle. |
 | Server error (5xx) | Yes | Exponential backoff. If persistent, check platform status or contact support. |
+| Timeout or server error on a transfer | Only after a check | [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) and [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) take no idempotency key. Check the transfer history first, and resend only when no matching record exists. |
 
 ### Exponential backoff
 
