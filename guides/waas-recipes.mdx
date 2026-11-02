@@ -33,7 +33,7 @@ A runnable Python starter that packages these flows is planned.
     <br />**Endpoints:** `main-account/history` + webhooks
   </Card>
   <Card title="Payout / withdraw" icon="paper-plane" href="/guides/payment-integration#create-a-withdrawal">
-    Send a crypto payout to a user's address, with on-the-fly conversion where needed; the master account
+    Send a crypto payout to a user's address, with a conversion before the payout where needed; the master account
     approves each sub-account withdrawal.
     <br />**Endpoints:** `main-account/withdraw`, `sub-account/withdraw/confirm`
   </Card>
@@ -42,8 +42,8 @@ A runnable Python starter that packages these flows is planned.
     <br />**Endpoints:** `main-account/codes`, `main-account/codes/apply`
   </Card>
   <Card title="Payout with conversion" icon="right-left" href="/guides/payment-integration#conversion-in-the-withdrawal-flow">
-    Hold one currency, pay out another: quote, confirm, then withdraw the converted asset.
-    <br />**Endpoints:** `convert/estimate`, `convert/confirm`, `main-account/withdraw`
+    Hold one currency, pay out another: move the source currency to the Trade balance, quote, confirm, move the converted asset back to Main, then withdraw.
+    <br />**Endpoints:** `main-account/transfer`, `convert/estimate`, `convert/confirm`, `main-account/withdraw`
   </Card>
   <Card title="Refund a canceled deposit" icon="rotate-left" href="/guides/payment-integration#refund-flow">
     Return funds from a canceled deposit (status 4/9) to an address.

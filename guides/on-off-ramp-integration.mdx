@@ -39,7 +39,9 @@ sequenceDiagram
     Partner->>User: Open the payment URL
     User->>WhiteBIT: Complete the payment (SEPA transfer or card checkout)
     WhiteBIT-->>Partner: Deposit status change (webhook / history record)
+    Partner->>WhiteBIT: POST /api/v4/main-account/transfer (Main to Trade)
     Partner->>WhiteBIT: POST /api/v4/convert/estimate → /convert/confirm
+    Partner->>WhiteBIT: POST /api/v4/main-account/transfer (Trade to Main)
     Partner->>WhiteBIT: POST /api/v4/main-account/withdraw (crypto leg)
 ```
 
@@ -105,7 +107,7 @@ Operational rules for the deposit leg:
 - **Card flows.** Card funding (the VISAMASTER provider) requires a `customer` billing block, and the browser must send the `Referer` header when opening the invoice link — messengers and email clients often strip it. See [Card-provider flows](/guides/payment-integration#card-provider-flows).
 - **Web-only currencies.** Not every fiat ticker is depositable via API; confirm `can_deposit` in the [Asset Status](/api-reference/market-data/asset-status-list) response before generating an invoice, and route unsupported tickers through the WhiteBIT web interface.
 
-To complete the on-ramp, reach the currency for the crypto withdrawal through Convert where a conversion is needed: request a quote via `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. Honor the per-quote expiry returned in the response rather than assuming a fixed window. The convert service routes balances internally; no manual transfers between Main and Trade balances are required. Convert accepts the supported fiat currencies as either leg of a conversion. The conversion pairs available to the account are confirmed with the account manager. The crypto withdrawal step is documented in [Crypto Withdrawals](/guides/payment-integration#create-a-withdrawal); for EEA accounts the crypto withdrawal carries a Travel Rule payload — see [Travel Rule](/concepts/travel-rule).
+To complete the on-ramp, reach the currency for the crypto withdrawal through Convert where a conversion is needed. Convert through the API uses the Trade balance: transfer the source currency from Main to Trade, request a quote via `POST /api/v4/convert/estimate`, and execute it with `POST /api/v4/convert/confirm` before the quote expires. Then transfer the converted amount back to Main before the withdrawal (see [Convert balances](/platform/convert#balances)). Honor the per-quote expiry returned in the response rather than assuming a fixed window. Convert accepts the supported fiat currencies as either leg of a conversion. The conversion pairs available to the account are confirmed with the account manager. The crypto withdrawal step is documented in [Crypto Withdrawals](/guides/payment-integration#create-a-withdrawal); for EEA accounts the crypto withdrawal carries a Travel Rule payload — see [Travel Rule](/concepts/travel-rule).
 
 ## Off-ramp flow: crypto in, fiat out
 
@@ -117,13 +119,17 @@ sequenceDiagram
     Partner->>WhiteBIT: POST /api/v4/main-account/address
     Note over WhiteBIT: Deposit confirms on-chain.<br/>Travel Rule hold may apply (EEA and Turkey)
     WhiteBIT-->>Hook: deposit.processed
+    Partner->>WhiteBIT: POST /api/v4/main-account/transfer (Main to Trade)
     Partner->>WhiteBIT: POST /api/v4/convert/estimate → /convert/confirm
+    Partner->>WhiteBIT: POST /api/v4/main-account/transfer (Trade to Main)
     Partner->>WhiteBIT: POST /api/v4/main-account/withdraw (fiat ticker + beneficiary object)
     WhiteBIT-->>Hook: withdraw.successful
     Partner->>WhiteBIT: POST /api/v4/main-account/history (reconciliation)
 ```
 
 Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from the account manager. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
+
+Convert the crypto to the fiat currency through the Trade balance: transfer the source currency from Main to Trade, convert it, and transfer the converted amount back to Main before the fiat withdrawal (see [Convert balances](/platform/convert#balances)).
 
 For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. Fiat withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider.
 
@@ -187,6 +193,7 @@ Build handling for each of these before go-live:
 | Deposit frozen for AML review (status 21) | The record surfaces in the deposit history with the frozen status | Escalate to institutional@whitebit.com if the freeze persists |
 | Deposit held for Travel Rule (status 27/28) | No webhook fires for Travel Rule transitions; the hold surfaces via history polling | Submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise complete verification on the platform |
 | Partial fiat withdrawal (status 18, with `partialEnable`) | The withdrawal completes partially | Reconcile `requestAmount` against `processedAmount` and surface the remainder to operations |
+| Conversion returns `400` code `0` or a `5xx` | The conversion may have executed | Follow [Results and retries](/platform/convert#results-and-retries) before converting again |
 | Fiat withdrawal without KYC | The request fails validation with an account-verification error | Complete KYC, or arrange the exception-only override with the institutional team |
 | VISAMASTER invoice link opened without a `Referer` header | The end user lands on the WhiteBIT homepage instead of the payment provider | Test the redirect in the real delivery surface — messengers and email clients strip the header |
 

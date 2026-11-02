@@ -40,5 +40,6 @@ export const retryStrategies = [
   { errorType: "Validation error", retry: false, strategy: "Fix the request parameters. Read the `errors` field for field-level feedback. Do not retry the same request." },
   { errorType: "Insufficient balance", retry: false, strategy: "Check the account balance and wait for pending operations to settle before retrying." },
   { errorType: "Server error (5xx)", retry: true, strategy: "Exponential backoff. If persistent, check platform status or contact support." },
+  { errorType: "Server error or confirm code 0 on a conversion", retry: false, strategy: "The conversion may have executed. Follow Results and retries on the Convert page before converting again." },
   { errorType: "Timeout or server error on a transfer", retry: false, strategy: "Transfer between balances and Sub-Account Transfer take no idempotency key. Check the transfer history first, and resend only when no matching record exists." },
 ];

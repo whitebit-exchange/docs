@@ -91,7 +91,7 @@ See [Create a withdrawal](#create-a-withdrawal) for endpoint detail.
 
 ### UC3 — Crypto payout with conversion
 
-When the partner holds one currency in Main balance but needs to send another, request a conversion quote, confirm it, and submit the withdrawal. The convert service handles balance routing internally; no manual Main↔Trade transfers are required.
+When the partner holds one currency on the Main balance but needs to send another, transfer the source currency to the Trade balance and convert it. Then transfer the converted amount back to the Main balance and submit the withdrawal. Convert through the API uses the Trade balance for both legs; see [Convert](/platform/convert#balances).
 
 ```mermaid
 sequenceDiagram
@@ -102,10 +102,14 @@ sequenceDiagram
 
     P->>W: POST /api/v4/main-account/balance
     W-->>P: Available balance
+    P->>W: POST /api/v4/main-account/transfer (Main to Trade, source currency)
+    W-->>P: HTTP 201
     P->>W: POST /api/v4/convert/estimate
     W-->>P: Quote identifier + rate + expiry
     P->>W: POST /api/v4/convert/confirm
     W-->>P: Converted amount
+    P->>W: POST /api/v4/main-account/transfer (Trade to Main, converted currency)
+    W-->>P: HTTP 201
     P->>W: POST /api/v4/main-account/withdraw (converted currency, destination address)
     W-->>P: HTTP 201
     W->>B: On-chain broadcast
@@ -975,7 +979,7 @@ Convert the source currency before withdrawing, using the Convert service.
 
 ## Conversion in the withdrawal flow
 
-When the currency held in Main balance differs from the currency the end user needs to withdraw, request a conversion quote, confirm it, and then submit the withdrawal. The [Convert](/platform/convert) service handles balance routing internally — manual transfers between Main and Trade balances are not required.
+When the currency held in Main balance differs from the currency the end user needs to withdraw, convert the funds before the withdrawal. Convert through the API uses the Trade balance for both legs. Transfer the source currency from Main to Trade before the conversion, and transfer the converted amount back to Main before the withdrawal. See [Convert balances](/platform/convert#balances).
 
 ## Step-by-step flow
 
@@ -985,18 +989,28 @@ When the currency held in Main balance differs from the currency the end user ne
 
     **Endpoint:** `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/main-balance)
   </Step>
+  <Step title="Transfer the source currency to Trade">
+    Transfer the source currency from Main to Trade. Request the estimate after the transferred amount shows on the [Trade balance](/api-reference/trading/trading-balance). The transfer request takes no idempotency key, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) before resending a transfer.
+
+    **Endpoint:** `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
+  </Step>
   <Step title="Request a conversion estimate">
     Request a quote for converting the source currency to the withdrawal currency. The response includes an `id` (quote identifier), the quoted `rate`, and `expireAt` (Unix timestamp in seconds).
 
     **Endpoint:** `POST /api/v4/convert/estimate` — [API Reference](/api-reference/convert/convert-estimate)
   </Step>
   <Step title="Confirm the conversion">
-    Confirm the quote using `quoteId` from the estimate response. The conversion executes atomically.
+    Confirm the quote using `quoteId` from the estimate response. A `200` response means the conversion executed, and the converted amount is on the Trade balance. For responses that leave the outcome open, see [Results and retries](/platform/convert#results-and-retries).
 
     **Endpoint:** `POST /api/v4/convert/confirm` — [API Reference](/api-reference/convert/convert-confirm)
   </Step>
+  <Step title="Transfer the converted amount to Main">
+    Transfer the converted currency from Trade to Main. The withdrawal endpoints debit the Main balance, so withdraw after the transfer shows on the Main balance.
+
+    **Endpoint:** `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
+  </Step>
   <Step title="Create withdrawal request">
-    Submit a withdrawal to the end user's external address using the converted currency.
+    Submit a withdrawal to the end user's external address using the converted currency. To tie the withdrawal to its conversions, put a reference unique to the withdrawal in `uniqueId`; see [Convert in payment flows](/platform/convert#convert-in-payment-flows).
 
     **Endpoint:** `POST /api/v4/main-account/withdraw` or `POST /api/v4/main-account/withdraw-pay` — [API Reference](/api-reference/account-wallet/create-withdraw-request)
   </Step>
@@ -1021,8 +1035,8 @@ Common synchronous rejections from `/convert/confirm` and the recovery for each:
 | Error code | Cause | Recovery |
 |------------|-------|----------|
 | `20` or `24` (HTTP `400`) | The quote expired before confirmation. Any later attempt on the same quote returns `24` | Request a new estimate and confirm within the quote window |
-| `37` | Insufficient balance at confirm time — the platform re-checks the balance on confirm, and the balance can change within the quote window even when the estimate succeeded | Top up the Main balance or request a new estimate for a smaller amount |
-| `24` (HTTP `400`) under `errors.quoteId` | The quote was already used or does not exist — both cases return the same response | Request a new estimate |
+| `37` | Insufficient Trade balance at confirm time — the platform re-checks the balance on confirm, and the balance can change within the quote window even when the estimate succeeded | Transfer the source currency to the Trade balance, or request a new estimate for a smaller amount |
+| `24` (HTTP `400`) under `errors.quoteId` | The quote was already used or does not exist — both cases return the same response | Request a new estimate. If an earlier confirm of the same quote returned `400` with code `0` or a `5xx`, look up the `quoteId` in [Convert History](/api-reference/convert/convert-history) first: code `24` can mean that confirm executed |
 
 <Note>
   Error text is not part of the contract and may change. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
@@ -1039,6 +1053,8 @@ sequenceDiagram
 
     Partner->>WB: POST /api/v4/main-account/balance
     WB-->>Partner: Main balance for the source currency
+    Partner->>WB: POST /api/v4/main-account/transfer (Main to Trade)
+    WB-->>Partner: transfer queued
     Partner->>WB: POST /api/v4/convert/estimate
     WB-->>Partner: conversion quote with rate and expiry
     alt confirmed before quote expiry
@@ -1047,12 +1063,14 @@ sequenceDiagram
     else quote expired
         Partner->>WB: POST /api/v4/convert/estimate (new quote)
     end
+    Partner->>WB: POST /api/v4/main-account/transfer (Trade to Main)
+    WB-->>Partner: transfer queued
     Partner->>WB: POST /api/v4/main-account/withdraw
     WB-->>Partner: withdrawal accepted
     WB->>Partner: withdraw.successful webhook
 ```
 
-The critical-path call is the estimate — every later step reuses identifiers from its response. The Crypto deposits section defines the `send_request()` helper used below.
+The critical-path call is the estimate: the confirm step reuses the quote `id` from the estimate response. The Crypto deposits section defines the `send_request()` helper used below.
 
 <Tabs>
   <Tab title="Python">
@@ -1098,6 +1116,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 |----------|---------|---------------|
 | `POST /api/v4/main-account/balance` | Check Main balance | [Main Balance](/api-reference/account-wallet/main-balance) |
 | `POST /api/v4/main-account/withdrawable-balance` | Check how much is withdrawable while deposits await confirmation | [Withdrawable Balance](/api-reference/account-wallet/withdrawable-balance) |
+| `POST /api/v4/main-account/transfer` | Move funds from Main to Trade before the conversion and back before the withdrawal | [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) |
 | `POST /api/v4/convert/estimate` | Request a conversion quote | [Convert Estimate](/api-reference/convert/convert-estimate) |
 | `POST /api/v4/convert/confirm` | Confirm and execute a conversion | [Convert Confirm](/api-reference/convert/convert-confirm) |
 | `POST /api/v4/main-account/withdraw` | Create a withdrawal request | [Create Withdraw](/api-reference/account-wallet/create-withdraw-request) |

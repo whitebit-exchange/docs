@@ -20,8 +20,12 @@ Convert provides instant currency conversion at a quoted rate. Unlike [spot trad
 | Best for | Quick conversions, price estimation | Advanced trading strategies, precise price control |
 
 <Note>
-  Convert also serves as a price estimation tool. Call the estimate endpoint before placing a market order to preview the approximate execution price.
+  Convert also serves as a price estimation tool. Call the estimate endpoint before placing a market order to preview the approximate execution price. The estimate checks the Trade balance first, so the amount must be available on the Trade balance.
 </Note>
+
+## Balances
+
+Convert through the API uses the Trade balance for both legs: the conversion takes the source currency from the [Trade balance](/api-reference/trading/trading-balance) and puts the converted amount on the Trade balance. When the source currency is not on the Trade balance, the request fails with the insufficient-balance error and no funds move. Transfer the source currency from Main to Trade with [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) before converting, and request the estimate after the transferred amount shows on the Trade balance. The withdrawal endpoints debit the Main balance, so transfer the converted amount back to Main before a withdrawal. The transfer request takes no idempotency key, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) before resending a transfer.
 
 ## Conversion flow
 
@@ -40,7 +44,29 @@ The quoted-rate flow has two steps: estimate and confirm.
   Each estimate response includes an `expireAt` timestamp in Unix seconds — confirm before that moment. Honor the value returned per quote rather than hard-coding a fixed window. If the quote expires before confirmation, request a new estimate.
 </Note>
 
-[Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) collapses both steps into one request: the quote is requested and accepted in one call, so no expiry window applies and no `quoteId` round-trip is needed. The endpoint accepts an optional idempotency key that makes a retry safe.
+[Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) collapses both steps into one request: the quote is requested and accepted in one call, so no expiry window applies and no `quoteId` round-trip is needed. The endpoint accepts an optional idempotency key that makes a retry safe within the limits in [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm); see also [Results and retries](#results-and-retries).
+
+## Results and retries
+
+A `200` response means the conversion executed, and a request that fails never returns `200`. When two conversions compete for the same funds, only one executes; the other returns the insufficient-balance error. Two `200` responses with the same `id` come only from two auto-confirm requests with the same idempotency key, and describe one conversion. Key the partner's ledger on the quote ID: the `id` from Auto Confirm, or the `quoteId` sent to Confirm.
+
+A quote executes in full at the quoted amounts or not at all. With `direction: "to"`, the amount received equals the requested amount exactly, because the platform builds the fee into the amount given. Rarely, the platform refuses a confirm when the price moves after the estimate. The platform then converts nothing; request a new estimate.
+
+The following responses leave the outcome open, and the conversion may have executed:
+
+| Response | Find the outcome |
+|----------|------------------|
+| Confirm: `400` with code `0`, or any `5xx` | Look up the `quoteId` in [Convert History](/api-reference/convert/convert-history). |
+| Auto Confirm: `500` (the API timed out before the conversion service returned an outcome; the conversion can still complete) | With an idempotency key, resend the identical request with the same key within 24 hours. The endpoint returns the original response, or `409` while the conversion is still running; retry later with the same key. Without a key, search Convert History by time window, pair, and amounts. |
+| Auto Confirm: `502` (the conversion service returned no outcome) | Search Convert History by time window, pair, and amounts. A retry with the same key returns the same `502`. |
+
+A record in Convert History means the conversion executed and the converted amount is on the Trade balance. After a confirm that executed, a retry of the same quote returns code `24`, so look up the `quoteId` before requesting a new estimate.
+
+<Warning>
+  Without a record in Convert History, contact support before converting the same funds again with a new quote or a new idempotency key. A retry with a new idempotency key can convert a second time.
+</Warning>
+
+[Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) describes how long the platform holds a key.
 
 ## API endpoints
 
@@ -153,7 +179,15 @@ The [history endpoint](/api-reference/convert/convert-history) supports filterin
 
 ## Convert in payment flows
 
-Convert is commonly used as part of the withdrawal flow when the currency held in Main balance differs from the currency an end user needs to withdraw. The pattern is: request an estimate, confirm the quote, then submit the withdrawal in the destination currency — balance routing is handled internally by the convert service.
+Withdrawal flows commonly use Convert when the currency held in Main balance differs from the currency an end user needs to withdraw. The pattern has five steps:
+
+1. Transfer the source currency from Main to Trade.
+2. Request an estimate.
+3. Confirm the quote.
+4. Transfer the converted amount from Trade to Main.
+5. Submit the withdrawal in the destination currency.
+
+No field ties a conversion to the withdrawal that spends it. Store the quote ID of each conversion in the partner's ledger. Put a reference unique to the withdrawal in its `uniqueId` (up to 255 characters), and map that reference to the quote IDs of the conversions the withdrawal spends.
 
 For the full step-by-step withdrawal-with-conversion flow including code examples, see [Payment Integration](/guides/payment-integration).
 
