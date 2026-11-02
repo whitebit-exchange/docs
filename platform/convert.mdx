@@ -63,7 +63,7 @@ The following responses leave the outcome open, and the conversion may have exec
 A record in Convert History means the conversion executed and the converted amount is on the Trade balance. After a confirm that executed, a retry of the same quote returns code `24`, so look up the `quoteId` before requesting a new estimate.
 
 <Warning>
-  Without a record in Convert History, contact support before converting the same funds again with a new quote or a new idempotency key. A retry with a new idempotency key can convert a second time.
+  A confirm of a new quote, or an auto-confirm with a new idempotency key, can convert the same funds a second time. Check Convert History before converting the same funds again.
 </Warning>
 
 [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) describes how long the platform holds a key.

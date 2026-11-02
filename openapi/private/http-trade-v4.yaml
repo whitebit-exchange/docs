@@ -4309,7 +4309,7 @@ paths:
         </Note>
 
         <Warning>
-        After a `400` with code `0` or any `5xx`, the conversion may have executed. Look up the `quoteId` in [Convert History](/api-reference/convert/convert-history); a record means the conversion executed. Without a record, contact support before converting the same funds again.
+        After a `400` with code `0` or any `5xx`, the conversion may have executed. Look up the `quoteId` in [Convert History](/api-reference/convert/convert-history) before converting the same funds again; a record means the conversion executed.
         </Warning>
 
         <Warning>
@@ -4472,7 +4472,7 @@ paths:
         </Note>
 
         <Warning>
-        After a `500` or a `502`, the conversion may have executed, and a retry with a new key can convert a second time. Check [Convert History](/api-reference/convert/convert-history) before converting again: a record means the conversion executed and the converted amount is on the trade balance. Without a record, contact support.
+        After a `500` or a `502`, the conversion may have executed, and a retry with a new key can convert a second time. Check [Convert History](/api-reference/convert/convert-history) before converting again: a record means the conversion executed and the converted amount is on the trade balance.
         </Warning>
 
         <Note>
@@ -4667,7 +4667,7 @@ paths:
             The API timed out before the conversion service returned an outcome, and the conversion can still complete. With an idempotency key, resend the identical request with the same key: the endpoint returns the recorded response, or `409` while the conversion is still running. Without a key, search [Convert History](/api-reference/convert/convert-history) by time window, pair, and amounts before converting again.
         '502':
           description: |
-            The conversion service returned no outcome, and the conversion may have executed. A retry with the same key returns the same `502`; a retry with a new key can convert a second time. Search Convert History by time window, pair, and amounts before converting again. A record means the conversion executed; without a record, contact support. The error text in `errors.request` is not part of the contract and does not change the instruction.
+            The conversion service returned no outcome, and the conversion may have executed. A retry with the same key returns the same `502`; a retry with a new key can convert a second time. Search Convert History by time window, pair, and amounts before converting again. A record means the conversion executed. The error text in `errors.request` is not part of the contract and does not change the instruction.
           content:
             application/json:
               schema:
