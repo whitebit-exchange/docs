@@ -5,7 +5,7 @@ description: "Anchor use cases for Wallet-as-a-Service partners: per-user deposi
 icon: "sparkles"
 ---
 
-Anchor use cases for **Wallet-as-a-Service** partners, on the managed sub-accounts model.
+Anchor use cases for **Wallet-as-a-Service** partners, on the sub-account model (managed sub-accounts or KYC reliance).
 Each recipe links to the guide and API reference that document its endpoints. This is a curated
 selection of common use cases, not the full API surface; for every endpoint and parameter, see the
 [Developer guide](/guides/waas-integration) and the [Payment Integration guide](/guides/payment-integration).
@@ -15,8 +15,6 @@ These are `private` (signed) endpoints, so each call needs an API key. Enablemen
 vary by flow:
 
 - **Sub-account and payout flows** require institutional onboarding (KYB).
-- **Per-user deposit addresses** (`main-account/create-new-address`) are disabled by default —
-  request access through the assigned account manager.
 - **Sub-account crypto deposits** are disabled by default — request enablement through the assigned
   account manager.
 - **WhiteBIT Codes** work on a regular account without KYB (see the live demo below).
@@ -35,8 +33,9 @@ A runnable Python starter that packages these flows is planned.
     <br />**Endpoints:** `main-account/history` + webhooks
   </Card>
   <Card title="Payout / withdraw" icon="paper-plane" href="/guides/payment-integration#create-a-withdrawal">
-    Send a crypto payout to a user's address, with on-the-fly conversion where needed.
-    <br />**Endpoints:** `main-account/withdraw`
+    Send a crypto payout to a user's address, with on-the-fly conversion where needed; the master account
+    approves each sub-account withdrawal.
+    <br />**Endpoints:** `main-account/withdraw`, `sub-account/withdraw/confirm`
   </Card>
   <Card title="WhiteBIT Codes settlement" icon="ticket" href="/platform/whitebit-codes">
     Move balance fee-free between accounts by creating and applying a WhiteBIT Code.
@@ -99,7 +98,7 @@ and [apply](/api-reference/account-wallet/apply-code) references.
 
 <CardGroup cols={2}>
   <Card title="WaaS integration guide" icon="book" href="/guides/waas-integration">
-    Integration models, payment flows, and compliance.
+    Verification variants, deposit and payout flows, and compliance.
   </Card>
   <Card title="WaaS overview" icon="wallet" href="/guides/waas-overview">
     What WaaS is and how to get started.

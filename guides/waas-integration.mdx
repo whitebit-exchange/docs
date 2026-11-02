@@ -1,7 +1,7 @@
 ---
 title: "Wallet-as-a-Service integration"
 sidebarTitle: "Integration"
-description: "Technical integration for Wallet-as-a-Service partners: the models, payment and payout flows, compliance requirements, and testing."
+description: "Technical integration for Wallet-as-a-Service partners: the verification variants, deposit and payout flows, compliance requirements, and testing."
 icon: "code"
 pageType: "integration"
 program: "waas"
@@ -11,25 +11,26 @@ import PartnerEligibility from '/snippets/partner-eligibility.mdx';
 import FeeShare from '/snippets/fee-share.mdx';
 
 <Note>
-**For developers.** This page covers the technical integration. For what WaaS is, the models at a
+**For developers.** This page covers the technical integration. For what WaaS is, the verification variants at a
 business level, and how to apply, see the [WaaS overview](/guides/waas-overview).
 </Note>
 
-The integration models are described in the
-[Integration models](/concepts/integration-models) concept. This guide covers where to
-start for each and the flows the models share.
+WaaS runs on Model A, a partner-operated sub-account per end user (see
+[Integration models](/concepts/integration-models)). Account creation, per-sub-account API keys, and KYC
+URLs are documented in [Account architecture](/guides/sub-account-integration#account-architecture) and
+[Customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow); this guide covers
+the wallet flows on top.
 
 ## Prerequisites
 
 - **Approved WaaS partner enrollment** — see the [WaaS overview](/guides/waas-overview) for what WaaS provides and how to apply.
-- **A chosen backend model** — managed sub-accounts, attribution, or KYC reliance; compare on the [integration models](/concepts/integration-models) concept.
-- **API access** — [HMAC-signed requests](/api-reference/authentication); per-user deposit addresses (`create-new-address`) enabled for the account.
+- **A chosen verification variant** — managed sub-accounts or KYC reliance; see [KYC reliance eligibility](#kyc-reliance-eligibility).
+- **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account; sub-accounts, crypto deposits to sub-accounts, and the sub-account withdrawal endpoints enabled for the account by the account manager.
 
-## Where to start per model
+## Build path per variant
 
-- **Managed sub-accounts.** WhiteBIT creates a dedicated sub-account per end user under the partner's master account and performs KYC on each one. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [Embedded Trading integration guide](/guides/sub-account-integration) for the full walkthrough — eligibility, per-customer API keys, and fee-share reconciliation.
-- **Attribution (own account + OAuth).** Each end user keeps a personal WhiteBIT account and grants the partner a scoped API key through the consent screen. Build against [Fast API Key via OAuth](/guides/fast-api-key-integration) for the authorization flow, key issuance, and permission scopes.
-- **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed model, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. Build with the same [Embedded Trading integration guide](/guides/sub-account-integration); complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
+- **Managed sub-accounts.** The partner creates a sub-account per end user under the master account (`POST /api/v4/sub-account/create` with `shareKyc: false`), and WhiteBIT verifies each end user through a KYC URL. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow) for the KYC URL and per-customer API keys.
+- **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed variant, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. Build with the same [Embedded Trading integration guide](/guides/sub-account-integration); complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
 
 Commercial terms for the program:
 
@@ -41,8 +42,10 @@ Commercial terms for the program:
 
 ## Payment and payout flows
 
-Fund-movement flows, with parameters and code examples, are in the
-[Payment Integration guide](/guides/payment-integration). The per-user deposit and payout cycle:
+Fund-movement mechanics, with parameters and code examples, are in the
+[Sub-Accounts quickstart](/products/sub-accounts/quickstart) and the
+[Payment Integration guide](/guides/payment-integration). The deposit and payout cycle for one end user's
+sub-account:
 
 ```mermaid
 sequenceDiagram
@@ -52,20 +55,25 @@ sequenceDiagram
     participant W as WhiteBIT
     participant B as Blockchain
 
-    P->>W: POST /api/v4/main-account/create-new-address
-    W-->>P: Unique per-user deposit address
+    P->>W: POST /api/v4/sub-account/create (one per end user)
+    P->>W: POST /api/v4/main-account/address (signed with the sub-account's API key)
+    W-->>P: The sub-account's deposit address
     P->>U: Share deposit address
     U->>B: Send funds on-chain
-    B-->>W: Deposit confirmed
-    W->>P: Deposit webhooks: deposit.accepted then deposit.processed
-    P->>P: Reconcile by uniqueId, credit the end user
-    P->>W: POST /api/v4/main-account/withdraw (EEA: with travelRule object)
-    W->>B: On-chain payout to the user's address
+    B-->>W: Deposit confirmed on-chain
+    W->>W: Credit the sub-account
+    W->>P: Deposit webhook (the sub-account's own webhook, if set up)
+    P->>W: POST /api/v4/sub-account/balances (signed with the master account's API key)
+    P->>W: POST /api/v4/main-account/withdraw (signed with the sub-account's API key, travelRule object for EEA)
+    P->>W: POST /api/v4/sub-account/withdraw/unconfirmed-list (signed with the master account's API key)
+    W-->>P: Pending withdrawal id
+    P->>W: POST /api/v4/sub-account/withdraw/confirm (signed with the master account's API key)
+    W->>B: On-chain payout to the end user's address
 ```
 
-Reconcile by webhook, and poll transaction history as a **required** fallback: webhook delivery is
-retried but has no replay, so an event can be missed and must be recovered by polling. Deduplicate
-by `uniqueId`. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
+A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
+has no replay, so poll the sub-account balances from the master account (`POST /api/v4/sub-account/balances`)
+on a schedule as well, even when a webhook is configured. Deduplicate by `uniqueId`. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
 [rate limits](/api-reference/rate-limits) apply per endpoint; sub-account limits are set per agreement.
 
 <Note>
@@ -108,6 +116,6 @@ amount (see [Recipes](/guides/waas-recipes)).
     Endpoint-level reference for every payment and payout flow.
   </Card>
   <Card title="FAQ" icon="circle-question" href="/guides/waas-faq">
-    Scope, integration models, onboarding, and compliance questions.
+    Scope, verification variants, onboarding, and compliance questions.
   </Card>
 </CardGroup>

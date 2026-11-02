@@ -1,7 +1,7 @@
 ---
 title: "Wallet-as-a-Service"
 sidebarTitle: "Overview"
-description: "Put WhiteBIT behind a partner's product as the exchange, custody, and settlement backend. What WaaS provides, the integration models, and how to get started."
+description: "A sub-account per end user under the partner's master account, for deposits, withdrawals, conversion, and trading. What WaaS provides, the two verification variants, and how to get started."
 icon: "wallet"
 pageType: "program-overview"
 program: "waas"
@@ -9,9 +9,10 @@ program: "waas"
 
 import PartnerEligibility from '/snippets/partner-eligibility.mdx';
 
-Wallet-as-a-Service (WaaS) lets a partner put WhiteBIT behind its own product as the exchange,
-custody, and settlement backend. This overview covers fit and model selection. For the technical
-integration, see the [Developer guide](/guides/waas-integration).
+Wallet-as-a-Service (WaaS) gives each of a partner's end users a sub-account under the partner's
+master account, and the partner builds a wallet product on these sub-accounts. This overview covers fit
+and the verification variants. For the technical integration, see the
+[Developer guide](/guides/waas-integration).
 
 <Tip>
 The [WaaS Recipes](/guides/waas-recipes) show runnable examples of deposit addresses,
@@ -20,21 +21,24 @@ reconciliation, payouts, and settlement.
 
 ## What WaaS provides
 
-- A unique crypto deposit address per end user, with incoming funds reconciled by webhook.
-- Crypto payouts, with an optional currency conversion before the withdrawal, and fiat payouts from the partner's own account.
-- Fee-free settlement between accounts with WhiteBIT Codes, or one-tap charges with Express Withdraw.
-- Fireblocks connectivity and built-in AML controls on deposit and withdrawal flows.
+- A [sub-account](/products/sub-accounts/overview) per end user, with independent balances and API keys.
+- A crypto deposit address for each sub-account, once the account manager enables crypto deposits to
+  sub-accounts for the account.
+- Crypto withdrawals from each sub-account, each approved by the master account through
+  [sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval).
+- Conversion with [Convert](/platform/convert) on each sub-account.
+- Spot trading, including market orders, on every sub-account with no enablement request to the account
+  manager; the partner controls trading through the sub-account's spot permission (see
+  [Account architecture](/guides/sub-account-integration#account-architecture)).
+- Fee-free transfers between the master account and each sub-account.
+- Fiat payouts from the master account.
 
-## Choose an integration model
+## Choose a verification variant
 
 <CardGroup cols={2}>
   <Card title="Managed sub-accounts" icon="sitemap">
     Each end user gets a sub-account under the partner's master account. **WhiteBIT verifies (KYC)
     each user**.
-  </Card>
-  <Card title="Attribution" icon="tag">
-    Each end user opens a **separate** WhiteBIT account; the partner connects via an OAuth-issued
-    key. **WhiteBIT does the KYC.** Attribution / fee-share is arranged separately.
   </Card>
   <Card title="Sub-accounts with KYC reliance" icon="handshake" href="/guides/waas-integration#kyc-reliance-eligibility">
     Managed sub-accounts, but **WhiteBIT relies on the partner's KYC** of the end user. Requires a
@@ -42,13 +46,12 @@ reconciliation, payouts, and settlement.
   </Card>
 </CardGroup>
 
-Two questions place a partner: **(1)** does the end user hold a separate WhiteBIT account, or does
-the partner manage accounts on the end user's behalf? **(2)** who runs KYC, WhiteBIT or the partner? The practical
-difference between the two sub-account models is who verifies the end users: with managed
-sub-accounts WhiteBIT does; with KYC reliance the partner does. The final choice and any compliance
-gate are confirmed with WhiteBIT. A partner that keeps each end user's balance in the partner's own
-ledger, with one WhiteBIT account and a deposit address per end user, uses
-[Crypto-as-a-Service](/guides/caas-overview) instead; see
+The two variants share one sub-account architecture and differ in who verifies the end users: with
+managed sub-accounts WhiteBIT does; with KYC reliance the partner does. The final choice and any
+compliance gate are confirmed with WhiteBIT. For end users with personal WhiteBIT accounts, the partner
+integrates through [App Builders](/guides/app-builders-overview) instead. A partner that keeps each end
+user's balance in the partner's own ledger, with one WhiteBIT account and a deposit address per end user,
+uses [Crypto-as-a-Service](/guides/caas-overview); see
 [Partner Solutions](/guides/partner-solutions#choose-an-integration-path).
 
 <PartnerEligibility />
@@ -73,23 +76,23 @@ per the conditions above.
 1. Complete KYB as part of [Institutional Onboarding](/institutional/onboarding). Fiat access is a
    separate second phase, not automatic after KYB.
 2. Create API keys and configure webhooks in the WhiteBIT dashboard.
-3. Request every enablement the model needs — sub-accounts, crypto deposits, and per-user deposit
-   addresses — through the account manager. See
-   [Unique address per user](/guides/payment-integration#unique-address-per-user).
+3. Request the enablements the product needs through the account manager — sub-accounts, crypto
+   deposits to sub-accounts, and the sub-account withdrawal endpoints. See
+   [Sub-Accounts](/products/sub-accounts/overview).
 4. Work through the [Go-Live Checklist](/best-practices/go-live-checklist) before real volume.
 
-To get started or discuss a model, contact institutional@whitebit.com or the account manager.
+To get started or discuss a verification variant, contact institutional@whitebit.com or the account manager.
 
 ## What's next
 
 <CardGroup cols={2}>
   <Card title="Developer guide" icon="code" href="/guides/waas-integration">
-    The technical integration: models, payment flows, compliance, and testing.
+    The technical integration: verification variants, deposit and payout flows, compliance, and testing.
   </Card>
   <Card title="WaaS Recipes" icon="sparkles" href="/guides/waas-recipes">
     Runnable examples with a starter repo.
   </Card>
   <Card title="FAQ" icon="circle-question" href="/guides/waas-faq">
-    Scope, integration models, onboarding, and compliance questions.
+    Scope, verification variants, onboarding, and compliance questions.
   </Card>
 </CardGroup>

@@ -1,7 +1,7 @@
 ---
 title: "Wallet-as-a-Service FAQ"
 sidebarTitle: "FAQ"
-description: "Common questions about WhiteBIT Wallet-as-a-Service: scope and delivery, integration models, onboarding and access, integration, and compliance."
+description: "Common questions about WhiteBIT Wallet-as-a-Service: scope and delivery, verification variants, onboarding and access, integration, and compliance."
 icon: "circle-question"
 pageType: "program-faq"
 program: "waas"
@@ -13,13 +13,13 @@ Answers to common questions about WhiteBIT Wallet-as-a-Service (WaaS).
 
 ### Delivery model
 
-WaaS puts WhiteBIT behind the partner's own product as the exchange, custody, and settlement backend. See the [WaaS overview](/guides/waas-overview).
+WaaS gives each end user a sub-account under the partner's master account, with deposits, withdrawals, conversion, and trading. See the [WaaS overview](/guides/waas-overview).
 
-## Integration models
+## Verification variants
 
-### Choosing a model
+### Managed sub-accounts or KYC reliance
 
-Three models are available — managed sub-accounts, attribution, and sub-accounts with KYC reliance — split by who holds the end-user account and who performs KYC. See [Choose an integration model](/guides/waas-overview#choose-an-integration-model).
+Two variants share the sub-account architecture: managed sub-accounts (WhiteBIT verifies each end user) and sub-accounts with KYC reliance (the partner verifies; gated). For end users with personal WhiteBIT accounts, the partner integrates through [App Builders](/guides/app-builders-overview) instead. See [Choose a verification variant](/guides/waas-overview#choose-a-verification-variant).
 
 ### KYC reliance eligibility
 
@@ -35,19 +35,15 @@ A single account that holds all end users' funds, with a deposit address per end
 
 Institutional onboarding has two phases: Phase 1 grants crypto operations access after KYB; optional Phase 2 adds EUR/SEPA fiat access. See [Institutional Onboarding](/institutional/onboarding).
 
-### Per-user deposit address enablement
+### Deposit address per end user
 
-Per-user deposit addresses (`create-new-address`) are disabled by default; the account manager enables the endpoint on request — see [Unique address per user](/guides/payment-integration#unique-address-per-user). See the [Developer guide](/guides/waas-integration#prerequisites).
-
-### Crypto deposit enablement
-
-For sub-accounts, crypto deposits are disabled by default, and the account manager enables deposits on request — see [Unique address per user](/guides/payment-integration#unique-address-per-user).
+Each sub-account has a separate crypto deposit address, requested with a call signed by the sub-account's API key. Crypto deposits to sub-accounts are disabled by default; the account manager enables these deposits for the account. See [Sub-Accounts](/products/sub-accounts/overview) and the [Developer guide](/guides/waas-integration#prerequisites).
 
 ## Integration
 
 ### Reconciliation approach
 
-Webhooks are the primary reconciliation channel; polling transaction history is a required fallback, since webhook delivery is retried but not replayed. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
+A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but not replayed, so poll the sub-account balances from the master account on a schedule as well, even when a webhook is configured. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
 
 ### Fiat operations scope
 
@@ -73,10 +69,10 @@ The assigned account manager is the primary contact. Programs and onboarding go 
 
 <CardGroup cols={2}>
   <Card title="Overview" icon="wallet" href="/guides/waas-overview">
-    What WaaS provides, the integration models, and how to apply.
+    What WaaS provides, the verification variants, and how to apply.
   </Card>
   <Card title="Developer guide" icon="code" href="/guides/waas-integration">
-    The technical integration: models, payment flows, compliance, and testing.
+    The technical integration: verification variants, deposit and payout flows, compliance, and testing.
   </Card>
   <Card title="WaaS Recipes" icon="sparkles" href="/guides/waas-recipes">
     Runnable examples with a starter repo.
