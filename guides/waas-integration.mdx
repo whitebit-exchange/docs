@@ -24,13 +24,14 @@ the wallet flows on top.
 ## Prerequisites
 
 - **Approved WaaS partner enrollment** — see the [WaaS overview](/guides/waas-overview) for what WaaS provides and how to apply.
-- **A chosen verification variant** — managed sub-accounts or KYC reliance; see [KYC reliance eligibility](#kyc-reliance-eligibility).
+- **A chosen verification variant** — managed sub-accounts, KYC reliance, or shared-KYC sub-accounts; see [Build path per variant](#build-path-per-variant).
 - **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account; sub-accounts, crypto deposits to sub-accounts, and the sub-account withdrawal endpoints enabled for the account by the account manager.
 
 ## Build path per variant
 
 - **Managed sub-accounts.** The partner creates a sub-account per end user under the master account (`POST /api/v4/sub-account/create` with `shareKyc: false`), and WhiteBIT verifies each end user through a KYC URL. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow) for the KYC URL and per-customer API keys.
 - **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed variant, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. Build with the same [Embedded Trading integration guide](/guides/sub-account-integration); complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
+- **Shared-KYC sub-accounts.** The partner creates a sub-account per end user with `shareKyc: true`, and each sub-account carries the master account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB); the partner verifies its own end users. No KYC URL or email confirmation applies, and the sub-account accepts permissions at creation. Build with [Sub-Accounts](/products/sub-accounts/overview) and the [Embedded Trading integration guide](/guides/sub-account-integration), skipping its end-customer KYC steps.
 
 Commercial terms for the program:
 

@@ -1,7 +1,7 @@
 ---
 title: "Wallet-as-a-Service"
 sidebarTitle: "Overview"
-description: "A sub-account per end user under the partner's master account, for deposits, withdrawals, conversion, and trading. What WaaS provides, the two verification variants, and how to get started."
+description: "A sub-account per end user under the partner's master account, for deposits, withdrawals, conversion, and trading. What WaaS provides, the three verification variants, and how to get started."
 icon: "wallet"
 pageType: "program-overview"
 program: "waas"
@@ -35,7 +35,7 @@ reconciliation, payouts, and settlement.
 
 ## Choose a verification variant
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Managed sub-accounts" icon="sitemap">
     Each end user gets a sub-account under the partner's master account. **WhiteBIT verifies (KYC)
     each user**.
@@ -44,11 +44,18 @@ reconciliation, payouts, and settlement.
     Managed sub-accounts, but **WhiteBIT relies on the partner's KYC** of the end user. Requires a
     compliance assessment and agreement — see the eligibility conditions.
   </Card>
+  <Card title="Shared-KYC sub-accounts" icon="id-card" href="/guides/waas-integration#build-path-per-variant">
+    Each sub-account **shares the master account's verification**. WhiteBIT verifies the partner
+    (KYB); the partner verifies its own end users.
+  </Card>
 </CardGroup>
 
-The two variants share one sub-account architecture and differ in who verifies the end users: with
-managed sub-accounts WhiteBIT does; with KYC reliance the partner does. The final choice and any
-compliance gate are confirmed with WhiteBIT. For end users with personal WhiteBIT accounts, the partner
+The three variants share one sub-account architecture and differ in who verifies the end users. With
+managed sub-accounts, WhiteBIT verifies each end user. With KYC reliance, the partner verifies, and
+WhiteBIT relies on that verification under an agreement. With shared-KYC sub-accounts, each sub-account
+carries the master account's verification: WhiteBIT verifies the partner during institutional onboarding
+(KYB), and the partner verifies its own end users. The final choice and any compliance gate are confirmed
+with WhiteBIT. For end users with personal WhiteBIT accounts, the partner
 integrates through [App Builders](/guides/app-builders-overview) instead. A partner that keeps each end
 user's balance in the partner's own ledger, with one WhiteBIT account and a deposit address per end user,
 uses [Crypto-as-a-Service](/guides/caas-overview); see
