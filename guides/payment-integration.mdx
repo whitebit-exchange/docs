@@ -318,10 +318,10 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 15 | Updated | `deposit.updated` | No | Wait for next webhook | Confirmation count changed |
 | 3, 7 | Successful | `deposit.processed` | Yes | Credit end user, close watcher | Funds credited to Main balance |
 | 4, 9 | Canceled | `deposit.canceled` | Yes | Surface refund flow — see [Refund flow](#refund-flow) | Deposit canceled (refund may be available) |
-| 5 | Unconfirmed by user | — | No | Notify end user — manual action required at whitebit.com | Awaiting user action |
+| 5 | Unconfirmed by user | — | No | Notify the account holder — manual action required at whitebit.com | Awaiting user action |
 | 21 | AML frozen | — | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit frozen by AML controls |
 | 22 | Uncredited | — | No | Wait — credit pending. Escalate to support if >24h | Detected but not credited |
-| 27 | Travel Rule frozen | — | No | Notify end user — Travel Rule data required at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
+| 27 | Travel Rule frozen | — | No | Notify the account holder — Travel Rule data required at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
 
 The flowchart maps each deposit status in the table to the partner action.
@@ -601,7 +601,7 @@ The withdrawal lifecycle progresses through the following states.
 | 1, 2, 6, 10–17 | Pending | `withdraw.pending` | No | Wait for next webhook | Withdrawal in progress (all codes in range indicate active pending) |
 | 3, 7 | Successful | `withdraw.successful` | Yes | Mark complete, close watcher | Withdrawal completed, funds sent |
 | 4 | Canceled | `withdraw.canceled` | Yes | Surface to operations | Withdrawal canceled |
-| 5 | Unconfirmed by user | — | No | Notify end user — manual action required | Awaiting user action |
+| 5 | Unconfirmed by user | — | No | Notify the account holder — manual action required | Awaiting user action |
 | 18 | Partially successful | `withdraw.partial_successful` | No | Reconcile against `requestAmount` / `processedAmount`; surface remainder to operations | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | — | No | Wait — under compliance review. Escalate to institutional team if >24h | Withdrawal frozen by AML controls |
 
@@ -694,10 +694,11 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
     Call `POST /api/v4/main-account/fiat-deposit-url` with the fiat ticker, amount, provider, and a partner-side `uniqueId`. The response contains a `url`. See the [API Reference](/api-reference/account-wallet/get-fiat-deposit-url) for the full specification.
   </Step>
   <Step title="Present the URL to the end user">
-    The end user opens the returned URL and completes the payment with the provider or bank.
+    The payer opens the returned URL and completes the payment with the provider: an end user pays by card, and a bank
+    transfer comes only from the partner's own KYB'd bank account.
   </Step>
-  <Step title="For SEPA: instruct the end user on the payment reference">
-    The bank-side transfer must carry the `uniqueId` in the payment-reference field — see [SEPA payment reference](#sepa-payment-reference) below.
+  <Step title="For SEPA: add the payment reference">
+    The bank transfer from the partner's own KYB'd bank account must carry the `uniqueId` in the payment-reference field — see [SEPA payment reference](#sepa-payment-reference) below.
   </Step>
   <Step title="Confirm completion and reconcile">
     Confirm the credited deposit through the deposit history (`POST /api/v4/main-account/history`) or the Main balance (`POST /api/v4/main-account/balance`), matching by `uniqueId`.
@@ -771,7 +772,7 @@ The endpoint returns a URL that the end user opens to complete the fiat deposit.
 
 ### SEPA payment reference
 
-The `uniqueId` submitted in the `/fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank-side transfer initiated by the end user. WhiteBIT uses this string to match the incoming SEPA settlement to the original deposit request. If the end user omits or alters it, the deposit may settle unmatched and require manual reconciliation through institutional support.
+The `uniqueId` submitted in the `/fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank transfer. The transfer comes only from the partner's own KYB'd bank account. WhiteBIT uses this string to match the incoming SEPA settlement to the original deposit request. A transfer without the reference, or with an altered one, may settle unmatched and require manual reconciliation through institutional support.
 
 ### Card-provider flows
 

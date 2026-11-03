@@ -34,8 +34,10 @@ sub-accounts and with customers' own accounts.
   manager enables it on request. See [Unique address per user](/guides/payment-integration#unique-address-per-user).
 - **Convert terms** — before the first conversion, the account owner accepts the Convert terms once on
   whitebit.com. See [Convert](/platform/convert).
-- **Webhooks** — a webhook endpoint set up for the account, with the webhook key that verifies every
-  delivery. See [Webhooks](/platform/webhook#how-to-use).
+- **Webhooks (optional)** — a webhook endpoint set up for the account, with the webhook key that verifies every
+  delivery. Webhooks add speed; the scheduled history polling in
+  [Operating the integration](#operating-the-integration) is needed either way. See
+  [Webhooks](/platform/webhook#how-to-use).
 - **Fiat** — available only after fiat onboarding (Phase 2). See the
   [On/Off-Ramp guide](/guides/on-off-ramp-integration).
 - **Other activations** — the account manager handles any other activation the account needs.
@@ -47,7 +49,9 @@ flowchart TB
     Onb["Institutional onboarding, Phase 1"] --> Approved["Compliance approval"]
     Approved --> Keys["API keys"]
     Approved --> AM["Account manager<br/>activations"]
-    Approved --> Hooks["Webhook endpoint<br/>and key"]
+    Approved --> HooksQ{"Webhooks<br/>in use?"}
+    HooksQ -->|"Yes"| Hooks["Webhook endpoint<br/>and key"]
+    HooksQ -->|"No"| Test
     Approved --> ConvQ{"Convert<br/>in use?"}
     Approved --> FiatQ{"Fiat<br/>in scope?"}
     ConvQ -->|"Yes"| Terms["Convert terms<br/>accepted"]

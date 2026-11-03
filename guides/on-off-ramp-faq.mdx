@@ -29,7 +29,7 @@ Fiat withdrawals require KYC verification; an account without KYC verification c
 
 <AccordionGroup>
 <Accordion title="SEPA deposit matching by payment reference">
-The `uniqueId` submitted in the `fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank transfer. WhiteBIT uses that string to match the incoming settlement to the original deposit request. If the end user omits or alters the reference, the deposit may settle unmatched and require manual reconciliation through institutional support. Validate the reference field in the payment UX. See [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
+The `uniqueId` submitted in the `fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank transfer. The transfer comes only from the partner's own KYB'd bank account. WhiteBIT uses that string to match the incoming settlement to the original deposit request. A transfer without the reference, or with an altered one, may settle unmatched and require manual reconciliation through institutional support. See [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
 </Accordion>
 
 <Accordion title="Provider value for SEPA EUR deposits">
