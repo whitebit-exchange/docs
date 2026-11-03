@@ -40,6 +40,29 @@ sub-accounts and with customers' own accounts.
   [On/Off-Ramp guide](/guides/on-off-ramp-integration).
 - **Other activations** — the account manager handles any other activation the account needs.
 
+The diagram shows how the prerequisites lead from institutional onboarding to go-live.
+
+```mermaid
+flowchart TB
+    Onb["Institutional onboarding, Phase 1"] --> Approved["Compliance approval"]
+    Approved --> Keys["API keys"]
+    Approved --> AM["Account manager<br/>activations"]
+    Approved --> Hooks["Webhook endpoint<br/>and key"]
+    Approved --> ConvQ{"Convert<br/>in use?"}
+    Approved --> FiatQ{"Fiat<br/>in scope?"}
+    ConvQ -->|"Yes"| Terms["Convert terms<br/>accepted"]
+    FiatQ -->|"Yes"| Phase2["Phase 2<br/>fiat onboarding"]
+    Keys --> Test["Tests on the live API<br/>with minimum amounts"]
+    AM --> Test
+    Hooks --> Test
+    Terms --> Test
+    Phase2 --> Test
+    ConvQ -->|"No"| Test
+    FiatQ -->|"No"| Test
+    Test --> GoLive["Go-Live Checklist"]
+    GoLive --> Pilot["Limited pilot cohort,<br/>then production"]
+```
+
 ## Architecture alignment during onboarding
 
 The items below are agreed and documented with WhiteBIT during onboarding, before development starts.
@@ -94,6 +117,32 @@ own database.
 1. Store the address — and its memo on memo networks — against the end user before showing it, and show
    the memo exactly as issued. See [Unique address per user](/guides/payment-integration#unique-address-per-user).
 
+The sequence below issues an address to one end user. Deposits to the address then follow the
+[per-end-user deposit address use case](/guides/payment-integration#use-cases).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT API
+
+    P->>W: GET /api/v4/public/assets (on a schedule)
+    W-->>P: Asset status per currency and network
+    P->>P: Check that the currency and network accept deposits
+    P->>W: POST /api/v4/main-account/create-new-address (currency, network)
+    alt 201
+        W-->>P: New address (+ memo on memo networks)
+        P->>P: Store the address and memo against the end user
+        P->>U: Show the address and memo exactly as issued
+    else 422 — another address request in progress
+        W-->>P: No address
+    else 422 — per-currency address limit reached
+        W-->>P: No address
+        Note over P,W: The account manager can adjust the limit
+    end
+```
+
 
 ### Deposits and crediting
 
@@ -139,6 +188,44 @@ for programmatic verification is enabled per account by the account manager on r
    the [Withdrawal status state machine](/guides/payment-integration#withdrawal-status-state-machine)
    describes.
 
+The sequence below follows the payout steps for one end user. The Payment Integration use cases also show an
+[EEA withdrawal with Travel Rule data](/guides/payment-integration#use-cases) and a
+[crypto payout with conversion](/guides/payment-integration#use-cases).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT API
+
+    U->>P: Payout to an address the end user chooses
+    P->>P: Compare the destination with the stored deposit addresses
+    alt Destination is one of the account's own deposit addresses
+        P->>P: Ledger transfer between the two end users, no withdrawal
+    else External destination
+        opt Large payout
+            P->>W: POST /api/v4/main-account/withdrawable-balance
+            W-->>P: Withdrawable amount for the whole account
+        end
+        P->>P: Reserve the amount in the end user's ledger balance
+        P->>P: Store a unique withdrawal ID
+        P->>W: POST /api/v4/main-account/withdraw (unique withdrawal ID)
+        W-->>P: 201 — withdrawal creation started
+        par Webhooks
+            W->>P: withdraw.unconfirmed, withdraw.pending, then a final event
+        and History on a schedule
+            P->>W: POST /api/v4/main-account/history
+            W-->>P: Withdrawal records, matched by withdrawal ID
+        end
+        alt withdraw.successful (status 3 or 7)
+            P->>P: Settle the reserved debit
+        else withdraw.canceled (status 4)
+            P->>P: Act as the withdrawal status state machine describes
+        end
+    end
+```
+
 **EEA payouts.** Withdrawals from EEA accounts carry Travel Rule data. See
 [Travel Rule for EEA withdrawals](/guides/payment-integration#travel-rule-for-eea-withdrawals).
 
@@ -175,6 +262,38 @@ CaaS runs on the partner's own account. Two other account arrangements serve end
 - **Crypto Lending.** Fixed and Flex lending endpoints are restricted to B2B partners and require
   access to be granted through the account manager. See
   [Crypto Lending](/products/lending/overview).
+
+### End-user buy and sell
+
+An end user's buy or sell is an entry in the partner ledger and sends no request to WhiteBIT. The partner changes
+the currencies on its WhiteBIT account with Convert, as the sequence shows, or moves fiat through the
+[on-ramp flow](/guides/on-off-ramp-integration#on-ramp-flow-fiat-in-crypto-out) and the
+[off-ramp flow](/guides/on-off-ramp-integration#off-ramp-flow-crypto-in-fiat-out). Each conversion follows the
+[crypto payout with conversion use case](/guides/payment-integration#use-cases), and
+[Convert results and retries](/platform/convert#results-and-retries) describes how to check its outcome.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT API
+
+    alt End user buys crypto with fiat
+        U->>P: Buy in the partner app
+        P->>P: Ledger entry crediting the crypto to the end user
+    else End user sells crypto for fiat
+        U->>P: Sell in the partner app
+        P->>P: Ledger entry debiting the crypto from the end user
+    end
+    opt Convert on the partner's account
+        P->>W: POST /api/v4/main-account/transfer (Main to Trade)
+        P->>W: POST /api/v4/convert/estimate, then POST /api/v4/convert/confirm
+        Note over P,W: After a 200, or a record in Convert History
+        P->>P: Record the quote ID in the ledger
+        P->>W: POST /api/v4/main-account/transfer (Trade to Main)
+    end
+```
 
 ## API reference
 
