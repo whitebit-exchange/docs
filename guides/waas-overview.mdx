@@ -33,6 +33,32 @@ reconciliation, payouts, and settlement.
 - Fee-free transfers between the master account and each sub-account.
 - Fiat payouts from the master account.
 
+## Architecture
+
+Each end user gets a sub-account under the partner's master account, with its own balances, API key, and deposit
+addresses. The partner's backend signs master-account requests with the master key and each sub-account's requests
+with that sub-account's own key.
+
+```mermaid
+flowchart TB
+    Users["End users"]
+    subgraph Partner["Partner"]
+        direction LR
+        App["Partner app"] --> Backend["Partner backend, with the<br/>end-user to sub-account map<br/>and the API keys"]
+        Backend --- Fiat["Partner fiat system<br/>if the partner offers fiat"]
+    end
+    subgraph WhiteBIT["WhiteBIT"]
+        direction LR
+        Master["Master account, with the<br/>master API key and balances"] <-->|"Fee-free transfers"| Sub["Sub-account per end user, with<br/>its own API key, deposit<br/>addresses, and balances"]
+    end
+    Chain["Blockchain networks"]
+    Users --> App
+    Backend -->|"Requests signed with the master key"| Master
+    Backend -->|"Requests signed with the sub-account key"| Sub
+    Chain -->|"Deposits to the sub-account's addresses"| Sub
+    Sub -->|"Withdrawals confirmed by the master account"| Chain
+```
+
 ## Choose a verification variant
 
 <CardGroup cols={3}>

@@ -45,37 +45,8 @@ Commercial terms for the program:
 
 Fund-movement mechanics, with parameters and code examples, are in the
 [Sub-Accounts quickstart](/products/sub-accounts/quickstart) and the
-[Payment Integration guide](/guides/payment-integration). The deposit and payout cycle for one end user's
-sub-account:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant P as Partner backend
-    participant U as End user
-    participant W as WhiteBIT
-    participant B as Blockchain
-
-    P->>W: POST /api/v4/sub-account/create (one per end user)
-    P->>W: POST /api/v4/main-account/address (signed with the sub-account's API key)
-    W-->>P: The sub-account's deposit address
-    P->>U: Share deposit address
-    U->>B: Send funds on-chain
-    B-->>W: Deposit confirmed on-chain
-    W->>W: Credit the sub-account
-    W->>P: Deposit webhook (the sub-account's own webhook, if set up)
-    P->>W: POST /api/v4/sub-account/balances (signed with the master account's API key)
-    P->>W: POST /api/v4/main-account/withdraw (signed with the sub-account's API key, travelRule object for EEA)
-    P->>W: POST /api/v4/sub-account/withdraw/unconfirmed-list (signed with the master account's API key)
-    W-->>P: Pending withdrawal id
-    P->>W: POST /api/v4/sub-account/withdraw/confirm (signed with the master account's API key)
-    W->>B: On-chain payout to the end user's address
-```
-
-A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
-has no replay, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured.
-Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some wait in a frozen or uncredited status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
-[rate limits](/api-reference/rate-limits) apply per endpoint; sub-account limits are set per agreement.
+[Payment Integration guide](/guides/payment-integration). Each diagram below covers one end user's sub-account and
+names the key that signs each request: the master account's key or the sub-account's own key.
 
 <Note>
   Fiat deposit and withdrawal operate at the **master-account** level (institutional fiat access).
@@ -90,6 +61,234 @@ Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with
   verification completes. See [Travel Rule](/concepts/travel-rule).
 - For EEA users, use USDC or EURI, not USDT. See [Regulatory Compliance](/institutional/compliance).
 </Warning>
+
+### Wallet creation
+
+Wallet creation runs once per end user: the sub-account, its `type: 2` API key, and a deposit address per ticker and
+network. Managed sub-accounts add the KYC URL step from the
+[customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow), and shared-KYC sub-accounts skip it.
+WhiteBIT and the partner agree the KYC reliance setup during onboarding; see
+[Build path per variant](#build-path-per-variant).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT
+
+    alt Managed sub-accounts
+        P->>W: POST /api/v4/sub-account/create (master key, shared KYC off, end user's email)
+        W-->>P: Sub-account id
+        loop Until the sub-account is activated
+            P->>W: POST /api/v4/sub-account/list (master key)
+            W-->>P: Sub-account activation state
+        end
+        P->>W: POST /api/v4/sub-account/kyc-url (master key, sub-account id)
+        W-->>P: Temporary KYC URL
+        P->>U: Pass the KYC URL
+        U->>W: Complete the WhiteBIT verification, which also confirms the email
+        loop Until the verification is complete and the sub-account is active
+            P->>W: POST /api/v4/sub-account/list (master key)
+            W-->>P: Verification and activation state
+        end
+        P->>W: POST /api/v4/sub-account/edit (master key, full permission set)
+    else Shared-KYC sub-accounts
+        P->>W: POST /api/v4/sub-account/create (master key, shared KYC on)
+        W-->>P: Sub-account id
+    end
+    P->>W: POST /api/v4/sub-account/api-key/create (master key, deposit and withdrawal key, key name)
+    W-->>P: API key and secret (the secret is shown only at creation)
+    opt Restrict the key to known IPs
+        P->>W: POST /api/v4/sub-account/api-key/ip-address/create (master key, IP address for the key)
+    end
+    P->>W: GET /api/v4/public/assets (public, no key)
+    W-->>P: Deposit availability and networks per ticker
+    loop Each depositable ticker and network to offer
+        P->>W: POST /api/v4/main-account/address (sub-account key, currency and network)
+        W-->>P: Deposit address, plus memo where the currency requires one
+    end
+    P->>P: Store end user, sub-account id, key, addresses and memos
+    Note over P,W: Crypto deposits to sub-accounts work once the account manager enables sub-account deposits for the account
+```
+
+### Deposits
+
+The diagram follows one deposit from the address shown to the end user to a final status.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT
+    participant B as Blockchain
+
+    P->>U: Deposit address (+ memo)
+    U->>B: Send funds on-chain
+    B-->>W: Deposit
+    opt Webhook set up on the sub-account
+        W->>P: Deposit webhook (retried, no replay)
+    end
+    loop On a schedule, per sub-account
+        P->>W: POST /api/v4/main-account/history (sub-account key)
+        W-->>P: Deposit records, every status
+        P->>P: Skip records whose status has not changed
+        alt Successful (3, 7), final
+            P->>P: Mark credited, stop tracking
+        else Canceled (4, 9), final
+            P->>P: Offer the refund flow
+        else Any other status
+            P->>P: Act on the status, keep tracking
+        end
+    end
+```
+
+A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
+has no replay, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured.
+Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some wait in a frozen or uncredited status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
+[rate limits](/api-reference/rate-limits) apply per endpoint; sub-account limits are set per agreement.
+
+### Crypto purchases with fiat
+
+In a purchase, the partner debits the end user's fiat in the partner's own system and transfers the crypto from the
+master account to the sub-account. The transfer takes no idempotency key, so after a timeout or a `5xx` response the
+partner checks the transfer history before resending (see
+[Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type)).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant F as Partner fiat system
+    participant W as WhiteBIT
+
+    U->>P: Buy crypto with fiat
+    P->>W: POST /api/v4/main-account/balance (master key, currency)
+    W-->>P: The master account's Main balance for the ticker
+    Note over P,W: Transfers to a sub-account draw from the master's Main balance
+    P->>F: Debit the end user's fiat
+    P->>W: POST /api/v4/sub-account/transfer (master key, master to sub-account)
+    alt 200
+        W-->>P: Transfer ID
+        P->>P: Store the transfer ID with the purchase
+    else Timeout or 5xx
+        P->>W: POST /api/v4/sub-account/transfer/history (master key, sub-account ID, master to sub-account)
+        W-->>P: Transfers, newest first
+        alt Same direction, currency and amount, created after the request was sent
+            P->>P: Store its transfer ID and do not resend
+        else No such record
+            P->>W: POST /api/v4/sub-account/transfer again (master key)
+        end
+    end
+```
+
+### Crypto sales for fiat
+
+In a sale, the partner transfers the crypto from the sub-account to the master account and credits the end user's fiat
+once WhiteBIT confirms the transfer. The same transfer-history check applies before any resend.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant F as Partner fiat system
+    participant W as WhiteBIT
+
+    U->>P: Sell crypto for fiat
+    P->>W: POST /api/v4/sub-account/balances (master key, sub-account id, currency)
+    W-->>P: main, spot and collateral amounts for the ticker
+    P->>P: Check that the balance covers the sale
+    P->>W: POST /api/v4/sub-account/transfer (master key, sub-account to master)
+    alt 200
+        W-->>P: Transfer ID
+        P->>F: Credit the end user's fiat
+    else Timeout or 5xx
+        P->>W: POST /api/v4/sub-account/transfer/history (master key, sub-account ID, sub-account to master)
+        W-->>P: Transfers, newest first
+        alt Same direction, currency and amount, created after the request was sent
+            P->>F: Credit the end user's fiat
+        else No such record
+            P->>W: POST /api/v4/sub-account/transfer again (master key)
+        end
+    end
+```
+
+### Withdrawals
+
+The sub-account's `type: 2` key creates each withdrawal and the master account confirms it, as
+[Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval) shows; the account
+manager enables the sub-account withdrawal endpoints.
+
+### Conversion
+
+Conversion on a sub-account uses the requests in [Convert balances](/platform/convert#balances) and
+[Conversion in the withdrawal flow](/guides/payment-integration#conversion-in-the-withdrawal-flow), signed with the
+sub-account's key, on the sub-account's Trade balance. The partner transfers the source currency from the Main balance to
+the Trade balance and requests the estimate after the transferred amount shows on the Trade balance. Before a
+withdrawal, the partner transfers the converted amount back to the Main balance. The transfer to Trade needs the
+sub-account's spot permission (`spotEnabled`).
+
+## API key lifecycle
+
+The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too, and any
+authenticated request, such as a deposit history poll, resets the timer. After a create request without a response, the
+partner checks the key list, deletes any key the request created (the list never returns its secret), and creates the
+key again.
+
+```mermaid
+flowchart TD
+    Create["POST /api/v4/sub-account/api-key/create<br/>master key, deposit and withdrawal key, key name<br/>up to 50 keys per sub-account"]
+    Create -->|"Response received"| Store["Store the API secret<br/>shown only at creation"]
+    Create -->|"Timeout, no response"| Find["POST /api/v4/sub-account/api-key/list<br/>master key, newest key first"]
+    Find --> Found{"Listed key with<br/>the requested name?"}
+    Found -->|"Yes, the list never returns its secret"| Orphan["POST /api/v4/sub-account/api-key/delete<br/>master key, the orphan key"]
+    Found -->|"No"| Create
+    Orphan --> Create
+    Store --> Urls["POST /api/v4/sub-account/api-key/edit<br/>master key, enable the URLs the key uses"]
+    Urls --> Ip["POST /api/v4/sub-account/api-key/ip-address/create<br/>master key, optional IP whitelist"]
+    Ip --> Use["Signed requests with the key,<br/>such as the deposit history polls,<br/>each reset the 14-day timer"]
+    Use -->|"POST /api/v4/sub-account/api-key/list, master key"| Check{"Key enabled?"}
+    Check -->|"Yes"| Use
+    Check -->|"No"| Replace["Key not enabled: create a replacement<br/>with the same permissions and IP whitelist,<br/>then delete the old key"]
+    Replace --> Create
+```
+
+## End-user offboarding
+
+Offboarding empties the sub-account through a final withdrawal or a sale, then blocks it. The partner keeps the end
+user's mapping to the sub-account and its addresses.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Partner backend
+    participant F as Partner fiat system
+    participant W as WhiteBIT
+
+    P->>W: POST /api/v4/sub-account/balances (master key, sub-account ID)
+    W-->>P: Remaining main, spot and collateral amounts
+    opt Amount on the Trade balance
+        P->>W: POST /api/v4/main-account/transfer (sub-account key, Trade to Main)
+    end
+    alt Final withdrawal to the end user's address
+        P->>W: POST /api/v4/main-account/withdraw (sub-account key)
+        Note over P,W: The master account confirms it, as in Withdrawals
+        loop Until the withdrawal reaches a final status
+            P->>W: POST /api/v4/main-account/history (sub-account key, withdrawals)
+        end
+    else Sale of the remaining crypto, as in the sale flow
+        P->>W: POST /api/v4/sub-account/transfer (master key, sub-account to master)
+        W-->>P: Transfer ID
+        P->>F: Credit the end user's fiat
+    end
+    P->>W: POST /api/v4/sub-account/balances (master key, sub-account ID)
+    W-->>P: Nothing left to move
+    P->>W: POST /api/v4/sub-account/block (master key, sub-account ID)
+    P->>P: Keep the end user, sub-account ID and address mapping
+```
 
 ## More flows
 
