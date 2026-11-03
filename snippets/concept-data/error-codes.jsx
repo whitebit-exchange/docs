@@ -42,4 +42,5 @@ export const retryStrategies = [
   { errorType: "Server error (5xx)", retry: true, strategy: "Exponential backoff. If persistent, check platform status or contact support." },
   { errorType: "Server error or confirm code 0 on a conversion", retry: false, strategy: "The conversion may have executed. Follow Results and retries on the Convert page before converting again." },
   { errorType: "Timeout or server error on a transfer", retry: false, strategy: "Transfer between balances and Sub-Account Transfer take no idempotency key. Check the transfer history first, and resend only when no matching record exists." },
+  { errorType: "Timeout or server error on a withdrawal", retry: false, strategy: "Look up the stored unique withdrawal ID in the deposit and withdrawal history before sending any new withdrawal request." },
 ];

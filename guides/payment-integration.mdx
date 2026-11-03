@@ -324,6 +324,20 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 27 | Travel Rule frozen | — | No | Notify end user — Travel Rule data required at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
 
+The flowchart maps each deposit status in the table to the partner action.
+
+```mermaid
+flowchart LR
+    Start["Deposit status, from a webhook<br/>or the history endpoint"] --> Status{"Status"}
+    Status -->|"3, 7"| Credit["Credit the end user,<br/>close the watcher"]
+    Status -->|"4, 9"| Refund["Offer the refund flow"]
+    Status -->|"27, Travel Rule API enabled"| TravelRuleApi["Submit originator data<br/>with the Travel Rule API"]
+    Status -->|"Other statuses in the table"| Act["Act as the table describes"]
+    TravelRuleApi --> Poll["Keep polling<br/>the history"]
+    Act --> Poll
+    Poll --> Start
+```
+
 <Note>
   Use `POST /api/v4/main-account/history` with `transactionMethod: 1` to poll deposits. Omit the `status` filter, or include every status in the table above. A filter on `3` and `7` alone leaves out deposits in every other status in the table, such as canceled, AML-frozen or uncredited deposits. A watcher that waits only for those codes never sees a canceled deposit and never closes. See the [endpoint page](/api-reference/account-wallet/get-deposit-withdraw-history) for the current enforced rate limit.
 </Note>
@@ -371,6 +385,34 @@ The refund `address` must satisfy three constraints:
 - `refund.failed` — refund failed (the destination address does not support the required network or asset, or address validation fails; use a different address or contact support)
 
 **Track refund status:** [`POST /api/v4/main-account/refund-history`](/api-reference/account-wallet/get-refund-history) returns every refund on the account with its current status. A refund with status `canceled` is final. A refund with status `in_process` is not final yet, including after a `refund.failed` webhook caused by an internal failure. Filter by `depositId` to check one deposit.
+
+The sequence shows a refund of a canceled deposit and each refund outcome.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT API
+
+    W->>P: webhook: deposit.canceled (status 4 or 9)
+    P->>U: Request an external refund address
+    U-->>P: Address (+ memo if applicable)
+    P->>W: POST /api/v4/main-account/refund-deposit (deposit transaction ID, refund address, memo)
+    alt Not refundable
+        W-->>P: 400 — transaction not refundable
+    else Accepted
+        W-->>P: 200 — refund request accepted
+        alt Refund completed
+            W->>P: webhook: refund.successful (refund amount, network fee, transaction hash)
+        else Refund failed
+            W->>P: webhook: refund.failed
+            P->>W: POST /api/v4/main-account/refund-history (filtered by deposit)
+            W-->>P: status canceled (final) or in_process (not final yet)
+            Note over P,W: Address without the required network or asset,<br/>or failed address validation — use a different address
+        end
+    end
+```
 
 **Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
 
@@ -562,6 +604,18 @@ The withdrawal lifecycle progresses through the following states.
 | 5 | Unconfirmed by user | — | No | Notify end user — manual action required | Awaiting user action |
 | 18 | Partially successful | `withdraw.partial_successful` | No | Reconcile against `requestAmount` / `processedAmount`; surface remainder to operations | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | — | No | Wait — under compliance review. Escalate to institutional team if >24h | Withdrawal frozen by AML controls |
+
+The flowchart maps each withdrawal status in the table to the partner action.
+
+```mermaid
+flowchart LR
+    Start["Withdrawal status, from a webhook<br/>or the history endpoint"] --> Status{"Status"}
+    Status -->|"3, 7"| Done["Mark complete,<br/>close the watcher"]
+    Status -->|"4"| Ops["Surface to operations"]
+    Status -->|"Other statuses in the table"| Act["Act as the table describes"]
+    Act --> Poll["Keep polling<br/>the history"]
+    Poll --> Start
+```
 
 ## Fee calculation
 
@@ -1162,6 +1216,30 @@ For balance endpoints, WebSocket account streams, and polling-interval guidance 
 3. On polling cycle: query the history endpoint — compare `uniqueId` values against stored events
 4. Process any events found via polling that the webhook path did not deliver
 5. Mark transactions as complete only when the transaction reaches a terminal status (3/7 for success, 4/9 for canceled deposits, 4 for canceled withdrawals)
+
+The flowchart combines the webhook path and the polling path into one reconciliation loop.
+
+```mermaid
+flowchart TD
+    subgraph Push["Webhooks, if configured"]
+        Webhook["Webhook delivery<br/>retried best-effort, no replay"] --> Verify["Verify the signature<br/>extract uniqueId and status"]
+    end
+    subgraph Pull["Scheduled polling"]
+        History["POST /api/v4/main-account/history<br/>deposits or withdrawals"] --> Pages["Page back to the last reconciled record<br/>newest first, overlapping pages"]
+    end
+    Verify --> Seen{"uniqueId already stored"}
+    Pages --> Seen
+    Seen -->|"No"| Store["Store the transaction<br/>uniqueId as the idempotency key"]
+    Seen -->|"Yes"| Changed{"Status changed<br/>since the stored event"}
+    Changed -->|"No"| Drop["Drop the duplicate"]
+    Changed -->|"Yes"| Act
+    Store --> Match{"Matches a stored address<br/>or withdrawal ID"}
+    Match -->|"Deposit with no match"| Review["Route to manual review"]
+    Match -->|"Yes"| Act["Act on the status<br/>as the status tables describe"]
+    Act --> Terminal{"Terminal status"}
+    Terminal -->|"Deposits 3, 7, 4, 9<br/>withdrawals 3, 7, 4"| Complete["Mark the transaction complete"]
+    Terminal -->|"Not terminal"| Next["Wait for the next event<br/>or polling cycle"]
+```
 
 ## What's next
 
