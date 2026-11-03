@@ -25,9 +25,9 @@ Adjacent scenarios route to separate guides:
 
 ## What On/Off-Ramp provides
 
-- **Fiat deposits via API** — a hosted payment URL for SEPA bank transfer or card checkout, per the providers enabled for the account.
-- **Fiat withdrawals via API** — EUR payouts over IBAN (SEPA), plus card rails where enabled, each carrying a beneficiary record.
-- **Quoted-rate conversion** — a locked quote executed before the balance moves, so the rate is known up front.
+- **Fiat deposits via API** — a hosted payment URL for card checkout or for a SEPA bank transfer, per the providers enabled for the account. A bank transfer comes only from the partner's own KYB'd bank account and can also use the bank details that [Create fiat deposit](/api-reference/account-wallet/create-fiat-deposit) returns.
+- **Fiat withdrawals via API** — EUR payouts over IBAN (SEPA) to the partner's own KYB'd bank account, plus card rails where enabled, each carrying a beneficiary record.
+- **Quoted-rate conversion** — Convert on the Trade balance: a confirmed quote executes in full at the quoted amounts or not at all, so the rate is known up front.
 - **The crypto leg** — deposit addresses, withdrawals, and the refund flow.
 - **Reconciliation** — signed webhooks plus history polling with client-side identifiers.
 
@@ -42,7 +42,28 @@ The [Integration guide](/guides/on-off-ramp-integration) documents each endpoint
 
 ## How it works
 
-Every flow authenticates with an [HMAC-signed API key](/api-reference/authentication) on the partner's main account. Crypto operations are available after standard account setup; fiat operations require completed [Institutional Onboarding](/institutional/onboarding) with approved fiat access — a separate, non-automatic phase after KYB. The [Integration guide](/guides/on-off-ramp-integration) covers both directions end to end: the fiat leg, the conversion step, and the crypto leg.
+Requests authenticate with an [HMAC-signed API key](/api-reference/authentication) on the partner's main account. The one exception is the card payout step: [Issue card token](/api-reference/account-wallet/issue-card-token) takes a JWT from the HMAC-signed [Issue JWT token](/api-reference/account-wallet/issue-jwt-token) endpoint. Crypto operations are available after standard account setup; fiat operations require completed [Institutional Onboarding](/institutional/onboarding) with approved fiat access — a separate, non-automatic phase after KYB. The [Integration guide](/guides/on-off-ramp-integration) covers both directions end to end: the fiat leg, the conversion step, and the crypto leg.
+
+The diagram shows where funds move between the partner, an end user's card, the partner's main account, and the blockchain.
+
+```mermaid
+flowchart TB
+    User["End user<br/>card route only"]
+    Backend["Partner backend<br/>main-account API key"]
+    Fiat["Partner fiat system<br/>the partner's own<br/>KYB'd bank account"]
+    subgraph WhiteBIT["WhiteBIT"]
+        API["WhiteBIT API"]
+        subgraph Account["Partner's main account"]
+            Main["Main balance"] <-->|"Transfers"| Trade["Trade balance<br/>Convert"]
+        end
+    end
+    Chain["Blockchain"]
+    User <-->|"Card payments in,<br/>card payouts<br/>where enabled"| Main
+    Backend <-->|"HMAC-signed requests<br/>card token request: JWT"| API
+    API --> Main
+    Fiat <-->|"Bank transfers in<br/>and payouts (SEPA)"| Main
+    Main <-->|"Crypto deposits<br/>and withdrawals"| Chain
+```
 
 ## Program terms
 
@@ -50,16 +71,15 @@ Fee and limit figures are set per individual agreement, so no numbers appear in 
 
 - The fee schedule for fiat deposits and withdrawals applicable to the account.
 - Deposit and withdrawal limits, for both fiat and crypto.
-- The enabled currency and provider matrix. At runtime, [Asset Status](/api-reference/market-data/asset-status-list) reports the per-currency `can_deposit` / `can_withdraw` flags and the request `provider` values; the [Fee](/api-reference/market-data/fee) endpoint reports the fees and limits per fiat asset.
+- The enabled currency and provider matrix. At runtime, [Asset Status](/api-reference/market-data/asset-status-list) reports the per-currency `can_deposit` / `can_withdraw` flags and the request `provider` values; the [Fee](/api-reference/market-data/fee) endpoint reports the public fee schedule and limits per fiat asset, the same for every caller.
 - Settlement windows and cutoff behavior for the fiat rails in use, including weekends and holidays.
-- The conversion pairs available to the account.
 
 ## Compliance essentials
 
 Compliance shapes which assets and flows are available to the account. The [Integration guide](/guides/on-off-ramp-integration) shows how each constraint affects requests; [Regulatory Compliance](/institutional/compliance) holds the full reference.
 
 - **MiCA (EEA):** EEA accounts cannot deposit, withdraw, or create WhiteBIT Codes in USDT since December 30, 2024. Use USDC or EURI for the crypto leg. See [Regulatory Compliance](/institutional/compliance).
-- **Travel Rule (EEA and Turkey):** inbound crypto deposits are held until Travel Rule verification completes; crypto withdrawals carry a Travel Rule payload. See [Travel Rule](/concepts/travel-rule).
+- **Travel Rule (EEA and Turkey):** inbound crypto deposits are held until Travel Rule verification completes; crypto withdrawals from EEA accounts carry a Travel Rule payload. See [Travel Rule](/concepts/travel-rule).
 - **Fiat KYC:** fiat withdrawals require KYC verification. In exceptional, documented cases the institutional team can arrange a per-account override.
 
 ## How to get started
@@ -69,15 +89,16 @@ Fiat access is the second phase of [Institutional Onboarding](/institutional/onb
 **How to apply:** email **institutional@whitebit.com** with a description of the service. Include the registered legal entity (name, registration number, jurisdiction), licenses or registrations held, whether the scope is crypto-only or fiat as well, and the countries where the service operates. The full application question list is on the [Partner Solutions](/guides/partner-solutions#how-to-apply) page.
 
 <Note>
-  Fiat deposits and withdrawals operate at the partner's **main account** (institutional fiat access). Per-end-user fiat rails are not a standard shipped capability; confirm any such requirement with WhiteBIT before designing around it.
+  Fiat deposits and withdrawals operate at the partner's **main account** (institutional fiat access). End users pay by card through the hosted payment URL, and WhiteBIT credits the euros to the partner's main account.
 </Note>
 
-Five capabilities in the ramp integration carry a dedicated enablement gate:
+Six capabilities in the ramp integration carry a dedicated enablement gate:
 
 | Capability | Gate | Contact |
 |-----------|------|---------|
 | Fiat operations (Phase 2) | Institutional onboarding, fiat-partner review | institutional@whitebit.com |
 | `fiat-deposit-url` endpoint | Per-account activation | Account manager, with the API key |
+| Bank-details deposits (`/main-account/deposit`) | Per-provider API deposit access; the endpoint enabled in the API key settings | Account manager |
 | `successLink` / `failureLink` redirects | Feature activation, domain validated | Account manager |
 | Dedicated deposit addresses (`/create-new-address`) | Per-account permission | Account manager |
 | Travel Rule API | Per-account enablement | Account manager |

@@ -29,7 +29,7 @@ Fiat withdrawals require KYC verification; an account without KYC verification c
 
 <AccordionGroup>
 <Accordion title="SEPA deposit matching by payment reference">
-The `uniqueId` submitted in the `fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank transfer. The transfer comes only from the partner's own KYB'd bank account. WhiteBIT uses that string to match the incoming settlement to the original deposit request. A transfer without the reference, or with an altered one, may settle unmatched and require manual reconciliation through institutional support. See [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
+The `uniqueId` submitted in the `fiat-deposit-url` request must appear in the SEPA payment-reference field of the bank transfer. The transfer comes only from the partner's own KYB'd bank account. WhiteBIT uses that string to match the incoming settlement to the original deposit request. A transfer without the reference, or with an altered one, may settle unmatched. See [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
 </Accordion>
 
 <Accordion title="Provider value for SEPA EUR deposits">
@@ -57,7 +57,7 @@ Both endpoints submit a withdrawal but differ in fee handling. `POST /api/v4/mai
 </Accordion>
 
 <Accordion title="Partial fiat withdrawals (status 18)">
-Setting `partialEnable: true` raises the maximum limit for fiat withdrawals. The withdrawal can then complete partially, surfacing as the `Partially successful` status (18). The application must reconcile `requestAmount` against `processedAmount` in the history record and surface the remainder to operations. See the [failure and exception paths](/guides/on-off-ramp-integration#failure-and-exception-paths).
+Setting `partialEnable: true` raises the maximum limit for fiat withdrawals. Part of the withdrawal can then succeed, surfacing as the `Partially successful` status (18). The application must reconcile `requestAmount` against `processedAmount` in the history record and surface the remainder to operations. See the [failure and exception paths](/guides/on-off-ramp-integration#failure-and-exception-paths).
 </Accordion>
 </AccordionGroup>
 
@@ -73,7 +73,7 @@ The identifier is named differently across the API surface:
 
 | Field | Where it appears | Meaning |
 |-------|-----------------|---------|
-| `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters |
+| `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters, unique for each deposit or withdrawal |
 | `unique_id` | History filter and records | The deposit/withdraw identifier in history responses |
 | `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the `deposit.canceled` webhook |
 | `id` | `refund-deposit` response | The same deposit transaction UUID, echoed back — not a refund identifier |
@@ -108,7 +108,7 @@ Settlement windows and cutoff behavior depend on the fiat rail in use, including
 In both on/off-ramp flows, fiat enters and exits through the fiat deposit and withdrawal endpoints, and Convert converts between fiat and crypto — request a quote with `POST /api/v4/convert/estimate`, then execute it with `POST /api/v4/convert/confirm` before the quote expires. Convert through the API uses the Trade balance: transfer the funds from Main to Trade before the conversion, and transfer the converted amount back to Main before the withdrawal. See [Convert balances](/platform/convert#balances).
 
 <Note>
-  Convert accepts the supported fiat currencies as either leg of a conversion; the conversion pairs available to the account are set with the account manager.
+  Convert accepts the supported fiat currencies as either leg of a conversion.
 </Note>
 </Accordion>
 </AccordionGroup>
@@ -117,7 +117,7 @@ In both on/off-ramp flows, fiat enters and exits through the fiat deposit and wi
 
 <AccordionGroup>
 <Accordion title="Travel Rule holds on inbound deposits (EEA and Turkey)">
-Inbound crypto deposits for EEA and Turkey accounts are held until Travel Rule verification completes — status 27 (awaiting originator data) and status 28 (data submitted, under review). No webhook fires for Travel Rule transitions, so the hold surfaces via history polling. Where the Travel Rule API is enabled, submit originator data through the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification); otherwise complete verification on the platform. See [Travel Rule](/concepts/travel-rule).
+Inbound crypto deposits for EEA and Turkey accounts are held until Travel Rule verification completes — status 27 (awaiting originator data) and status 28 (data submitted, under review). No webhook fires for Travel Rule transitions, so the hold surfaces via history polling. Where the Travel Rule API is enabled, submit originator data through the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification); otherwise notify the account holder to complete verification at whitebit.com. At status 28, wait while the data is under review. See [Travel Rule](/concepts/travel-rule).
 </Accordion>
 
 <Accordion title="USDT alternatives for EEA accounts (MiCA)">
