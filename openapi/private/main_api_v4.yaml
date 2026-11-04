@@ -3199,15 +3199,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                missingFields:
-                  summary: "Missing required fields"
-                  value:
-                    code: 0
-                    message: "Validation failed"
-                    errors:
-                      limit: ["The limit field is required."]
-                      offset: ["The offset field is required."]
-                      transactionMethod: ["The transaction method field is required."]
                 invalidTicker:
                   summary: "Invalid ticker"
                   value:
@@ -6069,6 +6060,8 @@ paths:
       summary: Sub-Account Transfer
       description: |
         The endpoint creates transfer from main account to [sub-account](/glossary#sub-account) or vice versa.
+
+        Transfers between the main account and any sub-account are fee-free in both directions.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
