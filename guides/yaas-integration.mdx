@@ -26,9 +26,9 @@ signing key (the sub-account's own key) and lending enablement per sub-account.
 
 ## Prerequisites
 
-- **Crypto Lending enabled where it runs.** Lending is available on the master account with B2B access; on sub-accounts it is **not enabled by default** — request enablement for each end-user sub-account via the account manager (see the [overview](/guides/yaas-overview#how-to-get-started)). Until it is enabled, the lending endpoints are not available on that sub-account.
+- **Crypto Lending enabled where it runs.** Lending is available on the main account with B2B access; on sub-accounts it is **not enabled by default** — request enablement for each end-user sub-account via the account manager (see the [overview](/guides/yaas-overview#how-to-get-started)). Until it is enabled, the lending endpoints are not available on that sub-account.
 - **A sub-account per end user**, each with its own **type:2** API key (info, trading, deposits, withdraws) — type:2 is required to run lending on a sub-account.
-- **Funds in the master Main balance** to allocate to each sub-account.
+- **Funds in the main account's Main balance** to allocate to each sub-account.
 - **HMAC-signed requests** — see [Authentication](/api-reference/authentication).
 
 ## Integration building blocks
@@ -36,7 +36,7 @@ signing key (the sub-account's own key) and lending enablement per sub-account.
 ### 1. Provision a sub-account per end user
 
 Create one sub-account per end user and issue that sub-account a type:2 API key. Sign both requests
-with the master account's key. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation
+with the main-account key. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation
 and key management, and the [Embedded Trading integration guide](/guides/sub-account-integration) for
 the full walkthrough (per-customer keys, KYC URLs).
 
@@ -58,12 +58,12 @@ sequenceDiagram
     participant P as Partner backend
     participant W as WhiteBIT
 
-    P->>W: Create the sub-account and its API key (master key), as in Wallet creation
+    P->>W: Create the sub-account and its API key<br/>(main-account key), as in Wallet creation
     W-->>P: Sub-account ID, API key and secret
     P->>P: Store the sub-account ID and key
     Note over P,W: The lending endpoints work on the sub-account<br/>once the account manager enables Crypto Lending on it
-    alt Transfer from the master account
-        P->>W: POST /api/v4/sub-account/transfer (master key, step 2)
+    alt Transfer from the main account
+        P->>W: POST /api/v4/sub-account/transfer (main-account key, step 2)
     else Crypto deposit, where sub-account deposits are enabled
         Note over P,W: Track the deposit with the sub-account key<br/>until a successful final status, as in Deposits
     end
@@ -72,8 +72,8 @@ sequenceDiagram
 
 ### 2. Fund the sub-account
 
-Move funds from the master Main balance to the end user's sub-account with a fee-free transfer, signed with
-the master account's key.
+Move funds from the main account's Main balance to the end user's sub-account with a fee-free transfer, signed with
+the main-account key.
 
 | Endpoint | Purpose |
 |----------|---------|
@@ -110,7 +110,7 @@ curl -X POST https://whitebit.com/api/v4/main-account/smart-flex/investments/inv
 
 <Note>
 The `main-account/` path segment addresses the **signing account's own Main balance** — for a
-sub-account key, that is the sub-account's balance, not the master's. This is why a sub-account key
+sub-account key, that is the sub-account's balance, not the main account's. This is why a sub-account key
 runs the lending lifecycle against that end user's funds.
 </Note>
 
@@ -230,7 +230,7 @@ sequenceDiagram
         P->>W: POST /api/v4/main-account/smart/investment/close<br/>(sub-account key, investment ID)
         W-->>P: Investment closed
     end
-    P->>W: POST /api/v4/sub-account/balances<br/>(master key, sub-account ID)
+    P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account ID)
     W-->>P: Main, spot and collateral balances
 ```
 
@@ -238,9 +238,9 @@ Early closure of a Fixed investment follows the early-withdrawal terms in
 [Crypto Lending plan types](/products/lending/overview#plan-types). From the sub-account's Main balance, the funds follow
 the WaaS [payment and payout flows](/guides/waas-integration#payment-and-payout-flows):
 
-- **Fiat payout** — a transfer to the master account, then a payout from the partner's own system, as in
+- **Fiat payout** — a transfer to the main account, then a payout from the partner's own system, as in
   [Crypto sales for fiat](/guides/waas-integration#crypto-sales-for-fiat).
-- **Crypto withdrawal** — created with the sub-account's key and confirmed by the master account, as in
+- **Crypto withdrawal** — created with the sub-account's key and confirmed by the main account, as in
   [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). Available where
   the account manager has enabled sub-account withdrawals.
 - **Payout in another currency** — [Convert](/platform/convert) on the sub-account first, as in

@@ -1,7 +1,7 @@
 ---
 title: "Wallet-as-a-Service"
 sidebarTitle: "Overview"
-description: "A sub-account per end user under the partner's master account, for deposits, withdrawals, conversion, and trading. What WaaS provides, the three verification variants, and how to get started."
+description: "A sub-account per end user under the partner's main account, for deposits, withdrawals, conversion, and trading. What WaaS provides, the three verification variants, and how to get started."
 icon: "wallet"
 pageType: "program-overview"
 program: "waas"
@@ -10,7 +10,7 @@ program: "waas"
 import PartnerEligibility from '/snippets/partner-eligibility.mdx';
 
 Wallet-as-a-Service (WaaS) gives each of a partner's end users a sub-account under the partner's
-master account, and the partner builds a wallet product on these sub-accounts. This overview covers fit
+main account, and the partner builds a wallet product on these sub-accounts. This overview covers fit
 and the verification variants. For the technical integration, see the
 [Developer guide](/guides/waas-integration).
 
@@ -24,19 +24,19 @@ reconciliation, payouts, and settlement.
 - A [sub-account](/products/sub-accounts/overview) per end user, with independent balances and API keys.
 - A crypto deposit address for each sub-account, once the account manager enables crypto deposits to
   sub-accounts for the account.
-- Crypto withdrawals from each sub-account, each approved by the master account through
+- Crypto withdrawals from each sub-account, each approved by the main account through
   [sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval).
 - Conversion with [Convert](/platform/convert) on each sub-account.
 - Spot trading, including market orders, on every sub-account with no enablement request to the account
   manager; the partner controls trading through the sub-account's spot permission (see
   [Account architecture](/guides/sub-account-integration#account-architecture)).
-- Fee-free transfers between the master account and each sub-account.
-- Fiat payouts from the master account.
+- Fee-free transfers between the main account and each sub-account.
+- Fiat payouts from the main account.
 
 ## Architecture
 
-Each end user gets a sub-account under the partner's master account, with its own balances, API key, and deposit
-addresses. The partner's backend signs master-account requests with the master key and each sub-account's requests
+Each end user gets a sub-account under the partner's main account, with its own balances, API key, and deposit
+addresses. The partner's backend signs the main account's requests with the main-account key and each sub-account's requests
 with that sub-account's own key.
 
 ```mermaid
@@ -44,26 +44,26 @@ flowchart TB
     Users["End users"]
     subgraph Partner["Partner"]
         direction LR
-        App["Partner app"] --> Backend["Partner backend, with the<br/>end-user to sub-account map<br/>and the API keys"]
-        Backend --- Fiat["Partner fiat system<br/>if the partner offers fiat"]
+        App["Partner app"] --> Backend["Partner backend, with<br/>the end-user to<br/>sub-account map<br/>and the API keys"]
+        Backend --- Fiat["Partner fiat system<br/>if the partner<br/>offers fiat"]
     end
     subgraph WhiteBIT["WhiteBIT"]
         direction LR
-        Master["Master account, with the<br/>master API key and balances"] <-->|"Fee-free transfers"| Sub["Sub-account per end user, with<br/>its own API key, deposit<br/>addresses, and balances"]
+        Main["Main account, with the<br/>main-account key<br/>and balances"] <-->|"Fee-free transfers"| Sub["Sub-account per end<br/>user, with its own<br/>API key, deposit<br/>addresses, and balances"]
     end
     Chain["Blockchain networks"]
     Users --> App
-    Backend -->|"Requests signed with the master key"| Master
-    Backend -->|"Requests signed with the sub-account key"| Sub
-    Chain -->|"Deposits to the sub-account's addresses"| Sub
-    Sub -->|"Withdrawals confirmed by the master account"| Chain
+    Backend -->|"Requests signed<br/>with the<br/>main-account key"| Main
+    Backend -->|"Requests signed<br/>with the<br/>sub-account key"| Sub
+    Chain -->|"Deposits to the<br/>sub-account's addresses"| Sub
+    Sub -->|"Withdrawals confirmed<br/>by the main account"| Chain
 ```
 
 ## Choose a verification variant
 
 <CardGroup cols={3}>
   <Card title="Managed sub-accounts" icon="sitemap">
-    Each end user gets a sub-account under the partner's master account. **WhiteBIT verifies (KYC)
+    Each end user gets a sub-account under the partner's main account. **WhiteBIT verifies (KYC)
     each user**.
   </Card>
   <Card title="Sub-accounts with KYC reliance" icon="handshake" href="/guides/waas-integration#kyc-reliance-eligibility">
@@ -71,7 +71,7 @@ flowchart TB
     compliance assessment and agreement — see the eligibility conditions.
   </Card>
   <Card title="Shared-KYC sub-accounts" icon="id-card" href="/guides/waas-integration#build-path-per-variant">
-    Each sub-account **shares the master account's verification**. WhiteBIT verifies the partner
+    Each sub-account **shares the main account's verification**. WhiteBIT verifies the partner
     (KYB); the partner verifies its own end users.
   </Card>
 </CardGroup>
@@ -79,7 +79,7 @@ flowchart TB
 The three variants share one sub-account architecture and differ in who verifies the end users. With
 managed sub-accounts, WhiteBIT verifies each end user. With KYC reliance, the partner verifies, and
 WhiteBIT relies on that verification under an agreement. With shared-KYC sub-accounts, each sub-account
-carries the master account's verification: WhiteBIT verifies the partner during institutional onboarding
+carries the main account's verification: WhiteBIT verifies the partner during institutional onboarding
 (KYB), and the partner verifies its own end users. The final choice and any compliance gate are confirmed
 with WhiteBIT. For end users with personal WhiteBIT accounts, the partner
 integrates through [App Builders](/guides/app-builders-overview) instead. A partner that keeps each end

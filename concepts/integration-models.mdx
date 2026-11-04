@@ -15,11 +15,11 @@ rather than restating the trade-off.
 
 ## Model A — partner-operated sub-accounts
 
-Model A places each end user in a dedicated sub-account under the partner's master account. WhiteBIT provides per-customer isolation, per-customer API keys, and fee-free internal transfers between the master account and the sub-accounts. By default, WhiteBIT verifies (KYC) each end user. Model A suits partners operating accounts for customers: Embedded Trading partners, [Wallet-as-a-Service](/guides/waas-overview) partners — where the default-KYC variant is called *managed sub-accounts* — and platforms managing customer funds.
+Model A places each end user in a dedicated sub-account under the partner's main account. WhiteBIT provides per-customer isolation, per-customer API keys, and fee-free internal transfers between the main account and the sub-accounts. By default, WhiteBIT verifies (KYC) each end user. Model A suits partners operating accounts for customers: Embedded Trading partners, [Wallet-as-a-Service](/guides/waas-overview) partners — where the default-KYC variant is called *managed sub-accounts* — and platforms managing customer funds.
 
 A gated variant, KYC reliance, lets an eligible partner perform end-user verification instead, subject to a WhiteBIT Compliance assessment. The eligibility conditions are documented on the [Embedded Trading overview](/guides/embedded-trading-overview) and the [WaaS overview](/guides/waas-overview). Build Model A with [Sub-Accounts](/products/sub-accounts/overview); the [Embedded Trading integration guide](/guides/sub-account-integration) covers per-customer setup end to end.
 
-A third variant, shared-KYC sub-accounts, creates each sub-account with the master account's verification. WhiteBIT verifies the partner (KYB) and does not verify the end users; the partner verifies its end users, as on the partner's own account, and still gets a separate WhiteBIT balance per end user.
+A third variant, shared-KYC sub-accounts, creates each sub-account with the main account's verification. WhiteBIT verifies the partner (KYB) and does not verify the end users; the partner verifies its end users, as on the partner's own account, and still gets a separate WhiteBIT balance per end user.
 
 ## Model B — customers' own accounts (Fast API Key)
 
@@ -55,13 +55,13 @@ under its own brand. Build it with the [Crypto-as-a-Service integration guide](/
 
 | Dimension | Model A — sub-accounts | Model B — Fast API Key | Partner's own account |
 |-----------|------------------------|------------------------|-----------------------|
-| Account holder | Partner (a sub-account per end user under a master account) | End user (a personal WhiteBIT account) | Partner (one account; end users hold no WhiteBIT account) |
+| Account holder | Partner (a sub-account per end user under a main account) | End user (a personal WhiteBIT account) | Partner (one account; end users hold no WhiteBIT account) |
 | KYC | WhiteBIT by default; the partner under gated KYC reliance; with shared-KYC sub-accounts, the partner verifies its end users and WhiteBIT verifies the partner (KYB) | WhiteBIT | The partner verifies its end users; WhiteBIT verifies the partner (KYB) |
 | End-user balance | A separate balance per sub-account, reported by WhiteBIT ([Sub-account balances](/api-reference/sub-accounts/sub-account-balances)) | The end user's own account balance | One balance for the whole account; each end user's balance exists only in the partner's ledger |
 | Deposit address | Per sub-account, requested with the sub-account's own API key once the account manager enables crypto deposits to sub-accounts | The end user's own account | A new address per end user from the partner's account, once the account manager enables [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit) |
-| Moving value to or from an end user | A fee-free [sub-account transfer](/api-reference/sub-accounts/sub-account-transfer) between the master account and the sub-account | The partner acts on the end user's own account, within the permissions the end user grants on the consent screen | An entry in the partner's ledger, with no WhiteBIT call |
-| API keys | A master-account key; a key per sub-account for deposits and withdrawals | An OAuth-issued key on each end user's account, with the permissions the end user selects | The partner's own keys, for all end users |
-| Payouts | Created with the sub-account's key and approved by the master account; the account manager enables the endpoints | Only with the withdrawal permission the end user grants | From the partner's account, with [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) reported for the whole account |
+| Moving value to or from an end user | A fee-free [sub-account transfer](/api-reference/sub-accounts/sub-account-transfer) between the main account and the sub-account | The partner acts on the end user's own account, within the permissions the end user grants on the consent screen | An entry in the partner's ledger, with no WhiteBIT call |
+| API keys | A main-account key; a key per sub-account for deposits and withdrawals | An OAuth-issued key on each end user's account, with the permissions the end user selects | The partner's own keys, for all end users |
+| Payouts | Created with the sub-account's key and approved by the main account; the account manager enables the endpoints | Only with the withdrawal permission the end user grants | From the partner's account, with [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) reported for the whole account |
 | Reconciliation | The deposit history of each sub-account, read with the sub-account's API key | The end user's own account activity, read within the permissions the end user grants | The history of the whole account, matched to end users by deposit address, plus the memo on memo networks |
 | Best fit | Account operators, WaaS partners, platforms operating customer accounts | Bots, copy trading, portfolio and tax tools, and other apps on customers' own accounts | A bank, fintech, or other business offering crypto to its own end users under its own brand |
 | Where to build | [Sub-Accounts](/products/sub-accounts/overview), [Embedded Trading](/guides/sub-account-integration) | [Fast API Key via OAuth](/guides/fast-api-key-integration) | [Crypto-as-a-Service integration](/guides/caas-integration) |
@@ -72,7 +72,7 @@ Both Model A and the partner's own account suit a business that offers crypto to
 question is which side keeps each end user's balance: WhiteBIT, on a sub-account, or the partner, in its own ledger.
 
 - **Balance per end user.** Model A keeps and reports a separate balance for each sub-account. Moving value to or
-  from an end user is a fee-free transfer between the master account and the sub-account, one API call per operation.
+  from an end user is a fee-free transfer between the main account and the sub-account, one API call per operation.
   On the partner's own account, the same step is an entry in the partner's ledger with no WhiteBIT call, and WhiteBIT
   reports one balance for the whole account.
 - **Keys and addresses.** Model A needs an API key per sub-account for deposits, and each sub-account keeps one
@@ -82,7 +82,7 @@ question is which side keeps each end user's balance: WhiteBIT, on a sub-account
   reliance is a gated variant, and with shared-KYC sub-accounts WhiteBIT verifies only the partner. On the partner's own account, the partner verifies its end users, and WhiteBIT
   verifies the partner.
 - **Controls per end user.** Model A lets the partner block a sub-account, set its trading permission, and approve
-  each sub-account withdrawal from the master account. On the partner's own account, these controls sit in the
+  each sub-account withdrawal from the main account. On the partner's own account, these controls sit in the
   partner's own systems, and payouts leave from the one account.
 
 ## What's next

@@ -13,13 +13,13 @@ Answers to common questions about WhiteBIT Wallet-as-a-Service (WaaS).
 
 ### Delivery model
 
-WaaS gives each end user a sub-account under the partner's master account, with deposits, withdrawals, conversion, and trading. See the [WaaS overview](/guides/waas-overview).
+WaaS gives each end user a sub-account under the partner's main account, with deposits, withdrawals, conversion, and trading. See the [WaaS overview](/guides/waas-overview).
 
 ## Verification variants
 
 ### Managed sub-accounts, KYC reliance, or shared KYC
 
-Three variants share the sub-account architecture: managed sub-accounts (WhiteBIT verifies each end user), sub-accounts with KYC reliance (the partner verifies; gated), and shared-KYC sub-accounts (each sub-account carries the master account's verification; WhiteBIT verifies only the partner). For end users with personal WhiteBIT accounts, the partner integrates through [App Builders](/guides/app-builders-overview) instead. See [Choose a verification variant](/guides/waas-overview#choose-a-verification-variant).
+Three variants share the sub-account architecture: managed sub-accounts (WhiteBIT verifies each end user), sub-accounts with KYC reliance (the partner verifies; gated), and shared-KYC sub-accounts (each sub-account carries the main account's verification; WhiteBIT verifies only the partner). For end users with personal WhiteBIT accounts, the partner integrates through [App Builders](/guides/app-builders-overview) instead. See [Choose a verification variant](/guides/waas-overview#choose-a-verification-variant).
 
 ### KYC reliance eligibility
 
@@ -27,7 +27,7 @@ KYC reliance is gated: it requires a supervised, AML-obligated entity and an ind
 
 ### Shared-KYC sub-accounts
 
-A shared-KYC sub-account is created with `shareKyc: true` and carries the master account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB) and does not verify the end users; the partner verifies its own end users. The partner still gets a separate balance, deposit address, and API keys per end user, fee-free transfers, and the master account's approval of each sub-account withdrawal. See [Build path per variant](/guides/waas-integration#build-path-per-variant).
+A shared-KYC sub-account is created with `shareKyc: true` and carries the main account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB) and does not verify the end users; the partner verifies its own end users. The partner still gets a separate balance, deposit address, and API keys per end user, fee-free transfers, and the main account's approval of each sub-account withdrawal. See [Build path per variant](/guides/waas-integration#build-path-per-variant).
 
 ### Pooled account
 
@@ -51,7 +51,7 @@ A sub-account counts as a separate account and can have its own webhook. Webhook
 
 ### Fiat operations scope
 
-Fiat deposits and withdrawals operate at the partner's master-account level, from and to the partner's own bank account only, not per end user. End users' fiat stays in the partner's own system. See the [Developer guide](/guides/waas-integration).
+Fiat deposits and withdrawals operate on the partner's main account, from and to the partner's own bank account only, not per end user. End users' fiat stays in the partner's own system. See the [Developer guide](/guides/waas-integration).
 
 ### Test environment availability
 

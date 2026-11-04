@@ -1,14 +1,14 @@
 ---
 title: "Balances & Transfers"
-description: "Understand WhiteBIT's three account types — Main, Trade, and Collateral — and how funds move between accounts."
+description: "Understand WhiteBIT's three balance types — Main, Trade, and Collateral — and how funds move between balances."
 sidebarTitle: "Balances"
 ---
 
-WhiteBIT uses three account types to separate funds by purpose: Main, Trade, and Collateral. Funds must be transferred between accounts before use — deposits arrive in Main, trading requires Trade or Collateral.
+WhiteBIT uses three balance types to separate funds by purpose: Main, Trade, and Collateral. Funds must be transferred between balances before use — deposits arrive in Main, trading requires Trade or Collateral.
 
-## Account types
+## Balance types
 
-**Main balance** — The primary holding account. Deposits arrive here. Withdrawals leave from here. Creating a U EARN (lending) investment debits funds from Main and moves the assets into a separate investment account; the platform UI surfaces the investment as a virtual Earn balance. Main balance is not used for direct trading.
+**Main balance** — The primary holding balance. Deposits arrive here. Withdrawals leave from here. Creating a U EARN (lending) investment debits funds from Main and moves the assets into a separate investment account; the platform UI surfaces the investment as a virtual Earn balance. Main balance is not used for direct trading.
 
 - Endpoint: `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/overview)
 
@@ -30,7 +30,7 @@ WhiteBIT uses three account types to separate funds by purpose: Main, Trade, and
 
 ## Fund flow
 
-Transfers between account types use a single endpoint and are fee-free. The endpoint returns `201` once the transfer is queued, and the funds show on the destination balance when the transfer completes.
+Transfers between balance types use a single endpoint and are fee-free. The endpoint returns `201` once the transfer is queued, and the funds show on the destination balance when the transfer completes.
 
 ```
 Main ↔ Trade          (for spot trading)
