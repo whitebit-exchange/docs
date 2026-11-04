@@ -1,0 +1,6 @@
+```mermaid
+flowchart TD
+    Start["Withdrawal created"] --> Check{"Confirmed before expiry?"}
+    Check -->|"Yes"| Done["Processed"]
+    Check -->|"No"| Expired["Expired, no reject endpoint"]
+```
