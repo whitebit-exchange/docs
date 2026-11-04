@@ -69,37 +69,38 @@ sequenceDiagram
     participant Partner as Partner backend
     participant WhiteBIT
 
-    Note over User,WhiteBIT: Steps 1-8 — the partner holds no OAuth token yet
+    Note over User,WhiteBIT: Steps 1-8 — the partner<br/>holds no OAuth token yet
     User->>Partner: Start "Connect WhiteBIT"
-    Partner->>User: Redirect to /auth/login (clientId, redirect_uri, state, PKCE challenge)
-    User->>WhiteBIT: Open the WhiteBIT authorization page
-    WhiteBIT->>WhiteBIT: Eligibility gate — login, 2FA, existing key, verification, availability
+    Partner->>User: Redirect to /auth/login,<br/>authorization request with<br/>state and PKCE challenge
+    User->>WhiteBIT: Open the WhiteBIT<br/>authorization page
+    WhiteBIT->>WhiteBIT: Eligibility gate: login,<br/>2FA, existing key,<br/>verification, availability
     alt Not eligible
-        WhiteBIT-->>User: Blocking screen — flow stops, no authorization code is issued
+        WhiteBIT-->>User: Blocking screen: the flow stops<br/>and no authorization code is issued
     else Eligible
-        WhiteBIT-->>User: Consent screen (apikeys.create, apikeys.read, apikeys.delete)
+        WhiteBIT-->>User: Consent screen with the<br/>OAuth2 client's scopes
         User->>WhiteBIT: Approve
-        WhiteBIT-->>Partner: Callback to redirect_uri with the authorization code
-        Partner->>WhiteBIT: POST /oauth2/token (client_id, client_secret, code, code_verifier)
-        WhiteBIT-->>Partner: access_token + refresh_token for this (user, partner) pair
-        User->>WhiteBIT: Select key permissions, confirm with 2FA
-        WhiteBIT->>WhiteBIT: Create the partner key — secret withheld from the browser
-        Note over User,WhiteBIT: Steps 9-12 — the partner backend can now call /oauth2/api-key/*
+        WhiteBIT-->>User: Redirect to the callback URL<br/>with the authorization code
+        User->>Partner: Callback request
+        Partner->>WhiteBIT: POST /oauth2/token,<br/>client ID and secret,<br/>authorization code<br/>and PKCE verifier
+        WhiteBIT-->>Partner: Access token and<br/>refresh token for this<br/>user and partner pair
+        User->>WhiteBIT: Select key permissions,<br/>confirm with 2FA
+        WhiteBIT->>WhiteBIT: Create the partner key,<br/>secret withheld<br/>from the browser
+        Note over User,WhiteBIT: Steps 9-12 — the partner backend<br/>can now call /oauth2/api-key/*
         loop poll until exists and isEnabled
             Partner->>WhiteBIT: GET /oauth2/api-key/info
         end
         WhiteBIT-->>Partner: externalId
-        Partner->>WhiteBIT: GET /oauth2/api-key/{externalId}/secret
+        Partner->>WhiteBIT: GET /oauth2/api-key/<br/>{externalId}/secret
         alt 423 Locked
-            Note over Partner: Retry with backoff (5-10s, doubling, cap 60s)
+            Note over Partner: Retry with backoff<br/>(5-10s, doubling, cap 60s)
         else 409 Conflict
-            Partner->>WhiteBIT: DELETE /oauth2/api-key/{externalId}
+            Partner->>WhiteBIT: DELETE /oauth2/api-key/<br/>{externalId}
             Note over Partner: Restart from step 2
         else success
-            WhiteBIT-->>Partner: apiSecret (returned once)
+            WhiteBIT-->>Partner: The API secret, returned once
         end
     end
-    Note over Partner,WhiteBIT: Partner signs V4 requests with HMAC using externalId + apiSecret
+    Note over Partner,WhiteBIT: Partner signs V4 requests<br/>with HMAC, using the API key<br/>and the API secret
 ```
 
 For the remaining failure modes (401, 403, 404) and both consent-screen error codes, see [Error handling](#error-handling) below.

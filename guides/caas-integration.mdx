@@ -323,6 +323,8 @@ The building blocks above use these endpoints and pages:
   [Webhook reconciliation](/guides/payment-integration#webhook-reconciliation).
 - **Withdrawal IDs.** Store each payout's unique withdrawal ID before sending the request, and never use
   one ID for two payouts. See [Create a withdrawal](/guides/payment-integration#create-a-withdrawal).
+- **Unmatched withdrawals.** Route a withdrawal record that matches no stored withdrawal ID to manual review:
+  the integration did not create it.
 - **Monitoring.** [status.whitebit.com](https://status.whitebit.com) reports platform, API, and blog
   status; [whitebit.com/system-page](https://whitebit.com/system-page) reports per-asset deposit,
   withdrawal, and transfer availability.

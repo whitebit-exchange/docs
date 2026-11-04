@@ -186,16 +186,17 @@ sequenceDiagram
     WhiteBIT API-->>Client: List of available VASPs
 
     Client->>WhiteBIT API: POST /api/v4/main-account/withdraw
-    Note right of Client: Include travelRule object<br/>(walletType, beneficiary, vaspData)
+    Note right of Client: Travel Rule data: wallet type,<br/>beneficiary, VASP
+    WhiteBIT API-->>Client: 201, creation started
     WhiteBIT API->>Compliance: Review beneficiary data
 
     alt Approved
         Compliance-->>WhiteBIT API: Approved
-        WhiteBIT API-->>Client: Withdrawal processed
+        WhiteBIT API-->>Client: Withdrawal completed,<br/>status by webhook or history
         Note over Client,Compliance: Funds sent to destination
     else Rejected
         Compliance-->>WhiteBIT API: Rejected
-        WhiteBIT API-->>Client: Withdrawal canceled
+        WhiteBIT API-->>Client: Withdrawal canceled,<br/>status by webhook or history
         Note over Client,Compliance: Funds returned to account
     end
 ```

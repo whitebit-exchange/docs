@@ -628,22 +628,22 @@ sequenceDiagram
     participant WS as WebSocket API
 
     Note over Bot,REST: Startup
-    Bot->>REST: GET /api/v4/public/ticker — read center price
-    Bot->>REST: POST /api/v4/order/kill-switch — arm the timer
-    Bot->>REST: POST /api/v4/order/cancel/all — clean slate
-    Bot->>REST: POST /api/v4/order/bulk — place buy/sell grid
+    Bot->>REST: GET /api/v4/public/ticker —<br/>read center price
+    Bot->>REST: POST /api/v4/order/kill-switch —<br/>arm the timer
+    Bot->>REST: POST /api/v4/order/cancel/all —<br/>clean slate
+    Bot->>REST: POST /api/v4/order/bulk —<br/>place buy/sell grid
     Bot->>WS: authorize, deals_subscribe, ordersPending_subscribe
 
     loop Trading loop
         WS-->>Bot: ordersPending_update — order finished
-        Bot->>REST: POST /api/v4/order/new — opposite side, one level away
-        Bot->>REST: POST /api/v4/order/kill-switch — heartbeat refresh
+        Bot->>REST: POST /api/v4/order/new —<br/>opposite side, one level away
+        Bot->>REST: POST /api/v4/order/kill-switch —<br/>heartbeat refresh
     end
 
     Note over Bot,WS: Recovery
     WS--xBot: connection drops
-    Bot->>WS: reconnect + authorize
-    Bot->>REST: POST /api/v4/orders — detect vanished grid orders
+    Bot->>WS: reconnect, fresh WebSocket<br/>token, authorize
+    Bot->>REST: POST /api/v4/orders —<br/>detect vanished grid orders
     Bot->>WS: re-subscribe
 ```
 

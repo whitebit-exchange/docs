@@ -95,7 +95,7 @@ retryStrategies:
     strategy: "Check the account balance and wait for pending operations to settle before retrying."
   - errorType: "Server error (5xx)"
     retry: true
-    strategy: "Exponential backoff. If persistent, check platform status or contact support."
+    strategy: "Exponential backoff. If persistent, check platform status."
   - errorType: "Server error or confirm code 0 on a conversion"
     retry: false
     strategy: "The conversion may have executed. Follow Results and retries on the Convert page before converting again."

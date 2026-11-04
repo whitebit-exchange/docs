@@ -86,7 +86,7 @@ The following errors are returned by private REST endpoints when the request sig
 | Authentication error | No | Fix the root cause: check API key validity, signature computation, and header names. |
 | Validation error | No | Fix the request parameters. Read the `errors` field for field-level feedback. |
 | Insufficient balance | No | Check the account balance and wait for pending operations to settle. |
-| Server error (5xx) | Yes | Exponential backoff. If persistent, check platform status or contact support. |
+| Server error (5xx) | Yes | Exponential backoff. If persistent, check platform status. |
 | Server error or confirm code `0` on a conversion | Only after a check | The conversion may have executed. Follow [Results and retries](/platform/convert#results-and-retries) before converting again. |
 | Timeout or server error on a transfer | Only after a check | [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) and [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) take no idempotency key. Check the transfer history first, and resend only when no matching record exists. |
 | Timeout or server error on a withdrawal | Only after a check | Look up the stored unique withdrawal ID in the [deposit and withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history) before sending any new withdrawal request. |
@@ -96,17 +96,17 @@ The flowchart shows the check that each operation needs before a retry.
 ```mermaid
 flowchart TD
     Failed["Failed request"] --> Response{"Response"}
-    Response -->|"429, or 5xx on a<br/>read-only request"| Backoff["Retry with<br/>exponential backoff"]
+    Response -->|"429, or 5xx on a<br/>read-only request"| Backoff["Retry with<br/>exponential<br/>backoff"]
     Response -->|"Timeout or 5xx<br/>on a transfer"| Transfer{"Transfer type"}
-    Response -->|"Error on a conversion"| Convert["Follow Results and retries<br/>on the Convert page"]
-    Response -->|"Timeout or 5xx<br/>on a withdrawal"| Withdrawal["POST /api/v4/main-account/history<br/>by the stored withdrawal ID"]
-    Transfer -->|"Between balances"| MainHistory["POST /api/v4/main-account/transfer/history"]
-    Transfer -->|"Sub-account"| SubHistory["POST /api/v4/sub-account/transfer/history"]
-    MainHistory --> Match{"Record created after<br/>the failed request?"}
+    Response -->|"Error on<br/>a conversion"| Convert["Follow Results<br/>and retries on<br/>the Convert page"]
+    Response -->|"Timeout or 5xx<br/>on a withdrawal"| Withdrawal["POST /api/v4/<br/>main-account/history<br/>by the stored<br/>withdrawal ID"]
+    Transfer -->|"Between balances"| MainHistory["POST /api/v4/<br/>main-account/<br/>transfer/history"]
+    Transfer -->|"Sub-account"| SubHistory["POST /api/v4/<br/>sub-account/<br/>transfer/history"]
+    MainHistory --> Match{"Record created after the<br/>failed request, with the same<br/>currency, amount and balances<br/>or transfer direction?"}
     SubHistory --> Match
     Match -->|"Yes"| NoResend["Do not resend"]
     Match -->|"No"| Resend["Resend the transfer"]
-    Withdrawal -->|"Record found"| Status["Act on the withdrawal status"]
+    Withdrawal -->|"Record found"| Status["Act on the<br/>withdrawal status"]
 ```
 
 ### Exponential backoff
