@@ -8,6 +8,8 @@ program: "yaas"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import KeyCreateNoResponse from '/snippets/text/key-create-no-response.mdx';
+import TransferNoIdempotency from '/snippets/text/transfer-no-idempotency.mdx';
 import SubAccountOffboarding from '/snippets/diagrams/sub-account-offboarding.mdx';
 
 <Note>
@@ -46,9 +48,9 @@ the full walkthrough (per-customer keys, KYC URLs).
 | `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it) |
 | `POST /api/v4/sub-account/api-key/create` | Issue the sub-account a key (`type: 2`, `subAccountId`, `title`) |
 
-Only the create response returns the API secret. After a create request without a response, the partner
-checks the key list, deletes any key the request created, and creates the key again. The
-[14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too, and any
+<KeyCreateNoResponse />
+
+The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too, and any
 authenticated request with the key resets the timer. See [API key lifecycle](/guides/waas-integration#api-key-lifecycle).
 
 The partner's backend enrolls each end user with the sub-account and API key steps of WaaS [Wallet creation](/guides/waas-integration#wallet-creation), plus the deposit-address step where the sub-account takes [crypto deposits](/guides/waas-integration#deposits).
@@ -80,8 +82,9 @@ the main-account key.
 |----------|---------|
 | `POST /api/v4/sub-account/transfer` | `id` (sub-account), `direction: main_to_sub`, `ticker`, `amount` |
 
-The transfer takes no idempotency key, so after a timeout or a `5xx` response the partner checks the
-sub-account transfer history (`POST /api/v4/sub-account/transfer/history`) before resending, as in WaaS
+<TransferNoIdempotency />
+
+Run the check with `POST /api/v4/sub-account/transfer/history`, as in WaaS
 [Crypto purchases with fiat](/guides/waas-integration#crypto-purchases-with-fiat).
 
 For crypto deposits to a sub-account, the partner's backend polls the deposit history with the sub-account's key, as in the [deposit flow](/guides/waas-integration#deposits). Webhooks are optional.

@@ -9,6 +9,9 @@ program: "waas"
 
 import PartnerEligibility from '/snippets/partner-eligibility.mdx';
 import FeeShare from '/snippets/fee-share.mdx';
+import SubAccountLimit from '/snippets/text/sub-account-limit.mdx';
+import KeyCreateNoResponse from '/snippets/text/key-create-no-response.mdx';
+import TransferNoIdempotency from '/snippets/text/transfer-no-idempotency.mdx';
 import SubAccountWithdrawal from '/snippets/diagrams/sub-account-withdrawal.mdx';
 import SubAccountOffboarding from '/snippets/diagrams/sub-account-offboarding.mdx';
 
@@ -149,14 +152,19 @@ sequenceDiagram
 A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
 has no replay, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured.
 Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some wait in a frozen or uncredited status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
-[rate limits](/api-reference/rate-limits) apply per endpoint. A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
+[rate limits](/api-reference/rate-limits) apply per endpoint.
+
+<SubAccountLimit />
 
 ### Crypto purchases with fiat
 
 In a purchase, the partner debits the end user's fiat in the partner's own system and transfers the crypto from the
-main account to the sub-account. The transfer takes no idempotency key, so after a timeout or a `5xx` response the
-partner checks the transfer history before resending (see
-[Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type)).
+main account to the sub-account.
+
+<TransferNoIdempotency />
+
+See [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) for the retry rule of each
+error type.
 
 ```mermaid
 sequenceDiagram
@@ -238,9 +246,9 @@ sub-account's spot permission (`spotEnabled`).
 ## API key lifecycle
 
 The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too, and any
-authenticated request, such as a deposit history poll, resets the timer. After a create request without a response, the
-partner checks the key list, deletes any key the request created (the list never returns its secret), and creates the
-key again.
+authenticated request, such as a deposit history poll, resets the timer.
+
+<KeyCreateNoResponse />
 
 ```mermaid
 flowchart TD

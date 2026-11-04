@@ -69,6 +69,29 @@ A diagram snippet holds one capability diagram that several pages show (`ai/RULE
 | `sub-account-withdrawal.mdx` | Sub-account withdrawal approval | `products/sub-accounts/quickstart` | `products/sub-accounts/quickstart`, `guides/waas-integration` |
 | `sub-account-offboarding.mdx` | Sub-account offboarding | `guides/waas-integration` | `guides/waas-integration`, `guides/yaas-integration` |
 
+## Text snippets (`snippets/text/`)
+
+A text snippet holds one fact in prose that several pages state word for word: a retry rule, a
+default limit, a delivery property.
+
+- **One paragraph, nothing else.** The file is the header comment (rule 2) and one paragraph.
+  The host page places it as its own paragraph or as the body of a `<Note>`; the sentences before
+  and after it stay on the host.
+- **Header comment.** It names the fact, the owner page, the edit-here discipline and the import
+  line, and lists the inline copies that cannot import a block snippet (a table cell, a
+  "label — sentence" bullet, a `data/*.yaml` row), so an edit reaches those copies too. The header
+  reaches the host page's `.md` export as text: no ticket, question, answer or decision numbers, no
+  people or partner names, and no URLs in it.
+  A text snippet registers through its header comment; it has no registry row.
+- **No links, no endpoints.** Links and endpoint names stay in the host sentence next to the
+  snippet, so the reverse-link check (`node validate.mjs --content`, "Used in these guides") still
+  sees each guide's links.
+- **Host voice.** Text snippets render inside guides and platform pages. They pass the
+  primary-pronoun gate (`node validate.mjs --pronoun` covers `snippets/text/`) and use "the
+  partner" or the imperative, never a primary pronoun (`ai/style-guides/base.md` §3.2.5).
+- **An edit reaches every importing page.** `node validate.mjs --changed` adds every page that
+  imports a changed text snippet.
+
 ## Partner-program fact snippets (skeletons)
 
 Created as part of the Partner IA Standards initiative. Bodies are placeholders; **no gated
