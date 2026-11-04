@@ -299,6 +299,42 @@ sequenceDiagram
     end
 ```
 
+### End-user offboarding
+
+When an end user leaves the service, the partner gives the end user a reasonable period to withdraw the crypto
+as in [Payouts](#payouts) or to convert the crypto as in [End-user buy and sell](#end-user-buy-and-sell). After the period
+ends, the partner converts the remaining crypto and credits the proceeds to the end user in the partner ledger.
+The API provides no way to close or deactivate an issued deposit address (see
+[Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit)). The partner keeps
+the address mapped to the end user, because reconciliation matches history records against the stored addresses
+(see [Operating the integration](#operating-the-integration)).
+
+The sequence below follows one end user through offboarding.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT API
+
+    U->>P: Leaves the service
+    P->>U: Period to withdraw<br/>or convert
+    opt End user withdraws or converts in the period
+        U->>P: Payout or sell request
+        P->>P: Run the payout or<br/>buy-and-sell steps
+    end
+    opt Crypto left after the period
+        P->>P: Ledger entry converting<br/>the remaining crypto
+        opt Convert on the partner's account
+            P->>W: Conversion, as in buy and sell
+        end
+        P->>P: Credit the proceeds<br/>in the partner ledger
+    end
+    Note over P,W: No API call closes<br/>the deposit address
+    P->>P: Keep the address mapped<br/>to the end user
+```
+
 ## API reference
 
 The building blocks above use these endpoints and pages:
