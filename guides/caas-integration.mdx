@@ -48,19 +48,19 @@ The diagram shows how the prerequisites lead from institutional onboarding to go
 flowchart TB
     Onb["Institutional onboarding, Phase 1"] --> Approved["Compliance approval"]
     Approved --> Keys["API keys"]
-    Approved --> AM["Account manager<br/>activations"]
+    Approved --> AM["Account<br/>manager<br/>activations"]
     Approved --> HooksQ{"Webhooks<br/>in use?"}
-    HooksQ -->|"Yes"| Hooks["Webhook endpoint<br/>and key"]
+    HooksQ -->|"Yes"| Hooks["Webhook<br/>endpoint<br/>and key"]
     HooksQ -->|"No"| Test
     Approved --> ConvQ{"Convert<br/>in use?"}
     Approved --> FiatQ{"Fiat<br/>in scope?"}
-    ConvQ -->|"Yes"| Terms["Convert terms<br/>accepted"]
-    FiatQ -->|"Yes"| Phase2["Phase 2<br/>fiat onboarding"]
+    ConvQ -->|"Yes"| Terms["Convert<br/>terms<br/>accepted"]
+    FiatQ -->|"Yes"| Phase2["Phase 2<br/>fiat<br/>onboarding"]
     Keys --> Test["Tests on the live API<br/>with minimum amounts"]
     AM --> Test
-    Hooks --> Test
-    Terms --> Test
-    Phase2 --> Test
+    Hooks ---> Test
+    Terms ---> Test
+    Phase2 ---> Test
     ConvQ -->|"No"| Test
     FiatQ -->|"No"| Test
     Test --> GoLive["Go-Live Checklist"]
@@ -131,19 +131,19 @@ sequenceDiagram
     participant P as Partner backend
     participant W as WhiteBIT API
 
-    P->>W: GET /api/v4/public/assets (on a schedule)
-    W-->>P: Asset status per currency and network
-    P->>P: Check that the currency and network accept deposits
-    P->>W: POST /api/v4/main-account/create-new-address (currency, network)
+    P->>W: GET /api/v4/public/assets<br/>(on a schedule)
+    W-->>P: Asset status per currency<br/>and network
+    P->>P: Check that the currency and<br/>network accept deposits
+    P->>W: POST /api/v4/main-account/<br/>create-new-address<br/>(currency, network)
     alt 201
-        W-->>P: New address (+ memo on memo networks)
-        P->>P: Store the address and memo against the end user
-        P->>U: Show the address and memo exactly as issued
+        W-->>P: New address<br/>(+ memo on memo networks)
+        P->>P: Store the address and memo<br/>against the end user
+        P->>U: Show the address and memo<br/>exactly as issued
     else 422 — another address request in progress
         W-->>P: No address
     else 422 — per-currency address limit reached
         W-->>P: No address
-        Note over P,W: The account manager can adjust the limit
+        Note over P,W: The account manager<br/>can adjust the limit
     end
 ```
 
@@ -203,29 +203,29 @@ sequenceDiagram
     participant P as Partner backend
     participant W as WhiteBIT API
 
-    U->>P: Payout to an address the end user chooses
-    P->>P: Compare the destination with the stored deposit addresses
+    U->>P: Payout to an address<br/>the end user chooses
+    P->>P: Compare the destination<br/>with the stored<br/>deposit addresses
     alt Destination is one of the account's own deposit addresses
-        P->>P: Ledger transfer between the two end users, no withdrawal
+        P->>P: Ledger transfer between<br/>the two end users,<br/>no withdrawal
     else External destination
         opt Large payout
-            P->>W: POST /api/v4/main-account/withdrawable-balance
-            W-->>P: Withdrawable amount for the whole account
+            P->>W: POST /api/v4/main-account/<br/>withdrawable-balance
+            W-->>P: Withdrawable amount<br/>for the whole account
         end
-        P->>P: Reserve the amount in the end user's ledger balance
+        P->>P: Reserve the amount in<br/>the end user's ledger balance
         P->>P: Store a unique withdrawal ID
-        P->>W: POST /api/v4/main-account/withdraw (unique withdrawal ID)
+        P->>W: POST /api/v4/main-account/<br/>withdraw<br/>(unique withdrawal ID)
         W-->>P: 201 — withdrawal creation started
         par Webhooks
-            W->>P: withdraw.unconfirmed, withdraw.pending, then a final event
+            W->>P: withdraw.unconfirmed,<br/>withdraw.pending,<br/>then a final event
         and History on a schedule
             P->>W: POST /api/v4/main-account/history
-            W-->>P: Withdrawal records, matched by withdrawal ID
+            W-->>P: Withdrawal records,<br/>matched by withdrawal ID
         end
         alt withdraw.successful (status 3 or 7)
             P->>P: Settle the reserved debit
         else withdraw.canceled (status 4)
-            P->>P: Act as the withdrawal status state machine describes
+            P->>P: Act as the withdrawal<br/>status state machine<br/>describes
         end
     end
 ```

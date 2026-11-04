@@ -146,23 +146,23 @@ sequenceDiagram
     participant F as Partner fiat system
 
     alt Hosted deposit page
-        P->>W: POST /api/v4/main-account/fiat-deposit-url (unique deposit ID)
+        P->>W: POST /api/v4/main-account/<br/>fiat-deposit-url<br/>(unique deposit ID)
         W-->>P: Hosted payment URL
         Note over P,W: Open the hosted payment URL
         F->>W: Bank transfer (SEPA)
     else Bank details through the API
         opt Provider requires a virtual account, none active yet
-            P->>W: POST /api/v4/main-account/payment/virtual-accounts
+            P->>W: POST /api/v4/main-account/<br/>payment/virtual-accounts
             W-->>P: Registration pending
-            Note over W: Holder details come from the KYC data<br/>and profile of the account
+            Note over W: Holder details come from<br/>the KYC data and profile<br/>of the account
             loop Until active
-                P->>W: POST /api/v4/main-account/payment/virtual-accounts/status
-                W-->>P: Status, and the bank details when active
+                P->>W: POST /api/v4/main-account/<br/>payment/virtual-accounts/status
+                W-->>P: Status, and the<br/>bank details<br/>when active
             end
         end
-        P->>W: POST /api/v4/main-account/deposit (unique deposit ID)
+        P->>W: POST /api/v4/main-account/<br/>deposit (unique deposit ID)
         alt 200
-            W-->>P: Deposit ID, unique deposit ID, bank details
+            W-->>P: Deposit ID,<br/>unique deposit ID,<br/>bank details
             P->>F: Transfer instruction with the bank details
             F->>W: Bank transfer (SEPA)
         else 400, Virtual account is missing
@@ -179,42 +179,41 @@ The sequence shows the partner's crypto arriving on the main account, the conver
 ```mermaid
 sequenceDiagram
     autonumber
-    participant B as Blockchain
     participant W as WhiteBIT API
     participant P as Partner backend
     participant F as Partner fiat system
     participant U as End user
 
-    Note over W,P: The main account's HMAC key signs<br/>every request except the card token call
-    P->>W: POST /api/v4/main-account/address
+    Note over W,P: The main account's HMAC key<br/>signs every request except<br/>the card token call
+    P->>W: POST /api/v4/<br/>main-account/<br/>address
     W-->>P: Deposit address
-    B->>W: Crypto deposit
-    Note over W: Travel Rule hold<br/>may apply (EEA and Turkey)
-    W-->>P: deposit.processed, status 3 or 7<br/>(webhook / history record)
-    P->>W: POST /api/v4/main-account/transfer<br/>(Main to Trade)
+    Note over W: Crypto deposit<br/>arrives on-chain
+    Note over W: Travel Rule hold<br/>may apply<br/>(EEA and Turkey)
+    W-->>P: deposit.processed,<br/>status 3 or 7<br/>(webhook /<br/>history record)
+    P->>W: POST /api/v4/<br/>main-account/<br/>transfer<br/>(Main to Trade)
     W-->>P: 201
-    P->>W: POST /api/v4/convert/estimate
-    W-->>P: Quote ID, rate, expiry
-    P->>W: POST /api/v4/convert/confirm (quote ID)
-    W-->>P: EUR on the Trade balance
+    P->>W: POST /api/v4/<br/>convert/estimate
+    W-->>P: Quote ID, rate,<br/>expiry
+    P->>W: POST /api/v4/<br/>convert/confirm<br/>(quote ID)
+    W-->>P: EUR on the<br/>Trade balance
     Note over P: Store the quote ID
-    P->>W: POST /api/v4/main-account/transfer<br/>(Trade to Main)
+    P->>W: POST /api/v4/<br/>main-account/<br/>transfer<br/>(Trade to Main)
     W-->>P: 201
     alt Bank payout to the partner's own account
-        P->>W: POST /api/v4/main-account/withdraw<br/>or /withdraw-pay (EUR)
+        P->>W: POST /api/v4/<br/>main-account/<br/>withdraw<br/>or /withdraw-pay<br/>(EUR)
         W-->>P: 201
-        W->>F: EUR to the partner's own KYB'd account
+        W->>F: EUR to the partner's<br/>own KYB'd account
     else Card payout to an end user
         U->>P: Card number
-        P->>W: POST /api/v4/jwt (HMAC-signed)
+        P->>W: POST /api/v4/jwt<br/>(HMAC-signed)
         W-->>P: JWT
-        P->>W: POST /api/card-token<br/>on fgw.whitebit.com (JWT)
+        P->>W: POST /api/<br/>card-token<br/>on fgw.whitebit.com<br/>(JWT)
         W-->>P: Card token
-        P->>W: POST /api/v4/main-account/withdraw<br/>(EUR, card token)
+        P->>W: POST /api/v4/<br/>main-account/<br/>withdraw<br/>(EUR, card token)
         W-->>P: 201
         W->>U: EUR to the card
     end
-    W-->>P: Withdrawal status change<br/>(webhook / history record)
+    W-->>P: Withdrawal<br/>status change<br/>(webhook /<br/>history record)
     alt Status 3 or 7, withdraw.successful
         Note over P: Mark the payout complete
     else Status 4, withdraw.canceled

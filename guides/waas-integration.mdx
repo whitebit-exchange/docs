@@ -129,22 +129,22 @@ sequenceDiagram
     participant W as WhiteBIT
     participant B as Blockchain
 
-    P->>U: Deposit address (+ memo)
+    P->>U: Deposit address<br/>(+ memo)
     U->>B: Send funds on-chain
     B-->>W: Deposit
     opt Webhook set up on the sub-account
-        W->>P: Deposit webhook (retried, no replay)
+        W->>P: Deposit webhook<br/>(retried, no replay)
     end
     loop On a schedule, per sub-account
-        P->>W: POST /api/v4/main-account/history (sub-account key)
-        W-->>P: Deposit records, every status
-        P->>P: Skip records whose status has not changed
+        P->>W: POST /api/v4/<br/>main-account/history<br/>(sub-account key)
+        W-->>P: Deposit records,<br/>every status
+        P->>P: Skip records whose<br/>status has not<br/>changed
         alt Successful (3, 7), final
-            P->>P: Mark credited, stop tracking
+            P->>P: Mark credited,<br/>stop tracking
         else Canceled (4, 9), final
             P->>P: Offer the refund flow
         else Any other status
-            P->>P: Act on the status, keep tracking
+            P->>P: Act on the status,<br/>keep tracking
         end
     end
 ```

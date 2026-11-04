@@ -136,23 +136,23 @@ sequenceDiagram
     participant P as Partner backend
     participant W as WhiteBIT
 
-    Note over P,W: Each investment debits the sub-account's Main balance
+    Note over P,W: Each investment debits<br/>the sub-account's Main balance
     alt Flexible plan
-        P->>W: POST /api/v4/main-account/smart-flex/plans<br/>(sub-account key)
-        W-->>P: Active Flex plans with limits and maximum rate
+        P->>W: POST /api/v4/main-account/<br/>smart-flex/plans<br/>(sub-account key)
+        W-->>P: Active Flex plans with limits<br/>and maximum rate
         P->>U: Plans to offer
-        U->>P: Chosen plan and amount
-        P->>W: POST /api/v4/main-account/smart-flex/investments/invest<br/>(sub-account key, chosen plan and amount,<br/>auto-reinvestment choice)
+        U->>P: Chosen plan<br/>and amount
+        P->>W: POST /api/v4/main-account/<br/>smart-flex/investments/invest<br/>(sub-account key,<br/>chosen plan and amount,<br/>auto-reinvestment choice)
         W-->>P: Transaction ID
         opt Turn auto-reinvestment on or off later
-            P->>W: POST /api/v4/main-account/smart-flex/investments/auto-invest<br/>(sub-account key, plan)
+            P->>W: POST /api/v4/main-account/<br/>smart-flex/investments/<br/>auto-invest<br/>(sub-account key, plan)
         end
     else Fixed plan
-        P->>W: POST /api/v4/main-account/smart/plans<br/>(sub-account key)
-        W-->>P: Active Fixed plans with term, rate,<br/>limits and interest currency
+        P->>W: POST /api/v4/main-account/<br/>smart/plans<br/>(sub-account key)
+        W-->>P: Active Fixed plans with<br/>term, rate, limits and<br/>interest currency
         P->>U: Plans to offer
-        U->>P: Chosen plan and amount
-        P->>W: POST /api/v4/main-account/smart/investment<br/>(sub-account key, chosen plan and amount)
+        U->>P: Chosen plan<br/>and amount
+        P->>W: POST /api/v4/main-account/<br/>smart/investment<br/>(sub-account key,<br/>chosen plan and amount)
         W-->>P: Investment ID
     end
     P->>P: Store the plan and the returned ID per end user
