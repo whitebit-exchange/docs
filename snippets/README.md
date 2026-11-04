@@ -67,6 +67,7 @@ A diagram snippet holds one capability diagram that several pages show (`ai/RULE
 | Snippet | Flow | Owner page | Importing pages |
 |---------|------|------------|-----------------|
 | `sub-account-withdrawal.mdx` | Sub-account withdrawal approval | `products/sub-accounts/quickstart` | `products/sub-accounts/quickstart`, `guides/waas-integration` |
+| `sub-account-offboarding.mdx` | Sub-account offboarding | `guides/waas-integration` | `guides/waas-integration`, `guides/yaas-integration` |
 
 ## Partner-program fact snippets (skeletons)
 

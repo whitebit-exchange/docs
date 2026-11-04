@@ -10,6 +10,7 @@ program: "waas"
 import PartnerEligibility from '/snippets/partner-eligibility.mdx';
 import FeeShare from '/snippets/fee-share.mdx';
 import SubAccountWithdrawal from '/snippets/diagrams/sub-account-withdrawal.mdx';
+import SubAccountOffboarding from '/snippets/diagrams/sub-account-offboarding.mdx';
 
 <Note>
 **For developers.** This page covers the technical integration. For what WaaS is, the verification variants at a
@@ -261,37 +262,12 @@ flowchart TD
 
 ## End-user offboarding
 
-Offboarding empties the sub-account through a final withdrawal or a sale, then blocks it. The partner keeps the end
-user's mapping to the sub-account and its addresses.
+Offboarding empties the sub-account through a final withdrawal or a sale, then the main-account key blocks it. The
+sub-account's key creates the final withdrawal and the main account confirms it, as in [Withdrawals](#withdrawals).
+A sale follows [Crypto sales for fiat](#crypto-sales-for-fiat). The partner keeps the end user's mapping to the
+sub-account and its addresses.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant P as Partner backend
-    participant F as Partner fiat system
-    participant W as WhiteBIT
-
-    P->>W: POST /api/v4/sub-account/balances (main-account key, sub-account ID)
-    W-->>P: Remaining main, spot and collateral amounts
-    opt Amount on the Trade balance
-        P->>W: POST /api/v4/main-account/transfer (sub-account key, Trade to Main)
-    end
-    alt Final withdrawal to the end user's address
-        P->>W: POST /api/v4/main-account/withdraw (sub-account key)
-        Note over P,W: The main account confirms it, as in Withdrawals
-        loop Until the withdrawal reaches a final status
-            P->>W: POST /api/v4/main-account/history (sub-account key, withdrawals)
-        end
-    else Sale of the remaining crypto, as in the sale flow
-        P->>W: POST /api/v4/sub-account/transfer (main-account key, sub-account to main account)
-        W-->>P: Transfer ID
-        P->>F: Credit the end user's fiat
-    end
-    P->>W: POST /api/v4/sub-account/balances (main-account key, sub-account ID)
-    W-->>P: Nothing left to move
-    P->>W: POST /api/v4/sub-account/block (main-account key, sub-account ID)
-    P->>P: Keep the end user, sub-account ID and address mapping
-```
+<SubAccountOffboarding />
 
 ## More flows
 

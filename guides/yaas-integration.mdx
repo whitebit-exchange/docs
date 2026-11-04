@@ -8,6 +8,7 @@ program: "yaas"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import SubAccountOffboarding from '/snippets/diagrams/sub-account-offboarding.mdx';
 
 <Note>
 **For developers.** This page covers the technical integration. For what YaaS is, the model, and how
@@ -253,7 +254,10 @@ Invested funds do not show in `POST /api/v4/sub-account/balances` (see
 key. The partner's backend lists and closes every active investment, then follows
 [End-user offboarding](/guides/waas-integration#end-user-offboarding) to empty and block the sub-account. A Fixed
 investment closed before maturity follows the early-withdrawal terms in
-[Crypto Lending plan types](/products/lending/overview#plan-types).
+[Crypto Lending plan types](/products/lending/overview#plan-types). The sub-account's key creates the final withdrawal
+and the main account confirms it, as in
+[Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). The final
+withdrawal is available where the account manager has enabled sub-account withdrawals.
 
 ```mermaid
 sequenceDiagram
@@ -268,8 +272,10 @@ sequenceDiagram
         W-->>P: Active Fixed investments with investment IDs
         P->>W: Close each one, as in step 5 (sub-account key)
     end
-    P->>P: Continue with End-user offboarding
+    P->>P: Empty and block the sub-account
 ```
+
+<SubAccountOffboarding />
 
 ## Testing
 
