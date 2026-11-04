@@ -25,7 +25,8 @@ the wallet flows on top.
 
 - **Approved WaaS partner enrollment** — see the [WaaS overview](/guides/waas-overview) for what WaaS provides and how to apply.
 - **A chosen verification variant** — managed sub-accounts, KYC reliance, or shared-KYC sub-accounts; see [Build path per variant](#build-path-per-variant).
-- **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account; sub-accounts, crypto deposits to sub-accounts, and the sub-account withdrawal endpoints enabled for the account by the account manager.
+- **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account; crypto deposits to sub-accounts and the sub-account withdrawal endpoints enabled for the account by the account manager.
+- **Sub-account limit** — a main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
 ## Build path per variant
 
@@ -146,7 +147,7 @@ sequenceDiagram
 A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
 has no replay, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured.
 Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some wait in a frozen or uncredited status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
-[rate limits](/api-reference/rate-limits) apply per endpoint; sub-account limits are set per agreement.
+[rate limits](/api-reference/rate-limits) apply per endpoint. A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
 ### Crypto purchases with fiat
 

@@ -59,8 +59,7 @@ Each end customer trades from a dedicated sub-account under the partner's main a
 
 - **Independent balances**, scoped at creation via `permissions.spotEnabled` and `permissions.collateralEnabled`. Trades on one sub-account do not affect another.
 - **Up to 50 API keys per sub-account**, independent from the main account and from other sub-accounts, each with an IP whitelist and permission scope.
-- **Sub-account count per main account** — the number of sub-accounts a main account can create is not a fixed published limit; confirm the ceiling that applies to the account with WhiteBIT during enrollment.
-{/* TODO: value gated on Product — maximum number of sub-accounts per main account (et-08). */}
+- **Sub-account count** — a main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 - **Withdrawal control at the main account** — sub-account withdrawals surface on the main account for confirmation via the [unconfirmed-withdrawals list](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and [confirm](/api-reference/sub-accounts/confirm-sub-account-withdrawal) endpoints. The sub-account withdrawal endpoints are not available by default — request access through the assigned account manager; a `404` response indicates the endpoints are not yet enabled for the account.
 - **Crypto deposits to sub-accounts are disabled by default.** Once deposits are enabled for the account (request via the assigned account manager), the capability applies to all of its sub-accounts; a sub-account then generates deposit addresses through the standard [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission.
 

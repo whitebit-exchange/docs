@@ -1,6 +1,6 @@
 ---
 title: "Sub-Accounts"
-description: "Create and manage thousands of separate trading accounts under one umbrella -- each with independent balances, API keys, and IP whitelists."
+description: "Create and manage separate trading accounts under one umbrella -- each with independent balances, API keys, and IP whitelists."
 sidebarTitle: "Overview"
 ---
 
@@ -8,13 +8,13 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 <RegionBaseUrl />
 
-Create and manage thousands of separate trading accounts under one umbrella -- each with independent balances, API keys, and IP whitelists. 20 API endpoints cover the full lifecycle from account creation to withdrawal approval.
+Create and manage separate trading accounts under one umbrella -- each with independent balances, API keys, and IP whitelists. 20 API endpoints cover the full lifecycle from account creation to withdrawal approval.
 
 ## Capabilities
 
 The Sub-Accounts API provides full programmatic control over multi-account architectures.
 
-- **Account CRUD** -- create, edit, delete, and list sub-accounts. Each sub-account gets a unique identifier and independent settings.
+- **Account CRUD** -- create, edit, delete, and list sub-accounts. Each sub-account gets a unique identifier and independent settings. A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 - **Fee-free instant transfers** -- move assets between the main account and any sub-account without fees or delays via `POST /api/v4/sub-account/transfer`
 - **Per-sub-account API keys** -- generate dedicated API keys for each sub-account with independent IP whitelists (up to 50 IPs per key). The 50-key limit applies per sub-account, independent from the main account and from other sub-accounts. Supports create, edit, delete, reset, and IP management.
 - **KYC URL generation** -- generate temporary KYC verification links for sub-account users via `POST /api/v4/sub-account/kyc-url`. Requirements: sub-account must be activated, active, and not using shared KYC.
