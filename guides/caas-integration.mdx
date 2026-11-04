@@ -190,7 +190,8 @@ for programmatic verification is enabled per account by the account manager on r
 1. **Send the withdrawal.** See [Create a withdrawal](/guides/payment-integration#create-a-withdrawal).
 1. **Settle.** Settle the reserved debit when the withdrawal succeeds, and act on each other final status as
    the [Withdrawal status state machine](/guides/payment-integration#withdrawal-status-state-machine)
-   describes.
+   describes. When two withdrawals compete for the same balance and one fails processing, that withdrawal is
+   retried; if the retry also fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
 
 The sequence below follows the payout steps for one end user. The Payment Integration use cases also show an
 [EEA withdrawal with Travel Rule data](/guides/payment-integration#use-cases) and a

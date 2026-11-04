@@ -3025,11 +3025,13 @@ paths:
         - `Successful` - 3, 7
         - `Canceled` - 4, 9
         - `Unconfirmed by user` - 5
-        - `AML frozen` - 21
+        - `On hold` - 21
         - `Uncredited` - 22
         - `Pending` - 15
 
-        `Successful` (3, 7) is a final state. A credited deposit does not later transition to `AML frozen` (21) or `Uncredited` (22); those checks happen before crediting.
+        The history also returns status 29 (`Credited, on hold`): the funds are credited, and part may stay held until the network fully confirms the deposit.
+
+        `Successful` (3, 7) and `Canceled` (4, 9) are final states. A deposit in status 5, 21, 22 or 29 is not final and later ends as 3, 7, 4 or 9. A successful deposit (3, 7) does not later transition to `On hold` (21) or `Uncredited` (22).
 
         **Travel Rule Deposit check status codes:**
         - `Awaiting verification` - 27: The transaction has been frozen due to the lack of data required under the Travel Rule. The user is required to provide this data manually through the exchange interface.
@@ -3125,9 +3127,9 @@ paths:
                   description: |
                     Can be used for filtering transactions by status codes.
 
-                    ⚠️ Caution: Use this parameter with the appropriate `transactionMethod` and valid status codes for that method. See the endpoint description above for valid codes. Example: `"status": [3,7]`
+                    ⚠️ Caution: Use this parameter with the appropriate `transactionMethod` and valid status codes for that method. See the status code lists in the endpoint description above for valid codes. Example: `"status": [3,7]`
 
-                    A filter on the successful codes alone (`[3,7]`) leaves out transactions in every other status, such as canceled, AML-frozen or uncredited deposits. To follow a transaction to its final status, omit `status` or include every status code that the endpoint description lists for the `transactionMethod`.
+                    A filter on the successful codes alone (`[3,7]`) leaves out transactions in every other status, such as canceled, on-hold or uncredited deposits. To follow a transaction to its final status, omit `status`.
                   example: [3, 7]
                 request:
                   type: string

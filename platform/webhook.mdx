@@ -115,6 +115,7 @@ All web-hook requests are performing with
 
 - **code.apply**. Performs when code owned by a customer was applied.
 - **deposit.accepted**, **deposit.updated**, **deposit.processed**, **deposit.canceled**. These methods report each stage of a deposit; see [WhiteBIT deposit to main balance](#whitebit-deposit-to-main-balance).
+- **deposit.aml_frozen**. Sent when a deposit enters status 21 or 22; see [Deposit and withdrawal status codes](#deposit-and-withdrawal-status-codes).
 - **withdraw.unconfirmed**, **withdraw.pending**, **withdraw.canceled**, **withdraw.successful**. These methods report each stage of a withdrawal; see [WhiteBIT withdraw from main balance](#whitebit-withdraw-from-main-balance).
 - **refund.successful**, **refund.failed**. These methods report the result of a deposit refund; see [WhiteBIT refund successful](#whitebit-refund-successful) and [WhiteBIT refund failed](#whitebit-refund-failed).
 
@@ -288,12 +289,13 @@ Deposit status codes:
 | Code | Status | Description |
 |---|---|---|
 | 3, 7 | Successful | Deposit successful; final state |
-| 4, 9 | Canceled | Deposit canceled (refund may be available) |
+| 4, 9 | Canceled | Deposit canceled; final state (refund may be available) |
 | 15 | Pending | Deposit detected, awaiting confirmations |
-| 21 | AML frozen | Deposit frozen by AML controls |
-| 22 | Uncredited | Deposit detected but not credited |
+| 21 | On hold | Deposit held for review; not final |
+| 22 | Uncredited | Detected, not credited yet; not final |
 | 27 | Travel Rule frozen | Deposit frozen; the account holder must complete Travel Rule verification (EEA) |
 | 28 | Travel Rule processing | Travel Rule data submitted, verification in progress (EEA) |
+| 29 | Credited, on hold | Funds credited; part may stay held until the network fully confirms the deposit; not final |
 
 Withdrawal status codes:
 

@@ -300,9 +300,10 @@ After funds arrive at a generated deposit address, the deposit passes through a 
 2. Funds sent by the external party — mempool detection begins
 3. Confirmation tracking begins — `deposit.accepted` webhook fires while `confirmations.actual` is below `confirmations.required`
 4. Each confirmation-count change fires the `deposit.updated` webhook with the new `confirmations.actual` — this event tracks progress; it does not signal completion
-5. Deposit credited to Main balance — `deposit.processed` webhook fires — **terminal success state**
-6. OR: Deposit canceled — `deposit.canceled` webhook fires — **terminal failure state**
-7. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28). If the Travel Rule API is enabled, submit originator data via API to unfreeze; otherwise manual action at whitebit.com is required. See [Travel Rule](#travel-rule-eea-and-turkey) below.
+5. Where the network's `confirmations_for_trading` count is lower than `confirmations`: funds credited early, and part of the deposit may stay held — status 29, `deposit.updated` webhook fires. See [Network confirmations](#network-confirmations).
+6. Deposit fully confirmed and credited to Main balance (status 3 or 7) — `deposit.processed` webhook fires, and any hold clears — **terminal success state**
+7. OR: Deposit canceled — `deposit.canceled` webhook fires — **terminal failure state**
+8. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28). If the Travel Rule API is enabled, submit originator data via API to unfreeze; otherwise manual action at whitebit.com is required. See [Travel Rule](#travel-rule-eea-and-turkey) below.
 
 ## Deposit status state machine
 
@@ -316,13 +317,16 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 |--------|-------|---------|-----------|----------------|-------------|
 | 15 | Pending | `deposit.accepted` | No | Wait for next webhook | Deposit detected, awaiting confirmations |
 | 15 | Updated | `deposit.updated` | No | Wait for next webhook | Confirmation count changed |
+| 29 | Credited, on hold | `deposit.updated` | No | Wait for a final status | Funds credited; part may stay held until the network fully confirms the deposit |
 | 3, 7 | Successful | `deposit.processed` | Yes | Credit end user, close watcher | Funds credited to Main balance |
 | 4, 9 | Canceled | `deposit.canceled` | Yes | Surface refund flow — see [Refund flow](#refund-flow) | Deposit canceled (refund may be available) |
 | 5 | Unconfirmed by user | — | No | Notify the account holder — manual action required at whitebit.com | Awaiting user action |
-| 21 | AML frozen | — | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit frozen by AML controls |
-| 22 | Uncredited | — | No | Wait — credit pending. Escalate to support if >24h | Detected but not credited |
+| 21 | On hold | `deposit.aml_frozen` | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit held for review |
+| 22 | Uncredited | `deposit.aml_frozen` | No | Wait — credit pending. Escalate to support if >24h | Detected, not credited yet |
 | 27 | Travel Rule frozen | — | No | Notify the account holder — Travel Rule data required at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
+
+Every deposit ends in a final status: 3 or 7 (credited) or 4 or 9 (canceled). Statuses 5, 21, 22 and 29 are not final. A deposit in status 29 ends as 3 or 7 when the network fully confirms it, or as 4 if canceled.
 
 The flowchart maps each deposit status in the table to the partner action.
 
@@ -339,12 +343,12 @@ flowchart TD
 ```
 
 <Note>
-  Use `POST /api/v4/main-account/history` with `transactionMethod: 1` to poll deposits. Omit the `status` filter, or include every status in the table above. A filter on `3` and `7` alone leaves out deposits in every other status in the table, such as canceled, AML-frozen or uncredited deposits. A watcher that waits only for those codes never sees a canceled deposit and never closes. See the [endpoint page](/api-reference/account-wallet/get-deposit-withdraw-history) for the current enforced rate limit.
+  Use `POST /api/v4/main-account/history` with `transactionMethod: 1` to poll deposits. Omit the `status` filter. A filter on `3` and `7` alone leaves out deposits in every other status in the table, such as canceled (4, 9), on-hold (21, 29) or uncredited (22) deposits. A watcher that waits only for those codes never sees a canceled deposit and never closes. See the [endpoint page](/api-reference/account-wallet/get-deposit-withdraw-history) for the current enforced rate limit.
 </Note>
 
 ## Network confirmations
 
-Each cryptocurrency network has two confirmation counts. At the earlier count, `confirmations_for_trading`, the platform credits the deposit for trading only. At the later count, `confirmations`, the deposit also becomes available for withdrawal, sending as a WhiteBIT Code, transfer to the Collateral balance, and use as collateral. Until the deposit reaches `confirmations`, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`.
+Each cryptocurrency network has two confirmation counts. At the earlier count, `confirmations_for_trading`, the platform credits the deposit for trading only. At the later count, `confirmations`, the deposit also becomes available for withdrawal, sending as a WhiteBIT Code, transfer to the Collateral balance, and use as collateral. Until the deposit reaches `confirmations`, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. During the hold, the deposit has status 29; the hold clears when the deposit reaches status 3 or 7, which the `deposit.processed` webhook reports.
 
 Webhook payloads include `confirmations.actual` and `confirmations.required` fields. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint (`GET /api/v4/public/assets`) for both counts per network.
 
@@ -585,7 +589,7 @@ The `POST /api/v4/main-account/withdraw` endpoint returns HTTP 201 when validati
 - **Withdrawals to AML-blocked destination addresses** freeze pending compliance review.
 - **Temporary withdrawal freeze (3 days)** applies after a password reset or a 2FA setting change on the account.
 
-Status transitions follow the state machine below: unconfirmed → pending → successful or canceled. Webhook events track the full lifecycle.
+Status transitions follow the state machine below: unconfirmed → pending → successful or canceled. Webhook events track the full lifecycle. When two withdrawals compete for the same balance and one fails processing, that withdrawal is retried; if the retry also fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
 
 <Note>
   A revised confirmation model for IP-whitelisted API keys is planned but not yet deployed. Contact institutional@whitebit.com for availability.
@@ -701,7 +705,7 @@ The fiat deposit flow is invoice-based: generate a payment URL, hand it to the e
     The bank transfer from the partner's own KYB'd bank account must carry the `uniqueId` in the payment-reference field — see [SEPA payment reference](#sepa-payment-reference) below.
   </Step>
   <Step title="Confirm completion and reconcile">
-    Confirm the credited deposit through the deposit history (`POST /api/v4/main-account/history`) or the Main balance (`POST /api/v4/main-account/balance`), matching by `uniqueId`.
+    Find the deposit in the deposit history (`POST /api/v4/main-account/history`) by the `uniqueId` of the request. The Main balance (`POST /api/v4/main-account/balance`) reports totals per currency and does not identify the deposit. Act on the deposit status as the [Deposit status state machine](#deposit-status-state-machine) describes.
   </Step>
 </Steps>
 
@@ -1194,7 +1198,7 @@ Reliable fund tracking requires both webhook-based and polling-based reconciliat
 **Fallback method — poll `POST /api/v4/main-account/history`:**
 
 - Use `transactionMethod: 1` for deposits, `transactionMethod: 2` for withdrawals
-- Omit `status`, or include every status for the chosen `transactionMethod` (see the [deposit](#deposit-status-state-machine) and [withdrawal](#withdrawal-status-state-machine) status tables)
+- Omit `status`, so the response returns every status for the chosen `transactionMethod` (see the [deposit](#deposit-status-state-machine) and [withdrawal](#withdrawal-status-state-machine) status tables)
 - Recommended polling interval: every 5 minutes for active monitoring
 - See [Rate Limits](/api-reference/rate-limits) for current enforced values
 
@@ -1203,7 +1207,7 @@ For balance endpoints, WebSocket account streams, and polling-interval guidance 
 **Deduplication:** Use the `uniqueId` from webhook payloads and history responses to deduplicate across webhook and polling paths.
 
 <Note>
-  The meaning of `uniqueId` differs by direction: for withdrawals, the value echoes the identifier supplied in the withdrawal request; for deposits, the platform assigns the value (the transaction identifier that the refund endpoint consumes as `transactionId`). Both are unique per transaction and safe as idempotency keys.
+  The meaning of `uniqueId` differs by direction: for withdrawals, the value echoes the identifier supplied in the withdrawal request; for crypto deposits, the platform assigns the value (the transaction identifier that the refund endpoint consumes as `transactionId`). Both are unique per transaction and safe as idempotency keys.
 </Note>
 
 <Note>

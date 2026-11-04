@@ -11,5 +11,5 @@ export const signerFields = [
   {"name":"unique_id","type":"string","required":false,"description":"Can be used for filtering transactions by specific unique id","example":"24529041"},
   {"name":"limit","type":"integer","required":false,"description":"LIMIT is a special clause used to limit records a particular query can return. Default: 50, Min: 1, Max: 500","example":"100","default":50},
   {"name":"offset","type":"integer","required":false,"description":"Use the OFFSET clause to return entries starting from a particular line.","example":"0","default":0},
-  {"name":"status","type":"array","required":false,"description":"Can be used for filtering transactions by status codes. ⚠️ Caution: Use this parameter with the appropriate transactionMethod and valid status codes for that method. See the end…","example":"3,7"},
+  {"name":"status","type":"array","required":false,"description":"Can be used for filtering transactions by status codes. ⚠️ Caution: Use this parameter with the appropriate transactionMethod and valid status codes for that method. See the sta…","example":"3,7"},
 ];
