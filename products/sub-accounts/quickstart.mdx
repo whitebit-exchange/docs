@@ -5,6 +5,7 @@ sidebarTitle: "Quickstart"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import SubAccountWithdrawal from '/snippets/diagrams/sub-account-withdrawal.mdx';
 
 <RegionBaseUrl />
 
@@ -181,7 +182,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       </Tab>
     </Tabs>
 
-    **Required fields:** `subAccountId` (UUID), `type` (1 = info and trading, 2 = info, trading, deposits, withdrawals). **Optional:** `title` (custom name for the key).
+    **Required fields:** `subAccountId` (UUID), `type` (1 = info and trading, 2 = info, trading, deposits, withdrawals), `title` (key name).
 
     <Warning>
       Save the `secretKey` immediately -- the API does not return the secret key again after creation.
@@ -249,21 +250,7 @@ The sub-account now has an isolated balance and a dedicated API key. To restrict
 
 When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal.
 
-```mermaid
-sequenceDiagram
-    participant Sub as Sub-account (own key)
-    participant WB as WhiteBIT
-    participant Main as Main account (own key)
-    Main->>WB: POST /sub-account/api-key/edit (enable withdraw URL)
-    WB-->>Main: 200 — withdraw enabled on the key
-    Sub->>WB: POST /main-account/withdraw
-    WB-->>Sub: status unconfirmed_by_main_account
-    Main->>WB: POST /sub-account/withdraw/unconfirmed-list
-    WB-->>Main: pending withdrawals (transaction id)
-    Main->>WB: POST /sub-account/withdraw/confirm (transaction id)
-    WB-->>Main: 200 — released for processing
-    Note over WB: Unconfirmed withdrawals expire if not confirmed
-```
+<SubAccountWithdrawal />
 
 <Note>
   The sub-account withdrawal endpoints are not available by default. To request access, contact

@@ -9,6 +9,7 @@ program: "waas"
 
 import PartnerEligibility from '/snippets/partner-eligibility.mdx';
 import FeeShare from '/snippets/fee-share.mdx';
+import SubAccountWithdrawal from '/snippets/diagrams/sub-account-withdrawal.mdx';
 
 <Note>
 **For developers.** This page covers the technical integration. For what WaaS is, the verification variants at a
@@ -78,7 +79,7 @@ sequenceDiagram
     participant W as WhiteBIT
 
     alt Managed sub-accounts
-        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC off,<br/>end user's email)
+        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC off,<br/>end user's email, permission set)
         W-->>P: Sub-account id
         loop Until the sub-account is activated
             P->>W: POST /api/v4/sub-account/list<br/>(main-account key)
@@ -94,7 +95,7 @@ sequenceDiagram
         end
         P->>W: POST /api/v4/sub-account/edit<br/>(main-account key, full permission set)
     else Shared-KYC sub-accounts
-        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC on)
+        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC on,<br/>permission set)
         W-->>P: Sub-account id
     end
     P->>W: POST /api/v4/sub-account/api-key/create<br/>(main-account key, key name,<br/>deposit and withdrawal key)
@@ -218,9 +219,11 @@ sequenceDiagram
 
 ### Withdrawals
 
-The sub-account's `type: 2` key creates each withdrawal and the main account confirms it, as
-[Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval) shows; the account
-manager enables the sub-account withdrawal endpoints.
+The sub-account's `type: 2` key creates each withdrawal, and the main-account key confirms it before processing
+starts. The account manager enables the sub-account withdrawal endpoints.
+[Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval) gives the request for each approval step.
+
+<SubAccountWithdrawal />
 
 ### Conversion
 

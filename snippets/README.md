@@ -64,10 +64,9 @@ A diagram snippet holds one capability diagram that several pages show (`ai/RULE
 
 ### Diagram snippet registry
 
-No diagram snippet exists yet.
-
 | Snippet | Flow | Owner page | Importing pages |
 |---------|------|------------|-----------------|
+| `sub-account-withdrawal.mdx` | Sub-account withdrawal approval | `products/sub-accounts/quickstart` | `products/sub-accounts/quickstart`, `guides/waas-integration` |
 
 ## Partner-program fact snippets (skeletons)
 
