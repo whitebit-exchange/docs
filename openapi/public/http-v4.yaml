@@ -54,7 +54,7 @@ paths:
     get:
       summary: Maintenance status
       description: |
-        The endpoint retrieves the current maintenance status of the WhiteBIT platform. Use the response to detect scheduled downtime and pause trading automation during maintenance windows. The `status` field returns `"system operational"` when all platform services are available, or `"system maintenance"` when the platform is undergoing planned maintenance.
+        The endpoint retrieves the current maintenance status of the WhiteBIT platform. Use the response to detect scheduled downtime and pause trading automation during maintenance windows. The `status` field returns `1` when all platform services are available, or `0` when the platform is undergoing maintenance.
       tags:
         - Public API V4
       parameters: []
@@ -69,10 +69,10 @@ paths:
                   - status
                 properties:
                   status:
-                    type: string
-                    description: "Platform operational state. `\"system operational\"` indicates all services are available. `\"system maintenance\"` indicates the platform is undergoing planned maintenance."
-                    enum: ["system operational", "system maintenance"]
-                    example: "system operational"
+                    type: integer
+                    description: "Platform operational state. `1` indicates all services are available. `0` indicates the platform is undergoing maintenance."
+                    enum: [0, 1]
+                    example: 1
 
   /api/v4/public/markets:
     get:
