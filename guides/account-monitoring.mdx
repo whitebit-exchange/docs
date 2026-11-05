@@ -21,15 +21,15 @@ Monitor account state across Main, Trade, and Collateral balances using REST end
 
 ## Balance monitoring
 
-WhiteBIT separates funds into three account types. Each has a dedicated balance endpoint:
+WhiteBIT separates funds into three balance types. Each has a dedicated balance endpoint:
 
-| Account type | Endpoint | Doc page |
+| Balance type | Endpoint | Doc page |
 |-------------|----------|----------|
 | Main | `POST /api/v4/main-account/balance` | [Main Balance](/api-reference/account-wallet/main-balance) |
 | Trade (Spot) | `POST /api/v4/trade-account/balance` | [Trading Balance](/api-reference/trading/trading-balance) |
 | Collateral | `POST /api/v4/collateral-account/balance` | [Collateral Balance](/api-reference/trading/collateral-account-balance) |
 
-For an explanation of account types and how funds move between accounts, see [Balances & Transfers](/concepts/balances).
+For an explanation of balance types and how funds move between balances, see [Balances & Transfers](/concepts/balances).
 
 Every endpoint and stream in this guide operates on the account that owns the API key — to monitor a sub-account, use the sub-account's dedicated key. A main-account key can also query a sub-account's Main, Spot, and Collateral balances via [`POST /api/v4/sub-account/balances`](/api-reference/sub-accounts/sub-account-balances). See [Sub-Accounts](/api-reference/sub-accounts/overview) for key management.
 

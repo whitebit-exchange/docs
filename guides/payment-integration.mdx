@@ -323,7 +323,7 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 5 | Unconfirmed by user | — | No | Notify the account holder — manual action required at whitebit.com | Awaiting user action |
 | 21 | On hold | `deposit.aml_frozen` | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit held for review |
 | 22 | Uncredited | `deposit.aml_frozen` | No | Wait — credit pending. Escalate to support if >24h | Detected, not credited yet |
-| 27 | Travel Rule frozen | — | No | Notify the account holder — Travel Rule data required at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
+| 27 | Travel Rule frozen | — | No | Submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise notify the account holder to complete verification at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
 
 Every deposit ends in a final status: 3 or 7 (credited) or 4 or 9 (canceled). Statuses 5, 21, 22 and 29 are not final. A deposit in status 29 ends as 3 or 7 when the network fully confirms it, or as 4 if canceled.
@@ -589,7 +589,7 @@ The `POST /api/v4/main-account/withdraw` endpoint returns HTTP 201 when validati
 - **Withdrawals to AML-blocked destination addresses** freeze pending compliance review.
 - **Temporary withdrawal freeze (3 days)** applies after a password reset or a 2FA setting change on the account.
 
-Status transitions follow the state machine below: unconfirmed → pending → successful or canceled. Webhook events track the full lifecycle. When two withdrawals compete for the same balance and one fails processing, that withdrawal is retried; if the retry also fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
+Status transitions follow the state machine below: unconfirmed → pending → successful or canceled. Webhook events track the full lifecycle. When two withdrawals compete for the same balance and one fails processing, that withdrawal is retried; if processing still fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
 
 <Note>
   A revised confirmation model for IP-whitelisted API keys is planned but not yet deployed. Contact institutional@whitebit.com for availability.
