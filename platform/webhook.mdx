@@ -61,6 +61,7 @@ Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT ac
 - **Withdrawal monitoring** — Track withdrawal lifecycle from creation to completion or cancellation
 - **Code redemption** — Receive notification when a WhiteBIT Code is applied
 - **Refund handling** — Detect successful or failed refunds for reconciliation
+- **Virtual account monitoring** — Receive bank details when a virtual account becomes active, without polling the status endpoint
 
 ## How to use
 
@@ -278,6 +279,52 @@ Deposit status codes:
 | 28 | Travel Rule Frozen Processing | Travel Rule data submitted, verification in progress (EEA) |
 
 {/* TODO: verify complete deposit status code list with engineering — codes beyond 15, 27, 28 may exist */}
+
+### WhiteBIT virtual account status
+
+Performed when the status of a [virtual account](/glossary#virtual-account) changes. The `deposit.virtual_account_status` event removes the need to poll [Get virtual account status](/api-reference/account-wallet/get-virtual-account-status) for status changes; polling remains available. The event covers virtual accounts of every provider, including accounts registered through the WhiteBIT interface.
+
+To receive the event, enable the virtual account status event in the deposit group of the webhook configuration. On a webhook created before the event was introduced, the event is disabled by default and existing event subscriptions do not change. A webhook activated for the first time subscribes to every event, including `deposit.virtual_account_status`.
+
+The platform sends the event on every status change of the virtual account:
+
+- **Activation** — the provider allocates the account, and `status` becomes `active`.
+- **Rejection** — the provider refuses to open the account, and `status` becomes `rejected`.
+- **Closure** — the provider closes the account, and `status` becomes `closed`. A closure attempt that leaves the account open does not trigger the event.
+
+Registration does not trigger the event: the initial `pending` status that [Create virtual account](/api-reference/account-wallet/create-virtual-account) returns is not a status change. Deposits to the virtual account do not trigger the event either; deposit status changes arrive as the `deposit.*` events above. The platform sends the event only after Get virtual account status returns the new status, so both sources report the same status for the same account. Request example:
+
+```json
+{
+  "method": "deposit.virtual_account_status",
+  "params": {
+    "provider": "SEPA_BCB_GROUP",
+    "status": "active",
+    "paymentDetails": {
+      "beneficiary": "Acme Trading Ltd",
+      "iban": "DE89370400440532013000",
+      "bic": "COBADEFFXXX"
+    },
+    "timestamp": 1761566400,
+    "nonce": 1
+  },
+  "id": "uuid"
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `provider` | String | [Fiat](/glossary#fiat) [provider](/glossary#provider) of the virtual account, for example `SEPA_BCB_GROUP`. |
+| `status` | String | New status of the virtual account. Uses the same values as `status` in Get virtual account status. |
+| `paymentDetails` | Object | Bank details for incoming bank transfers, with the same fields as `paymentDetails` in Get virtual account status. Contains data only when `status` is `active`. For other statuses, the field is an empty object `{}`. |
+| `timestamp` | Integer | Time the platform registered the status change, as a Unix timestamp in seconds. Retries carry the original value. Compare `timestamp` with the last processed value to discard a notification that arrives out of order. |
+| `nonce` | Integer | Request [nonce](/glossary#nonce), common to every webhook request. |
+
+<Warning>
+The event carries the bank details that end users send deposits to. Verify the `X-TXC-SIGNATURE` header as described in [Request headers](#request-headers) before using `paymentDetails`.
+</Warning>
+
+Delivery follows the retry policy in [Processing webhook requests](#for-processing-web-hook-requests). A failed delivery does not change the virtual account status. After the last retry fails, the platform drops the notification; use Get virtual account status to read the current status and bank details.
 
 ### WhiteBIT withdraw from main balance
 
