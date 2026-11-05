@@ -234,6 +234,8 @@ starts. The account manager enables the sub-account withdrawal endpoints.
 
 <SubAccountWithdrawal />
 
+Act on each withdrawal status as the [Withdrawal status state machine](/guides/payment-integration#withdrawal-status-state-machine) describes.
+
 ### Conversion
 
 Conversion on a sub-account uses the requests in [Convert balances](/platform/convert#balances) and
@@ -241,7 +243,8 @@ Conversion on a sub-account uses the requests in [Convert balances](/platform/co
 sub-account's key, on the sub-account's Trade balance. The partner transfers the source currency from the Main balance to
 the Trade balance and requests the estimate after the transferred amount shows on the Trade balance. Before a
 withdrawal, the partner transfers the converted amount back to the Main balance. The transfer to Trade needs the
-sub-account's spot permission (`spotEnabled`).
+sub-account's spot permission (`spotEnabled`). The main account's one-time acceptance of the Convert terms on whitebit.com
+covers its sub-accounts; sub-accounts do not accept the terms separately.
 
 ## API key lifecycle
 

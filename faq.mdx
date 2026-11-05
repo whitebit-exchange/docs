@@ -78,11 +78,11 @@ WhiteBIT offers colocation across EEA/EMEA and APAC regions. Colocation provides
 
 <AccordionGroup>
 <Accordion title="Transfer delays between balances">
-Transfers may take up to 2 seconds to complete. When making transfers and withdrawals:
+When making transfers and withdrawals:
 
-- Wait for transfers to complete (approximately 2 seconds)
+- Before the next step, check that the amount shows on the destination balance
 - Avoid initiating withdrawals before transfer completion
-- Implement proper error handling for transfer states
+- Implement proper error handling for transfer states; after a timeout or server error, follow the transfer row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) before resending
 
 For endpoint details, see the [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) documentation. For details on balance types (Main, Trade, Collateral), see [Balances & Transfers](/concepts/balances).
 </Accordion>

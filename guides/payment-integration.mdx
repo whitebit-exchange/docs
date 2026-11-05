@@ -24,6 +24,7 @@ Before integrating any flow on this page:
 - **API key** — create an API key with the required permissions in the WhiteBIT dashboard. Every authenticated endpoint on this page except Issue card token requires [HMAC-signed requests](/api-reference/authentication) (`X-TXC-APIKEY`, `X-TXC-PAYLOAD`, `X-TXC-SIGNATURE` headers). Store the secret per [Security Best Practices](/best-practices/security). Issue card token takes a JWT in the `Authorization` header, as its reference page describes; see [Fiat withdrawal](#fiat-withdrawal).
 - **Webhook URL** — configure the webhook endpoint to receive transaction notifications. See [Webhooks](/platform/webhook) for the setup flow.
 - **Fiat access** — fiat operations additionally require completed [institutional onboarding](/institutional/onboarding) with approved fiat access.
+- **Convert terms** — for the flows that convert, the account owner accepts the Convert terms once on whitebit.com before the first conversion. See [Convert](/platform/convert#api-endpoints).
 
 ## Use cases
 
@@ -801,6 +802,8 @@ Create a fiat withdrawal using the same `POST /api/v4/main-account/withdraw` end
 
 The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Pass the currency in `ticker` (for example `EUR` or `USD`) and the payment provider in `provider` (for example `VISAMASTER`). Do not pass `USD_VISAMASTER` or `EUR_VISAMASTER` as `ticker`.
 
+A bank payout (IBAN, SEPA) goes only to the partner's own KYB'd bank account. Card payouts use the card token flow below.
+
 For a card withdrawal with `provider: "VISAMASTER"`, pass the card token returned by [Issue card token](/api-reference/account-wallet/issue-card-token) in `address`. The Issue card token call authenticates with a JWT from [Issue JWT token](/api-reference/account-wallet/issue-jwt-token). The Issue card token reference page lists the required headers. The API does not accept a card number (PAN) and does not read a card token from `beneficiary`.
 
 The `beneficiary` object is required for fiat withdrawals with tickers `USD` and `EUR`. Set `partialEnable` to `true` for increased maximum limits — the application must then handle status 18 ("Partially successful").
@@ -1207,7 +1210,7 @@ For balance endpoints, WebSocket account streams, and polling-interval guidance 
 **Deduplication:** Use the `uniqueId` from webhook payloads and history responses to deduplicate across webhook and polling paths.
 
 <Note>
-  The meaning of `uniqueId` differs by direction: for withdrawals, the value echoes the identifier supplied in the withdrawal request; for crypto deposits, the platform assigns the value (the transaction identifier that the refund endpoint consumes as `transactionId`). Both are unique per transaction and safe as idempotency keys.
+  The meaning of `uniqueId` differs by direction: for withdrawals, the value echoes the identifier supplied in the withdrawal request; for crypto deposits, the platform assigns the value (the transaction identifier that the refund endpoint consumes as `transactionId`); for fiat deposits, the history record carries the `uniqueId` of the deposit request. All are unique per transaction and safe as idempotency keys.
 </Note>
 
 <Note>

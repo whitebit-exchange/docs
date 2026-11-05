@@ -100,7 +100,7 @@ The KYC branch is selected at creation via the `shareKyc` parameter: with `share
     Call `POST /api/v4/sub-account/kyc-url` with the sub-account `id` — [API Reference](/api-reference/sub-accounts/kyc-url). The end customer opens the temporary link and completes the WhiteBIT-branded identity verification, which also confirms the sub-account email address. Track the sub-account state via the list endpoint.
   </Step>
   <Step title="Fund the account and enable trading">
-    Transfer initial funds fee-free via `POST /api/v4/sub-account/transfer`, and create a dedicated API key via `POST /api/v4/sub-account/api-key/create` for customers needing direct API access.
+    Transfer initial funds fee-free via `POST /api/v4/sub-account/transfer`, and create a dedicated API key via `POST /api/v4/sub-account/api-key/create` for customers needing direct API access. Dedicated-KYC branch: re-apply the permissions with `POST /api/v4/sub-account/edit` once the sub-account is active, because permissions sent at creation are not kept until the email is confirmed — [API Reference](/api-reference/sub-accounts/edit-sub-account), [FAQ](/faq).
   </Step>
   <Step title="Handle deposits and withdrawals">
     Once crypto deposits are enabled for the account, the sub-account generates its own deposit address via the [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission. Sub-account withdrawals require main-account confirmation — see [Account architecture](#account-architecture) above for the unconfirmed-withdrawals list and confirm endpoints.
@@ -162,6 +162,7 @@ Each sub-account supports up to **50 API keys**, managed via the [sub-account AP
 
 - Assign the minimum permission set per key (`Info + Trading` for trading-only customers; deposit and withdrawal permissions only where funds movement is required) — see [Security Best Practices](/best-practices/security) for the permission model and key-handling rules.
 - Configure the IP whitelist per key to match the customer's infrastructure.
+- The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too.
 
 <Warning>
   Create separate API keys for each customer sub-account. Never share the main-account keys with customers.

@@ -188,7 +188,7 @@ Performed when deposit was accepted. Request example:
 }
 ```
 
-Performed when deposit was update. Request example:
+Performed when the deposit changes: a new confirmation count, or an early credit (status 29) where the network's `confirmations_for_trading` is lower than `confirmations`. Request example:
 
 ```json
 {
@@ -216,7 +216,7 @@ Performed when deposit was update. Request example:
 }
 ```
 
-Performed when the deposit was processed and is available on the balance. Request example:
+Performed when the deposit is processed and available on the balance (status 3 or 7). For a crypto deposit this happens when the network fully confirms it; any hold from an early credit (status 29) clears. Request example:
 
 ```json
 {
@@ -303,7 +303,7 @@ Withdrawal status codes:
 |---|---|---|
 | 1, 2, 6, 10–17 | Pending | Withdrawal in progress |
 | 3, 7 | Successful | Withdrawal completed, funds sent |
-| 4 | Canceled | Withdrawal canceled |
+| 4 | Canceled | Withdrawal canceled; final state; the amount returns to the balance |
 | 18 | Partially successful | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | Withdrawal frozen by AML controls |
 
@@ -357,7 +357,7 @@ Performed when withdraw is pending. Request example:
 }
 ```
 
-Performed when withdraw was canceled. Request example:
+Performed when a withdrawal is canceled, including a withdrawal that fails processing after a retry when two withdrawals compete for the same balance. Request example:
 
 ```json
 {
