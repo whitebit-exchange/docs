@@ -74,6 +74,8 @@ Fee and limit figures are set per individual agreement, so no numbers appear in 
 - The enabled currency and provider matrix. At runtime, [Asset Status](/api-reference/market-data/asset-status-list) reports the per-currency `can_deposit` / `can_withdraw` flags and the request `provider` values; the [Fee](/api-reference/market-data/fee) endpoint reports the public fee schedule and limits per fiat asset, the same for every caller.
 - Settlement windows and cutoff behavior for the fiat rails in use, including weekends and holidays.
 
+The account's deposit and withdrawal limit is a rolling monthly limit counted in USD equivalent. For bank transfers, WhiteBIT sets the account's limit from the source-of-funds and source-of-wealth information provided during onboarding; the account manager confirms the values.
+
 ## Compliance essentials
 
 Compliance shapes which assets and flows are available to the account. The [Integration guide](/guides/on-off-ramp-integration) shows how each constraint affects requests; [Regulatory Compliance](/institutional/compliance) holds the full reference.
