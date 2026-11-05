@@ -1,0 +1,15 @@
+{/* Shared text: a balance or sub-account transfer takes no idempotency key.
+    One home per fact (RULES §3.6 invariant 4). Owner: the Warnings on the Transfer between balances
+    and Sub-Account Transfer reference pages; change those Warnings and this file together.
+    Edit the wording only in this file; pages import it by reference:
+      import TransferNoIdempotency from '/snippets/text/transfer-no-idempotency.mdx';
+      ...
+      <TransferNoIdempotency />
+    Inline copies that cannot import a block snippet (change these copies with this file): the retry table
+    on REST API rate limits and error codes, the Go-Live Checklist item, and the transfer row in data/error-codes.yaml.
+    No links or endpoint names here: the host sentence next to the snippet keeps the links and endpoints.
+    See snippets/README.md for the authoring + import convention. */}
+
+The transfer request takes no idempotency key. After a timeout or a `5xx` response, check the transfer history for a
+record that matches the request and was created after the failed request was sent. Resend the transfer only when no
+such record exists.

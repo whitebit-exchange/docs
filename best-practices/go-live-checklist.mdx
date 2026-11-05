@@ -36,6 +36,7 @@ See [Authentication](/api-reference/authentication) and [Security Best Practices
 - [ ] Authentication errors (`401`) do NOT trigger automatic retry — investigate the cause.
 - [ ] Validation errors (`400`, `422`) logged with the full response body for debugging.
 - [ ] Server errors (`500`, `503`) handled with retry and exponential backoff.
+- [ ] A timeout or a `5xx` on a transfer between balances or with a sub-account does not trigger an automatic retry — check the transfer history first, because the transfer requests take no idempotency key.
 - [ ] Error response JSON parsed for `code`, `message`, and `errors` fields.
 
 See [Errors and Error Handling](/api-reference/rate-limits) for the complete error code reference.
@@ -78,6 +79,8 @@ See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setu
 - [ ] Webhook nonce tracked — each nonce is strictly greater than the previous.
 - [ ] Idempotency implemented using `uniqueId` to prevent double-processing.
 - [ ] Fallback polling implemented for reconciliation. Webhook delivery is best-effort — a small number of retries spaced roughly hourly over a ~1-day window — so polling must close the gap for extended consumer outages.
+- [ ] Deposits polled without a `status` filter; deposits in non-final statuses (5, 21, 22, 27, 28, 29) stay open until a final status (3, 7, 4, 9).
+- [ ] Webhook source IP range obtained from the account manager, if the firewall allowlists inbound traffic.
 - [ ] Server responds with HTTP `200` for successfully processed webhooks.
 
 See [Webhooks](/platform/webhook) and [Security Best Practices](/best-practices/security) for verification implementation.

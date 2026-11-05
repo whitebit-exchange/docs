@@ -15,9 +15,9 @@ Earn yield on crypto assets through fixed-term and flexible lending plans -- 13 
 The Crypto Lending API supports two plan types with distinct yield mechanics.
 
 - **Fixed plans** -- lock assets for 10-360 day terms. Interest paid at maturity. Interest ratio conversion when target currency differs from source currency.
-- **Flexible plans** -- deposit and withdraw anytime. Interest calculated hourly, credited daily. Auto-reinvestment option compounds returns.
+- **Flexible plans** -- deposit and withdraw anytime. Interest calculated hourly, credited daily.
 - **~90 supported assets** -- invest in a wide range of crypto assets (check available plans dynamically via the plans endpoint)
-- **Auto-invest** -- configure automatic recurring investments into Flex plans
+- **Auto-reinvestment** -- enable or disable automatic reinvestment of Flex plan returns for an existing investment
 - **Full lifecycle API** -- create, monitor, withdraw, and close investments programmatically
 
 ## Who uses this
@@ -27,7 +27,7 @@ The Crypto Lending API supports two plan types with distinct yield mechanics.
 
 ## Common Integration Patterns
 
-**Idle asset management** -- Monitor [Main balance](/concepts/balances) for idle assets. Invest surplus into Flex plans (withdraw anytime, no lock-up). Set up auto-invest for recurring allocation. Withdraw back to Main balance before trading.
+**Idle asset management** -- Monitor [Main balance](/concepts/balances) for idle assets. Invest surplus into Flex plans (withdraw anytime, no lock-up). Enable auto-reinvestment to compound returns. Withdraw back to Main balance before trading.
 
 **Yield-as-a-service** -- Delivering yield to many end users is a partner program with its own model and lifecycle -- see [Yield-as-a-Service](/guides/yaas-overview).
 
@@ -38,8 +38,7 @@ The Crypto Lending API supports two plan types with distinct yield mechanics.
 | Lock-up | 10, 20, 30, 90, 180, or 360 days | None (withdraw anytime) |
 | Interest | Paid at maturity | Calculated hourly, credited daily |
 | Early withdrawal | Allowed — but **interest is forfeited** | Allowed — **accrued interest is retained** |
-| Auto-reinvest | N/A | Available |
-| Auto-invest | N/A | Available |
+| Auto-reinvestment | N/A | Available |
 | API access | B2B partners only | B2B partners only |
 
 <Note>
@@ -48,6 +47,8 @@ The Crypto Lending API supports two plan types with distinct yield mechanics.
   [institutional services form](https://whitebit.com/institutional-services/b2b) to request access.
   Until access is granted, these endpoints return `403`
   with `"You don't have permission to use this endpoint. Please contact support for more details"`.
+
+  With a sub-account's API key (`type: 2`), these endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
 </Note>
 
 ## Technical Overview

@@ -49,7 +49,7 @@ Reuse a single WebSocket connection for multiple subscriptions. Opening a new co
 The request above counts as one message regardless of the number of markets in `params`.
 
 <Note>
-Repeating a subscription replaces the previous one for the same channel. To track additional markets on an active channel, send a new subscribe request with the full target list — the server does not merge incremental subscribes.
+Repeating a subscription replaces the previous one for the same channel. To track additional markets on an active channel, send a new subscribe request with the full target list — the server does not merge incremental subscribes. The [Order Book Depth](/websocket/market-streams/depth) channel accepts a multiple subscription flag that adds a market to the existing subscriptions.
 </Note>
 
 ### Market Trades subscriptions

@@ -38,6 +38,9 @@ export const retryStrategies = [
   { errorType: "Rate limit (429)", retry: true, strategy: "Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter to avoid thundering herd." },
   { errorType: "Authentication error", retry: false, strategy: "Fix the root cause: check API key validity, signature computation, and header names." },
   { errorType: "Validation error", retry: false, strategy: "Fix the request parameters. Read the `errors` field for field-level feedback. Do not retry the same request." },
-  { errorType: "Insufficient balance", retry: false, strategy: "Check the account balance and wait for pending operations to settle before retrying." },
-  { errorType: "Server error (5xx)", retry: true, strategy: "Exponential backoff. If persistent, check platform status or contact support." },
+  { errorType: "Insufficient balance", retry: false, strategy: "Check the account balance and wait for pending operations to settle before retrying. For a conversion, transfer the source currency to the Trade balance; see [Convert balances](/platform/convert#balances)." },
+  { errorType: "Server error (5xx)", retry: true, strategy: "Exponential backoff. If persistent, check platform status." },
+  { errorType: "Server error or confirm code 0 on a conversion", retry: false, strategy: "The conversion may have executed. Follow Results and retries on the Convert page before converting again." },
+  { errorType: "Timeout or server error on a transfer", retry: false, strategy: "Transfer between balances and Sub-Account Transfer take no idempotency key. Check the transfer history first, and resend only when no matching record exists." },
+  { errorType: "Timeout or server error on a withdrawal", retry: false, strategy: "Look up the stored unique withdrawal ID in the deposit and withdrawal history before sending any new withdrawal request." },
 ];

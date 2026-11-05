@@ -107,6 +107,11 @@ The practice of placing trading servers in close physical proximity to an exchan
 
 Crypto Lending enables earning passive income by lending funds to the exchange in a chosen cryptocurrency for a set period.
 </Accordion>
+
+<Accordion title="Crypto-as-a-Service (CaaS)">
+
+A white-label crypto offering that a partner runs for the partner's own end users from the partner's own WhiteBIT account through the API: the partner issues a deposit address per end user, keeps the end-user ledger, and pays out from the account. See [Crypto-as-a-Service](/guides/caas-overview) and [Integration models](/concepts/integration-models#partners-own-account).
+</Accordion>
 </AccordionGroup>
 
 ## D
@@ -275,6 +280,11 @@ A limit order specifies a fixed price for buying or selling an [asset](#assets).
 
 <AccordionGroup>
 
+<Accordion title="Main account">
+
+A WhiteBIT account that is not a [sub-account](#sub-account). A main account can create and control sub-accounts, and differs from the [Main balance](#balance-main), which is one of the balances inside an account. See [Sub-Accounts](/products/sub-accounts/overview).
+</Accordion>
+
 <Accordion title="Maker">
 
 A maker is a trader who places [limit orders](#limit-order) on the [order book](#order-book), setting the price and quantity of the [trade](#deal-trade), and waits for another trader to accept the [order](#orders).
@@ -322,7 +332,7 @@ Markets in Crypto-Assets. The European Union's regulatory framework for crypto-a
 
 <Accordion title="Model A">
 
-The partner-operated sub-account model: the partner creates and manages one WhiteBIT sub-account per end user under a master account and holds the sub-account API key. Used by account operators and managed-trading platforms. See [Integration models](/concepts/integration-models).
+The partner-operated sub-account model: the partner creates and manages one WhiteBIT sub-account per end user under a main account and holds the sub-account API key. Used by account operators, managed-trading platforms, and [Wallet-as-a-Service](#wallet-as-a-service-waas) partners. See [Integration models](/concepts/integration-models).
 </Accordion>
 
 <Accordion title="Model B">
@@ -361,7 +371,7 @@ An OCO order combines a [limit order](#limit-order) with a [stop-limit](#stop-li
 
 <Accordion title="Omnibus account">
 
-A single pooled account holding multiple end users' funds together. WhiteBIT does not offer a pooled omnibus model for partner integrations — pooled custody conflicts with MiCA client-fund segregation and Travel Rule requirements, so each model keeps segregated sub-accounts. See [Integration models](/concepts/integration-models).
+A single pooled account holding multiple end users' funds together, as in the [Crypto-as-a-Service](/guides/caas-overview) model. See [Integration models](/concepts/integration-models#partners-own-account).
 </Accordion>
 
 <Accordion title="One Triggers the Other (OTO)">
@@ -537,9 +547,9 @@ A price set in advance to trigger a stop order.
 
 <Accordion title="Sub-account">
 
-A main account manages a sub-account. The main account assigns specific permissions to the sub-account (for example, the main account disables [margin trading](#margin-trading)).
+A [main account](#main-account) manages a sub-account. The main account assigns specific permissions to the sub-account (for example, the main account disables [margin trading](#margin-trading)).
 
-Crypto deposits are a separately enabled capability and are disabled by default. Once enabled for the account, the capability applies to the account and its sub-accounts; to request it, contact the assigned Account Manager or email institutional@whitebit.com.
+Crypto deposits to a sub-account are off by default and require separate enablement through the assigned account manager. Once the account manager enables crypto deposits for the account, the capability covers all of the account's sub-accounts.
 
 A sub-account can use a custom trading [fee](#fee) or rebate model defined for the sub-account. Use [`Query Market Fees`](/api-reference/trading/query-market-fee) to retrieve effective fees when an API key belongs to a sub-account.
 
@@ -606,6 +616,11 @@ The total number of shares or contracts buyers and sellers exchange in a [market
 ## W
 
 <AccordionGroup>
+<Accordion title="Wallet-as-a-Service (WaaS)">
+
+A partner integration in which each end user gets a [sub-account](#sub-account) under the partner's main account, for deposits, withdrawals, conversion, and trading. See [Wallet-as-a-Service](/guides/waas-overview) and [Integration models](/concepts/integration-models).
+</Accordion>
+
 <Accordion title="Webhook">
 
 An HTTP callback the platform sends to a partner-configured URL when an event occurs, such as a deposit or withdrawal status change. WhiteBIT signs each delivery so the consumer can verify the origin. See [Webhooks](/platform/webhook) for setup, the event catalog, and retry behavior.

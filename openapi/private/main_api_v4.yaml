@@ -32,7 +32,7 @@ security:
 
 tags:
   - name: Main Account
-    description: Main account balance and operations
+    description: Main balance and related operations
   - name: Deposit
     description: Cryptocurrency and fiat deposit operations
   - name: Withdraw
@@ -72,6 +72,8 @@ paths:
         An unknown or non-existent `ticker` is not an error: the endpoint returns a zero balance (`{"main_balance": "0"}`) for it. Omitting `ticker` returns balances for every currency.
 
         `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
+
+        In the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history), a deposit credited before full confirmation has status 29 until the network fully confirms it (status 3 or 7, `deposit.processed` webhook).
 
         Beyond the validation error above, this endpoint can return only the [common authentication errors](/api-reference/authentication).
 
@@ -162,6 +164,8 @@ paths:
       description: |
         The endpoint reports how much of the account is held back because deposits were credited before the network fully confirmed them, and how much remains withdrawable.
 
+        In the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history), a deposit credited before full confirmation has status 29 until the network fully confirms it (status 3 or 7, `deposit.processed` webhook).
+
         Amounts ending in `Stable` are expressed in a stable-coin equivalent, so figures for different currencies can be summed. `assets` breaks the free amount down per currency, in that currency's own units.
 
         The held amount is tradable: it can be moved to the trade balance and traded. It cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. Two limits apply at once — the free amount of the currency itself, shown in `assets`, and the free value of the whole account, shown in `availableBalanceStable`. Whichever is smaller decides.
@@ -237,7 +241,7 @@ paths:
         Get an existing cryptocurrency deposit address for a given currency and network.
 
         <Note>
-        Sub-accounts use this endpoint with a sub-account API key once deposits are enabled for the account. Crypto deposits are disabled by default. To enable deposits, contact the assigned account manager or email institutional@whitebit.com.
+        Sub-accounts use this endpoint with a sub-account API key once sub-account deposits are enabled for the account. Crypto deposits to sub-accounts are disabled by default. To enable deposits, contact the assigned account manager.
         </Note>
 
         <Warning>
@@ -366,9 +370,9 @@ paths:
         - Deposit
       summary: Get fiat deposit address
       description: |
-        The endpoint retrieves a deposit url of the [fiat](/glossary#fiat) invoice.
+        The endpoint returns the URL of a hosted [fiat](/glossary#fiat) deposit page. With a card provider such as VISAMASTER, the payer pays by card on that page, and the amount is credited to the account that requested the URL.
 
-        The endpoint works on demand. Contact WhiteBIT support and provide the API key to get access to the functionality.
+        The endpoint works on demand. Request access through the account manager and provide the API key.
 
 
         <Warning>
@@ -411,7 +415,7 @@ paths:
                   example: "100"
                 uniqueId:
                   type: string
-                  description: Unique transaction identifier on client's side. Any string up to 255 characters; not validated as a UUID.
+                  description: Unique transaction identifier on client's side. Any string up to 255 characters; not validated as a UUID. Use the value to find the deposit in the deposit/withdraw history.
                   example: "qw22"
                 customer:
                   type: object
@@ -483,11 +487,11 @@ paths:
                           example: "ES"
                 successLink:
                   type: string
-                  description: Customer will be redirected to this URL by acquiring [provider](/glossary#provider) after success deposit. To activate this feature, please contact support
+                  description: Customer will be redirected to this URL by acquiring [provider](/glossary#provider) after success deposit. To activate this feature, contact the account manager
                   example: "https://success.example.com"
                 failureLink:
                   type: string
-                  description: Customer will be redirected to this URL in case of fail or rejection on acquiring provider side. To activate this feature, please contact support
+                  description: Customer will be redirected to this URL in case of fail or rejection on acquiring provider side. To activate this feature, contact the account manager
                   example: "https://failure.example.com"
                 returnLink:
                   type: string
@@ -705,7 +709,7 @@ paths:
 
         Two settings control access to the endpoint:
         - **Endpoint access.** Enable the endpoint in the [API key settings](/api-reference/authentication#setting-up-api-keys).
-        - **Provider access.** WhiteBIT support enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
+        - **Provider access.** The account manager enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -735,7 +739,7 @@ paths:
                 provider:
                   type: string
                   description: |
-                    [Fiat](/glossary#fiat) [provider](/glossary#provider) that issues the virtual account. Use `SEPA_BCB_GROUP`. Confirm the providers enabled for the account with the [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+                    [Fiat](/glossary#fiat) [provider](/glossary#provider) that issues the virtual account. Use `SEPA_BCB_GROUP`. The [Asset Status endpoint](/api-reference/market-data/asset-status-list) lists the providers of each fiat currency.
                   example: "SEPA_BCB_GROUP"
                 request:
                   type: string
@@ -848,7 +852,7 @@ paths:
                     errors:
                       message: "Failed to register virtual account"
         "403":
-          description: API deposits are not enabled for the provider on the account. Contact WhiteBIT support to enable the provider.
+          description: API deposits are not enabled for the provider on the account. Contact the account manager to enable the provider.
           content:
             application/json:
               schema:
@@ -876,7 +880,7 @@ paths:
 
         Two settings control access to the endpoint:
         - **Endpoint access.** Enable the endpoint in the [API key settings](/api-reference/authentication#setting-up-api-keys).
-        - **Provider access.** WhiteBIT support enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
+        - **Provider access.** The account manager enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
 
         <Warning>
         Rate limit: 20 requests/1 min.
@@ -1025,7 +1029,7 @@ paths:
                     errors:
                       message: "Failed to get virtual account status"
         "403":
-          description: API deposits are not enabled for the provider on the account. Contact WhiteBIT support to enable the provider.
+          description: API deposits are not enabled for the provider on the account. Contact the account manager to enable the provider.
           content:
             application/json:
               schema:
@@ -1034,7 +1038,7 @@ paths:
                 code: 0
                 message: "You don't have permission to use this endpoint. Please contact support for more details"
         "429":
-          description: Rate limit exceeded
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
         "451":
           description: The currency is unavailable for the jurisdiction of the account.
 
@@ -1054,7 +1058,7 @@ paths:
 
         Two settings control access to the endpoint:
         - **Endpoint access.** Enable the endpoint in the [API key settings](/api-reference/authentication#setting-up-api-keys).
-        - **Provider access.** WhiteBIT support enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
+        - **Provider access.** The account manager enables API deposits for each provider on the account. Without provider access, the endpoint returns `403`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -1086,7 +1090,7 @@ paths:
                 provider:
                   type: string
                   description: |
-                    [Fiat](/glossary#fiat) [provider](/glossary#provider) for the deposit: `SEPA_BCB_GROUP`, `SEPA_CLEAR_JUNCTION`, `FINCI`, or `SEPA_FINSEI`. Confirm the providers enabled for the account with the [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+                    [Fiat](/glossary#fiat) [provider](/glossary#provider) for the deposit: `SEPA_BCB_GROUP`, `SEPA_CLEAR_JUNCTION`, `FINCI`, or `SEPA_FINSEI`. The [Asset Status endpoint](/api-reference/market-data/asset-status-list) lists the providers of each fiat currency.
                   example: "SEPA_BCB_GROUP"
                 amount:
                   type: string
@@ -1259,7 +1263,7 @@ paths:
                     errors:
                       ticker: "Currency is not depositable"
         "403":
-          description: API deposits are not enabled for the provider on the account. Contact WhiteBIT support to enable the provider.
+          description: API deposits are not enabled for the provider on the account. Contact the account manager to enable the provider.
           content:
             application/json:
               schema:
@@ -1499,11 +1503,8 @@ paths:
                     message: "Validation failed"
                     errors:
                       cardNumber: ["The cardNumber field is invalid."]
-                tooManyAttempts:
-                  summary: "Too many attempts (throttling)"
-                  value:
-                    message: "Too Many Attempts."
-                    code: 0
+        "429":
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
 
   /api/v4/main-account/refund-deposit:
     post:
@@ -1565,7 +1566,7 @@ paths:
                 request:
                   type: string
                   description: |
-                    Base64-encoded request body. See the [authentication guide](/private/http-auth) for signature generation details.
+                    Request path. See the [authentication guide](/api-reference/authentication) for signature generation details.
                   example: "{{request}}"
                 nonce:
                   type: integer
@@ -1811,9 +1812,9 @@ paths:
                 ticker:
                   type: string
                   description: |
-                    Currency's [ticker](/glossary#ticker). Example: BTC
+                    Currency's [ticker](/glossary#ticker). Example: BTC.
 
-                    ⚠️ Currencies ticker must have "can_deposit" status equal to "true". Use [Asset Status endpoint](/public/http-v4/asset-status-list) to know more about currency.
+                    Currencies ticker must have "can_withdraw" status equal to "true". Use [Asset Status endpoint](/public/http-v4/asset-status-list) to know more about currency.
                   example: ETH
                 amount:
                   type: string
@@ -1823,7 +1824,7 @@ paths:
                 address:
                   type: string
                   description: |
-                    Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted.
+                    Target address: wallet address for cryptocurrencies, account identifier or IBAN for [fiat](/glossary#fiat) bank rails, or the [card token](/glossary#card-token) for VISAMASTER. Do not send a card number (PAN). Obtain the card token with [Issue card token](/api-reference/account-wallet/issue-card-token).
                   example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
                 memo:
                   type: string
@@ -1874,11 +1875,9 @@ paths:
                 beneficiary:
                   type: object
                   description: |
-                    Beneficiary information.
+                    Beneficiary information. Required if currency [ticker](/glossary#ticker) is USD or EUR. The card token for a VISAMASTER withdrawal goes in `address`, not in `beneficiary`.
 
-                    ⚠️ Required if currency [ticker](/glossary#ticker) is USD or EUR.
-
-                    Per-field requirements vary by currency and provider. Bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for the VISAMASTER_PAYCORE [provider](/glossary#provider). The card token for a VISAMASTER withdrawal goes in `address`, not in `beneficiary`. See `/asset-status-list` for the active provider per currency.
+                    Per-field requirements vary by currency and provider. Bank-related fields (`bank.*`) apply to bank-rail withdrawals; `phone`, `email`, and `birthDate` are required for the VISAMASTER_PAYCORE [provider](/glossary#provider). See `/asset-status-list` for the active provider per currency.
                   properties:
                     firstName:
                       type: string
@@ -2236,7 +2235,10 @@ paths:
                   nonce: 1594297865000
       responses:
         "201":
-          description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
+          description: |
+            Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
+
+            When two withdrawals compete for the same balance and one fails processing, that withdrawal is retried; if processing still fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
           content:
             application/json:
               schema:
@@ -2314,11 +2316,6 @@ paths:
                     message: "Validation failed"
                     errors:
                       partialEnable: ["The partial enable field must be true or false."]
-                throttling:
-                  summary: "Rate limiting/throttling"
-                  value:
-                    message: "Too Many Attempts."
-                    code: 0
         "422":
           description: |
             Inner validation failed.
@@ -2393,6 +2390,8 @@ paths:
               example:
                 code: 4
                 message: "This API Key is not authorized to perform this action."
+        "429":
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
 
   /api/v4/main-account/withdraw-pay:
     post:
@@ -2429,7 +2428,10 @@ paths:
               nonce: 1594297865000
       responses:
         "201":
-          description: Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
+          description: |
+            Validation succeeded and withdraw creation process is started. Check the request status by uniqueId in deposit/withdraw history.
+
+            When two withdrawals compete for the same balance and one fails processing, that withdrawal is retried; if processing still fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
           content:
             application/json:
               schema:
@@ -2536,6 +2538,10 @@ paths:
       description: |
         The endpoint creates a signed, single-use Express Withdraw payment token that charges a specific amount from a WhiteBIT user's balance to the partner's [Main balance](/glossary#balance-main) in an instant, off-chain, zero-[fee](/glossary#fee) internal transfer. The response returns a URL that embeds the token; the paying user confirms the exact [ticker](/glossary#ticker) and amount on the WhiteBIT-hosted confirmation surface.
 
+        <Note>
+        The endpoint is available only for B2B partner services and requires a separate approval process. Request access through the account manager.
+        </Note>
+
         Token and payment constraints:
         - Each token is single-use: WhiteBIT marks the token used at confirmation and rejects any replay.
         - Each token expires 90 seconds after creation; the `expireAt` response field carries the authoritative expiry timestamp. Generate the token as close as possible to the moment of presenting the URL to the user.
@@ -2620,7 +2626,7 @@ paths:
                 expireAt: "2026-07-10 12:34:56"
         "403":
           description: |
-            The account does not have the Express Withdraw permission. WhiteBIT grants the permission through the B2B partner approval process — request access at https://institutional.whitebit.com/.
+            The account does not have the Express Withdraw permission. WhiteBIT grants the permission through the B2B partner approval process — request access through the account manager.
         "422":
           description: |
             Inner validation failed.
@@ -2658,6 +2664,15 @@ paths:
         <Note>
         Also, fiat currencies can't be transferred without KYC verification.
         </Note>
+
+        <Warning>
+        The request takes no idempotency key. After a timeout or a `5xx` response, check
+        [Get transfer history](/api-reference/account-wallet/get-transfer-history) for a record whose `from_balance`,
+        `to_balance`, `currency` and `amount` match the request, created after the failed request was sent. A transfer
+        between the spot and collateral balances appears as two records, `spot → main` and `main → collateral`. The history
+        lists a transfer only after the transfer completes, so repeat the check before resending, and resend only when no
+        matching record exists.
+        </Warning>
       operationId: transferBetweenBalances
       requestBody:
         required: true
@@ -2819,11 +2834,6 @@ paths:
                     message: "Validation failed"
                     errors:
                       amount: ["The amount must be a number.", "Invalid number"]
-                throttling:
-                  summary: "Rate limiting/throttling"
-                  value:
-                    message: "Too Many Attempts."
-                    code: 0
         "422":
           description: |
             Inner validation failed
@@ -2873,6 +2883,8 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       currency: ["Deposit to this currency is disabled"]
+        "429":
+          description: "Rate limit exceeded. Retry with exponential backoff; see [Rate limits](/api-reference/rate-limits)."
 
   /api/v4/main-account/transfer/history:
     post:
@@ -3025,18 +3037,24 @@ paths:
       description: |
         The endpoint retrieves the history of deposits and withdraws.
 
+        <Note>
+        A sub-account reads its own deposit and withdrawal history with its own API key.
+        </Note>
+
         **Deposit status codes:**
         - `Successful` - 3, 7
         - `Canceled` - 4, 9
         - `Unconfirmed by user` - 5
-        - `AML frozen` - 21
+        - `On hold` - 21
         - `Uncredited` - 22
         - `Pending` - 15
 
-        `Successful` (3, 7) is a final state. A credited deposit does not later transition to `AML frozen` (21) or `Uncredited` (22); those checks happen before crediting.
+        The history also returns status 29 (`Credited, on hold`): the funds are credited, and part may stay held until the network fully confirms the deposit.
+
+        `Successful` (3, 7) and `Canceled` (4, 9) are final states. A deposit in status 5, 21, 22 or 29 is not final and later ends as 3, 7, 4 or 9. A successful deposit (3, 7) does not later transition to `On hold` (21) or `Uncredited` (22).
 
         **Travel Rule Deposit check status codes:**
-        - `Awaiting verification` - 27: The transaction has been frozen due to the lack of data required under the Travel Rule. The user is required to provide this data manually through the exchange interface.
+        - `Awaiting verification` - 27: the deposit is frozen because data required under the Travel Rule is missing. Where the Travel Rule API is enabled for the account, submit the data with [Submit deposit originator data](/api-reference/travel-rule/submit-deposit-verification); otherwise the account holder provides it at whitebit.com.
         - `Confirmation in progress` - 28: The Travel Rule data provided by the user is currently being verified by WhiteBIT.
 
         ⚠️ Due to regulatory requirements in Turkey and [EU](/glossary#european-economic-area-eea), the system places every inbound crypto deposit on hold (frozen) until confirming the transaction's origin. The sender must provide certain details if the transaction is from another Virtual Asset Service Provider (VASP) or verify the address if from a self-hosted wallet. The system credits deposited funds to the account only after successful verification.
@@ -3044,7 +3062,7 @@ paths:
         **Withdraw status codes:**
         - `Pending` - 1, 2, 6, 10–17 (withdrawal in progress).
         - `Successful` - 3, 7
-        - `Canceled` - 4
+        - `Canceled` - 4 (final; the amount returns to the balance)
         - `Unconfirmed by user` - 5
         - `AML frozen` - 21
         - `Partially successful` - 18
@@ -3129,7 +3147,9 @@ paths:
                   description: |
                     Can be used for filtering transactions by status codes.
 
-                    ⚠️ Caution: Use this parameter with the appropriate `transactionMethod` and valid status codes for that method. See the endpoint description above for valid codes. Example: `"status": [3,7]`
+                    ⚠️ Caution: Use this parameter with the appropriate `transactionMethod` and valid status codes for that method. See the status code lists in the endpoint description above for valid codes. Example: `"status": [3,7]`
+
+                    A filter on the successful codes alone (`[3,7]`) leaves out transactions in every other status, such as canceled, on-hold or uncredited deposits. To follow a transaction to its final status, omit `status`.
                   example: [3, 7]
                 request:
                   type: string
@@ -3201,15 +3221,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
-                missingFields:
-                  summary: "Missing required fields"
-                  value:
-                    code: 0
-                    message: "Validation failed"
-                    errors:
-                      limit: ["The limit field is required."]
-                      offset: ["The offset field is required."]
-                      transactionMethod: ["The transaction method field is required."]
                 invalidTicker:
                   summary: "Invalid ticker"
                   value:
@@ -3268,11 +3279,11 @@ paths:
         - Deposit
       summary: Create new address for deposit
       description: |
-        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default, contact support@whitebit.com to get permissions to use the endpoint.
+        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default; request access through the account manager. The number of addresses is limited; the account manager can discuss and adjust the limit for the account. The API provides no way to close or deactivate an issued address.
 
         <Note>
         For sub-accounts, crypto deposits must also be enabled for the account (disabled by
-        default). To enable them, contact your assigned Account Manager or email institutional@whitebit.com.
+        default). To enable deposits, contact the assigned account manager.
         </Note>
 
         **Address types:**
@@ -4090,6 +4101,8 @@ paths:
 
         <Note>
         These endpoints are available only for B2B partner services. Fill the institutional services form to get permissions to use these endpoints.
+
+        With a sub-account's API key (`type: 2`), these endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
         </Note>
 
         **Note:** When target currency is different from source currency, interest amount in target currency will be calculated using `interestRatio` value.
@@ -4183,6 +4196,10 @@ paths:
       summary: Invest
       description: |
         The endpoint creates a new investment to the specified [invest plan](/glossary#crypto-lending).
+
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -4383,7 +4400,11 @@ paths:
       description: |
         The endpoint closes active investment.
 
-        Early closure is allowed and carries no penalty — the request either succeeds or returns one of the documented errors.
+        Early closure is allowed — the request either succeeds or returns one of the documented errors.
+
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -4480,6 +4501,10 @@ paths:
       summary: Get investments history
       description: |
         The endpoint retrieves an investments history.
+
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -4612,6 +4637,10 @@ paths:
       description: |
         The endpoint retrieves the history of interest payments.
 
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -4725,6 +4754,10 @@ paths:
 
         Available after September 22, 2025.
 
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -4834,6 +4867,10 @@ paths:
       summary: Get User Flex Investments
       description: |
         Retrieve user's investment portfolio with optional filtering.
+
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -4968,6 +5005,10 @@ paths:
         - 4: DAILY_EARNING - Daily earnings
         - 5: CLOSE_INVESTMENT - Investment closure
         - 6: OPEN_INVESTMENT - Investment opening
+
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5106,6 +5147,10 @@ paths:
 
         **Note:** The endpoint automatically filters to show ONLY DAILY_EARNING operations (type 4).
 
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -5231,6 +5276,10 @@ paths:
       summary: Create Flex Investment
       description: |
         Create new investment in a Flex plan.
+
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5407,6 +5456,10 @@ paths:
 
         **Note:** Plan must be active and accessible to user.
 
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -5550,6 +5603,10 @@ paths:
         - plan: required, string, UUID format, must exist
         - Investment must be ACTIVE
 
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -5654,6 +5711,10 @@ paths:
       summary: Update Flex Auto-Reinvestment
       description: |
         Enable/disable automatic reinvestment for user's investment.
+
+        <Note>
+        With a sub-account's API key (`type: 2`), the Crypto Lending endpoints operate on that sub-account's own Main balance. Lending is not enabled on sub-accounts by default and is enabled per sub-account on request; see [YaaS integration](/guides/yaas-integration#prerequisites).
+        </Note>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -5797,6 +5858,8 @@ paths:
       description: |
         The endpoint creates new [sub-account](/glossary#sub-account).
 
+        A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
+
         <Note>
         The `email` field requirement depends on the `shareKyc` parameter:
         - When `shareKyc` is `false` or not provided: `email` is **required**
@@ -5804,9 +5867,13 @@ paths:
         </Note>
 
         <Note>
-        Crypto deposits are disabled by default. Once deposits are enabled for the account, the
-        capability applies to the account and its sub-accounts; enablement is not available via
-        API. To request it, contact your assigned Account Manager or email institutional@whitebit.com.
+        With `shareKyc: false`, permissions sent at creation are not kept until the end customer confirms the email through the [KYC URL](/api-reference/sub-accounts/kyc-url) flow. Re-apply them with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true`, permissions apply at creation. See [FAQ](/faq).
+        </Note>
+
+        <Note>
+        Crypto deposits to sub-accounts are disabled by default. Once deposits are enabled for the
+        account, the capability applies to all of its sub-accounts; enablement is not available via
+        API. To request it, contact the assigned account manager.
         Once enabled, a sub-account generates deposit addresses through the standard
         [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
         using its own API key with deposit permission.
@@ -5940,6 +6007,8 @@ paths:
       description: |
         The endpoint edits [sub-account](/glossary#sub-account).
 
+        Use this endpoint to re-apply permissions to a dedicated-KYC sub-account after email confirmation.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6072,6 +6141,8 @@ paths:
       description: |
         The endpoint creates transfer from main account to [sub-account](/glossary#sub-account) or vice versa.
 
+        Transfers between the main account and any sub-account are fee-free in both directions.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6079,6 +6150,13 @@ paths:
         <Note>
         The API does not cache the response.
         </Note>
+
+        <Warning>
+        The request takes no idempotency key. After a timeout or a `5xx` response, check
+        [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) for a record whose
+        `direction`, `currency` and `amount` match the request's `direction`, `ticker` and `amount`, created after the failed
+        request was sent, before sending the transfer again. Resend the transfer only when no such record exists.
+        </Warning>
       operationId: subAccountTransfer
       requestBody:
         required: true
@@ -6374,7 +6452,7 @@ paths:
         Results are ordered by creation time, newest first.
 
         <Note>
-        The sub-account withdrawal endpoints are not available by default. To request access, contact institutional@whitebit.com.
+        The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.
         A `404 Not Found` response indicates the endpoint is not enabled for the account.
         </Note>
 
@@ -6506,7 +6584,7 @@ paths:
         expires after a retention period. A successful call returns an empty object.
 
         <Note>
-        The sub-account withdrawal endpoints are not available by default. To request access, contact institutional@whitebit.com.
+        The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.
         A `404 Not Found` response indicates the endpoint is not enabled for the account.
         </Note>
 
@@ -6596,13 +6674,15 @@ paths:
       description: |
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
 
+        The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too.
+
         <Note>
         A `type: 2` key includes the withdrawal permission group, but its URLs default to `enable: false`.
         Enable the ones the key uses (for example `/api/v4/main-account/withdraw`) with
         [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); until then
         `/api/v4/main-account/withdraw` returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
-        Crypto deposits additionally require deposits to be enabled for the account — disabled by default,
-        contact your assigned Account Manager or email institutional@whitebit.com.
+        Crypto deposits additionally require sub-account deposits to be enabled for the account (disabled by
+        default); to enable sub-account deposits, contact the assigned account manager.
         </Note>
 
         <Warning>
@@ -7364,7 +7444,7 @@ paths:
                 code: 0
                 message: "Invalid API key, signature, or nonce"
         "404":
-          description: Not found — the authenticated user does not have sub-account crypto service permission
+          description: Not found
           content:
             application/json:
               schema:
@@ -8585,7 +8665,7 @@ paths:
         - Travel Rule
       summary: Submit deposit originator data
       description: |
-        Submits originator information for a deposit that is ready for the travel rule verification.
+        Submits originator information for a deposit in status 27 (`Awaiting verification`). While WhiteBIT reviews the submitted data, the deposit has status 28 (`Confirmation in progress`).
 
         **Wallet types:**
         - `hosted` - VASP-hosted wallet (exchange, custodian). Requires `vaspData` object.
@@ -9021,7 +9101,7 @@ components:
       properties:
         ticker:
           type: string
-          description: "Currencies [ticker](/glossary#ticker). Example: BTC ⚠️ Currencies ticker must have \"can_deposit\" status equal to \"true\". Use [Asset Status endpoint](/public/http-v4/asset-status-list) to know more about currency."
+          description: "Currencies [ticker](/glossary#ticker). Example: BTC. Currencies ticker must have \"can_withdraw\" status equal to \"true\". Use [Asset Status endpoint](/public/http-v4/asset-status-list) to know more about currency."
           example: "ETH"
         amount:
           type: string
@@ -9029,7 +9109,7 @@ components:
           example: "0.9"
         address:
           type: string
-          description: "Target address: wallet address for cryptocurrencies; account identifier or IBAN for [fiat](/glossary#fiat) bank rails. For the VISAMASTER [provider](/glossary#provider), pass the [card token](/glossary#card-token) returned by [Issue card token](/api-reference/account-wallet/issue-card-token). A card number (PAN) is not accepted."
+          description: "Target address: wallet address for cryptocurrencies, account identifier or IBAN for [fiat](/glossary#fiat) bank rails, or the [card token](/glossary#card-token) for VISAMASTER. Do not send a card number (PAN). Obtain the card token with [Issue card token](/api-reference/account-wallet/issue-card-token)."
           example: "0x0964A6B8F794A4B8d61b62652dB27ddC9844FB4c"
         memo:
           type: string
@@ -9084,7 +9164,7 @@ components:
         unique_id:
           type: string
           nullable: true
-          description: Unique Id of deposit/withdraw. Unique per user.
+          description: Unique Id of deposit/withdraw. Unique per user. For a withdrawal or a fiat deposit, the `uniqueId` sent in the request; for a crypto deposit, the platform assigns the value.
           example: null
         createdAt:
           type: integer

@@ -5,7 +5,7 @@ openapi: /openapi/private/main_api_v4.yaml POST /api/v4/travel-rule/deposit/veri
 
 ## Overview
 
-When a deposit is detected as Travel Rule-eligible, it enters a "ready for verification" state. Use this endpoint to submit the required originator data.
+When a deposit is detected as Travel Rule-eligible, it enters status 27 (Awaiting verification). Use this endpoint to submit the required originator data.
 
 For detailed information about wallet types, party types, and field requirements, see [Travel Rule](/concepts/travel-rule).
 
@@ -59,3 +59,4 @@ When `walletType` is `"hosted"`, provide either `vaspId` or `vaspName`.
 
 - [On/Off-Ramp integration](/guides/on-off-ramp-integration) — corporate fiat ↔ crypto over EUR/SEPA rails.
 - [On/Off-Ramp FAQ](/guides/on-off-ramp-faq) — originator-data submission for Travel Rule holds on inbound deposits.
+- [Payment Integration](/guides/payment-integration) — originator-data submission for deposits in Travel Rule status 27.
