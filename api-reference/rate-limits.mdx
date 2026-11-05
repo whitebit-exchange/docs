@@ -85,7 +85,7 @@ The following errors are returned by private REST endpoints when the request sig
 | Rate limit (429) | Yes | Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter. |
 | Authentication error | No | Fix the root cause: check API key validity, signature computation, and header names. |
 | Validation error | No | Fix the request parameters. Read the `errors` field for field-level feedback. |
-| Insufficient balance | No | Check the account balance and wait for pending operations to settle. |
+| Insufficient balance | No | Check the account balance and wait for pending operations to settle. For a conversion, transfer the source currency to the Trade balance; see [Convert balances](/platform/convert#balances). |
 | Server error (5xx) | Yes | Exponential backoff. If persistent, check platform status. |
 | Server error or confirm code `0` on a conversion | Only after a check | The conversion may have executed. Follow [Results and retries](/platform/convert#results-and-retries) before converting again. |
 | Timeout or server error on a transfer | Only after a check | [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) and [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) take no idempotency key. Check the transfer history first, and resend only when no matching record exists. |

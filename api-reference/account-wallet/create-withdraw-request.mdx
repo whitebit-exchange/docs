@@ -221,12 +221,13 @@ Search by `uniqueId` to track the transaction.
 
 **Withdrawal status codes**:
 - **Successful**: 3, 7
-- **Canceled**: 4
-- **Pending**: Other codes (see [history endpoint](/api-reference/account-wallet/get-deposit-withdraw-history) for full list)
+- **Canceled**: 4 (final; the amount returns to the balance)
+- **Pending**: 1, 2, 6, 10–17
+- **Unconfirmed by user**: 5
+- **Partially successful**: 18
+- **AML frozen**: 21
 
-<Note>
-Cryptocurrency withdrawals are typically processed within 15-60 minutes depending on network congestion. Fiat withdrawals may take 1-5 business days depending on the payment provider.
-</Note>
+See the [history endpoint](/api-reference/account-wallet/get-deposit-withdraw-history) for the full list.
 
 ---
 
