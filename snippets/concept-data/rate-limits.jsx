@@ -49,5 +49,5 @@ export const httpStatusCodes = [
   { status: 403, meaning: "Forbidden — insufficient permissions" },
   { status: 404, meaning: "Not found — endpoint does not exist" },
   { status: 429, meaning: "Too Many Requests — rate limit exceeded" },
-  { status: 500, meaning: "Internal server error — retry with backoff" },
+  { status: 500, meaning: "Internal server error — retry with backoff; for a transfer, check the transfer history before resending" },
 ];

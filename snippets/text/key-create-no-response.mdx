@@ -1,0 +1,11 @@
+{/* Shared text: a key-create request that gets no response (sub-account API keys).
+    One home per fact (RULES §3.6 invariant 4). Owner page: Wallet-as-a-Service integration, API key lifecycle.
+    Edit the wording only in this file; pages import it by reference:
+      import KeyCreateNoResponse from '/snippets/text/key-create-no-response.mdx';
+      ...
+      <KeyCreateNoResponse />
+    No links or endpoint names here: the host sentence next to the snippet keeps the links and endpoints.
+    See snippets/README.md for the authoring + import convention. */}
+
+Only the create response returns the API secret. After a create request without a response, the partner checks the key
+list, deletes any key the request created, and creates the key again.

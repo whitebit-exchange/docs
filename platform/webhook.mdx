@@ -5,6 +5,7 @@ sidebarTitle: "Webhook"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import WebhookIpRange from '/snippets/text/webhook-ip-range.mdx';
 
 <RegionBaseUrl />
 
@@ -49,7 +50,7 @@ Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT ac
 |---|---|---|
 | Latency | Real-time (seconds) | Depends on polling interval |
 | Server load | Event-driven — no wasted requests | Constant requests, mostly empty |
-| Reliability | ~3 delivery attempts spaced roughly hourly over a ~1-day window | As reliable as the polling loop |
+| Reliability | A small number of delivery attempts, spaced roughly an hour apart, over about one day (best-effort) | As reliable as the polling loop |
 | Recommended for | Production payment flows | Fallback for outages exceeding the delivery window |
 
 <Note>
@@ -61,6 +62,7 @@ Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT ac
 - **Withdrawal monitoring** — Track withdrawal lifecycle from creation to completion or cancellation
 - **Code redemption** — Receive notification when a WhiteBIT Code is applied
 - **Refund handling** — Detect successful or failed refunds for reconciliation
+- **Virtual account monitoring** — Receive bank details when a virtual account becomes active, without polling the status endpoint
 
 ## How to use
 
@@ -110,9 +112,13 @@ All web-hook requests are performing with
 }
 ```
 
-**method** - string. The name of method which was evaluated. Web hooks API supports such web-hook methods:
+**method** - string. The name of method which was evaluated. Webhook methods include the following:
 
 - **code.apply**. Performs when code owned by a customer was applied.
+- **deposit.accepted**, **deposit.updated**, **deposit.processed**, **deposit.canceled**. These methods report each stage of a deposit; see [WhiteBIT deposit to main balance](#whitebit-deposit-to-main-balance).
+- **deposit.aml_frozen**. Sent when a deposit enters status 21 or 22; see [Deposit and withdrawal status codes](#deposit-and-withdrawal-status-codes).
+- **withdraw.unconfirmed**, **withdraw.pending**, **withdraw.canceled**, **withdraw.successful**. These methods report each stage of a withdrawal; see [WhiteBIT withdraw from main balance](#whitebit-withdraw-from-main-balance).
+- **refund.successful**, **refund.failed**. These methods report the result of a deposit refund; see [WhiteBIT refund successful](#whitebit-refund-successful) and [WhiteBIT refund failed](#whitebit-refund-failed).
 
 **id** - string. Uuid to identify every request.
 
@@ -128,6 +134,12 @@ Also, all request contains additional data in headers:
 4. `'X-TXC-SIGNATURE': signature` - where signature is `hex(HMAC_SHA512(payload), key=api_secret))`. `api_secret` is the secret of the generated webhook key.
 
 On the consumer side, process the security headers to verify the request originated from WhiteBIT.
+
+#### Source IP range
+
+<WebhookIpRange />
+
+Verify the origin of each request with the [request headers](#request-headers).
 
 ## WebHook Methods
 
@@ -163,7 +175,7 @@ Performed when deposit was accepted. Request example:
     "memo": "", // deposit memo
     "method": 1, // called method 1 - deposit, 2 - withdraw
     "network": "ERC20", // if currency is multi network
-    "status": 15, // transactions status
+    "status": 15, // transaction status
     "ticker": "USDT_ETH", // deposit currency ticker
     "transactionHash": "transaction hash", // deposit transaction hash
     "uniqueId": null, // unique Id of deposit
@@ -177,7 +189,7 @@ Performed when deposit was accepted. Request example:
 }
 ```
 
-Performed when deposit was update. Request example:
+Performed when the deposit changes: a new confirmation count, or an early credit (status 29) where the network's `confirmations_for_trading` is lower than `confirmations`. Request example:
 
 ```json
 {
@@ -191,7 +203,7 @@ Performed when deposit was update. Request example:
     "fee": "0.000000000000000000", // deposit fee
     "memo": "", // deposit memo
     "network": "ERC20", // if currency is multi network
-    "status": 15, // transactions status
+    "status": 15, // transaction status
     "ticker": "USDT_ETH", // deposit currency ticker
     "transactionHash": "transaction hash", // deposit transaction hash
     "uniqueId": null, // unique Id of deposit
@@ -205,7 +217,7 @@ Performed when deposit was update. Request example:
 }
 ```
 
-Performed when the deposit was processed and is available on the balance. Request example:
+Performed when the deposit is processed and available on the balance (status 3 or 7). For a crypto deposit this happens when the network fully confirms it; any hold from an early credit (status 29) clears. Request example:
 
 ```json
 {
@@ -220,13 +232,13 @@ Performed when the deposit was processed and is available on the balance. Reques
     "memo": "", // deposit memo
     "method": 1, // called method 1 - deposit, 2 - withdraw
     "network": "ERC20", // if currency is multi network
-    "status": 15, // transactions status
+    "status": 3, // transaction status, 3 or 7 - successful
     "ticker": "USDT_ETH", // deposit currency ticker
     "transactionHash": "transaction hash", // deposit transaction hash
     "uniqueId": null, // unique Id of deposit
     "confirmations": {
       // if transaction has confirmations info it will display here
-      "actual": 1, // current block confirmations
+      "actual": 2, // current block confirmations
       "required": 2 // required block confirmation for successful deposit
     }
   },
@@ -249,10 +261,10 @@ Performed when deposit was canceled. Request example:
     "memo": "", // deposit memo
     "method": 1, // called method 1 - deposit, 2 - withdraw
     "network": "ERC20", // if currency is multi network, "null" if no multi network
-    "status": 15, // transactions status
+    "status": 4, // transaction status, 4 or 9 - canceled
     "ticker": "USDT_ETH", // deposit currency ticker
     "transactionHash": "transaction hash", // deposit transaction hash
-    "uniqueId": null, // unique Id of deposit
+    "uniqueId": "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85", // transaction UUID of the deposit; pass it as transactionId to refund-deposit
     "confirmations": {
       // if transaction has confirmations info it will display here
       "actual": 1, // current block confirmations
@@ -265,19 +277,82 @@ Performed when deposit was canceled. Request example:
 
 #### Travel Rule deposit statuses (EEA)
 
-For EEA users, an inbound deposit may be frozen pending Travel Rule verification, and the deposit carries a Travel Rule status code (see the table below). There is currently no webhook for these transitions, so track status changes via the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). When the Travel Rule API is enabled for the account, submit the deposit originator data via [Submit deposit originator data](/api-reference/travel-rule/submit-deposit-verification) (`POST /api/v4/travel-rule/deposit/verification`); otherwise the deposit is verified manually at whitebit.com. Funds are credited only after successful verification.
+For EEA users, an inbound deposit may be frozen pending Travel Rule verification, and the deposit carries a Travel Rule status code (see [Deposit and withdrawal status codes](#deposit-and-withdrawal-status-codes)). There is currently no webhook for these transitions, so track status changes via the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). When the Travel Rule API is enabled for the account, submit the deposit originator data via [Submit deposit originator data](/api-reference/travel-rule/submit-deposit-verification) (`POST /api/v4/travel-rule/deposit/verification`); otherwise the deposit is verified manually at whitebit.com. Funds are credited only after successful verification.
 
 For details on Travel Rule requirements and the travelRule object for withdrawals, see [Regulatory Compliance](/institutional/compliance).
+
+### Deposit and withdrawal status codes
+
+Status codes that the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) returns include the following.
 
 Deposit status codes:
 
 | Code | Status | Description |
 |---|---|---|
+| 3, 7 | Successful | Deposit successful; final state |
+| 4, 9 | Canceled | Deposit canceled; final state (refund may be available) |
 | 15 | Pending | Deposit detected, awaiting confirmations |
-| 27 | Travel Rule Frozen | Deposit frozen; the user must complete Travel Rule verification (EEA) |
-| 28 | Travel Rule Frozen Processing | Travel Rule data submitted, verification in progress (EEA) |
+| 21 | On hold | Deposit held for review; not final |
+| 22 | Uncredited | Detected, not credited yet; not final |
+| 27 | Travel Rule frozen | Deposit frozen; the account holder must complete Travel Rule verification (EEA) |
+| 28 | Travel Rule processing | Travel Rule data submitted, verification in progress (EEA) |
+| 29 | Credited, on hold | Funds credited; part may stay held until the network fully confirms the deposit; not final |
 
-{/* TODO: verify complete deposit status code list with engineering — codes beyond 15, 27, 28 may exist */}
+Withdrawal status codes:
+
+| Code | Status | Description |
+|---|---|---|
+| 1, 2, 6, 10–17 | Pending | Withdrawal in progress |
+| 3, 7 | Successful | Withdrawal completed, funds sent |
+| 4 | Canceled | Withdrawal canceled; final state; the amount returns to the balance |
+| 18 | Partially successful | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
+| 21 | AML frozen | Withdrawal frozen by AML controls |
+
+### WhiteBIT virtual account status
+
+Performed when the status of a [virtual account](/glossary#virtual-account) changes. The `deposit.virtual_account_status` event removes the need to poll [Get virtual account status](/api-reference/account-wallet/get-virtual-account-status) for status changes; polling remains available. The event covers virtual accounts of every provider, including accounts registered through the WhiteBIT interface.
+
+To receive the event, enable the virtual account status event in the deposit group of the webhook configuration. On a webhook created before the event was introduced, the event is disabled by default and existing event subscriptions do not change. A webhook activated for the first time subscribes to every event, including `deposit.virtual_account_status`.
+
+The platform sends the event on every status change of the virtual account:
+
+- **Activation** — the provider allocates the account, and `status` becomes `active`.
+- **Rejection** — the provider refuses to open the account, and `status` becomes `rejected`.
+- **Closure** — the provider closes the account, and `status` becomes `closed`. A closure attempt that leaves the account open does not trigger the event.
+
+Registration does not trigger the event: the initial `pending` status that [Create virtual account](/api-reference/account-wallet/create-virtual-account) returns is not a status change. Deposits to the virtual account do not trigger the event either; deposit status changes arrive as the `deposit.*` events above. The platform sends the event only after Get virtual account status returns the new status, so both sources report the same status for the same account. Request example:
+
+```json
+{
+  "method": "deposit.virtual_account_status",
+  "params": {
+    "provider": "SEPA_BCB_GROUP",
+    "status": "active",
+    "paymentDetails": {
+      "beneficiary": "Acme Trading Ltd",
+      "iban": "DE89370400440532013000",
+      "bic": "COBADEFFXXX"
+    },
+    "timestamp": 1761566400,
+    "nonce": 1
+  },
+  "id": "uuid"
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `provider` | String | [Fiat](/glossary#fiat) [provider](/glossary#provider) of the virtual account, for example `SEPA_BCB_GROUP`. |
+| `status` | String | New status of the virtual account. Uses the same values as `status` in Get virtual account status. |
+| `paymentDetails` | Object | Bank details for incoming bank transfers, with the same fields as `paymentDetails` in Get virtual account status. Contains data only when `status` is `active`. For other statuses, the field is an empty object `{}`. |
+| `timestamp` | Integer | Time the platform registered the status change, as a Unix timestamp in seconds. Retries carry the original value. Compare `timestamp` with the last processed value to discard a notification that arrives out of order. |
+| `nonce` | Integer | Request [nonce](/glossary#nonce), common to every webhook request. |
+
+<Warning>
+The event carries the bank details that end users send deposits to. Verify the `X-TXC-SIGNATURE` header as described in [Request headers](#request-headers) before using `paymentDetails`.
+</Warning>
+
+Delivery follows the retry policy in [Processing webhook requests](#for-processing-web-hook-requests). A failed delivery does not change the virtual account status. After the last retry fails, the platform drops the notification; use Get virtual account status to read the current status and bank details.
 
 ### WhiteBIT withdraw from main balance
 
@@ -297,7 +372,7 @@ Performed when withdraw was created. Request example:
     "memo": "", // withdraw memo
     "method": 2, // called method 1 - deposit, 2 - withdraw
     "network": "TRC20", // if currency is multi network, "null" if no multi network
-    "status": 15, // transactions status
+    "status": 15, // transaction status
     "transactionHash": "transaction hash", // withdraw transaction hash
     "uniqueId": null // unique Id of withdraw
   },
@@ -321,7 +396,7 @@ Performed when withdraw is pending. Request example:
     "memo": "", // withdraw memo
     "method": 2, // called method 1 - deposit, 2 - withdraw
     "network": "TRC20", // if currency is multi network, "null" if no multi network
-    "status": 15, // transactions status
+    "status": 15, // transaction status
     "transactionHash": "transaction hash", // withdraw transaction hash
     "uniqueId": null // unique Id of withdraw
   },
@@ -329,7 +404,7 @@ Performed when withdraw is pending. Request example:
 }
 ```
 
-Performed when withdraw was canceled. Request example:
+Performed when a withdrawal is canceled, including a withdrawal that fails processing after a retry when two withdrawals compete for the same balance. Request example:
 
 ```json
 {
@@ -345,7 +420,7 @@ Performed when withdraw was canceled. Request example:
     "memo": "", // withdraw memo
     "method": 2, // called method 1 - deposit, 2 - withdraw
     "network": "TRC20", // if currency is multi network, "null" if no multi network
-    "status": 15, // transactions status
+    "status": 4, // transaction status, 4 - canceled
     "transactionHash": "transaction hash", // withdraw transaction hash
     "uniqueId": null // unique Id of withdraw
   },
@@ -369,7 +444,7 @@ Performed when withdraw was completed. Request example:
     "memo": "", // withdraw memo
     "method": 2, // called method 1 - deposit, 2 - withdraw
     "network": "TRC20", // if currency is multi network, "null" if no multi network
-    "status": 15, // transactions status
+    "status": 3, // transaction status, 3 or 7 - successful
     "transactionHash": "transaction hash", // withdraw transaction hash
     "uniqueId": null // unique Id of withdraw
   },

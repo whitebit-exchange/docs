@@ -14,7 +14,7 @@ For general API conventions (base URL, error format, rate limits), see the [API 
 
 Sub-accounts back the **partner-operated** integration model — see [Integration models](/concepts/integration-models) for the full comparison:
 
-- **Model A — partner-operated sub-accounts.** The partner creates and manages one sub-account per end user under the master account and holds the sub-account API key. This is the account-operator and managed-trading-platform pattern, and the endpoints below implement it. See [Embedded Trading sub-account integration](/guides/sub-account-integration).
+- **Model A — partner-operated sub-accounts.** The partner creates and manages one sub-account per end user under the main account and holds the sub-account API key. This is the account-operator and managed-trading-platform pattern, and the endpoints below implement it. See [Embedded Trading sub-account integration](/guides/sub-account-integration). [Wallet-as-a-Service](/guides/waas-integration) and [Yield-as-a-Service](/guides/yaas-integration) use the same model: WaaS runs each end user's wallet in a sub-account, and YaaS runs Crypto Lending per sub-account.
 - **Model B — customers' own accounts (contrast).** The end user keeps a standalone WhiteBIT account and the partner connects through a [Fast API Key](/guides/fast-api-key-integration); sub-accounts are not used. Listed here so the choice between the two models is explicit.
 
 ---
@@ -39,6 +39,9 @@ Sub-accounts back the **partner-operated** integration model — see [Integratio
   </Card>
   <Card title="Unblock Sub-Account" icon="user-check" href="/api-reference/sub-accounts/unblock-sub-account">
     Unblock a sub-account
+  </Card>
+  <Card title="Get Sub-Account KYC URL" icon="id-card" href="/api-reference/sub-accounts/kyc-url">
+    Generate a temporary KYC verification link for a sub-account
   </Card>
 </CardGroup>
 

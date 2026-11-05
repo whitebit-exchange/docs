@@ -1,13 +1,16 @@
 ---
 title: "Yield-as-a-Service integration"
 sidebarTitle: "Integration"
-description: "Technical integration for Yield-as-a-Service: provision a sub-account per end user, fund it, run the Crypto Lending lifecycle in each sub-account, and reconcile earnings per user."
+description: "Technical integration for Yield-as-a-Service: provision a sub-account per end user, fund it, run the Crypto Lending lifecycle in each sub-account, reconcile earnings per user, redeem investments, and offboard end users."
 icon: "code"
 pageType: "integration"
 program: "yaas"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import KeyCreateNoResponse from '/snippets/text/key-create-no-response.mdx';
+import TransferNoIdempotency from '/snippets/text/transfer-no-idempotency.mdx';
+import SubAccountOffboarding from '/snippets/diagrams/sub-account-offboarding.mdx';
 
 <Note>
 **For developers.** This page covers the technical integration. For what YaaS is, the model, and how
@@ -18,46 +21,80 @@ to apply, see the [Yield-as-a-Service overview](/guides/yaas-overview).
 
 Yield-as-a-Service uses **Model A** — one [sub-account](/products/sub-accounts/overview) per end
 user, with the [Crypto Lending](/products/lending/overview) lifecycle run inside each sub-account
-using that sub-account's own API key. This guide covers the B2B layer — provisioning, funding, and
-per-user reconciliation. The lending lifecycle itself is documented in the
-[Crypto Lending quickstart](/products/lending/quickstart); the only difference here is the signing
-key.
+using that sub-account's own API key. This guide covers the B2B layer — provisioning, funding, per-user
+reconciliation, redemption, and offboarding. The [Crypto Lending quickstart](/products/lending/quickstart)
+documents the Flex lifecycle. The Fixed endpoints are in the API reference linked from the
+[Crypto Lending technical overview](/products/lending/overview#technical-overview). Two things differ here: the
+signing key (the sub-account's own key) and lending enablement per sub-account.
 
 ## Prerequisites
 
-- **Crypto Lending enabled where it runs.** Lending is available on the master account with B2B access; on sub-accounts it is **not enabled by default** — request enablement for each end-user sub-account via the account manager or `institutional@whitebit.com` (see the [overview](/guides/yaas-overview#how-to-get-started)). Until it is enabled, the lending endpoints are not available on that sub-account.
+- **Crypto Lending enabled where it runs.** Lending is available on the main account with B2B access; on sub-accounts it is **not enabled by default** — request enablement for each end-user sub-account via the account manager (see the [overview](/guides/yaas-overview#how-to-get-started)). Until it is enabled, the lending endpoints are not available on that sub-account.
 - **A sub-account per end user**, each with its own **type:2** API key (info, trading, deposits, withdraws) — type:2 is required to run lending on a sub-account.
-- **Funds in the master Main balance** to allocate to each sub-account.
+- **Funds in the main account's Main balance** to allocate to each sub-account.
 - **HMAC-signed requests** — see [Authentication](/api-reference/authentication).
 
 ## Integration building blocks
 
 ### 1. Provision a sub-account per end user
 
-Create one sub-account per end user and issue that sub-account a type:2 API key. Build with
-[Sub-Accounts](/products/sub-accounts/overview) for account creation and key management, and the
-[Embedded Trading integration guide](/guides/sub-account-integration) for the full walkthrough
-(per-customer keys, KYC-URL branding).
+Create one sub-account per end user and issue that sub-account a type:2 API key. Sign both requests
+with the main-account key. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation
+and key management, and the [Embedded Trading integration guide](/guides/sub-account-integration) for
+the full walkthrough (per-customer keys, KYC URLs).
 
 | Endpoint | Purpose |
 |----------|---------|
-| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`) |
+| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it) |
 | `POST /api/v4/sub-account/api-key/create` | Issue the sub-account a key (`type: 2`, `subAccountId`, `title`) |
+
+<KeyCreateNoResponse />
+
+The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too, and any
+authenticated request with the key resets the timer. See [API key lifecycle](/guides/waas-integration#api-key-lifecycle).
+
+The partner's backend enrolls each end user with the sub-account and API key steps of WaaS [Wallet creation](/guides/waas-integration#wallet-creation), plus the deposit-address step where the sub-account takes [crypto deposits](/guides/waas-integration#deposits).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Partner backend
+    participant W as WhiteBIT
+
+    P->>W: Create the sub-account and its API key<br/>(main-account key), as in Wallet creation
+    W-->>P: Sub-account ID, API key and secret
+    P->>P: Store the sub-account ID and key
+    Note over P,W: The lending endpoints work on the sub-account<br/>once the account manager enables Crypto Lending on it
+    alt Transfer from the main account
+        P->>W: POST /api/v4/sub-account/transfer (main-account key, step 2)
+    else Crypto deposit, where sub-account deposits are enabled
+        Note over P,W: Track the deposit with the sub-account key<br/>until a successful final status, as in Deposits
+    end
+    P->>W: First investment (sub-account key, step 3)
+```
 
 ### 2. Fund the sub-account
 
-Move funds from the master Main balance to the end user's sub-account with a fee-free transfer.
+Move funds from the main account's Main balance to the end user's sub-account with a fee-free transfer, signed with
+the main-account key.
 
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /api/v4/sub-account/transfer` | `id` (sub-account), `direction: main_to_sub`, `ticker`, `amount` |
 
+<TransferNoIdempotency />
+
+Run the check with `POST /api/v4/sub-account/transfer/history`, as in WaaS
+[Crypto purchases with fiat](/guides/waas-integration#crypto-purchases-with-fiat).
+
+For crypto deposits to a sub-account, the partner's backend polls the deposit history with the sub-account's key, as in the [deposit flow](/guides/waas-integration#deposits). Webhooks are optional.
+
 ### 3. Offer yield inside the sub-account
 
 Run the Crypto Lending lifecycle — fetch plans, invest, track, withdraw — signed with the
-**sub-account's own key**, so investments and interest stay in that sub-account's balance. The
-request and response fields are documented in the
-[Crypto Lending quickstart](/products/lending/quickstart); the only B2B difference is the signing key.
+**sub-account's own key**, so investments and Flex interest stay with that sub-account. The request
+and response fields are in the [Crypto Lending quickstart](/products/lending/quickstart) (Flex) and, for Fixed, in
+the API reference linked from the [Crypto Lending technical overview](/products/lending/overview#technical-overview).
 
 ```bash
 # Invest on an end user's behalf — signed with THAT sub-account's type:2 key
@@ -77,7 +114,7 @@ curl -X POST https://whitebit.com/api/v4/main-account/smart-flex/investments/inv
 
 <Note>
 The `main-account/` path segment addresses the **signing account's own Main balance** — for a
-sub-account key, that is the sub-account's balance, not the master's. This is why a sub-account key
+sub-account key, that is the sub-account's balance, not the main account's. This is why a sub-account key
 runs the lending lifecycle against that end user's funds.
 </Note>
 
@@ -87,35 +124,161 @@ runs the lending lifecycle against that end user's funds.
 | `POST /api/v4/main-account/smart-flex/investments/invest` | Invest on the end user's behalf |
 | `POST /api/v4/main-account/smart-flex/investments/withdraw` | Withdraw to the sub-account Main balance |
 | `POST /api/v4/main-account/smart/plans` | Available fixed plans |
+| `POST /api/v4/main-account/smart/investment` | Invest in a fixed plan on the end user's behalf |
+| `POST /api/v4/main-account/smart/investment/close` | Close a fixed investment |
+
+The partner's backend places each investment in a flexible or a fixed plan and signs every call with the sub-account's own key.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as End user
+    participant P as Partner backend
+    participant W as WhiteBIT
+
+    Note over P,W: Each investment debits<br/>the sub-account's Main balance
+    alt Flexible plan
+        P->>W: POST /api/v4/main-account/<br/>smart-flex/plans<br/>(sub-account key)
+        W-->>P: Active Flex plans with limits<br/>and maximum rate
+        P->>U: Plans to offer
+        U->>P: Chosen plan<br/>and amount
+        P->>W: POST /api/v4/main-account/<br/>smart-flex/investments/invest<br/>(sub-account key,<br/>chosen plan and amount,<br/>auto-reinvestment choice)
+        W-->>P: Transaction ID
+        opt Turn auto-reinvestment on or off later
+            P->>W: POST /api/v4/main-account/<br/>smart-flex/investments/<br/>auto-invest<br/>(sub-account key, plan)
+        end
+    else Fixed plan
+        P->>W: POST /api/v4/main-account/<br/>smart/plans<br/>(sub-account key)
+        W-->>P: Active Fixed plans with<br/>term, rate, limits and<br/>interest currency
+        P->>U: Plans to offer
+        U->>P: Chosen plan<br/>and amount
+        P->>W: POST /api/v4/main-account/<br/>smart/investment<br/>(sub-account key,<br/>chosen plan and amount)
+        W-->>P: Investment ID
+    end
+    P->>P: Store the plan and the returned ID per end user
+```
 
 ### 4. Reconcile earnings per user
 
 Each sub-account's investments and payment history are that end user's earnings. There is no
 aggregated cross-sub report, so attribution is per sub-account — read each sub-account with its own key.
 
+An investment debits the sub-account's Main balance (see [Balances](/concepts/balances)), and
+`POST /api/v4/sub-account/balances` reports only the main, spot and collateral balances. The partner's backend
+reads open investments through the investments endpoints below.
+
 | Endpoint | Purpose |
 |----------|---------|
-| `POST /api/v4/main-account/smart-flex/investments` | The end user's active flexible investments |
-| `POST /api/v4/main-account/smart-flex/investments/payment-history` | Interest credited to the end user |
+| `POST /api/v4/main-account/smart-flex/investments` | The end user's flexible investments (filter with `investmentStatus`) |
+| `POST /api/v4/main-account/smart-flex/investments/history` | Every flexible-plan operation of the end user |
+| `POST /api/v4/main-account/smart-flex/investments/payment-history` | Flexible-plan interest credited to the end user |
+| `POST /api/v4/main-account/smart/investments` | The end user's fixed investments |
+| `POST /api/v4/main-account/smart/interest-payment-history` | Fixed-plan interest payments |
 
-Per-user lifecycle:
+The partner's backend signs each lending call below with the sub-account's own key and gets back only that sub-account's records.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant P as Partner backend
-    participant M as Master account
-    participant S as End-user sub-account
-    participant L as Crypto Lending
+    participant W as WhiteBIT
 
-    P->>S: Create sub-account + type:2 key
-    P->>M: POST /sub-account/transfer (main_to_sub)
-    M-->>S: Balance allocated
-    P->>L: Invest, signed with the sub-account key
-    L-->>S: Interest credited to the sub-account balance
-    P->>L: Withdraw to the sub-account Main balance
-    P->>P: Reconcile per sub-account (payment-history)
+    Note over P,W: WhiteBIT calculates Flex interest hourly and credits it daily
+    P->>W: POST /api/v4/main-account/smart-flex/investments/history<br/>(sub-account key)
+    W-->>P: Flex operations: invest, reinvest, partial withdrawal,<br/>daily earning, close, open
+    P->>W: POST /api/v4/main-account/smart-flex/investments/payment-history<br/>(sub-account key)
+    W-->>P: Flex daily earnings only
+    P->>W: POST /api/v4/main-account/smart/investments<br/>(sub-account key)
+    W-->>P: Fixed investments: status, amount, payment time, interest paid
 ```
+
+The partner's backend reconciles each sub-account on a schedule against that end user's ledger.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Partner backend
+    participant W as WhiteBIT
+
+    loop On a schedule, per sub-account
+        P->>W: POST /api/v4/main-account/smart-flex/investments/history<br/>(sub-account key, date range)
+        W-->>P: Flex operations, each with a transaction ID<br/>and an investment ID
+        P->>W: POST /api/v4/main-account/smart/investments<br/>(sub-account key)
+        W-->>P: Fixed investments, each with an investment ID,<br/>status and interest paid
+        P->>P: Match each record to the end user's ledger
+        P->>P: Book new records and status changes
+    end
+```
+
+### 5. Redeem investments and pay out
+
+The partner's backend, signing with the sub-account's key, withdraws part of a Flex investment or closes it by
+plan ID, and closes a Fixed investment by investment ID.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Partner backend
+    participant W as WhiteBIT
+
+    alt Flex plan, part of the investment
+        Note over P,W: The plan must be active
+        P->>W: POST /api/v4/main-account/smart-flex/investments/withdraw<br/>(sub-account key, plan ID, amount)
+        W-->>P: Transaction ID
+        Note over P,W: The amount returns to the sub-account's Main balance
+    else Flex plan, whole investment
+        P->>W: POST /api/v4/main-account/smart-flex/investments/close<br/>(sub-account key, plan ID)
+        W-->>P: Transaction ID
+        Note over P,W: The amount returns to the sub-account's Main balance
+    else Fixed plan
+        P->>W: POST /api/v4/main-account/smart/investment/close<br/>(sub-account key, investment ID)
+        W-->>P: Investment closed
+    end
+    P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account ID)
+    W-->>P: Main, spot and collateral balances
+```
+
+Early closure of a Fixed investment follows the early-withdrawal terms in
+[Crypto Lending plan types](/products/lending/overview#plan-types). From the sub-account's Main balance, the funds follow
+the WaaS [payment and payout flows](/guides/waas-integration#payment-and-payout-flows):
+
+- **Fiat payout** — a transfer to the main account, then a payout from the partner's own system, as in
+  [Crypto sales for fiat](/guides/waas-integration#crypto-sales-for-fiat).
+- **Crypto withdrawal** — created with the sub-account's key and confirmed by the main account, as in
+  [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). Available where
+  the account manager has enabled sub-account withdrawals.
+- **Payout in another currency** — [Convert](/platform/convert) on the sub-account first, as in
+  [Conversion](/guides/waas-integration#conversion).
+
+### 6. Offboard an end user
+
+Invested funds do not show in `POST /api/v4/sub-account/balances` (see
+[Reconcile earnings per user](#4-reconcile-earnings-per-user)). Offboarding therefore starts with the sub-account's
+key. The partner's backend lists and closes every active investment, then follows
+[End-user offboarding](/guides/waas-integration#end-user-offboarding) to empty and block the sub-account. A Fixed
+investment closed before maturity follows the early-withdrawal terms in
+[Crypto Lending plan types](/products/lending/overview#plan-types). The sub-account's key creates the final withdrawal
+and the main account confirms it, as in
+[Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). The final
+withdrawal is available where the account manager has enabled sub-account withdrawals.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Partner backend
+    participant W as WhiteBIT
+
+    loop Until no active investment remains
+        P->>W: POST /api/v4/main-account/smart-flex/investments<br/>(sub-account key, status filter)
+        W-->>P: Active Flex investments with plan IDs
+        P->>W: POST /api/v4/main-account/smart/investments<br/>(sub-account key, status filter)
+        W-->>P: Active Fixed investments with investment IDs
+        P->>W: Close each one, as in step 5 (sub-account key)
+    end
+    P->>P: Empty and block the sub-account
+```
+
+<SubAccountOffboarding />
 
 ## Testing
 
@@ -132,7 +295,7 @@ check available plans and per-plan minimums via the plans endpoints first.
 
 <CardGroup cols={3}>
   <Card title="FAQ" icon="circle-question" href="/guides/yaas-faq">
-    How B2B yield differs from the self-service flow.
+    How B2B yield differs from the single-account flow.
   </Card>
   <Card title="Crypto Lending" icon="piggy-bank" href="/products/lending/overview">
     Plan mechanics, supported assets, and the endpoint reference.

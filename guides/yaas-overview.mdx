@@ -10,7 +10,7 @@ program: "yaas"
 import PartnerEligibility from '/snippets/partner-eligibility.mdx';
 
 Yield-as-a-Service (YaaS) lets a partner offer WhiteBIT [Crypto Lending](/products/lending/overview)
-yield to end users under the partner's own brand. This overview covers fit and the integration
+yield to end users through the API. This overview covers fit and the integration
 model. For the technical build, see the [Integration guide](/guides/yaas-integration).
 
 <Tip>
@@ -23,7 +23,7 @@ that capability to many end users.
 
 - Fixed-term and flexible yield plans, offered to end users through the API ([Crypto Lending](/products/lending/overview)).
 - Per-user segregation: each end user earns in a dedicated [sub-account](/products/sub-accounts/overview), with independent balances and history.
-- Full lifecycle control — present plans, invest on an end user's behalf, track earnings, and withdraw — all programmatic.
+- Full lifecycle control — present plans, invest on an end user's behalf, track earnings, and withdraw from investments to the sub-account balance — all programmatic.
 - Auto-reinvestment for compounding on flexible plans.
 
 ## Who Yield-as-a-Service is for
@@ -31,30 +31,43 @@ that capability to many end users.
 - **Fintechs, wallets, and neobanks** — add an earn feature for end users without building a yield engine, custody, or risk management.
 - **Exchanges and brokers** — offer yield on idle customer balances alongside trading.
 
-## How it works
+## Architecture
 
 YaaS uses **Model A**: the partner operates one [sub-account](/products/sub-accounts/overview) per
-end user under a master account, and runs the lending lifecycle inside each sub-account using that
-sub-account's own API key. Funds, investments, and interest stay segregated per user; the master
+end user under a main account, and runs the lending lifecycle inside each sub-account using that
+sub-account's own API key. Funds, investments, and interest stay segregated per user; the main
 account acts as the funding hub. Endpoint mechanics are on the
 [Integration guide](/guides/yaas-integration).
 
+The partner's backend signs the main account's requests with the main-account key and each sub-account's lending requests with that sub-account's own key.
+
 ```mermaid
-flowchart LR
-  U[End user] --> P[Partner backend]
-  P -->|one sub-account per user| S[WhiteBIT sub-account]
-  S -->|invest · earn · withdraw| L[Crypto Lending]
+flowchart TB
+    Users["End users"]
+    subgraph Partner["Partner"]
+        Backend["Partner backend, with the<br/>end-user to sub-account<br/>map and the API keys"]
+    end
+    subgraph WhiteBIT["WhiteBIT"]
+        Main["Main account, with the<br/>main-account key and the<br/>Main balance for funding"]
+        Sub["Sub-account per end user,<br/>with its own API key"]
+        Lend["Crypto Lending investments<br/>of the sub-account"]
+        Main <-->|"Fee-free transfers"| Sub
+        Sub -->|"Invest from its<br/>Main balance"| Lend
+        Lend -->|"Flex withdrawals return<br/>to its Main balance"| Sub
+    end
+    Users --> Backend
+    Backend -->|"Requests signed<br/>with the main-account key"| Main
+    Backend -->|"Lending requests signed<br/>with the sub-account key"| Sub
 ```
 
 <Note>
-A single pooled (omnibus) account for end-user funds is not offered: pooled custody conflicts with
-MiCA client-fund segregation and Travel Rule requirements. Each end user's yield sits in a
-segregated sub-account. See [why not a pooled account](/concepts/integration-models#why-not-a-pooled-account).
+For yield, a single pooled (omnibus) account for end-user funds is not offered. Each end user's yield sits in
+its own sub-account. See [Integration models](/concepts/integration-models).
 </Note>
 
 ## Program terms
 
-Crypto Lending access is approval-gated and assessed during KYB. It is available on the master
+Crypto Lending access is approval-gated and assessed during KYB. It is available on the main
 account, and **enabled per sub-account on request** — sub-accounts do not have lending enabled by
 default. Commercial terms are agreed per contract during onboarding.
 
@@ -63,7 +76,7 @@ default. Commercial terms are agreed per contract during onboarding.
 ## How to get started
 
 1. Complete KYB as part of [Institutional Onboarding](/institutional/onboarding).
-2. Request Crypto Lending enablement via the account manager or `institutional@whitebit.com` — for the master account, and for each sub-account that will offer yield.
+2. Request Crypto Lending enablement via the account manager — for the main account, and for each sub-account that will offer yield.
 3. Build the integration — see the [Integration guide](/guides/yaas-integration).
 
 ## What's next
@@ -73,7 +86,7 @@ default. Commercial terms are agreed per contract during onboarding.
     Provision sub-accounts, invest on an end user's behalf, and reconcile earnings.
   </Card>
   <Card title="FAQ" icon="circle-question" href="/guides/yaas-faq">
-    How B2B yield differs from the self-service flow.
+    How B2B yield differs from the single-account flow.
   </Card>
   <Card title="Crypto Lending" icon="piggy-bank" href="/products/lending/overview">
     The earn capability this program builds on.

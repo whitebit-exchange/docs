@@ -18,7 +18,7 @@ Travel Rule verification is required when:
 - The Travel Rule API is enabled for the account
 
 <Note>
-The Travel Rule API is not available to all accounts. To request access, contact the assigned Account Manager or email institutional@whitebit.com.
+The Travel Rule API is not available to all accounts. To request access, contact the assigned account manager.
 </Note>
 
 ---
@@ -75,7 +75,7 @@ sequenceDiagram
 
     Note over Client,Compliance: Deposit arrives and is detected as Travel Rule-eligible
 
-    Client->>WhiteBIT API: GET /api/v4/main-account/history
+    Client->>WhiteBIT API: POST /api/v4/main-account/history
     WhiteBIT API-->>Client: Deposit with status "ready for verification"
 
     Client->>WhiteBIT API: POST /api/v4/travel-rule/vasps
@@ -186,16 +186,17 @@ sequenceDiagram
     WhiteBIT API-->>Client: List of available VASPs
 
     Client->>WhiteBIT API: POST /api/v4/main-account/withdraw
-    Note right of Client: Include travelRule object<br/>(walletType, beneficiary, vaspData)
+    Note right of Client: Travel Rule data: wallet type,<br/>beneficiary, VASP
+    WhiteBIT API-->>Client: 201, creation started
     WhiteBIT API->>Compliance: Review beneficiary data
 
     alt Approved
         Compliance-->>WhiteBIT API: Approved
-        WhiteBIT API-->>Client: Withdrawal processed
+        WhiteBIT API-->>Client: Withdrawal completed,<br/>status by webhook or history
         Note over Client,Compliance: Funds sent to destination
     else Rejected
         Compliance-->>WhiteBIT API: Rejected
-        WhiteBIT API-->>Client: Withdrawal canceled
+        WhiteBIT API-->>Client: Withdrawal canceled,<br/>status by webhook or history
         Note over Client,Compliance: Funds returned to account
     end
 ```

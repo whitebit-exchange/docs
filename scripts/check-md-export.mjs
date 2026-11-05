@@ -11,7 +11,64 @@
  *
  * Usage:  node scripts/check-md-export.mjs [--mcp]
  * Exit 0 = clean (fixed), exit 1 = JS still inlined (broken), exit 2 = fetch problem.
+ *
+ * Local mode (a running `mint dev` preview; diagram check): counts the mermaid fences in each
+ * page's served .md against the static expected count — the page's own fences + the fences of
+ * the snippets it renders (same counter as render-check --browser). {/* *\/} blocks are
+ * stripped first; a fence is a line matching ^```mermaid with an optional theme= suffix (also
+ * indented or under a "> " prefix, as mint exports a fence inside <Tab>/<Step>).
+ *   node scripts/check-md-export.mjs --base <preview origin> <page>[=<expected>] ...
+ * Exit 0 = every count matches, 3 = a count differs, 2 = fetch problem.
  */
+
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { MINT_VERSION, expectedDiagramCount } from './render-check.mjs';
+
+if (process.argv.includes('--base')) {
+  const argv = process.argv.slice(2);
+  const baseIdx = argv.indexOf('--base');
+  const base = (argv[baseIdx + 1] || '').replace(/\/$/, '');
+  const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+  const pages = argv.filter((a, i) => !a.startsWith('--') && i !== baseIdx + 1);
+  if (!base || pages.length === 0) {
+    console.log('usage: node scripts/check-md-export.mjs --base <preview origin> <page>[=<expected>] ...');
+    process.exit(2);
+  }
+  console.log(`check-md-export (local): ${pages.length} page(s) against ${base} (preview: npx -y mint@${MINT_VERSION} dev --port <free> --no-open)`);
+  let mismatched = 0, fetchErrors = 0;
+  for (const arg of pages) {
+    const [raw, pinned] = arg.split('=');
+    const page = raw.replace(/^\//, '').replace(/\.mdx?$/, '');
+    const expected = pinned !== undefined ? Number(pinned) : expectedDiagramCount(root, `${page}.mdx`);
+    const url = `${base}/${page}.md`;
+    let body;
+    try {
+      const res = await fetch(url, { redirect: 'follow' });
+      body = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (e) {
+      console.log(`FETCH-ERROR  ${url}  ${e.message}`);
+      fetchErrors++;
+      continue;
+    }
+    if (body.trimStart().startsWith('<!DOCTYPE') || body.trimStart().startsWith('<html')) {
+      console.log(`NOT-SERVED   ${url}  (HTML shell — no .md export)`);
+      fetchErrors++;
+      continue;
+    }
+    const text = body.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+    // A fence inside <Tab>/<Step> exports indented under a "> " prefix; it still renders.
+    const fences = (text.match(/^(?:[ \t]*>)*[ \t]*```mermaid(?:[ \t]+theme=.*)?[ \t]*$/gm) || []).length;
+    const ok = expected !== null && fences === expected;
+    if (!ok) mismatched++;
+    console.log(`${ok ? 'MATCH   ' : 'MISMATCH'}  ${page}  md-fences=${fences}  expected=${expected ?? '? (no source .mdx; pass <page>=<count>)'}`);
+  }
+  console.log(mismatched ? `\nRESULT: MISMATCH — ${mismatched} page(s) export a different diagram count.`
+                         : fetchErrors ? '\nRESULT: INCONCLUSIVE — fetch problems, no mismatch on reachable pages.'
+                                       : '\nRESULT: MATCH — every page exports its expected diagrams.');
+  process.exit(mismatched ? 3 : fetchErrors ? 2 : 0);
+}
 
 const CANARIES = [
   // page path, what it exercises

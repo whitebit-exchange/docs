@@ -5,6 +5,7 @@ sidebarTitle: "Quickstart"
 ---
 
 import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+import SubAccountWithdrawal from '/snippets/diagrams/sub-account-withdrawal.mdx';
 
 <RegionBaseUrl />
 
@@ -79,6 +80,8 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
     For TypeScript and Python SDK examples, see [SDKs](/sdks).
 
     **Required fields:** `alias` (display name), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required.
+
+    With `shareKyc: false`, permissions sent at creation are not kept until the end customer confirms the email through the [KYC URL](/api-reference/sub-accounts/kyc-url) flow. Re-apply the permissions with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true`, permissions apply at creation.
 
     **Expected response:**
     ```json
@@ -181,7 +184,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       </Tab>
     </Tabs>
 
-    **Required fields:** `subAccountId` (UUID), `type` (1 = info and trading, 2 = info, trading, deposits, withdrawals). **Optional:** `title` (custom name for the key).
+    **Required fields:** `subAccountId` (UUID), `type` (1 = info and trading, 2 = info, trading, deposits, withdrawals), `title` (key name).
 
     <Warning>
       Save the `secretKey` immediately -- the API does not return the secret key again after creation.
@@ -189,9 +192,9 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
     <Note>
       To receive crypto deposits directly, the sub-account needs a `type: 2` key (deposits and
-      withdrawals) **and** the account must have deposits enabled. Crypto deposits are disabled by
-      default — to enable crypto deposits for the account and its sub-accounts, contact the assigned Account
-      Manager or email institutional@whitebit.com. Once enabled, generate the address via the
+      withdrawals) **and** the account must have sub-account deposits enabled. Crypto deposits to sub-accounts are disabled
+      by default — to enable deposits for the account's sub-accounts, contact the assigned account
+      manager. Once enabled, generate the address via the
       standard [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
       signed with the sub-account's own key.
     </Note>
@@ -249,25 +252,11 @@ The sub-account now has an isolated balance and a dedicated API key. To restrict
 
 When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal.
 
-```mermaid
-sequenceDiagram
-    participant Sub as Sub-account (own key)
-    participant WB as WhiteBIT
-    participant Main as Main account (own key)
-    Main->>WB: POST /sub-account/api-key/edit (enable withdraw URL)
-    WB-->>Main: 200 — withdraw enabled on the key
-    Sub->>WB: POST /main-account/withdraw
-    WB-->>Sub: status unconfirmed_by_main_account
-    Main->>WB: POST /sub-account/withdraw/unconfirmed-list
-    WB-->>Main: pending withdrawals (transaction id)
-    Main->>WB: POST /sub-account/withdraw/confirm (transaction id)
-    WB-->>Main: 200 — released for processing
-    Note over WB: Unconfirmed withdrawals expire if not confirmed
-```
+<SubAccountWithdrawal />
 
 <Note>
   The sub-account withdrawal endpoints are not available by default. To request access, contact
-  institutional@whitebit.com. Without main account confirmation, an unconfirmed withdrawal
+  the assigned account manager. Without main account confirmation, an unconfirmed withdrawal
   expires after a retention period.
 </Note>
 

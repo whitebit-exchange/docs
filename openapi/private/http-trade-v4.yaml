@@ -878,7 +878,8 @@ paths:
             - `32` - amount validation failed
             - `33` - price validation failed
             - `36` - clientOrderId validation failed
-            - `37` - `ioc=true` cannot be used with `postOnly=true` or `rpi=true`
+            - `37` - `ioc=true` cannot be combined with `postOnly=true`
+            - `40` - `ioc=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account (per-order)
             - `10` - insufficient balance to place the order
             - `111` - resulting position would exceed the market maximum
@@ -1641,7 +1642,7 @@ paths:
       description: |
         The endpoint returns an account-level summary of the [collateral](/glossary#balance-collateral) balance: equity, used margin, free margin, unrealized profit and loss, leverage, and the two risk ratios that drive [liquidation](/concepts/liquidation). Margin positions and futures positions share the collateral balance, so every value covers both products.
 
-        The account enters liquidation when `marginFraction` drops strictly below `maintenanceMarginFraction`. The platform computes both ratios server-side; compare the returned values instead of recomputing them from position data.
+        The account enters liquidation when `marginFraction` drops strictly below `maintenanceMarginFraction`. The platform computes both ratios server-side; compare the returned values instead of recomputing the ratios from position data.
 
         <Warning>
         Rate limit: 12000 requests/10 sec.
@@ -1706,7 +1707,7 @@ paths:
                     example: "1.01005"
                   maintenanceMarginFraction:
                     type: string
-                    description: "Account-level maintenance margin requirement (MMR), as a fraction. The value ranges from `0.005` (0.5%) to `0.03` (3%) and covers both margin and futures positions; futures positions are weighted by risk bracket. The value is not a flat rate per position, so small deviations from a round percentage are expected, and multiplying it by the summed position notional does not reproduce the account's maintenance margin. Use the returned value as the liquidation threshold for `marginFraction`."
+                    description: "Account-level maintenance margin requirement, as a fraction. The value ranges from `0.005` (0.5%) to `0.03` (3%) and covers both margin and futures positions; the platform weights futures positions by risk bracket. The value is not a flat rate per position, so small deviations from a round percentage are expected, and multiplying it by the summed position notional does not reproduce the account's maintenance margin. Use the returned value as the liquidation threshold for `marginFraction`."
                     example: "0.03"
                   futuresEquity:
                     type: string
@@ -4049,18 +4050,22 @@ paths:
       description: |
         The endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
 
-        The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. Account balance is pre-checked at estimate time and re-checked at confirm time, because balance can change within the 10-second quote window. An amount above the absolute server-side maximum is rejected with `422`.
+        Convert through the API takes the source currency from the trade (spot) balance and puts the converted amount on the same balance. When the source currency is not on the trade balance, the request fails with the insufficient-balance error and no funds move. Transfer the funds to the trade balance first with [Transfer between balances](/api-reference/account-wallet/transfer-between-balances), and transfer the converted amount back to the main balance before a withdrawal.
 
-        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits; do not rely on the tolerance. An amount inside the allowed range can still be rejected as too small for the pair when it converts to zero.
+        A quote executes in full at the quoted amounts or not at all. With `direction: "to"`, the amount received equals the requested amount exactly: the platform builds the fee into the amount given, so the fee never reduces the amount received.
+
+        The minimum convert size is derived from the resulting proceeds, not a fixed per-pair floor: a request is rejected as too small when `rate × amount` rounds to zero in the target currency. The endpoint checks the trade balance at estimate time, and Convert Confirm checks the trade balance again at confirm time, because the balance can change within the 10-second quote window. An amount above the absolute server-side maximum is rejected with `422`.
+
+        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. Send `amount` as a string. The endpoint currently tolerates a JSON number for `amount` but can lose precision beyond approximately 15 significant digits; do not rely on the tolerance. The endpoint can still reject an amount inside the allowed range as too small for the pair when the amount converts to zero.
 
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
-        An amount that the conversion engine cannot fill returns `400` with code `32` under `errors.request`, for one of two reasons: the amount exceeds the engine's amount limit (`amountTooHigh` example) or liquidity is insufficient (`amountNotProcessable` example). When the account balance is insufficient, the endpoint returns the balance error (`400`, code `37`, `insufficientBalance` example) before either of these checks.
+        An amount that the conversion engine cannot fill returns `400` with code `32` under `errors.request`, for one of two reasons: the amount exceeds the engine's amount limit (`amountTooHigh` example) or liquidity is insufficient (`amountNotProcessable` example). When the trade balance is insufficient, the endpoint returns the insufficient-balance error (`400`, code `37`, `insufficientBalance` example) before either of these checks.
 
-        Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
+        The endpoint validates the request in stages. An empty body reports only `from` and `to` under `errors`; the endpoint checks `direction` and `amount` once `from` and `to` are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining parameters.
 
         <Note>
-        The endpoint can be used to obtain a pre-execution price estimate for a market order. Call the endpoint with the desired amount before placing a market order to see the approximate execution price.
+        The endpoint can be used to obtain a pre-execution price estimate for a market order. Call the endpoint with the desired amount before placing a market order to see the approximate execution price. The endpoint checks the trade balance first, so the amount must be available on the trade balance.
         </Note>
 
         <Note>
@@ -4108,7 +4113,6 @@ paths:
                       example: "35103.1"
                 - type: object
                   title: Authentication
-                  description: "Signing fields added to the body when the request is signed. These fields are not conversion parameters. See [First API Call](/guides/first-api-call) for the signing flow."
                   properties:
                     nonce:
                       type: integer
@@ -4170,7 +4174,7 @@ paths:
                     example: "34299.76831549"
                   expireAt:
                     type: integer
-                    description: "Quote expiration timestamp"
+                    description: "Quote expiration time as a Unix timestamp in seconds, a whole number."
                     example: 1699016476
         '400':
           description: Inner validation failed
@@ -4211,6 +4215,7 @@ paths:
               examples:
                 termsNotAccepted:
                   summary: "Terms Not Accepted"
+                  description: "The account has not accepted the Convert terms. The account owner accepts the terms once on whitebit.com; sub-accounts do not accept the terms separately."
                   value:
                     code: 0
                     message: "Validation failed"
@@ -4289,15 +4294,23 @@ paths:
       description: |
         The endpoint confirms an estimated quote.
 
-        An expired quote returns `400` with code `20` or `24`; once a confirm has failed as expired, any later attempt returns code `24`. A quote that does not exist and a quote that was already confirmed both return `400` with code `24`. The `id` returned by [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) belongs to an already executed conversion, so passing the `id` as `quoteId` also returns `400` with code `24`. Balance is re-checked at confirm time and can fail with code `37` even when the estimate succeeded, because balance may change within the quote window.
+        A `200` response means the conversion executed. The response fields `finalGive` and `finalReceive` carry the quoted amounts. The converted amount is on the trade (spot) balance. A request that fails never returns `200`. When two conversions compete for the same funds, only one executes; the other returns the insufficient-balance error (`400`, code `37`).
+
+        Rarely, the platform refuses a confirm when the price moves between the estimate and the confirm. The platform then converts nothing; request a new estimate.
+
+        An expired quote returns `400` with code `20` or `24`; once a confirm has failed as expired, any later attempt returns code `24`. A quote that does not exist and a quote that was already confirmed both return `400` with code `24`. The `id` returned by [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm) belongs to an already executed conversion, so passing the `id` as `quoteId` also returns `400` with code `24`. The endpoint re-checks the trade balance at confirm time and can fail with code `37` even when the estimate succeeded, because the balance can change within the quote window.
 
         <Note>
-        A quote that was already confirmed and a quote that does not exist return the same response: `400` with code `24` under `errors.quoteId`. In both cases, request a new estimate.
+        A quote that was already confirmed and a quote that does not exist return the same response: `400` with code `24` under `errors.quoteId`. In both cases, request a new estimate. If an earlier confirm of the same quote returned `400` with code `0` or a `5xx`, look up the `quoteId` in [Convert History](/api-reference/convert/convert-history) first: code `24` can mean that confirm executed.
         </Note>
 
         <Note>
         Error text is not part of the contract and may change. Treat the HTTP status, the `code`, and the field name under `errors` as the stable contract.
         </Note>
+
+        <Warning>
+        After a `400` with code `0` or any `5xx`, the conversion may have executed. Look up the `quoteId` in [Convert History](/api-reference/convert/convert-history) before converting the same funds again; a record means the conversion executed.
+        </Warning>
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -4324,7 +4337,6 @@ paths:
                       example: "4050"
                 - type: object
                   title: Authentication
-                  description: "Signing fields added to the body when the request is signed. These fields are not conversion parameters. See [First API Call](/guides/first-api-call) for the signing flow."
                   properties:
                     nonce:
                       type: integer
@@ -4429,34 +4441,38 @@ paths:
     post:
       summary: Convert Auto Confirm
       description: |
-        The endpoint requests a conversion quote and accepts it in a single call. No separate confirm step and no expiry window apply, so the 10-second quote lifetime that governs [Convert Estimate](/api-reference/convert/convert-estimate) followed by [Convert Confirm](/api-reference/convert/convert-confirm) cannot elapse mid-flow. The spot balance funds the conversion and receives the converted amount, matching the two-step flow.
+        The endpoint requests a conversion quote and accepts it in a single call. No separate confirm step and no expiry window apply, so the 10-second quote lifetime that governs [Convert Estimate](/api-reference/convert/convert-estimate) followed by [Convert Confirm](/api-reference/convert/convert-confirm) cannot elapse mid-flow. The trade (spot) balance funds the conversion and receives the converted amount, matching the two-step flow. When the source currency is not on the trade balance, the request fails with the insufficient-balance error (`400`, code `37`) and no funds move.
 
         The endpoint reports a conversion as executed only when the quote is filled and the converted amount is non-zero.
 
-        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account and is claimed before anything is funded or executed. The first request claims the key and converts; a repeat returns the recorded conversion without converting again; a duplicate that arrives while the claim is held waits for the original and receives the same reply. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time. The key length is checked on the string, and a digits-only key is never compared as a number, so `"12345678"` is valid and `"123"` is too short.
+        A `200` response means the conversion executed. Two `200` responses with the same `id` come only from two requests with the same `idempotencyKey`, and describe one conversion. Key the integration's ledger on `id`.
+
+        `idempotencyKey` makes a retry safe. The key is scoped to the authenticated account. The endpoint claims the key before executing anything. The first request claims the key and converts; for 24 hours, a repeated request with the same key returns the recorded response (a `200` or a `502`) without converting again. A duplicate that arrives while the first request is still running waits up to 3 seconds, then returns `409` under `errors.request`; retry later with the same key. A request that fails before anything was executed frees the key, so a retry converts. Without a key, a retry converts a second time. The endpoint checks the key length on the string and never compares a digits-only key as a number, so `"12345678"` is valid and `"123"` is too short.
 
         The key is bound to the request that first executed it.
 
         The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
 
-        Request validation is staged. An empty body reports only `from` and `to` under `errors`; `direction` and `amount` are checked once those two are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining fields.
+        [Convert History](/api-reference/convert/convert-history) does not filter by idempotency key. To recover the outcome of a request sent with a key, resend the identical request with the same key within 24 hours; the endpoint returns the original response, including `id`. A request that reuses a key from a different request returns `409`. Without a key, after a `502`, or after 24 hours, search the history by time window, pair, and amounts.
 
-        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. An amount inside the allowed range is still rejected as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; that minimum is pair-dependent. `amount` must be sent as a string. JSON numbers are currently tolerated but may be rounded beyond ~15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance.
+        The endpoint validates the request in stages. An empty body reports only `from` and `to` under `errors`; the endpoint checks `direction` and `amount` once `from` and `to` are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining parameters.
+
+        An amount outside `0.00000001`–`100000000000` returns `422` with code `30` under `errors.amount`. The endpoint still rejects an amount inside the allowed range as too small (`422`, code `0`) when the amount is worth less than `0.00000001` of the target asset at current rates; the minimum is pair-dependent. Send `amount` as a string. The endpoint currently tolerates a JSON number for `amount` but can lose precision beyond approximately 15 significant digits, and the conversion executes with the rounded amount: `12345678901.12345678` sent as a JSON number executes as `12345678901.123457`. Do not rely on the tolerance.
 
         `from` and `to` must differ. A request with the same currency in both fields returns `422` with code `30` under `errors.from`.
 
         **Rate limit:** 10,000 requests / 10 sec per IP address — the default for all endpoints. See [Rate limits](/api-reference/rate-limits).
 
         <Warning>
-        The idempotency claim is held for a few seconds and is configurable. The claim is taken once and is never renewed, and execution can outlast it. A retry sent after the claim lapses but before the original request finishes converts a second time.
+        The claim on a key lapses after 60 seconds only when processing stops without recording an outcome, and the platform keeps a recorded outcome for 24 hours. After the claim lapses, or after 24 hours, a retry with the same key can convert a second time: check [Convert History](/api-reference/convert/convert-history) before retrying.
         </Warning>
 
         <Note>
-        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic `Invalid request.`. The specific condition appears in `errors.<field>[0]`: under `errors.idempotencyKey` when the key was reused for a different request, under `errors.request` otherwise. Branch on the HTTP status code and the field name rather than on `code`.
+        For errors forwarded from the conversion service — `409` and `502` — the top-level `code` field is `0` and the top-level `message` field is the generic `Invalid request.`. The specific condition appears in `errors.<field>[0]`: under `errors.idempotencyKey` when a different request already used the key, under `errors.request` otherwise. Branch on the HTTP status code and the field name rather than on `code`.
         </Note>
 
         <Warning>
-        Do not retry a `502`, with the same key or a new one — contact support to reconcile. A retry with the same key returns the same `502`.
+        After a `500` or a `502`, the conversion may have executed, and a retry with a new key can convert a second time. Check [Convert History](/api-reference/convert/convert-history) before converting again: a record means the conversion executed and the converted amount is on the trade balance.
         </Warning>
 
         <Note>
@@ -4506,7 +4522,6 @@ paths:
                       example: "9f1c2b7e-4d3a-4f21-9c88-6e5b0a71d240"
                 - type: object
                   title: Authentication
-                  description: "Signing fields added to the body when the request is signed. These fields are not conversion parameters. See [First API Call](/guides/first-api-call) for the signing flow."
                   properties:
                     nonce:
                       type: integer
@@ -4569,7 +4584,7 @@ paths:
                       request: ["Amount too high — try a lower amount"]
         '409':
           description: |
-            Idempotency key conflict. The endpoint executed no conversion.
+            Idempotency key conflict. This request executed no conversion. Under `errors.request`, the first request with the key is still running: retry later with the same key. Under `errors.idempotencyKey`, a different request already used the key.
           content:
             application/json:
               schema:
@@ -4634,6 +4649,7 @@ paths:
                       from: ["The USDT field should not be equal USDT field."]
                 termsNotAccepted:
                   summary: "Terms Not Accepted"
+                  description: "The account has not accepted the Convert terms. The account owner accepts the terms once on whitebit.com; sub-accounts do not accept the terms separately."
                   value:
                     code: 0
                     message: "Validation failed"
@@ -4646,9 +4662,12 @@ paths:
                     message: "Validation failed"
                     errors:
                       from: ["Conversion markets not available"]
+        '500':
+          description: |
+            The API timed out before the conversion service returned an outcome, and the conversion can still complete. With an idempotency key, resend the identical request with the same key: the endpoint returns the recorded response, or `409` while the conversion is still running. Without a key, search [Convert History](/api-reference/convert/convert-history) by time window, pair, and amounts before converting again.
         '502':
           description: |
-            The conversion service returned no usable verdict. The conversion may have executed. Two states produce a `502` and the response does not distinguish between the two: a transfer may still be outstanding, or the conversion was delivered and only the idempotency record failed to persist.
+            The conversion service returned no outcome, and the conversion may have executed. A retry with the same key returns the same `502`; a retry with a new key can convert a second time. Search Convert History by time window, pair, and amounts before converting again. A record means the conversion executed. The error text in `errors.request` is not part of the contract and does not change the instruction.
           content:
             application/json:
               schema:
@@ -4674,6 +4693,8 @@ paths:
         The `from`–`to` window is capped at 30 days per request. A wider range is rejected with `422` and code `0`, reported under both `from` and `to`. Both `from` and `to` must be no earlier than now − 180 days. The bound is rolling and recalculated on every request, so the timestamp in the `dateOutOfRange` error message changes with each request.
 
         `total` is the number of records in the returned page, not the number of all matching records, so it never exceeds `limit`. A full page does not mean more records exist. To read every record, request the next `offset` until a page returns fewer than `limit` records or none.
+
+        The endpoint does not filter by idempotency key. Filter by `quoteId`, time window, or pair; the `quoteId` filter accepts the `id` returned by [Convert Auto Confirm](/api-reference/convert/convert-auto-confirm).
 
         <Warning>
         Rate limit: 10000 requests/10 sec.
@@ -4731,7 +4752,6 @@ paths:
                       example: 0
                 - type: object
                   title: Authentication
-                  description: "Signing fields added to the body when the request is signed. These fields are not filter parameters. See [First API Call](/guides/first-api-call) for the signing flow."
                   properties:
                     nonce:
                       type: integer

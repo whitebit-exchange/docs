@@ -174,7 +174,7 @@ Deposits to WhiteBIT are stricter than withdrawals. An HBAR memo that is not a w
 </Note>
 
 <Warning>
-Missing a required memo will result in **permanent loss of funds** or significant delays in recovery. Check currency requirements on [Asset Status endpoint](/api-reference/market-data/asset-status-list).
+Missing a required memo results in **permanent loss of funds** or significant delays in recovery. The [Asset Status endpoint](/api-reference/market-data/asset-status-list) reports memo requirements per asset (`memo.deposit` and `memo.withdraw`), not per network; for network-specific cases such as USDC on STELLAR and USDT on TON, use the table above.
 </Warning>
 
 ### ⚠️ Provider Selection (Fiat)
@@ -190,10 +190,12 @@ Fiat withdrawals require the correct provider:
 
 ### Step 1: Pre-Withdrawal Checks
 
-```
-1. Check balance: GET /api/v4/main-account/balance
-2. Get withdrawal fees: POST /api/v4/main-account/fee  
-3. Verify currency is withdrawable: GET /api/v4/public/assets
+```text
+1. Check balance: POST /api/v4/main-account/balance
+   - Exclude pending_deposit_amount: deposits awaiting full confirmation are not withdrawable
+2. Check withdrawable amount: POST /api/v4/main-account/withdrawable-balance
+3. Get withdrawal fees: POST /api/v4/main-account/fee
+4. Verify currency is withdrawable: GET /api/v4/public/assets
    - Check "can_withdraw" status is "true"
    - Get available networks/providers
    - Check minimum/maximum amounts
@@ -219,12 +221,13 @@ Search by `uniqueId` to track the transaction.
 
 **Withdrawal status codes**:
 - **Successful**: 3, 7
-- **Canceled**: 4
-- **Pending**: Other codes (see [history endpoint](/api-reference/account-wallet/get-deposit-withdraw-history) for full list)
+- **Canceled**: 4 (final; the amount returns to the balance)
+- **Pending**: 1, 2, 6, 10–17
+- **Unconfirmed by user**: 5
+- **Partially successful**: 18
+- **AML frozen**: 21
 
-<Note>
-Cryptocurrency withdrawals are typically processed within 15-60 minutes depending on network congestion. Fiat withdrawals may take 1-5 business days depending on the payment provider.
-</Note>
+See the [history endpoint](/api-reference/account-wallet/get-deposit-withdraw-history) for the full list.
 
 ---
 
@@ -300,6 +303,7 @@ For multi-network currencies (USDT, USDC, etc.), choosing the right network is c
 - `7` - Amount should be integer (zero precision currencies like NEO)
 - `8` - Target withdraw amount without fee equals zero
 - `9` - Address is unavailable (withdrawal to own address blocked)
+- `20` - Amount is not withdrawable yet: deposits credited before full network confirmation are still held back; see [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance)
 
 **Example**:
 ```json
@@ -348,3 +352,4 @@ For multi-network currencies (USDT, USDC, etc.), choosing the right network is c
 
 - [On/Off-Ramp integration](/guides/on-off-ramp-integration) — corporate fiat ↔ crypto over EUR/SEPA rails.
 - [Payment Integration](/guides/payment-integration) — crypto deposits, withdrawals, conversion, WhiteBIT Codes, and Express Withdraw.
+- [Crypto-as-a-Service integration](/guides/caas-integration) — paying out to an end user's external address.

@@ -17,13 +17,17 @@ Fiat deposits and withdrawals require completed [institutional onboarding](/inst
 
 ### Per-account activations
 
-Four capabilities are enabled per account rather than by default — the fiat deposit invoice endpoint, dedicated per-user deposit addresses, Express Withdraw, and Travel Rule API access. Request these capabilities through the account manager or `institutional@whitebit.com`. See the [enablement gates](/guides/on-off-ramp-overview#how-to-get-started).
+Four capabilities are enabled per account rather than by default — the fiat deposit invoice endpoint, dedicated per-user deposit addresses, Express Withdraw, and Travel Rule API access. Request all four through the account manager, with the API key for the invoice endpoint; see [Unique address per user](/guides/payment-integration#unique-address-per-user) for per-user deposit addresses. See the [enablement gates](/guides/on-off-ramp-overview#how-to-get-started).
+
+### Account limits
+
+The account's deposit and withdrawal limit is a rolling monthly limit counted in USD equivalent. For bank transfers, WhiteBIT sets the account's limit from the source-of-funds and source-of-wealth information provided during onboarding; the account manager confirms the values. See [Program terms](/guides/on-off-ramp-overview#program-terms).
 
 ## Crypto flows
 
 ### Persistent versus per-user deposit addresses
 
-A persistent address suits single-wallet and treasury setups; a fresh address per end customer suits payment providers that reconcile by address. See [Choosing between the two endpoints](/guides/payment-integration#unique-address-per-user).
+A persistent address suits single-wallet and treasury setups; a fresh address per end customer suits payment providers that reconcile by address (plus memo on memo networks). See [Choosing between the two endpoints](/guides/payment-integration#unique-address-per-user).
 
 ### Charging a WhiteBIT user off-chain
 
@@ -35,9 +39,9 @@ Express Withdraw charges a specific amount from a WhiteBIT user's balance in one
 
 The `uniqueId` submitted with the fiat deposit request must appear in the SEPA payment-reference field so the incoming settlement matches the original request. See [SEPA payment reference](/guides/payment-integration#sepa-payment-reference).
 
-### SEPA deposit provider and bank details
+### SEPA deposit provider
 
-The deposit-side SEPA provider for EUR fiat deposits and whether a `bankBic` sub-field is required are confirmed per account and are not documented in the public reference, so verify both with WhiteBIT during onboarding. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration) for the fiat deposit flow.
+The account manager confirms the deposit-side SEPA provider for EUR fiat deposits on each account during onboarding. See the [On/Off-Ramp guide](/guides/on-off-ramp-integration) for the fiat deposit flow.
 
 ## Compliance
 

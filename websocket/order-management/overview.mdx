@@ -221,7 +221,6 @@ Every malformed request returns code `1`; the message identifies the parameter.
 | `4` | `method not found` | All | Method name typo |
 | `5` | `service timeout` | All | Engine did not answer in time |
 | `6` | `order not found`, `require authentication` | Cancel and modify; all | Unknown or already-finished order, or `authorize` was never called |
-| `7` | `too many requests` | All | Rate limit |
 | `8` | `unknown asset` | All | Asset not listed |
 | `9` | `unknown market` | All | Market not listed |
 | `10` | `balance not enough` | Placement | Insufficient spot balance |
@@ -304,4 +303,4 @@ The available order types also vary by region. In the EU region the spot order t
 
 - [Market Maker integration](/guides/market-maker-integration) — placing and canceling quotes over the WebSocket order methods.
 - [Partner Solutions](/guides/partner-solutions) — the partner router's REST-versus-WebSocket transport guidance.
-- [Crypto-as-a-Service integration](/guides/caas-integration) — the trade surface composed into a white-label exchange.
+- [Crypto-as-a-Service integration](/guides/caas-integration) — the API building blocks a CaaS integration can use, including order management over WebSocket.
