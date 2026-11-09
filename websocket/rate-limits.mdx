@@ -11,22 +11,26 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 Reference documentation for WebSocket connection limits, request limits, timeout behavior, and error codes.
 
 <Warning>
-Rate limits: `1000` WebSocket connections per minute. Per connection, `10000` order placements and `12000` other JSON-RPC requests per `10` seconds.
+Rate limits: `1000` WebSocket connections per minute. Per account, `10000` order placements and `12000` other JSON-RPC requests per `10` seconds. The main account and all its sub-accounts share both request budgets across every connection.
 </Warning>
 
-## Connection limits
+## Connection and request limits
 
 | Scope | Limit |
 |-------|-------|
 | New connections | 1,000 per minute |
-| Order placements per connection | 10,000 per 10 seconds |
-| All other requests per connection | 12,000 per 10 seconds |
+| Order placements per account | 10,000 per 10 seconds |
+| All other requests per account | 12,000 per 10 seconds |
 
 Limit WebSocket connection creation to `1000` connections per minute.
 
-Order placements — the `*_place` methods on [Order Management](/websocket/order-management/overview) — count against a budget of `10000` requests per `10` seconds per connection.
+Order placements — the `*_place` methods on [Order Management](/websocket/order-management/overview) — count against a budget of `10000` requests per `10` seconds per account.
 
-Every other JSON-RPC request — subscriptions, one-time queries, order cancellations and modifications, `authorize`, `ping` — counts against a separate budget of `12000` requests per `10` seconds per connection.
+Every other JSON-RPC request — subscriptions, one-time queries, order cancellations and modifications, `authorize`, `ping` — counts against a separate budget of `12000` requests per `10` seconds per account.
+
+### Account scope
+
+Both request budgets are counted per account, not per connection. Requests from the main account and from every sub-account count together against the same budgets, which every connection of the account shares. Opening an additional connection does not raise either budget.
 
 Reuse a single WebSocket connection for multiple subscriptions. Opening a new connection per channel consumes the connection limit and increases latency.
 
@@ -70,7 +74,7 @@ To subscribe to all markets, send `trades_subscribe` with an empty `params` arra
 
 ## Rate limit handling
 
-Implement request throttling on the client side.
+Implement request throttling on the client side. Apply the throttle across all connections and sub-accounts of the account, because the request budgets are shared and a per-connection throttle does not keep the account within the budgets.
 
 Queue subscription requests instead of sending bursts of requests.
 
@@ -165,3 +169,8 @@ The server closes the WebSocket connection immediately if the client sends inval
 - [WebSocket Overview](/websocket/overview) — Connection endpoint, message format, and quickstart.
 - [WebSocket Authentication](/websocket/authentication) — Authorization flow for private channels.
 - [REST API Rate Limits & Error Codes](/api-reference/rate-limits) — REST-specific limits and error formats.
+
+## Used in these guides
+
+- [Market Maker integration](/guides/market-maker-integration) — the shared per-account order budget behind WebSocket quoting.
+- [Partner FAQ](/guides/partner-faq) — how REST and WebSocket rate limits are counted.

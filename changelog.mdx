@@ -5,6 +5,18 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ---
 
 
+<Update label="November 09, 2026">
+## WebSocket rate limits: per account
+**The 10,000 order placement and 12,000 other request budgets are counted per account, not per connection**
+
+The WebSocket Rate Limits and Order Management pages now document both request budgets per account. The main account and all its sub-accounts share the budget of 10,000 order placements per 10 seconds and the separate budget of 12,000 other requests per 10 seconds across every connection, so an additional connection does not raise either budget. Earlier documentation described both budgets per connection. The connection limit is unchanged at 1,000 new connections per minute. Throttle requests across all connections and sub-accounts of the account.
+
+<CardGroup cols={2}>
+  <Card title="WebSocket Rate Limits" href="/websocket/rate-limits" icon="gauge-high" horizontal/>
+  <Card title="Order Management (WebSocket)" href="/websocket/order-management/overview" icon="pen-to-square" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="November 06, 2026">
 ## Virtual account status webhook
 **New `deposit.virtual_account_status` webhook event**
