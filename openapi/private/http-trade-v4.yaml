@@ -5260,18 +5260,36 @@ paths:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
           description: |
-            Inner validation failed
+            The trading engine rejected the request.
 
             Error codes:
-            - `30` - default validation error code
-            - `31` - market validation failed
-            - `32` - amount validation failed
-            - `33` - price validation failed
-            - `36` - clientOrderId validation failed
+            - `1` - the engine rejected an argument (message: `Something went wrong`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: |
+            Validation failed. All request and business validation errors return HTTP 422. Authentication errors are listed in [REST API rate limits and error codes](/api-reference/rate-limits#authentication-error-reference).
+
+            Error codes:
+            - `4` - order creation is disabled for the account or API key
+            - `10` - not enough balance
+            - `11` - `amount` or total (`amount` × `price`) is below the market minimum
+            - `13` - post-only order could not be placed as a maker and was cancelled
+            - `30` - several fields failed validation, unknown market, or other validation error
+            - `31` - `market` is missing, has an invalid format, or is not available
+            - `32` - `amount` is invalid (not numeric, not greater than 0, above the maximum, wrong precision, or not a multiple of the step)
+            - `33` - `price` is invalid (not numeric, below the minimum, above the maximum, or not a multiple of the step)
+            - `36` - `clientOrderId` is invalid or already used by the account
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
-            - `40` - `ioc=true` cannot be combined with `rpi=true`
+            - `39` - RPI users cannot place BBO orders
+            - `40` - `ioc=true` cannot be combined with `rpi=true`, or the engine rejected the order as not post-only (`limit order is not post only`)
+            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
+            - `51` - trading in the market is not allowed
+            - `250` - `price` is outside the market price bands
           content:
             application/json:
               schema:
@@ -5331,15 +5349,14 @@ paths:
                     errors:
                       market:
                       - Market field should not be empty string.
-                amount32_2:
+                amount11:
                   summary: "Given amount is less than min amount 0.001"
                   value:
-                    code: 32
+                    code: 11
                     message: Validation failed
                     errors:
                       amount:
                       - Given amount is less than min amount 0.001
-                      - Min amount step = 0.000001
                 clientorderid36:
                   summary: "ClientOrderId field should be a string"
                   value:
@@ -5372,10 +5389,10 @@ paths:
                     errors:
                       ioc:
                       - Either IOC or PostOnly flag in true state is allowed.
-                total30:
+                total11:
                   summary: "Total (amount * price) is less than 5.05"
                   value:
-                    code: 30
+                    code: 11
                     message: Validation failed
                     errors:
                       total:
@@ -5405,14 +5422,6 @@ paths:
                     errors:
                       price:
                       - Price should be greater than 0.
-                makerFee35:
-                  summary: "Incorrect maker fee"
-                  value:
-                    code: 35
-                    message: Validation failed
-                    errors:
-                      maker_fee:
-                      - Incorrect maker fee
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:
@@ -5421,14 +5430,47 @@ paths:
                     errors:
                       retail:
                       - api.validation.retail.not_allowed
-        '422':
-          description: Request validation failed
+        '429':
+          description: |
+            The trading engine rate limit is exceeded.
+
+            Error codes:
+            - `10000` - too many requests
+            - `10001` - too many new orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '453':
+          description: |
+            The order type or flag is not available in the account's region.
+
+            Error codes:
+            - `30` - order type or flag not available in the region (message: `Inner validation failed`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: |
+            The trading engine is unreachable or timed out.
+
+            Error codes:
+            - `0` - engine unreachable or timed out (message: `Server busy.`)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '503':
-          description: Service temporarily unavailable
+          description: |
+            The trading engine is unreachable or timed out.
+
+            Error codes:
+            - `0` - engine unreachable or timed out (message: `Server busy.`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/v4/order/bulk:
     post:
@@ -5519,21 +5561,46 @@ paths:
                   retail: false
       responses:
         '200':
-          $ref: '#/components/responses/BulkLimitOrderResponse'
+          description: |
+            Orders processed. The request returns HTTP 200 even when some orders fail. The response is an array with one item per submitted order; each item contains a `result` (order created) and an `error`. A successful item has an empty `error` object (`{}`).
+
+            A failed item carries an `error` object in the standard error shape. Items do not carry an HTTP status. Per-item error codes are the same as the HTTP 422 codes of [Create limit order](/api-reference/trading/create-limit-order), plus trading engine codes. When the trading engine rejects an item, the item's `message` is `Inner validation failed`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkLimitOrderResponse'
         '400':
           description: |
-            Inner validation failed
+            The trading engine rejected the request.
 
             Error codes:
-            - `30` - default validation error code
-            - `31` - market validation failed
-            - `32` - amount validation failed
-            - `33` - price validation failed
-            - `36` - clientOrderId validation failed
+            - `1` - the engine rejected an argument (message: `Something went wrong`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: |
+            Validation failed. All request and business validation errors return HTTP 422. Authentication errors are listed in [REST API rate limits and error codes](/api-reference/rate-limits#authentication-error-reference).
+
+            Error codes:
+            - `4` - order creation is disabled for the account or API key
+            - `10` - not enough balance
+            - `11` - `amount` or total (`amount` × `price`) is below the market minimum
+            - `13` - post-only order could not be placed as a maker and was cancelled
+            - `30` - several fields failed validation, unknown market, or other validation error
+            - `31` - `market` is missing, has an invalid format, or is not available
+            - `32` - `amount` is invalid (not numeric, not greater than 0, above the maximum, wrong precision, or not a multiple of the step)
+            - `33` - `price` is invalid (not numeric, below the minimum, above the maximum, or not a multiple of the step)
+            - `36` - `clientOrderId` is invalid or already used by the account
             - `37` - `ioc=true` cannot be combined with `postOnly=true`
-            - `40` - `ioc=true` cannot be combined with `rpi=true`
+            - `39` - RPI users cannot place BBO orders
+            - `40` - `ioc=true` cannot be combined with `rpi=true`, or the engine rejected the order as not post-only (`limit order is not post only`)
+            - `41` - `retail=true` cannot be combined with `rpi=true`
             - `42` - `retail=true` is not allowed for the account
             - `43` - `rpi=true` is not allowed for the account
+            - `51` - trading in the market is not allowed
+            - `250` - `price` is outside the market price bands
           content:
             application/json:
               schema:
@@ -5593,8 +5660,23 @@ paths:
                     errors:
                       retail:
                       - api.validation.retail.not_allowed
-        '422':
-          description: Request validation failed
+        '429':
+          description: |
+            The trading engine rate limit is exceeded.
+
+            Error codes:
+            - `10000` - too many requests
+            - `10001` - too many new orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '453':
+          description: |
+            The order type or flag is not available in the account's region.
+
+            Error codes:
+            - `30` - order type or flag not available in the region (message: `Inner validation failed`)
           content:
             application/json:
               schema:
@@ -6210,7 +6292,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/CancelOrderResponse'
         '400':
-          description: Inner validation failed
+          description: |
+            The order was not found, or the trading engine rejected the request.
+
+            Error codes:
+            - `1` - the engine rejected an argument (message: `Something went wrong`)
+            - `2` - the order was not found (message: `Validation failed`, error: `Unexecuted order was not found.`)
           content:
             application/json:
               schema:
@@ -6220,16 +6307,18 @@ paths:
                   summary: "Unexecuted order was not found"
                   value:
                     code: 2
-                    message: "Inner validation failed"
+                    message: "Validation failed"
                     errors:
                       orderId: ["Unexecuted order was not found."]
         '422':
           description: |
-            Validation failed.
+            Validation failed. All request validation errors return HTTP 422. Authentication errors are listed in [REST API rate limits and error codes](/api-reference/rate-limits#authentication-error-reference).
 
             Error codes:
-            - `30` - default validation error code
-            - `31` - market validation failed
+            - `7` - the order was not found by the trading engine
+            - `30` - several fields failed validation, unknown market, both or neither of `orderId` and `clientOrderId` sent, or other validation error
+            - `31` - `market` has an invalid format
+            - `36` - `clientOrderId` is invalid
           content:
             application/json:
               schema:
@@ -6250,13 +6339,6 @@ paths:
                     message: "Validation failed"
                     errors:
                       market: ["Market is not available."]
-                marketValidationFailed:
-                  summary: "Market validation failed (code 31)"
-                  value:
-                    code: 31
-                    message: "Validation failed"
-                    errors:
-                      market: ["Market is not available."]
                 orderIdNotInteger:
                   summary: "OrderId must be an integer"
                   value:
@@ -6267,14 +6349,32 @@ paths:
                 marketFormatInvalid:
                   summary: "Market field format is invalid"
                   value:
-                    code: 30
+                    code: 31
                     message: "Validation failed"
                     errors:
                       market:
                         - "Market field should be a string."
                         - "Market field format is invalid."
+        '500':
+          description: |
+            The trading engine is unreachable or timed out.
+
+            Error codes:
+            - `0` - engine unreachable or timed out (message: `Server busy.`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '503':
-          description: Service temporarily unavailable
+          description: |
+            The trading engine is unreachable or timed out.
+
+            Error codes:
+            - `0` - engine unreachable or timed out (message: `Server busy.`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/v4/order/cancel/bulk:
     post:
@@ -6344,7 +6444,14 @@ paths:
           description: |
             Bulk cancel result. The response is an array — `response[i]` corresponds to `request.orders[i]`. Each item contains either a `result` (cancellation succeeded) or an `error` (cancellation failed for that item). Partial failures within the array are normal; the request itself returns HTTP 200.
 
-            Per-item error codes: `30` (validation failure), `404` (order not found), `500` (trade service unavailable). A failed item carries an `error` object following the standard error shape, for example:
+            A failed item carries an `error` object in the standard error shape. Per-item error codes:
+            - `30` - validation failure, including both or neither of `orderId` and `clientOrderId` sent
+            - `31` - `market` has an invalid format
+            - `36` - `clientOrderId` is invalid
+            - `404` - the order with the given `orderId` was not found or is already cancelled
+            - `500` - the trading engine is unavailable; the request itself still returns HTTP 200
+
+            Example of a failed item:
 
             ```json
             {
@@ -6361,19 +6468,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/BulkCancelOrderResponse'
         '400':
-          description: Inner validation failed
+          description: |
+            The order was not found, or the trading engine rejected the request.
+
+            Error codes:
+            - `1` - the engine rejected an argument (message: `Something went wrong`)
+            - `2` - the order was not found (message: `Validation failed`, error: `Unexecuted order was not found.`)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '422':
-          description: Request validation failed
+          description: |
+            Request validation failed. Authentication errors are listed in [REST API rate limits and error codes](/api-reference/rate-limits#authentication-error-reference).
+
+            Error codes:
+            - `30` - several fields failed validation or other validation error
+            - `31` - `market` has an invalid format
+            - `36` - `clientOrderId` is invalid
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '503':
-          description: Service temporarily unavailable
 
   /api/v4/order/cancel/all:
     post:
@@ -7762,13 +7878,6 @@ components:
       in: header
       name: X-TXC-SIGNATURE
       description: HMAC-SHA512 signature of the payload, hex-encoded. Computed as hex(HMAC-SHA512(payload, api_secret)).
-  responses:
-    BulkLimitOrderResponse:
-      description: Orders created
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/BulkLimitOrderResponse'
   schemas:
     ActiveOrderStatus:
       type: string
