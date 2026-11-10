@@ -5431,7 +5431,7 @@ paths:
                       price:
                       - Price should be greater than 0.
                 retail41:
-                  summary: \"api.tradeErrors.flagsCantBeCombined.rpiRetail\"
+                  summary: "api.tradeErrors.flagsCantBeCombined.rpiRetail"
                   value:
                     code: 41
                     message: Validation failed
@@ -5586,6 +5586,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BulkLimitOrderResponse'
+              examples:
+                retail41:
+                  summary: "Item with rpi=true and retail=true"
+                  value:
+                    - result: null
+                      error:
+                        code: 41
+                        message: Validation failed
+                        errors:
+                          retail:
+                            - The RPI and Retail flags cannot be combined in the same request
         '400':
           description: |
             The trading engine rejected the request.
@@ -5669,14 +5680,6 @@ paths:
                     errors:
                       price:
                       - Price field should be numeric string or number.
-                retail41:
-                  summary: \"api.tradeErrors.flagsCantBeCombined.rpiRetail\"
-                  value:
-                    code: 41
-                    message: Validation failed
-                    errors:
-                      retail:
-                      - api.tradeErrors.flagsCantBeCombined.rpiRetail
                 retail42:
                   summary: "api.validation.retail.not_allowed"
                   value:

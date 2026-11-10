@@ -90,7 +90,9 @@ A request to [`POST /api/v4/order/new`](/api-reference/trading/create-limit-orde
 
 ### Result
 
-The API rejects the request and returns error code `41`. For `POST /api/v4/order/new` and `POST /api/v4/order/bulk`, the error payload is `{"retail": ["api.tradeErrors.flagsCantBeCombined.rpiRetail"]}`.
+A single-order request is rejected with error code `41`. For `POST /api/v4/order/new`, the `errors` field of the error object is `{"retail": ["api.tradeErrors.flagsCantBeCombined.rpiRetail"]}`.
+
+A bulk request still returns HTTP 200: the item that sets both flags fails with code `41` in its `error` object, and `stopOnFail` decides whether the remaining items are processed.
 
 ### Fix
 
