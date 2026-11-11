@@ -7,11 +7,17 @@ import { RelatedResources } from '/snippets/RelatedResources.jsx';
 import { WhitebitSigner } from '/snippets/WhitebitSigner.jsx';
 import { signerFields } from '/snippets/signer-fields/order-bulk.jsx';
 import { RegionalRestrictionNote } from '/snippets/RegionalRestrictionNote.jsx';
+import { RestRateLimit } from '/snippets/RestRateLimit.jsx';
 
 <WhitebitSigner path="/api/v4/order/bulk" fields={signerFields} />
 
 <RegionalRestrictionNote />
 
+## Rate limit
+
+<RestRateLimit requests={10000} period="10 seconds" />
+
+One bulk request counts as one request, whether the request holds 1 order or 20.
 
 <RelatedResources>
 - [Create limit order](/api-reference/trading/create-limit-order) — place a single limit order

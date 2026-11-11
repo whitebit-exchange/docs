@@ -6,6 +6,18 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 
 
 <Update label="November 11, 2026">
+## WebSocket rate limits: connection limit per account and error codes
+**The limit of 1,000 new connections per minute is counted per account, and error codes `10000` and `10001` identify the exhausted request budget**
+
+The WebSocket Rate Limits page now documents the connection limit per account: the main account and all its sub-accounts share the limit of 1,000 new connections per minute. WebSocket requests are also limited to 12,000 per 10 seconds per IP address. A request rejected by the order-placement budget returns error code `10001`, and a request rejected by the budget for other requests returns `10000`. Error code `7` is no longer returned and has been removed from the documentation. The Bulk Limit Order page now states its rate limit of 10,000 requests per 10 seconds; one bulk request counts as one request, whether the request holds 1 order or 20.
+
+<CardGroup cols={2}>
+  <Card title="WebSocket Rate Limits" href="/websocket/rate-limits" icon="gauge-high" horizontal/>
+  <Card title="Bulk limit order" href="/api-reference/trading/bulk-limit-order" icon="layer-group" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="November 11, 2026">
 ## Balance normalization (order type 14)
 **Order type 14 is documented as balance normalization, with the `source` value `normalization`**
 

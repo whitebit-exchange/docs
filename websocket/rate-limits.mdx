@@ -11,18 +11,19 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 Reference documentation for WebSocket connection limits, request limits, timeout behavior, and error codes.
 
 <Warning>
-Rate limits: `1000` WebSocket connections per minute. Per account, `10000` order placements and `12000` other JSON-RPC requests per `10` seconds. The main account and all its sub-accounts share both request budgets across every connection.
+Rate limits per account: `1000` new WebSocket connections per minute, `10000` order placements and `12000` other JSON-RPC requests per `10` seconds. The main account and all its sub-accounts share these limits across every connection. Per IP address, WebSocket requests are limited to `12000` per `10` seconds.
 </Warning>
 
 ## Connection and request limits
 
 | Scope | Limit |
 |-------|-------|
-| New connections | 1,000 per minute |
+| New connections per account | 1,000 per minute |
 | Order placements per account | 10,000 per 10 seconds |
 | All other requests per account | 12,000 per 10 seconds |
+| Requests per IP address | 12,000 per 10 seconds |
 
-Limit WebSocket connection creation to `1000` connections per minute.
+Limit WebSocket connection creation to `1000` new connections per minute per account.
 
 Order placements — the `*_place` methods on [Order Management](/websocket/order-management/overview) — count against a budget of `10000` requests per `10` seconds per account.
 
@@ -30,7 +31,7 @@ Every other JSON-RPC request — subscriptions, one-time queries, order cancella
 
 ### Account scope
 
-Both request budgets are counted per account, not per connection. Requests from the main account and from every sub-account count together against the same budgets, which every connection of the account shares. Opening an additional connection does not raise either budget.
+Both request budgets are counted per account, not per connection, and the connection limit is counted per account too. New connections and requests from the main account and from every sub-account count together against the same limits. Opening an additional connection does not raise either request budget. The limit of `12000` requests per `10` seconds per IP address applies in addition to the account limits.
 
 Reuse a single WebSocket connection for multiple subscriptions. Opening a new connection per channel consumes the connection limit and increases latency.
 
@@ -78,9 +79,22 @@ Implement request throttling on the client side. Apply the throttle across all c
 
 Queue subscription requests instead of sending bursts of requests.
 
-Apply exponential backoff with jitter when the server rejects requests because a limit is exceeded.
+Apply exponential backoff with jitter when the server rejects requests because a limit is exceeded. A request rejected by the order-placement budget returns error code `10001`, and a request rejected by the budget for other requests returns error code `10000`.
 
 Reuse active connections instead of creating new connections.
+
+### Rate limit error example
+
+```json
+{
+  "id": 2269,
+  "result": null,
+  "error": {
+    "code": 10000,
+    "message": "too many requests per period"
+  }
+}
+```
 
 ## Connection timeout
 
@@ -134,6 +148,8 @@ The server returns errors in the `error` field of a response message. The `error
 | `4` | method not found |
 | `5` | service timeout |
 | `6` | require authentication |
+| `10000` | too many requests per period |
+| `10001` | too many new orders per period |
 
 The server returns code `6` when a client invokes a protected method — a private-channel subscription or a balance query, for example — without first calling `authorize` on the connection. Send an `authorize` request before any private-channel subscription. See [WebSocket Authentication](/websocket/authentication) for the authorization flow.
 
