@@ -72,6 +72,10 @@ The private stream returns executed orders, including orders using Retail Price 
 />
 
 <Note>
+Orders with `type` 14 and `source` `"normalization"` are system-generated [balance normalization](/concepts/balances#balance-normalization) orders, not orders the account placed, and carry an empty `client_order_id`. Normalization orders run on `<ASSET>_USDT` markets, so the `ordersExecuted_subscribe` market list must include those markets.
+</Note>
+
+<Note>
 Execution events during a disconnection are not replayed. After reconnecting, use `ordersExecuted_request` to query recent executed orders, or call the REST [Executed Order History](/api-reference/trading/query-executed-order-history) endpoint to backfill missed records. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect).
 </Note>
 

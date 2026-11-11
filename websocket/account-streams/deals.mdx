@@ -69,6 +69,10 @@ Fetch historical deal records for a market without subscribing.
 />
 
 <Note>
+`deals_update` also delivers fills of system-generated [balance normalization](/concepts/balances#balance-normalization) orders, which have an empty client order ID (`params[7]`). The update carries no order type. To identify these fills, match the order ID in `params[3]` to `ordersExecuted_update`, where the order has `type` 14 and `source` `"normalization"`.
+</Note>
+
+<Note>
 Trade events during a disconnection are not replayed. After reconnecting, use `deals_request` to query recent deals, or call the REST [Executed Order History](/api-reference/trading/query-executed-order-history) endpoint to backfill fills missed during the disconnection. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect).
 </Note>
 

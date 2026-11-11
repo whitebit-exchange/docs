@@ -439,7 +439,7 @@ components:
           description: "[Market](/glossary#market)"
         source:
           type: string
-          description: "Order source. Values include `web`, `api`, `adl` (Auto-Deleveraging fill), and `liquidation` (the account's own position being liquidated); additional internal values may occur. See [Identifying liquidation and ADL fills](/concepts/auto-deleveraging#identifying-liquidation-and-adl-fills)."
+          description: "Order source. Values include `web`, `api`, `adl` (Auto-Deleveraging fill), `liquidation` (the account's own position being liquidated), and `normalization` (a system-generated [balance normalization](/concepts/balances#balance-normalization) order, type `14`); additional internal values may occur. See [Identifying liquidation and ADL fills](/concepts/auto-deleveraging#identifying-liquidation-and-adl-fills)."
         type:
           type: integer
           description: "Order type. See [order types](/websocket/account-streams/overview#order-types) table."
@@ -473,7 +473,7 @@ components:
           description: "Charged fee amount in money"
         client_order_id:
           type: string
-          description: "Custom client order id"
+          description: "Custom client order id. Empty for system-generated orders such as [balance normalization](/concepts/balances#balance-normalization)."
         stp:
           type: string
           enum: ["no", "co", "cn", "cb"]

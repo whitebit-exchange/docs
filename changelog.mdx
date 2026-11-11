@@ -5,6 +5,18 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ---
 
 
+<Update label="November 11, 2026">
+## Balance normalization (order type 14)
+**Order type 14 is documented as balance normalization, with the `source` value `normalization`**
+
+The Balances concept page now explains balance normalization: when an asset balance in the Collateral balance goes negative, the platform places a system-generated order of type 14 on a USDT-quoted `<ASSET>_USDT` market to settle the negative amount. On `ordersExecuted_update`, normalization orders carry `source` `"normalization"` and an empty `client_order_id`, never a `liquidation_` or `adl_` prefix. The order types table now labels type 14 "Balance normalization" instead of "Margin normalization". Earlier documentation listed borrow closure as a separate trigger and said normalization could also occur on spot; normalization runs in the Collateral balance, and a borrow closure the account starts includes normalization. To avoid normalization orders, keep a buffer of each asset that fees, funding, and realized PnL settle in, such as USDT.
+
+<CardGroup cols={2}>
+  <Card title="Balance normalization" href="/concepts/balances#balance-normalization" icon="scale-balanced" horizontal/>
+  <Card title="Account Streams order types" href="/websocket/account-streams/overview#order-types" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="November 09, 2026">
 ## WebSocket rate limits: per account
 **The 10,000 order placement and 12,000 other request budgets are counted per account, not per connection**
