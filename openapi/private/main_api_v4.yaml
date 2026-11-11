@@ -1780,7 +1780,7 @@ paths:
         The endpoint creates withdraw for the specified ticker.
 
         <Note>
-        A withdrawal created with a [sub-account](/glossary#sub-account) API key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and is held until the main account approves it. List the pending withdrawals with [`POST /api/v4/sub-account/withdraw/unconfirmed-list`](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and approve each one by transaction id with [`POST /api/v4/sub-account/withdraw/confirm`](/api-reference/sub-accounts/confirm-sub-account-withdrawal).
+        A withdrawal created with a [sub-account](/glossary#sub-account) API key does not settle immediately: the transaction enters `unconfirmed_by_main_account` status and waits, with no webhook and no expiry, until the main account approves it. List the pending withdrawals with [`POST /api/v4/sub-account/withdraw/unconfirmed-list`](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and approve each one by transaction id with [`POST /api/v4/sub-account/withdraw/confirm`](/api-reference/sub-accounts/confirm-sub-account-withdrawal). After confirmation, the withdrawal follows the standard path, and the first webhook event is `withdraw.unconfirmed` (status 5).
         </Note>
 
         <Warning>
@@ -2335,8 +2335,8 @@ paths:
             Additional account-state outcomes are also returned here with `code: 0`
             (the message is localized, so match on the condition rather than the exact string):
             - **Daily / monthly withdrawal limit reached** — on field `amount`.
-            - **Withdrawals temporarily restricted** — after a security event (e.g. password
-              change); on field `error`, e.g. `Withdrawals restricted until {time}`.
+            - **Withdrawals temporarily restricted** — for 72 hours after a password change or a
+              2FA setting change; on field `error`, e.g. `Withdrawals restricted until {time}`.
             - **Address blocked by compliance** — the request is accepted but the withdrawal
               transitions to an `AML_FROZEN` state (no distinct error body); check the request
               status by `uniqueId` in deposit/withdraw history.
@@ -6449,7 +6449,8 @@ paths:
       description: |
         The endpoint returns a paginated list of withdrawal transactions in `unconfirmed_by_main_account` status,
         created by [sub-accounts](/glossary#sub-account) of the authenticated main account and awaiting main account confirmation.
-        Results are ordered by creation time, newest first.
+        Results are ordered by creation time, newest first. No webhook is sent while a withdrawal waits for confirmation, and a
+        waiting withdrawal does not expire, so this list is how the main account finds the withdrawals to confirm.
 
         <Note>
         The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.
@@ -6581,7 +6582,7 @@ paths:
         Identify the target transaction by its external id, obtained from
         [List Unconfirmed Sub-Account Withdrawals](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals).
         Confirmation is the only main account action on an unconfirmed withdrawal; a withdrawal left unconfirmed
-        expires after a retention period. A successful call returns an empty object.
+        does not expire. A successful call returns an empty object.
 
         <Note>
         The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.

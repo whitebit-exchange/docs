@@ -309,6 +309,7 @@ Withdrawal status codes:
 | 1, 2, 6, 10–17 | Pending | Withdrawal in progress |
 | 3, 7 | Successful | Withdrawal completed, funds sent |
 | 4 | Canceled | Withdrawal canceled; final state; the amount returns to the balance |
+| 5 | Unconfirmed | Withdrawal created; reported with `withdraw.unconfirmed`; not final |
 | 18 | Partially successful | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | Withdrawal frozen by AML controls |
 
@@ -360,7 +361,7 @@ Delivery follows the retry policy in [Processing webhook requests](#for-processi
 
 ### WhiteBIT withdraw from main balance
 
-Performed when withdraw was created. Request example:
+Performed when withdraw was created (status 5). A sub-account withdrawal that waits for main-account confirmation sends no webhook while it waits; after the main account confirms it, `withdraw.unconfirmed` is sent to the webhook of the sub-account that owns the withdrawal. Request example:
 
 ```json
 {
@@ -376,7 +377,7 @@ Performed when withdraw was created. Request example:
     "memo": "", // withdraw memo
     "method": 2, // called method 1 - deposit, 2 - withdraw
     "network": "TRC20", // if currency is multi network, "null" if no multi network
-    "status": 15, // transaction status
+    "status": 5, // transaction status
     "transactionHash": "transaction hash", // withdraw transaction hash
     "uniqueId": null // unique Id of withdraw
   },

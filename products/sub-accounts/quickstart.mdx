@@ -250,14 +250,13 @@ The sub-account now has an isolated balance and a dedicated API key. To restrict
 
 ## Sub-account withdrawal approval
 
-When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal.
+When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal. No webhook is sent while the withdrawal waits. After confirmation, the withdrawal follows the standard path: the first webhook event is `withdraw.unconfirmed` (status 5), then `withdraw.pending` and a final event. These events go to the webhook of the sub-account that owns the withdrawal, not to the main account's webhook.
 
 <SubAccountWithdrawal />
 
 <Note>
   The sub-account withdrawal endpoints are not available by default. To request access, contact
-  the assigned account manager. Without main account confirmation, an unconfirmed withdrawal
-  expires after a retention period.
+  the assigned account manager. An unconfirmed withdrawal does not expire.
 </Note>
 
 <Steps>
@@ -365,7 +364,7 @@ When the sub-account withdrawal feature is enabled, a withdrawal created with a 
     </Tabs>
 
     Confirmation is the only main-account action on an unconfirmed withdrawal — no reject endpoint
-    exists, and an unconfirmed withdrawal that is never confirmed expires automatically.
+    exists, and an unconfirmed withdrawal does not expire.
   </Step>
 </Steps>
 

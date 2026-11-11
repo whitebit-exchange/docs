@@ -591,11 +591,11 @@ The `POST /api/v4/main-account/withdraw` endpoint returns HTTP 201 when validati
 
 **Exceptions to immediate processing:**
 
-- **Sub-account withdrawals** wait for main-account approval before processing.
+- **Sub-account withdrawals** wait for main-account approval before processing. A waiting withdrawal does not expire and sends no webhook; the main account finds it with [List Unconfirmed Sub-Account Withdrawals](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals).
 - **Withdrawals to AML-blocked destination addresses** freeze pending compliance review.
-- **Temporary withdrawal freeze (3 days)** applies after a password reset or a 2FA setting change on the account.
+- **Temporary withdrawal freeze (72 hours)** applies after a password change or a 2FA setting change on the account. Transfers between balances and to or from sub-accounts remain available during the freeze.
 
-Status transitions follow the state machine below: unconfirmed → pending → successful or canceled. Webhook events track the full lifecycle. When two withdrawals compete for the same balance and one fails processing, that withdrawal is retried; if processing still fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
+Status transitions follow the state machine below: unconfirmed → pending → successful or canceled. Webhook events track the lifecycle from `withdraw.unconfirmed` (status 5) onward. When two withdrawals compete for the same balance and one fails processing, that withdrawal is retried; if processing still fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
 
 <Note>
   A revised confirmation model for IP-whitelisted API keys is planned but not yet deployed. Contact institutional@whitebit.com for availability.
@@ -607,11 +607,10 @@ The withdrawal lifecycle progresses through the following states.
 
 | Status | State | Webhook | Terminal? | Partner action | Description |
 |--------|-------|---------|-----------|----------------|-------------|
-| — | Unconfirmed | `withdraw.unconfirmed` | No | Wait for next webhook | Withdrawal created |
+| 5 | Unconfirmed | `withdraw.unconfirmed` | No | Wait for next webhook | Withdrawal created |
 | 1, 2, 6, 10–17 | Pending | `withdraw.pending` | No | Wait for next webhook | Withdrawal in progress (all codes in range indicate active pending) |
 | 3, 7 | Successful | `withdraw.successful` | Yes | Mark complete, close watcher | Withdrawal completed, funds sent |
 | 4 | Canceled | `withdraw.canceled` | Yes | Release any payout reserve in the partner ledger: the amount returns to the account balance | Withdrawal canceled |
-| 5 | Unconfirmed by user | — | No | Notify the account holder — manual action required | Awaiting user action |
 | 18 | Partially successful | `withdraw.partial_successful` | No | Reconcile against `requestAmount` / `processedAmount`; surface remainder to operations | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | — | No | Wait: under compliance review | Withdrawal frozen by AML controls |
 
