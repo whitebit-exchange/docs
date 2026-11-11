@@ -30,7 +30,7 @@ the wallet flows on top.
 
 - **Approved WaaS partner enrollment** — see the [WaaS overview](/guides/waas-overview) for what WaaS provides and how to apply.
 - **A chosen verification variant** — managed sub-accounts, KYC reliance, or shared-KYC sub-accounts; see [Build path per variant](#build-path-per-variant).
-- **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account; crypto deposits to sub-accounts and the sub-account withdrawal endpoints enabled for the account by the account manager.
+- **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account, with the URLs the integration calls enabled (every URL group starts switched off on a new key); crypto deposits to sub-accounts and the sub-account withdrawal endpoints enabled for the account by the account manager.
 - **Sub-account limit** — a main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
 ## Build path per variant
@@ -69,7 +69,7 @@ names the key that signs each request: the main-account key or the sub-account's
 
 ### Wallet creation
 
-Wallet creation runs once per end user: the sub-account, its `type: 2` API key, and a deposit address per ticker and
+Wallet creation runs once per end user: the sub-account, its `type: 2` API key with the deposit-address URL enabled, and a deposit address per ticker and
 network. Managed sub-accounts add the activation and KYC URL steps from the
 [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow): the API key and deposit addresses
 can be created once the end user activates the sub-account, and only transfers from the main account wait for the KYC
@@ -258,6 +258,10 @@ the Trade balance and requests the estimate after the transferred amount shows o
 withdrawal, the partner transfers the converted amount back to the Main balance. The transfer to Trade needs the
 sub-account's spot permission (`spotEnabled`). The main account's one-time acceptance of the Convert terms on whitebit.com
 covers its sub-accounts; sub-accounts do not accept the terms separately.
+
+Every URL group starts switched off on a new sub-account key, so before the first conversion the partner enables
+`/api/v4/convert/estimate`, `/api/v4/convert/confirm`, and the balance transfer `/api/v4/main-account/transfer` on the
+sub-account's key with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key), signed with the main-account key.
 
 ## API key lifecycle
 

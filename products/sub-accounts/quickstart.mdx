@@ -193,7 +193,9 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       To receive crypto deposits directly, the sub-account needs a `type: 2` key (deposits and
       withdrawals) **and** the account must have sub-account deposits enabled. Crypto deposits to sub-accounts are disabled
       by default — to enable deposits for the account's sub-accounts, contact the assigned account
-      manager. Once enabled, generate the address via the
+      manager. Once deposits are enabled, use
+      [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) to enable `/api/v4/main-account/address`
+      on the `type: 2` key (every URL group starts switched off on a new key), then generate the address via the
       standard [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
       signed with the sub-account's own key.
     </Note>
@@ -261,9 +263,12 @@ When the sub-account withdrawal feature is enabled, a withdrawal created with a 
 <Steps>
   <Step title="Enable the withdrawal endpoint on the sub-account key">
     A newly created `type: 2` key lists the `withdraw` and `deposit` groups in `accessEndpoints`,
-    but each URL defaults to `enable: false`. Until the withdraw URL is enabled, `POST /api/v4/main-account/withdraw`
+    but each URL defaults to `enable: false`, as in every other URL group on a new key. Until the withdraw URL is enabled, `POST /api/v4/main-account/withdraw`
     returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
-    Enable it from the main account with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key)
+    Only a `type: 2` key accepts the withdraw URL: on a `type: 1` key, such as the trading key created earlier in this guide,
+    the edit returns `400` with code `5` (`The following URLs are restricted for sub-account API keys`).
+    If the sub-account has no `type: 2` key yet, create one with [Create Sub-Account API Key](/api-reference/sub-accounts/create-sub-account-api-key) as in the API key step above, with `"type": 2`.
+    Enable the withdraw URL from the main account with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key)
     (`POST /api/v4/sub-account/api-key/edit`):
 
     ```bash
@@ -274,7 +279,7 @@ When the sub-account withdrawal feature is enabled, a withdrawal created with a 
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
       -d '{
         "apiKeyId": "SUB_ACCOUNT_API_KEY_ID",
-        "title": "Trading Bot Key",
+        "title": "Withdrawal Key",
         "urls": [
           { "url": "/api/v4/main-account/withdraw", "enable": true }
         ],

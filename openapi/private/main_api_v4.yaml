@@ -241,7 +241,7 @@ paths:
         Get the cryptocurrency deposit address for a given currency and network. The endpoint creates the address when none exists, and repeated calls return the same address. All tokens on one network share the address for that network. The endpoint does not return addresses created with [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit).
 
         <Note>
-        Sub-accounts use this endpoint with a sub-account API key once sub-account deposits are enabled for the account. Crypto deposits to sub-accounts are disabled by default. To enable deposits, contact the assigned account manager.
+        Sub-accounts use this endpoint with a sub-account `type: 2` API key once the assigned account manager enables sub-account crypto deposits, which are disabled by default. The key's `/api/v4/main-account/address` URL starts as `enable: false`, like every URL on a new sub-account key; enable the URL with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) before the first call.
         </Note>
 
         <Warning>
@@ -2381,8 +2381,9 @@ paths:
         "401":
           description: |
             The API key is not authorized for this endpoint. Occurs with a [sub-account](/glossary#sub-account)
-            key whose `/api/v4/main-account/withdraw` URL is still `enable: false`. Enable it with
-            [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key), then retry.
+            key whose `/api/v4/main-account/withdraw` URL is still `enable: false`, the default for every URL on a new sub-account key.
+            Enable it with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) (withdrawal URLs
+            can be enabled only on a `type: 2` key), then retry.
           content:
             application/json:
               schema:
@@ -5873,7 +5874,8 @@ paths:
         API. To request it, contact the assigned account manager.
         Once enabled, a sub-account generates deposit addresses through the standard
         [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
-        using its own API key with deposit permission.
+        using its own `type: 2` API key, after `/api/v4/main-account/address` is enabled on the key with
+        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) (every URL group starts switched off on a new key).
         </Note>
 
         <Warning>
@@ -6707,10 +6709,12 @@ paths:
         and switch a disabled key back on with [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key).
 
         <Note>
-        A `type: 2` key includes the withdrawal permission group, but its URLs default to `enable: false`.
-        Enable the ones the key uses (for example `/api/v4/main-account/withdraw`) with
-        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); until then
-        `/api/v4/main-account/withdraw` returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
+        Every URL group on a new key starts with its URLs set to `enable: false`, including the deposit, withdrawal,
+        convert (`/api/v4/convert/estimate`, `/api/v4/convert/confirm`), and balance transfer (`/api/v4/main-account/transfer`)
+        groups. Enable the URLs the key uses with
+        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) before the first call; until then
+        `/api/v4/main-account/withdraw`, for example, returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
+        Deposit and withdrawal URLs can be enabled only on a `type: 2` key.
         Crypto deposits additionally require sub-account deposits to be enabled for the account (disabled by
         default); to enable sub-account deposits, contact the assigned account manager.
         </Note>
@@ -6872,7 +6876,7 @@ paths:
 
             Response error codes:
             - 0 - request validation failed
-            - 5 - business-rule violation (restricted URL for sub-account API keys)
+            - 5 - business-rule violation (restricted URL for sub-account API keys): `urls` enables a URL from a group the key cannot use. Sub-account management URLs are restricted on every sub-account key; deposit and withdrawal URLs, such as `/api/v4/main-account/address`, are restricted on `type: 1` keys and can be enabled on a `type: 2` key.
           content:
             application/json:
               schema:
@@ -6888,7 +6892,7 @@ paths:
                       title: ["validation.required"]
                       urls: ["validation.required"]
                 restrictedUrl:
-                  summary: "Restricted URL"
+                  summary: "Restricted URL (deposit URL on a type 1 key)"
                   value:
                     code: 5
                     message: "The following URLs are restricted for sub-account API keys: /api/v4/main-account/address"

@@ -61,7 +61,7 @@ Each end customer trades from a dedicated sub-account under the partner's main a
 - **Up to 50 API keys per sub-account**, independent from the main account and from other sub-accounts, each with an IP whitelist and permission scope.
 - **Sub-account count** — a main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 - **Withdrawal control at the main account** — sub-account withdrawals surface on the main account for confirmation via the [unconfirmed-withdrawals list](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and [confirm](/api-reference/sub-accounts/confirm-sub-account-withdrawal) endpoints; a waiting withdrawal does not expire and sends no webhook. The sub-account withdrawal endpoints are not available by default — request access through the assigned account manager; a `404` response indicates the endpoints are not yet enabled for the account.
-- **Crypto deposits to sub-accounts are disabled by default.** Once deposits are enabled for the account (request via the assigned account manager), the capability applies to all of its sub-accounts; a sub-account then generates deposit addresses through the standard [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission.
+- **Crypto deposits to sub-accounts are disabled by default.** Once deposits are enabled for the account (request via the assigned account manager), the capability applies to all of its sub-accounts; a sub-account then generates deposit addresses through the standard [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own `type: 2` API key, with `/api/v4/main-account/address` enabled on the key through [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key).
 
 **Endpoint map:**
 
@@ -103,7 +103,7 @@ The `shareKyc` parameter and the `email` field select the KYC branch at creation
     Transfer initial funds fee-free via `POST /api/v4/sub-account/transfer`, and create a dedicated API key via `POST /api/v4/sub-account/api-key/create` for customers needing direct API access. Dedicated-KYC branch: WhiteBIT refuses the transfer from the main account until the end customer's KYC is approved, and the refusal names the `to` field, so fund the sub-account after the approval. Apply the permissions with `POST /api/v4/sub-account/edit` once the sub-account is active, because `depositsEnabled` and `withdrawsEnabled` sent at creation with `email` are ignored — [API Reference](/api-reference/sub-accounts/edit-sub-account), [FAQ](/faq).
   </Step>
   <Step title="Handle deposits and withdrawals">
-    Once crypto deposits are enabled for the account, the sub-account generates its own deposit address via the [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission. Sub-account withdrawals require main-account confirmation — see [Account architecture](#account-architecture) above for the unconfirmed-withdrawals list and confirm endpoints.
+    Once crypto deposits are enabled for the account, the sub-account generates its own deposit address via the [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own `type: 2` API key. Enable `/api/v4/main-account/address` on the key first with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key), because every URL group starts switched off on a new key. Sub-account withdrawals require main-account confirmation — see [Account architecture](#account-architecture) above for the unconfirmed-withdrawals list and confirm endpoints.
   </Step>
 </Steps>
 
@@ -161,8 +161,9 @@ For Go and PHP examples, see [SDKs](/sdks). The signing process is documented in
 Each sub-account supports up to **50 API keys**, managed via the [sub-account API key endpoints](/api-reference/sub-accounts/create-sub-account-api-key) (create, edit, delete, list, reset) with dedicated [IP-address management](/api-reference/sub-accounts/create-sub-account-api-key-ip-address).
 
 - Assign the minimum permission set per key (`Info + Trading` for trading-only customers; deposit and withdrawal permissions only where funds movement is required) — see [Security Best Practices](/best-practices/security) for the permission model and key-handling rules.
+- Enable the URLs each key calls with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key): every URL group starts switched off on a new key. Deposit and withdrawal URLs can be enabled only on a `type: 2` key; on a `type: 1` key the edit returns code `5`.
 - Configure the IP whitelist per key to match the customer's infrastructure.
-- The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too.
+- The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too. An unused key is disabled, not deleted: read `isEnabled` from [List Sub-Account API Keys](/api-reference/sub-accounts/list-sub-account-api-keys), and enable the key again with [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key), which keeps the key, the secret, the enabled URLs, and the IP whitelist.
 
 <Warning>
   Create separate API keys for each customer sub-account. Never share the main-account keys with customers.
