@@ -170,7 +170,7 @@ Leading and trailing spaces are trimmed on every network. Where no character rul
 A memo that fails the network rules returns `"memo": ["Incorrect format of memo"]`. The same error comes back when a memo is sent on a network that has no memo, so for USDT send `"network": "TON"` together with the memo: the default network for USDT is ERC20.
 
 <Note>
-Deposits to WhiteBIT are stricter than withdrawals. An HBAR memo that is not a whole number is dropped entirely and the deposit is not credited automatically. A Stellar memo is reduced to printable ASCII, so Cyrillic and emoji are removed without notice and the memo arrives altered. Send the deposit memo exactly as issued, with nothing added around it.
+Deposits to WhiteBIT are stricter than withdrawals: an HBAR memo that is not a whole number is dropped entirely, and a Stellar memo is reduced to printable ASCII, so Cyrillic and emoji are removed without notice. A deposit is credited to the account that owns its memo, so send the deposit memo exactly as issued, with nothing added around it. A deposit with no memo, or with a memo no account owns, is credited to no account, appears in no history, and sends no webhook; recovering the deposit is a manual operation with no API.
 </Note>
 
 <Warning>

@@ -238,7 +238,7 @@ paths:
         - Deposit
       summary: Get cryptocurrency deposit address
       description: |
-        Get an existing cryptocurrency deposit address for a given currency and network.
+        Get the cryptocurrency deposit address for a given currency and network. The endpoint creates the address when none exists, and repeated calls return the same address. All tokens on one network share the address for that network. The endpoint does not return addresses created with [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit).
 
         <Note>
         Sub-accounts use this endpoint with a sub-account API key once sub-account deposits are enabled for the account. Crypto deposits to sub-accounts are disabled by default. To enable deposits, contact the assigned account manager.
@@ -3279,7 +3279,11 @@ paths:
         - Deposit
       summary: Create new address for deposit
       description: |
-        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default; request access through the account manager. The number of addresses is limited; the account manager can discuss and adjust the limit for the account. The API provides no way to close or deactivate an issued address.
+        The endpoint creates a new address even when the last created address is not used; on memo networks, each call returns the same address with a new memo. The endpoint is not available by default and returns `403` until access is enabled; request access through the account manager. Access to the endpoint also removes the address limit, so the number of addresses is not capped. The API provides no way to close or deactivate an issued address, and an issued address keeps crediting deposits to the account with no expiry.
+
+        <Warning>
+        After a timeout or a `5xx` response, the address may already exist and credit deposits to the account, but no endpoint returns the address, including [Get cryptocurrency deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address). Store the address from the response before showing the address to the end user. After a timeout or a `5xx` response, show no address and request a new one, which creates another address.
+        </Warning>
 
         <Note>
         For sub-accounts, crypto deposits must also be enabled for the account (disabled by
@@ -3357,7 +3361,7 @@ paths:
                   nonce: 1594297865000
       responses:
         "201":
-          description: All validations succeeded and creating transaction is started
+          description: Address created. The address is stored before the response is sent.
           content:
             application/json:
               schema:
@@ -3459,6 +3463,8 @@ paths:
                     errors:
                       network: ["The network must be a string."]
                       ticker: ["The ticker must be a string."]
+        "403":
+          description: The endpoint is not enabled for the account. The account manager enables the endpoint on request.
         "422":
           description: |
             Inner validation failed. Returned with `code: 0`; the `errors` field carries the
@@ -3499,20 +3505,6 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       error: ["KYC required"]
-                addressInProgress:
-                  summary: "Address generation already in progress"
-                  value:
-                    code: 0
-                    message: "Inner validation failed"
-                    errors:
-                      message: ["Create address in process"]
-                addressLimitReached:
-                  summary: "Per-currency address limit reached"
-                  value:
-                    code: 0
-                    message: "Inner validation failed"
-                    errors:
-                      message: ["Address limit reached"]
 
   /api/v4/main-account/codes:
     post:
