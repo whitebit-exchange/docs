@@ -25,7 +25,7 @@ Several Account Stream channels return a `type` field identifying the order type
 | 14 | Balance normalization |
 
 <Note>
-**Type 14 (Balance normalization)** is a system-generated order that the platform places when an asset balance in the Collateral balance goes negative. On execution, `ordersExecuted_update` reports the order with `type` 14 and `source` `"normalization"`, and `deals_update` reports the fill without an order type, so match the order ID between the two. See [Balance normalization](/concepts/balances#balance-normalization) for the trigger, the markets used, and how to avoid normalization.
+**Type 14 (Balance normalization)** is a system-generated order that the platform places when an asset balance in the Collateral balance goes negative. On execution, `ordersExecuted_update` reports the order with `type` 14 and an empty `client_order_id`, and `deals_update` reports the fill without an order type, so match the order ID between the two. See [Balance normalization](/concepts/balances#balance-normalization) for the trigger, the markets used, and how to avoid normalization.
 </Note>
 
 ## Channels

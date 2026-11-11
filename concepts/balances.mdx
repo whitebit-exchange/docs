@@ -94,7 +94,7 @@ Normalization fills appear on two WebSocket account streams:
 
 | Channel | How to identify a normalization fill |
 |---------|--------------------------------------|
-| [Orders Executed](/websocket/account-streams/orders-executed) | `type` `14`, `source` `"normalization"`, and an empty `client_order_id`. No `liquidation_` or `adl_` prefix. |
+| [Orders Executed](/websocket/account-streams/orders-executed) | `type` `14` and an empty `client_order_id`. No `liquidation_` or `adl_` prefix. |
 | [Deals](/websocket/account-streams/deals) | `deals_update` has no order-type field. Match the order ID in `params[3]` to the order `id` on `ordersExecuted_update`. |
 
 ## Deposit flow

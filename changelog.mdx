@@ -21,7 +21,7 @@ The WebSocket Rate Limits page now documents the connection limit per account: t
 ## Balance normalization (order type 14)
 **Order type 14 is documented as balance normalization, with the `source` value `normalization`**
 
-The Balances concept page now explains balance normalization: when an asset balance in the Collateral balance goes negative, the platform places a system-generated order of type 14 on a USDT-quoted `<ASSET>_USDT` market to settle the negative amount. On `ordersExecuted_update`, normalization orders carry `source` `"normalization"` and an empty `client_order_id`, never a `liquidation_` or `adl_` prefix. The order types table now labels type 14 "Balance normalization" instead of "Margin normalization". Earlier documentation listed borrow closure as a separate trigger and said normalization could also occur on spot; normalization runs in the Collateral balance, and a borrow closure the account starts includes normalization. To avoid normalization orders, keep a buffer of each asset that fees, funding, and realized PnL settle in, such as USDT.
+The Balances concept page now explains balance normalization: when an asset balance in the Collateral balance goes negative, the platform places a system-generated order of type 14 on a USDT-quoted `<ASSET>_USDT` market to settle the negative amount. On `ordersExecuted_update`, normalization orders have `type` 14 and an empty `client_order_id`, never a `liquidation_` or `adl_` prefix. The order types table now labels type 14 "Balance normalization" instead of "Margin normalization". Earlier documentation listed borrow closure as a separate trigger and said normalization could also occur on spot; normalization runs in the Collateral balance, and a borrow closure the account starts includes normalization. To avoid normalization orders, keep a buffer of each asset that fees, funding, and realized PnL settle in, such as USDT.
 
 <CardGroup cols={2}>
   <Card title="Balance normalization" href="/concepts/balances#balance-normalization" icon="scale-balanced" horizontal/>
@@ -86,6 +86,19 @@ A new sub-account API key starts with every URL switched off, including Convert 
 <CardGroup cols={2}>
   <Card title="Create sub-account" href="/api-reference/sub-accounts/create-sub-account" icon="layer-group" horizontal/>
   <Card title="Sub-account transfer" href="/api-reference/sub-accounts/sub-account-transfer" icon="money-bill-transfer" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="November 10, 2026">
+## RPI and retail flags cannot be combined
+**`POST /api/v4/order/new`, `/order/bulk`, `/order/collateral/limit` and `/order/collateral/bulk` reject `rpi=true` together with `retail=true`**
+
+A limit order that sets both `rpi=true` and `retail=true` is rejected with error code `41` on spot, margin and futures markets, which reverses the September 23, 2026 change that allowed the combination. In a bulk request, the item that sets both flags returns the error. `retail=true` alone on collateral limit orders stays accepted, and error codes `42` and `43` apply unchanged.
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Collateral Limit Order" href="/api-reference/trading/collateral-limit-order" icon="chart-line" horizontal/>
+  <Card title="Retail flag" href="/glossary#retail-flag" icon="tag" horizontal/>
 </CardGroup>
 </Update>
 

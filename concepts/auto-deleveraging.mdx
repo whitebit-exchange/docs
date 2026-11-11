@@ -27,12 +27,12 @@ Order properties:
 
 Both the liquidation close order (on the liquidated account) and any ADL fills (on a counterparty account) arrive through the normal execution surfaces. The reliable discriminator differs by delivery channel:
 
-- **WebSocket — [`ordersExecuted`](/websocket/account-streams/orders-executed) stream.** Use the `source` field: `"liquidation"` when the account's own position is being liquidated, `"adl"` when the account's position is closed as the counterparty of another user's liquidation, and `"normalization"` for a system-generated [balance normalization](/concepts/balances#balance-normalization) order (type 14, empty `client_order_id`), which is neither a liquidation nor ADL.
+- **WebSocket — [`ordersExecuted`](/websocket/account-streams/orders-executed) channel.** Match the `client_order_id` prefix: `liquidation_<order_id>_!` when the account's own position is being liquidated, `adl_<order_id>_!` when the account's position is closed as the counterparty of another user's liquidation. The prefix is present in both `ordersExecuted_request` responses and `ordersExecuted_update` events. `ordersExecuted_request` responses also include the `source` field (`"liquidation"` or `"adl"`); `ordersExecuted_update` events do not. A `type` 14 order with an empty `client_order_id` is a system-generated [balance normalization](/concepts/balances#balance-normalization) order, neither a liquidation nor ADL.
 - **REST — order and executed history.** The history payloads do not include `source`. Match the `clientOrderId` prefix instead.
 
 |  | Liquidation (account's own position) | ADL (as counterparty) |
 |--|--|--|
-| `source` (WebSocket) | `"liquidation"` | `"adl"` |
+| `source` (WebSocket `ordersExecuted_request` only) | `"liquidation"` | `"adl"` |
 | `clientOrderId` prefix | `liquidation_<orderId>_!` | `adl_<orderId>_!` |
 | Order type | Market, `ioc: true` | Post-only limit |
 | Terminal status | `FILLED`, or `PARTIALLY_FILLED` if book depth is insufficient | `FILLED` |
