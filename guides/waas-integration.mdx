@@ -168,8 +168,11 @@ Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with
 The `main` amount from `POST /api/v4/sub-account/balances` includes deposits credited before the network fully confirms
 the deposits. The sub-account's key reads the part still held back as `pending_deposit_amount` from
 `POST /api/v4/main-account/balance`, once `/api/v4/main-account/balance` is switched on for the key with
-`POST /api/v4/sub-account/api-key/edit`. The held part cannot be withdrawn to a blockchain address or moved to the
-Collateral balance until the network confirms the deposit.
+`POST /api/v4/sub-account/api-key/edit`. The held part cannot be withdrawn to a blockchain address, moved to the
+Collateral balance, or transferred to the main account until the network confirms the deposit. The hold stays on the
+sub-account that received the deposit. A `sub_to_main` [transfer](/api-reference/sub-accounts/sub-account-transfer) can
+move at most `main_balance` minus `pending_deposit_amount`, both read for the currency in one
+`POST /api/v4/main-account/balance` call with the sub-account's key. A request that reaches into the held part is refused as a whole with `422` on `amount`, code `20`.
 
 <SubAccountLimit />
 

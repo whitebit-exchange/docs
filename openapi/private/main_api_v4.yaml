@@ -71,7 +71,7 @@ paths:
 
         An unknown or non-existent `ticker` is not an error: the endpoint returns a zero balance (`{"main_balance": "0"}`) for it. Omitting `ticker` returns balances for every currency.
 
-        `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn to a blockchain address or moved to the collateral balance until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
+        `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn to a blockchain address, moved to the collateral balance, or transferred from a sub-account to its main account until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
 
         In the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history), a deposit credited before full confirmation has status 29 until the network fully confirms it (status 3 or 7, `deposit.processed` webhook).
 
@@ -123,7 +123,7 @@ paths:
                     pending_deposit_amount:
                       type: string
                       description: |
-                        Part of `main_balance` that comes from deposits credited before the network fully confirmed them. Tradable, but not withdrawable until confirmation completes. `0` when nothing is held back.
+                        Part of `main_balance` that comes from deposits credited before the network fully confirmed them. Tradable, but until confirmation completes it cannot be withdrawn or, on a sub-account, transferred to the main account. `0` when nothing is held back.
               example:
                 BSV:
                   main_balance: "0"
@@ -169,6 +169,8 @@ paths:
         Amounts ending in `Stable` are expressed in a stable-coin equivalent, so figures for different currencies can be summed. `assets` breaks the free amount down per currency, in that currency's own units.
 
         The held amount is tradable: it can be moved to the trade balance and traded. It cannot be withdrawn to a blockchain address or moved to the collateral balance until the network confirms the deposit. Two limits apply at once — the free amount of the currency itself, shown in `assets`, and the free value of the whole account, shown in `availableBalanceStable`. Whichever is smaller decides.
+
+        A sub-account cannot transfer the held amount to its main account until the network confirms the deposit.
 
         `assets` lists a currency when it has a free amount, and lists it with `"0"` when the currency is fully held back. Currencies with neither a balance nor a hold are omitted.
 

@@ -13,6 +13,7 @@ export const errorCodes = [
   { code: 6, httpStatus: 422, meaning: "Amount less than or equal to fee", action: "Increase the withdrawal amount to cover the network fee" },
   { code: 9, httpStatus: 422, meaning: "Address unavailable", action: "Cannot withdraw to own deposit address" },
   { code: 10, httpStatus: 422, meaning: "Market not found or disabled", action: "Verify the market name via `GET /api/v4/public/markets`" },
+  { code: 20, httpStatus: 422, meaning: "Amount held back by a deposit awaiting full network confirmation", action: "Returned on the `amount` field by withdrawals and by transfers from a sub-account to its main account. Wait for the deposit to confirm (status 3 or 7), or send a smaller amount: for a withdrawal, check `POST /api/v4/main-account/withdrawable-balance`; for a sub-account transfer, send at most `main_balance` minus `pending_deposit_amount` from `POST /api/v4/main-account/balance` (sub-account key, with that URL switched on for the key)" },
   { code: 37, httpStatus: 422, meaning: "IOC and post-only conflict", action: "`ioc: true` and `postOnly: true` cannot be used together" },
 ];
 

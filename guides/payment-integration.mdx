@@ -358,7 +358,7 @@ flowchart TD
 
 ## Network confirmations
 
-Each cryptocurrency network has two confirmation counts. At the earlier count, `confirmations_for_trading`, the platform credits the deposit for trading only. At the later count, `confirmations`, the deposit also becomes available for blockchain withdrawal and for transfer to the Collateral balance. Until the deposit reaches `confirmations`, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. During the hold, the deposit has status 29; the hold clears when the deposit reaches status 3 or 7, which the `deposit.processed` webhook reports.
+Each cryptocurrency network has two confirmation counts. At the earlier count, `confirmations_for_trading`, the platform credits the deposit for trading only. At the later count, `confirmations`, the deposit also becomes available for blockchain withdrawal, for transfer to the Collateral balance, and for transfer from a sub-account to its main account. Until the deposit reaches `confirmations`, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. During the hold, the deposit has status 29; the hold clears when the deposit reaches status 3 or 7, which the `deposit.processed` webhook reports.
 
 Webhook payloads include `confirmations.actual` and `confirmations.required` fields. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint (`GET /api/v4/public/assets`) for both counts per network.
 
