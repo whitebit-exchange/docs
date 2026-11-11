@@ -31,13 +31,14 @@ the wallet flows on top.
 - **Approved WaaS partner enrollment** — see the [WaaS overview](/guides/waas-overview) for what WaaS provides and how to apply.
 - **A chosen verification variant** — managed sub-accounts, KYC reliance, or shared-KYC sub-accounts; see [Build path per variant](#build-path-per-variant).
 - **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account, with the URLs the integration calls enabled (every URL group starts switched off on a new key); crypto deposits to sub-accounts and the sub-account withdrawal endpoints enabled for the account by the account manager.
+- **Sub-account permissions** — each sub-account also needs its own deposit and withdrawal permissions (`depositsEnabled`, `withdrawsEnabled`). For a sub-account created without an email, both go in the create request; for a sub-account created with an email, set both with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once its `status` is `active`. See [Wallet creation](#wallet-creation).
 - **Sub-account limit** — a main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
 ## Build path per variant
 
-- **Managed sub-accounts.** The partner creates a sub-account per end user under the main account (`POST /api/v4/sub-account/create` with `shareKyc: false` and the end user's `email`). WhiteBIT emails the end user an invitation, and the sub-account is activated once the end user opens the link and sets a password. WhiteBIT then verifies each end user through a KYC URL; transfers from the main account to the sub-account are refused until the KYC is approved. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow) for the KYC URL and per-customer API keys.
-- **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed variant, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. The partner creates each sub-account with `shareKyc: true` and no `email`, so the sub-account is active at creation with no invitation step; a request with `email` starts the invitation flow instead. Build with the same [Embedded Trading integration guide](/guides/sub-account-integration); complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
-- **Shared-KYC sub-accounts.** The partner creates a sub-account per end user with `shareKyc: true`, and each sub-account carries the main account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB); the partner verifies its own end users. Leave `email` out of the create request: a request with `email` starts the invitation flow even with `shareKyc: true`. No invitation, activation or KYC URL step applies: the sub-account is active at creation, and `spotEnabled` and `collateralEnabled` apply at once. Build with [Sub-Accounts](/products/sub-accounts/overview) and the [Embedded Trading integration guide](/guides/sub-account-integration), skipping its end-customer KYC steps.
+- **Managed sub-accounts.** The partner creates a sub-account per end user under the main account (`POST /api/v4/sub-account/create` with `shareKyc: false` and the end user's `email`). WhiteBIT emails the end user an invitation, and the sub-account is activated once the end user opens the link and sets a password. The link expires after three days and can be re-sent on whitebit.com, not through the API. Once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`, the partner sets the deposit and withdrawal permissions with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account), sending the `alias` and the full `permissions` object. WhiteBIT then verifies each end user through a KYC URL; transfers from the main account to the sub-account are refused until the KYC is approved. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow) for the KYC URL and per-customer API keys.
+- **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed variant, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. The partner creates each sub-account with `shareKyc: true` and no `email`, so the sub-account is active at creation with no invitation step, and the deposit and withdrawal permissions go in the create request; a request with `email` starts the invitation flow instead. Build with the same [Embedded Trading integration guide](/guides/sub-account-integration); complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
+- **Shared-KYC sub-accounts.** The partner creates a sub-account per end user with `shareKyc: true`, and each sub-account carries the main account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB); the partner verifies its own end users. Leave `email` out of the create request: a request with `email` starts the invitation flow even with `shareKyc: true`. No invitation, activation or KYC URL step applies: the sub-account is active at creation, `spotEnabled` and `collateralEnabled` apply at once, and the deposit and withdrawal permissions go in the create request. Build with [Sub-Accounts](/products/sub-accounts/overview) and the [Embedded Trading integration guide](/guides/sub-account-integration), skipping its end-customer KYC steps.
 
 Commercial terms for the program:
 
@@ -69,11 +70,13 @@ names the key that signs each request: the main-account key or the sub-account's
 
 ### Wallet creation
 
-Wallet creation runs once per end user: the sub-account, its `type: 2` API key with the deposit-address URL enabled, and a deposit address per ticker and
+Wallet creation runs once per end user: the sub-account with its deposit and withdrawal permissions, its `type: 2` API key with the deposit-address and Main balance URLs enabled, and a deposit address per ticker and
 network. Managed sub-accounts add the activation and KYC URL steps from the
-[customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow): the API key and deposit addresses
-can be created once the end user activates the sub-account, and only transfers from the main account wait for the KYC
-approval. Shared-KYC sub-accounts skip both steps.
+[customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow): once
+[List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`, the partner sets the deposit and
+withdrawal permissions with Edit Sub-Account, then creates the API key and the deposit addresses. Only transfers from
+the main account wait for the KYC approval. Shared-KYC sub-accounts skip both steps and carry all four permissions in
+the create request.
 WhiteBIT and the partner agree the KYC reliance setup during onboarding; see
 [Build path per variant](#build-path-per-variant).
 
@@ -85,16 +88,18 @@ sequenceDiagram
     participant W as WhiteBIT
 
     alt Managed sub-accounts
-        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC off,<br/>end user's email, permission set)
+        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC off,<br/>end user's email, spot and collateral)
         W-->>P: Sub-account id
-        W->>U: Invitation email
+        W->>U: Invitation email<br/>(valid for three days)
         U->>W: Open the link<br/>and set a password
-        loop Until the sub-account is activated
+        loop Until status is active
             P->>W: POST /api/v4/sub-account/list<br/>(main-account key)
-            W-->>P: Sub-account activation state
+            W-->>P: Sub-account status
         end
+        P->>W: POST /api/v4/sub-account/edit<br/>(main-account key, alias,<br/>full permission set with<br/>deposits and withdrawals on)
+        W-->>P: Sub-account edited
     else Shared-KYC sub-accounts
-        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC on,<br/>no email, permission set)
+        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC on,<br/>no email, full permission set<br/>with deposits and withdrawals on)
         W-->>P: Sub-account id
     end
     P->>W: POST /api/v4/sub-account/api-key/create<br/>(main-account key, key name,<br/>deposit and withdrawal key)
@@ -102,7 +107,7 @@ sequenceDiagram
     opt Restrict the key to known IPs
         P->>W: POST<br/>/api/v4/sub-account/api-key/ip-address/create<br/>(main-account key, IP address for the key)
     end
-    P->>W: POST /api/v4/sub-account/api-key/edit<br/>(main-account key, switch on<br/>/api/v4/main-account/address)
+    P->>W: POST /api/v4/sub-account/api-key/edit<br/>(main-account key, switch on<br/>/api/v4/main-account/address<br/>and /api/v4/main-account/balance)
     W-->>P: Key updated
     P->>W: GET /api/v4/public/assets<br/>(public, no key)
     W-->>P: Deposit availability<br/>and networks per ticker
@@ -121,7 +126,6 @@ sequenceDiagram
             P->>W: POST /api/v4/sub-account/list<br/>(main-account key)
             W-->>P: Verification state
         end
-        P->>W: POST /api/v4/sub-account/edit<br/>(main-account key, full permission set)
         Note over P,W: Transfers from the main account<br/>to the sub-account work only<br/>after the KYC is approved
     end
 ```
@@ -258,6 +262,7 @@ sequenceDiagram
 
 The sub-account's `type: 2` key creates each withdrawal, and the main-account key confirms it before processing
 starts. The account manager enables the sub-account withdrawal endpoints.
+The sub-account also needs its own withdrawal permission (`withdrawsEnabled`), set as in [Wallet creation](#wallet-creation).
 [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval) gives the request for each approval step.
 A waiting withdrawal does not expire and sends no webhook: find it in the [unconfirmed-withdrawals list](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) with the main-account key.
 

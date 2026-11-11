@@ -5866,7 +5866,7 @@ paths:
 
         <Note>
         The `email` field, not `shareKyc`, decides whether the sub-account is active at creation:
-        - When `shareKyc` is `false` or not provided: `email` is **required**. WhiteBIT sends an invitation to that email, and the sub-account stays inactive until the end user opens the link and sets a password.
+        - When `shareKyc` is `false` or not provided: `email` is **required**. WhiteBIT sends an invitation to that email, and the sub-account stays inactive until the end user opens the link and sets a password. The link expires after three days and can be re-sent on whitebit.com, not through the API.
         - When `shareKyc` is `true`: leave `email` out. The sub-account is active as soon as the request succeeds and shares the main account's verification.
         - A request with `email` starts the invitation flow even when `shareKyc` is `true`.
         </Note>
@@ -5874,19 +5874,20 @@ paths:
         A refused request names the cause by field in `errors`: `alias` for a duplicate alias, and `email` for an invalid or temporary (disposable) email address or the main account's own email. A `422` with "Account creation failed" and no field means the request was valid and the creation failed for an unexpected reason.
 
         <Note>
-        Until the end user activates a sub-account created with `email`, sub-account balances, transfers, transfer history and the [KYC URL](/api-reference/sub-accounts/kyc-url) return `422` with "Account is not confirmed", and an API key cannot be created for the sub-account. Activation is a separate step from KYC: transfers from the main account to a sub-account created with `shareKyc: false` are refused until the end user's KYC is approved.
+        Until the end user activates a sub-account created with `email`, sub-account balances, transfers, transfer history and the [KYC URL](/api-reference/sub-accounts/kyc-url) return `422` with "Account is not confirmed". Create the sub-account's API key once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows its `status` as `active`. Activation is a separate step from KYC: transfers from the main account to a sub-account created with `shareKyc: false` are refused until the end user's KYC is approved.
         </Note>
 
-        On a request with `email`, WhiteBIT ignores `depositsEnabled` and `withdrawsEnabled`; set these flags with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true` and no `email`, `spotEnabled` and `collateralEnabled` apply at creation. See [FAQ](/faq).
+        On a request with `email`, `spotEnabled` and `collateralEnabled` are kept after activation. Set `depositsEnabled` and `withdrawsEnabled` with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`; Edit is refused before activation. Send the sub-account's `alias` and the full `permissions` object: `spotEnabled` and `collateralEnabled` with the values used at creation, plus `depositsEnabled` and `withdrawsEnabled`. With `shareKyc: true` and no `email`, `spotEnabled` and `collateralEnabled` apply at creation, and `depositsEnabled` and `withdrawsEnabled` go in the same request. See [FAQ](/faq).
 
         <Note>
-        Crypto deposits to sub-accounts are disabled by default. Once deposits are enabled for the
-        account, the capability applies to all of its sub-accounts; enablement is not available via
-        API. To request it, contact the assigned account manager.
+        Crypto deposits to sub-accounts are disabled by default. Enablement for the account is not
+        available via API. To request it, contact the assigned account manager.
         Once enabled, a sub-account generates deposit addresses through the standard
         [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
         using its own `type: 2` API key, after `/api/v4/main-account/address` is enabled on the key with
         [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) (every URL group starts switched off on a new key).
+        Each sub-account also needs its own deposit permission, `depositsEnabled`, and withdrawal
+        permission, `withdrawsEnabled`.
         </Note>
 
         <Warning>
@@ -5936,11 +5937,11 @@ paths:
                       example: false
                     depositsEnabled:
                       type: boolean
-                      description: Deposit permission for the sub-account. Ignored when the request includes `email`
+                      description: Deposit permission for the sub-account. On a request with `email`, set it with Edit Sub-Account after activation
                       example: false
                     withdrawsEnabled:
                       type: boolean
-                      description: Withdrawal permission for the sub-account. Ignored when the request includes `email`
+                      description: Withdrawal permission for the sub-account. On a request with `email`, set it with Edit Sub-Account after activation
                       example: false
       responses:
         "201":
@@ -6057,7 +6058,7 @@ paths:
       description: |
         The endpoint edits [sub-account](/glossary#sub-account).
 
-        Use this endpoint to apply permissions to a dedicated-KYC sub-account once the end user has activated it from the invitation email. On a create request with `email`, `depositsEnabled` and `withdrawsEnabled` are ignored, so set these flags here.
+        Use this endpoint to set `depositsEnabled` and `withdrawsEnabled` on a sub-account created with `email`, once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`. The endpoint refuses the edit before activation. Send the sub-account's `alias` and the full `permissions` object: `spotEnabled` and `collateralEnabled` with the values used at creation, plus `depositsEnabled` and `withdrawsEnabled`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6114,6 +6115,8 @@ paths:
               permissions:
                 spotEnabled: true
                 collateralEnabled: false
+                depositsEnabled: true
+                withdrawsEnabled: true
       responses:
         "200":
           description: Sub-account edited successfully
@@ -6136,6 +6139,8 @@ paths:
       summary: List of Sub-Accounts
       description: |
         The endpoint returns list of current user [sub-accounts](/glossary#sub-account).
+
+        A sub-account created with `email` shows `status` `active` once the end user has set the password from the invitation email; until then `userId` is `null`. Poll this endpoint for `active` before editing the sub-account's permissions, creating its API key or requesting its KYC URL. A sub-account created without an email (`shareKyc: true`) is `active` from the first call.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6799,7 +6804,7 @@ paths:
       description: |
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
 
-        Create the key once the sub-account is activated. A sub-account created with `email` is activated when the end user opens the WhiteBIT invitation email and sets a password; a sub-account created with `shareKyc: true` and no `email` is active at creation. Key creation does not depend on the end user's KYC.
+        Create the key once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`. A sub-account created with `email` becomes `active` when the end user opens the WhiteBIT invitation email and sets a password; a sub-account created with `shareKyc: true` and no `email` is active at creation. Key creation does not depend on the end user's KYC.
 
         The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too: an
         unused key is disabled, not deleted, and its `isEnabled` field turns `false`. The notice email goes to the sub-account,
@@ -6815,6 +6820,8 @@ paths:
         Deposit and withdrawal URLs can be enabled only on a `type: 2` key.
         Crypto deposits additionally require sub-account deposits to be enabled for the account (disabled by
         default); to enable sub-account deposits, contact the assigned account manager.
+        The sub-account also needs its own deposit permission, `depositsEnabled`; see
+        [Create Sub-Account](/api-reference/sub-accounts/create-sub-account).
         </Note>
 
         <Warning>
@@ -7493,7 +7500,7 @@ paths:
 
         <Note>
         The sub-account must meet all of the following conditions before a KYC URL can be generated:
-        - The sub-account must be activated: the end user has opened the WhiteBIT invitation email and set a password. Activation is a separate step from KYC.
+        - The sub-account must be activated: the end user has opened the WhiteBIT invitation email and set a password, and [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows `status` `active`. Activation is a separate step from KYC.
         - The sub-account must be active (not locked or blocked).
         - The sub-account must not have shared KYC enabled.
         </Note>
@@ -9829,7 +9836,8 @@ components:
           example: "trading_bot"
         userId:
           type: string
-          description: "User identifier associated with account"
+          description: "User identifier associated with account. In List of Sub-Accounts, `null` for a sub-account created with `email` until the end user sets the password"
+          nullable: true
           example: "u-12345"
         email:
           type: string
@@ -9837,7 +9845,7 @@ components:
           example: "s***@example.com"
         status:
           type: string
-          description: "Sub-account status"
+          description: "Sub-account status. In List of Sub-Accounts, `active` once the end user of a sub-account created with `email` has set the password; a sub-account created without an email (`shareKyc: true`) is `active` from the first list call"
           example: "active"
         color:
           type: string

@@ -17,7 +17,7 @@ The Sub-Accounts API provides full programmatic control over multi-account archi
 - **Account CRUD** -- create, edit, delete, and list sub-accounts. Each sub-account gets a unique identifier and independent settings. A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 - **Fee-free transfers** -- move assets between the main account and the Main balance of any sub-account without fees via `POST /api/v4/sub-account/transfer`
 - **Per-sub-account API keys** -- generate dedicated API keys for each sub-account with independent IP whitelists (up to 50 IPs per key). The 50-key limit applies per sub-account, independent from the main account and from other sub-accounts. Supports create, edit, delete, reset, and IP management. The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too: an unused key is disabled, not deleted, and [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key) switches it back on with the same key, secret, enabled URLs, and IP whitelist.
-- **KYC URL generation** -- generate temporary KYC verification links for sub-account users via `POST /api/v4/sub-account/kyc-url`. Requirements: sub-account must be activated (the end user has opened the WhiteBIT invitation email and set a password), active, and not using shared KYC.
+- **KYC URL generation** -- generate temporary KYC verification links for sub-account users via `POST /api/v4/sub-account/kyc-url`. Requirements: sub-account must be activated (the end user has opened the WhiteBIT invitation email and set a password, and [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows `status` `active`), not blocked, and not using shared KYC.
 - **Withdrawal approval flow** -- list pending sub-account withdrawals via `POST /api/v4/sub-account/withdraw/unconfirmed-list`, then approve each one via `POST /api/v4/sub-account/withdraw/confirm`. Not available by default -- request access through the assigned account manager.
 - **Direct crypto deposits** -- once enabled for the account, sub-accounts receive crypto directly at dedicated deposit addresses, generated via the standard [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using the sub-account's own API key. Disabled by default (see note below). Every URL group starts switched off on a new sub-account key, so enable `/api/v4/main-account/address` on a `type: 2` key with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) before generating addresses.
 
@@ -41,9 +41,11 @@ The Sub-Accounts API provides full programmatic control over multi-account archi
 </Note>
 
 <Note>
-  **Crypto deposits to sub-accounts are disabled by default.** Once enabled for the account, the
-  capability applies to all of its sub-accounts; enablement is not available via API. To request
-  it, contact the assigned account manager.
+  **Crypto deposits to sub-accounts are disabled by default.** Enablement for the account is not
+  available via API. To request it, contact the assigned account manager. Each sub-account also needs
+  its own deposit permission, `depositsEnabled`, and withdrawal permission, `withdrawsEnabled`: set with
+  [Create Sub-Account](/api-reference/sub-accounts/create-sub-account) for a sub-account created without an email,
+  otherwise with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) after activation.
 </Note>
 
 **Prop Trading Firm** -- Create isolated sub-accounts per trading strategy or desk. Assign different risk budgets by controlling the balance in each sub-account. Use per-sub-account API keys to run independent trading bots — traders, risk managers, operations, and finance teams can each have separately permissioned access. Block or unblock sub-accounts via API to enforce risk controls. *(Source: [institutional.whitebit.com/sub-accounts](https://institutional.whitebit.com/sub-accounts))* A block does not cancel the sub-account's open orders or pending withdrawals; see [Block Sub-Account](/api-reference/sub-accounts/block-sub-account).

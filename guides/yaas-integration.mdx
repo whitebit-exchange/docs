@@ -45,7 +45,7 @@ the full walkthrough (per-customer keys, KYC URLs).
 
 | Endpoint | Purpose |
 |----------|---------|
-| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it; a sub-account created with `email` gets its API key only after the end user activates it from the invitation email) |
+| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it; a sub-account created with `email` gets its deposit and withdrawal permissions with `POST /api/v4/sub-account/edit`, and then its API key, once `sub-account/list` shows its `status` as `active` after the end user sets a password from the invitation email) |
 | `POST /api/v4/sub-account/api-key/create` | Issue the sub-account a key (`type: 2`, `subAccountId`, `title`) |
 
 <KeyCreateNoResponse />
@@ -68,7 +68,7 @@ sequenceDiagram
     alt Transfer from the main account
         P->>W: POST /api/v4/sub-account/transfer (main-account key, step 2)
         Note over P,W: The transfer credits the sub-account's<br/>Main balance. Invest once the amount shows there
-    else Crypto deposit, where sub-account deposits are enabled
+    else Crypto deposit, where deposits are enabled for the sub-account
         Note over P,W: Track the deposit with the sub-account key<br/>until a successful final status, as in Deposits
     end
     P->>W: First investment (sub-account key, step 3)
@@ -250,7 +250,8 @@ the WaaS [payment and payout flows](/guides/waas-integration#payment-and-payout-
   [Crypto sales for fiat](/guides/waas-integration#crypto-sales-for-fiat).
 - **Crypto withdrawal** — created with the sub-account's key and confirmed by the main account, as in
   [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). Available where
-  the account manager has enabled sub-account withdrawals.
+  the account manager has enabled sub-account withdrawals. The sub-account also needs its own withdrawal permission,
+  `withdrawsEnabled`.
 - **Payout in another currency** — [Convert](/platform/convert) on the sub-account first, as in
   [Conversion](/guides/waas-integration#conversion).
 
@@ -266,7 +267,8 @@ investment closed before maturity follows the early-withdrawal terms in
 [Crypto Lending plan types](/products/lending/overview#plan-types). The sub-account's key creates the final withdrawal
 and the main account confirms it, as in
 [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). The final
-withdrawal is available where the account manager has enabled sub-account withdrawals. A later
+withdrawal is available where the account manager has enabled sub-account withdrawals. The sub-account also needs its
+own withdrawal permission. A later
 [Delete Sub-Account](/api-reference/sub-accounts/delete-sub-account) call is refused while any Flex or Fixed investment
 stays active.
 

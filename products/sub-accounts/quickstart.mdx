@@ -81,7 +81,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
     **Required fields:** `alias` (display name, unique among the main account's sub-accounts), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required. The example sets `shareKyc: true` and leaves `email` out, so the sub-account shares the main account's verification and is active at creation.
 
-    A request with `email` starts the invitation flow instead: WhiteBIT emails the end customer, and the sub-account stays inactive until the customer opens the link and sets a password. Until then, transfers, balances and API key creation for the sub-account are refused. On a request with `email`, `depositsEnabled` and `withdrawsEnabled` are ignored; apply these flags with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. Transfers from the main account to a sub-account created with `shareKyc: false` also wait for the end customer's KYC approval. See the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow).
+    A request with `email` starts the invitation flow instead: WhiteBIT emails the end customer, and the sub-account stays inactive until the customer opens the link and sets a password. Until then, transfers and balances for the sub-account are refused. The invitation link expires after three days and can be re-sent on whitebit.com, not through the API. Once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`, set `depositsEnabled` and `withdrawsEnabled` with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account), sending the `alias` and the full `permissions` object (`spotEnabled` and `collateralEnabled` as set at creation), then create the sub-account's API key. Transfers from the main account to a sub-account created with `shareKyc: false` also wait for the end customer's KYC approval. See the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow).
 
     **Expected response:**
     ```json
@@ -197,7 +197,9 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) to enable `/api/v4/main-account/address`
       on the `type: 2` key (every URL group starts switched off on a new key), then generate the address via the
       standard [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
-      signed with the sub-account's own key.
+      signed with the sub-account's own key. The sub-account also needs its own deposit permission,
+      `depositsEnabled`: in the create request for a sub-account created without `email`, otherwise with
+      [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is `active`.
     </Note>
   </Step>
 
@@ -251,7 +253,7 @@ The sub-account now has an isolated balance and a dedicated API key. To restrict
 
 ## Sub-account withdrawal approval
 
-When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal. No webhook is sent while the withdrawal waits. After confirmation, the withdrawal follows the standard path: the first webhook event is `withdraw.unconfirmed` (status 5), then `withdraw.pending` and a final event. These events go to the webhook of the sub-account that owns the withdrawal, not to the main account's webhook.
+A sub-account withdrawal needs the sub-account's own withdrawal permission, `withdrawsEnabled`: set in the create request for a sub-account created without `email`, otherwise with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is `active`. When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal. No webhook is sent while the withdrawal waits. After confirmation, the withdrawal follows the standard path: the first webhook event is `withdraw.unconfirmed` (status 5), then `withdraw.pending` and a final event. These events go to the webhook of the sub-account that owns the withdrawal, not to the main account's webhook.
 
 <SubAccountWithdrawal />
 
