@@ -6319,9 +6319,11 @@ paths:
       description: |
         The endpoint blocks [sub-account](/glossary#sub-account).
 
-        A block does not cancel the sub-account's open orders or pending withdrawals. Deposits to the sub-account's addresses are still credited, and a transfer from the main account to the sub-account is not refused.
+        After the block, every request signed with the sub-account's API key is refused with `401` and the message `This user is blocked`.
 
-        The endpoint refuses to block a sub-account that was never activated. A block on the main account applies to every one of its sub-accounts.
+        A block does not cancel the sub-account's open orders or pending withdrawals. After the block, a cancel request signed with the sub-account's key is refused too, so cancel any order that must not fill before sending the block. Deposits to the sub-account's addresses are still credited, and a transfer from the main account to the sub-account is not refused.
+
+        The endpoint refuses to block a sub-account that was never activated. A block on the main account applies to every one of its sub-accounts, and requests signed with the key of any of its sub-accounts are refused the same way.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.

@@ -259,7 +259,7 @@ the WaaS [payment and payout flows](/guides/waas-integration#payment-and-payout-
 
 Invested funds do not show in `POST /api/v4/sub-account/balances` (see
 [Reconcile earnings per user](#4-reconcile-earnings-per-user)). Offboarding therefore starts with the sub-account's
-key. The partner's backend lists and closes every active investment, then follows
+key, before the block refuses that key with `401`. The partner's backend lists and closes every active investment, then follows
 [End-user offboarding](/guides/waas-integration#end-user-offboarding) to empty and block the sub-account. The wait for held deposits in that flow reads `POST /api/v4/main-account/balance`
 with the sub-account's key, so the partner first switches that URL on for the key with
 `POST /api/v4/sub-account/api-key/edit`, as in WaaS [Wallet creation](/guides/waas-integration#wallet-creation). A Fixed

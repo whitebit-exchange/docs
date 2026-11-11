@@ -51,6 +51,10 @@ Each sub-account supports up to 50 API keys, independent from the main account a
 
 A newly created `type: 2` key starts with every URL group switched off (`enable: false`), the withdraw endpoints included, so withdrawals return this 401 until the URL is enabled with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key). See [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval) for the step.
 
+### Sub-account key returns 401 "This user is blocked"
+
+The sub-account, or its main account, is blocked. Every request signed with a key of a blocked sub-account is refused with this message, so retrying does not help. See [Block Sub-Account](/api-reference/sub-accounts/block-sub-account).
+
 ## What's next
 
 <CardGroup cols={2}>

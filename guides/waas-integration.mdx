@@ -288,7 +288,8 @@ sub-account's key with [Edit Sub-Account API Key](/api-reference/sub-accounts/ed
 ## API key lifecycle
 
 The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too, and any
-authenticated request, such as a deposit history poll, resets the timer.
+authenticated request, such as a deposit history poll, resets the timer. A request refused with `401` and
+`This user is blocked` means the sub-account or its main account is blocked, not that the key was deactivated.
 
 <KeyCreateNoResponse />
 
@@ -314,9 +315,11 @@ flowchart TD
 
 Offboarding empties the sub-account through a final withdrawal or a sale, then the main-account key blocks it. The
 sub-account's key creates the final withdrawal and the main account confirms it, as in [Withdrawals](#withdrawals).
-A sale follows [Crypto sales for fiat](#crypto-sales-for-fiat). A block does not stop deposits: a later
-deposit to one of the sub-account's addresses is still credited to the sub-account. The partner therefore keeps the end
-user's mapping to the sub-account and its addresses.
+A sale follows [Crypto sales for fiat](#crypto-sales-for-fiat). After the block, every request signed with the
+sub-account's key is refused with `401` and `This user is blocked`, so any Trade-to-Main transfer, the final withdrawal
+and its status checks run before the block. A block does not stop deposits: a later deposit to one of the sub-account's
+addresses is still credited to the sub-account, but the blocked sub-account's key cannot move
+the deposit. The partner therefore keeps the end user's mapping to the sub-account and its addresses.
 
 <SubAccountOffboarding />
 

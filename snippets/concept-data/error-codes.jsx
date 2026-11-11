@@ -28,6 +28,7 @@ export const authErrors = [
   { message: "Your nonce is more than 5 seconds lesser than the current nonce", cause: "Invalid timestamp when using nonceWindow", resolution: "Use current Unix timestamp in milliseconds" },
   { message: "Invalid nonceWindow.", cause: "nonceWindow is not a boolean", resolution: "Set nonceWindow to `true` or `false`" },
   { message: "Request not provided.", cause: "Missing request path in body", resolution: "Include the request path in all requests" },
+  { message: "This user is blocked", cause: "Using a sub-account key (HTTP 401) while the sub-account or its main account is blocked", resolution: "Do not retry the request. See Block Sub-Account in the API reference" },
 ];
 
 export const depositStatusCodes = [
