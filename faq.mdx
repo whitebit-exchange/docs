@@ -190,7 +190,7 @@ For details, see the [Authentication guide](/api-reference/authentication).
 </Accordion>
 
 <Accordion title="API key auto-deactivation after inactivity">
-The platform automatically deactivates an API key that receives no requests for 14 consecutive days. An IP whitelist does not exempt a key from this rule — whitelisted and non-whitelisted keys deactivate on the same schedule. Reactivate a deactivated key at [whitebit.com/settings/api](https://whitebit.com/settings/api). See [Key rotation](/best-practices/security#key-rotation).
+The platform automatically deactivates an API key that receives no requests for 14 consecutive days. An IP whitelist does not exempt a key from this rule — whitelisted and non-whitelisted keys deactivate on the same schedule. Reactivate a deactivated key at [whitebit.com/settings/api](https://whitebit.com/settings/api). [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key) switches a deactivated sub-account key back on, and the key and its secret stay the same. Webhook keys do not deactivate. See [Key rotation](/best-practices/security#key-rotation).
 </Accordion>
 
 <Accordion title="Keeping spare API keys active">
@@ -198,7 +198,7 @@ Send at least one authenticated request from each spare key every 14 days. Any a
 </Accordion>
 
 <Accordion title="Reasons an API key becomes disabled">
-An API key becomes disabled after 14 consecutive days without requests, or when deactivated from the account settings. Check the key status at [whitebit.com/settings/api](https://whitebit.com/settings/api), resolve the cause, then re-enable the key. See [Security best practices](/best-practices/security).
+An API key becomes disabled after 14 consecutive days without requests, or when deactivated from the account settings. Check the key status at [whitebit.com/settings/api](https://whitebit.com/settings/api), resolve the cause, then re-enable the key. For a sub-account key, `isEnabled` in [List Sub-Account API Keys](/api-reference/sub-accounts/list-sub-account-api-keys) shows the status, and [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key) re-enables the key. See [Security best practices](/best-practices/security).
 </Accordion>
 </AccordionGroup>
 

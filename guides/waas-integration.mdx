@@ -270,8 +270,8 @@ flowchart TD
     Ip --> Use["Signed requests with the key,<br/>such as the deposit history polls,<br/>each reset the 14-day timer"]
     Use -->|"POST /api/v4/sub-account/api-key/list, main-account key"| Check{"Key enabled?"}
     Check -->|"Yes"| Use
-    Check -->|"No"| Replace["Key not enabled: create a replacement<br/>with the same permissions and IP whitelist,<br/>then delete the old key"]
-    Replace --> Create
+    Check -->|"No"| Reset["POST /api/v4/sub-account/api-key/reset<br/>main-account key, same key and secret,<br/>URL access and IP whitelist kept"]
+    Reset --> Use
 ```
 
 ## End-user offboarding

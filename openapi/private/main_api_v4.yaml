@@ -6667,7 +6667,10 @@ paths:
       description: |
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
 
-        The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too.
+        The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too: an
+        unused key is disabled, not deleted, and its `isEnabled` field turns `false`. The notice email goes to the sub-account,
+        not to the main account, so read `isEnabled` with [List Sub-Account API Keys](/api-reference/sub-accounts/list-sub-account-api-keys)
+        and switch a disabled key back on with [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key).
 
         <Note>
         A `type: 2` key includes the withdrawal permission group, but its URLs default to `enable: false`.
@@ -6723,7 +6726,10 @@ paths:
 
             Response error codes:
             - 0 - request validation failed (missing field, wrong type)
-            - 5 - business-rule violation (API-key limit reached, key type not allowed)
+            - 5 - business-rule violation, such as the API-key limit reached
+
+            The `Type isn't allowed` message does not occur for `type: 1` and `type: 2` keys. If a `type: 1` or `type: 2`
+            request returns it, check the raw request body for the `type` value actually sent.
           content:
             application/json:
               schema:
@@ -6744,7 +6750,7 @@ paths:
                     code: 5
                     message: "Limit of API keys is reached. Maximum allowed: 50"
                 typeNotAllowed:
-                  summary: "Requested key type is not allowed"
+                  summary: "Key type not allowed (not returned for type 1 or type 2)"
                   value:
                     code: 5
                     message: "Type isn't allowed"
@@ -7019,7 +7025,10 @@ paths:
         - Sub-Account API Keys
       summary: Reset Sub-Account API Key
       description: |
-        The endpoint resets (regenerates) an existing [sub-account](/glossary#sub-account) API key.
+        The endpoint switches a disabled [sub-account](/glossary#sub-account) API key back on, for example after the
+        [14-day deactivation of unused keys](/best-practices/security#key-rotation), and restarts the key's 14-day inactivity period.
+        The call does not issue a new secret: the key, its secret, its URL access settings, and its IP whitelist stay the
+        same, and the integration needs no replacement key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -9763,7 +9772,7 @@ components:
           example: "Trading Bot Key"
         isEnabled:
           type: boolean
-          description: "Whether the API key is enabled"
+          description: "Whether the API key is enabled. Turns `false` after 14 days without requests; [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key) sets it back to `true`."
           example: true
         apiKey:
           type: string
@@ -9830,6 +9839,7 @@ components:
           example: "Trading Bot Key"
         isEnabled:
           type: boolean
+          description: "Whether the API key is enabled. Turns `false` after 14 days without requests; [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key) sets it back to `true`."
           example: true
         apiKey:
           type: string
