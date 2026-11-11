@@ -5,6 +5,19 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ---
 
 
+<Update label="November 10, 2026">
+## RPI and retail flags cannot be combined
+**`POST /api/v4/order/new`, `/order/bulk`, `/order/collateral/limit` and `/order/collateral/bulk` reject `rpi=true` together with `retail=true`**
+
+A limit order that sets both `rpi=true` and `retail=true` is rejected with error code `41` on spot, margin and futures markets, which reverses the September 23, 2026 change that allowed the combination. In a bulk request, the item that sets both flags returns the error. `retail=true` alone on collateral limit orders stays accepted, and error codes `42` and `43` apply unchanged.
+
+<CardGroup cols={2}>
+  <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
+  <Card title="Collateral Limit Order" href="/api-reference/trading/collateral-limit-order" icon="chart-line" horizontal/>
+  <Card title="Retail flag" href="/glossary#retail-flag" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="November 06, 2026">
 ## Virtual account status webhook
 **New `deposit.virtual_account_status` webhook event**
