@@ -140,7 +140,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       </Tab>
     </Tabs>
 
-    **Required fields:** `id` (sub-account UUID), `direction` (`main_to_sub` or `sub_to_main`), `ticker`, `amount`. Transfers are fee-free. The response means WhiteBIT accepted the transfer, and the balances change a moment later.
+    **Required fields:** `id` (sub-account UUID), `direction` (`main_to_sub` or `sub_to_main`), `ticker`, `amount`. Transfers are fee-free. The response means WhiteBIT accepted the request, and the transfer can still fail after it. Confirm the transfer on the sub-account's `main` balance with `POST /api/v4/sub-account/balances`, as in the Check sub-account balances step below, before acting on it.
 
     **Expected response:**
     ```json

@@ -82,7 +82,7 @@ When making transfers and withdrawals:
 
 - Before the next step, check that the amount shows on the destination balance
 - Avoid initiating withdrawals before transfer completion
-- Implement proper error handling for transfer states; after a timeout or server error, follow the transfer row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) before resending
+- Implement proper error handling for transfer states; after a timeout or server error, do not resend automatically, and follow the between-balances row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type)
 
 For endpoint details, see the [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) documentation. For details on balance types (Main, Trade, Collateral), see [Balances & Transfers](/concepts/balances).
 </Accordion>

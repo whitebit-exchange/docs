@@ -77,8 +77,8 @@ sequenceDiagram
 ### 2. Fund the sub-account
 
 Move funds from the main account's Main balance to the end user's sub-account with a fee-free transfer, signed with
-the main-account key. The transfer credits the sub-account's Main balance, which the first investment draws from; the
-amount shows on that balance a moment after the response.
+the main-account key. The transfer credits the sub-account's Main balance, which the first investment draws from.
+Invest once the amount shows on the sub-account's `main` balance and matches the partner's own record of the transfer.
 
 | Endpoint | Purpose |
 |----------|---------|
@@ -88,7 +88,7 @@ For a managed sub-account (`shareKyc: false`, created with the end user's `email
 
 <TransferNoIdempotency />
 
-Run the check with `POST /api/v4/sub-account/transfer/history`, as in WaaS
+Read the sub-account's `main` balance with `POST /api/v4/sub-account/balances`, as in WaaS
 [Crypto purchases with fiat](/guides/waas-integration#crypto-purchases-with-fiat).
 
 For crypto deposits to a sub-account, the partner's backend polls the deposit history with the sub-account's key, as in the [deposit flow](/guides/waas-integration#deposits). Webhooks are optional.
@@ -259,7 +259,9 @@ the WaaS [payment and payout flows](/guides/waas-integration#payment-and-payout-
 Invested funds do not show in `POST /api/v4/sub-account/balances` (see
 [Reconcile earnings per user](#4-reconcile-earnings-per-user)). Offboarding therefore starts with the sub-account's
 key. The partner's backend lists and closes every active investment, then follows
-[End-user offboarding](/guides/waas-integration#end-user-offboarding) to empty and block the sub-account. A Fixed
+[End-user offboarding](/guides/waas-integration#end-user-offboarding) to empty and block the sub-account. The wait for held deposits in that flow reads `POST /api/v4/main-account/balance`
+with the sub-account's key, so the partner first switches that URL on for the key with
+`POST /api/v4/sub-account/api-key/edit`, as in WaaS [Wallet creation](/guides/waas-integration#wallet-creation). A Fixed
 investment closed before maturity follows the early-withdrawal terms in
 [Crypto Lending plan types](/products/lending/overview#plan-types). The sub-account's key creates the final withdrawal
 and the main account confirms it, as in

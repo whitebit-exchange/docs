@@ -88,10 +88,11 @@ The following errors are returned by private REST endpoints when the request sig
 | Insufficient balance | No | Check the account balance and wait for pending operations to settle. For a conversion, transfer the source currency to the Trade balance; see [Convert balances](/platform/convert#balances). |
 | Server error (5xx) | Yes | Exponential backoff. If persistent, check platform status. |
 | Server error or confirm code `0` on a conversion | Only after a check | The conversion may have executed. Follow [Results and retries](/platform/convert#results-and-retries) before converting again. |
-| Timeout or server error on a transfer | Only after a check | [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) and [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) take no idempotency key, and a transfer can still complete after a timeout or a server error. Check the transfer history first, and resend only when no matching record exists. The caller cannot attach its own reference to a transfer, so two identical transfers sent close together make the match ambiguous: an integration that transfers per purchase stores its own record before each call and treats no match or an ambiguous match as a manual check, not a resend. |
+| Timeout or server error on a transfer between balances | No | [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) takes no idempotency key, and a transfer can still complete after a timeout or a server error. A matching record in [Get transfer history](/api-reference/account-wallet/get-transfer-history) means the transfer completed. No record can also mean the transfer is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual check. |
+| Timeout, server error or `200` on a sub-account transfer | No | [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) takes no idempotency key. A transfer can still complete after a timeout or a server error, and can still fail after a `200`. The transfer history shows that the request was received, not that the funds moved. Store a record of each transfer before the call, then read `main` for the ticker with [Sub-Account Balances](/api-reference/sub-accounts/sub-account-balances) until it shows the transfer, and do not resend while waiting. A transfer that does not show is a manual check. |
 | Timeout or server error on a withdrawal | Only after a check | Look up the stored unique withdrawal ID in the [deposit and withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history) before sending any new withdrawal request. |
 
-The flowchart shows the check that each operation needs before a retry.
+The flowchart shows the check that each operation needs after a failed request.
 
 ```mermaid
 flowchart TD
@@ -100,15 +101,14 @@ flowchart TD
     Response -->|"Timeout or 5xx<br/>on a transfer"| Transfer{"Transfer type"}
     Response -->|"Error on<br/>a conversion"| Convert["Follow Results<br/>and retries on<br/>the Convert page"]
     Response -->|"Timeout or 5xx<br/>on a withdrawal"| Withdrawal["POST /api/v4/<br/>main-account/history<br/>by the stored<br/>withdrawal ID"]
-    Transfer -->|"Between balances"| MainHistory["POST /api/v4/<br/>main-account/<br/>transfer/history"]
-    Transfer -->|"Sub-account"| SubHistory["POST /api/v4/<br/>sub-account/<br/>transfer/history"]
-    MainHistory --> Match{"Record created after the<br/>failed request, with the same<br/>currency, amount and balances<br/>or transfer direction?"}
-    SubHistory --> Match
-    Match -->|"Yes, one<br/>clear match"| NoResend["Do not resend"]
-    Match -->|"Ambiguous"| Manual["Manual check,<br/>no automatic resend"]
-    Match -->|"No"| PerPurchase{"Transfer made<br/>per purchase?"}
-    PerPurchase -->|"No"| Resend["Resend the transfer"]
-    PerPurchase -->|"Yes"| Manual
+    Transfer -->|"Between balances"| MainHistory["POST /api/v4/<br/>main-account/<br/>transfer/history,<br/>repeated"]
+    Transfer -->|"Sub-account"| SubBalances["POST /api/v4/<br/>sub-account/balances,<br/>repeated"]
+    MainHistory --> Record{"Matching<br/>record?"}
+    SubBalances --> Shows{"main moved<br/>by the recorded<br/>amount?"}
+    Record -->|"Yes"| NoResend["Completed,<br/>do not resend"]
+    Shows -->|"Yes"| NoResend
+    Record -->|"Never shows"| Manual["Manual check,<br/>no automatic resend"]
+    Shows -->|"Never shows"| Manual
     Withdrawal -->|"Record found"| Status["Act on the<br/>withdrawal status"]
 ```
 

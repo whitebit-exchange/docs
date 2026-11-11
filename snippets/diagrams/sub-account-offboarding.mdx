@@ -11,6 +11,7 @@ sequenceDiagram
         P->>W: POST /api/v4/main-account/transfer (sub-account key, Trade to Main)
         Note over P,W: The transfer is accepted with 201.<br/>Wait until the amount shows on Main
     end
+    Note over P,W: Wait until pending_deposit_amount is 0<br/>(main-account/balance, sub-account key)
     alt Final withdrawal to the end user's address
         P->>W: POST /api/v4/main-account/withdraw (sub-account key)
         Note over P,W: The main account confirms it
@@ -19,11 +20,16 @@ sequenceDiagram
         end
     else Sale of the remaining crypto
         P->>W: POST /api/v4/sub-account/transfer (main-account key, sub-account to main account)
-        W-->>P: Transfer ID
+        W-->>P: Transfer ID, or a timeout or 5xx
+    end
+    loop Until the balances show nothing left to move
+        P->>W: POST /api/v4/sub-account/balances (main-account key, sub-account ID)
+        W-->>P: Remaining amount on each balance
+    end
+    opt After a sale
         P->>F: Credit the end user's fiat
     end
-    P->>W: POST /api/v4/sub-account/balances (main-account key, sub-account ID)
-    W-->>P: Nothing left to move
     P->>W: POST /api/v4/sub-account/block (main-account key, sub-account ID)
+    Note over P,W: From here on, the sub-account<br/>key is refused with 401
     P->>P: Keep the end user, sub-account ID and address mapping
 ```

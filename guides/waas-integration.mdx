@@ -197,28 +197,32 @@ sequenceDiagram
     W-->>P: The main account's Main balance for the ticker
     Note over P,W: Transfers to a sub-account draw<br/>from the main account's Main balance<br/>and credit the sub-account's Main balance
     P->>F: Debit the end<br/>user's fiat
-    P->>P: Record the transfer and<br/>the time before the call
+    P->>P: Record the transfer and the<br/>expected sub-account main amount
     P->>W: POST /api/v4/sub-account/transfer<br/>(main-account key,<br/>main account to sub-account)
-    alt 200, transfer accepted
+    alt 200, request received
         W-->>P: Transfer ID
         P->>P: Store the transfer ID with the purchase
     else Timeout or 5xx
-        P->>W: POST /api/v4/sub-account/transfer/history<br/>(main-account key, sub-account ID,<br/>main account to sub-account)
-        W-->>P: Transfers, newest first
-        alt One clear match on direction, currency and amount, after the request
-            P->>P: Store its transfer ID and do not resend
-        else No match, or an ambiguous match
-            P->>P: Manual check,<br/>no automatic resend
-        end
+        Note over P,W: The transfer can still complete
     end
+    loop Until the sub-account's main shows the transfer
+        P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account id, currency)
+        W-->>P: main for the ticker
+    end
+    Note over P,W: No resend while waiting. A transfer<br/>that never shows is a manual check
 ```
 
 ### Crypto sales for fiat
 
-In a sale, the partner transfers the crypto from the sub-account's Main balance to the main account and credits the
-end user's fiat once WhiteBIT accepts the transfer with a `200` response; the balances change a moment later. After a
-timeout or a `5xx`, the partner checks the transfer history: one clear match counts as the transfer, and no match or an
-ambiguous match is a manual check, not an automatic resend.
+In a sale, the partner transfers the crypto from the sub-account's Main balance to the main account. The sale amount
+is at most the sub-account's `main_balance` minus `pending_deposit_amount`, both read in one
+`POST /api/v4/main-account/balance` call with the sub-account's key. A transfer that reaches into the held part is refused with `422` on
+`amount`, code `20`, and nothing moves: the held part can be sold once the deposit is confirmed.
+
+A `200` response means WhiteBIT received the request, and the transfer can still fail after it. After a `200`, a
+timeout or a `5xx`, the partner reads the sub-account's `main` with `POST /api/v4/sub-account/balances` (main-account
+key) until it shows the transfer, and credits the end user's fiat only then. The partner sends no second transfer while
+waiting. A transfer that does not show is a manual check, not an automatic resend.
 
 ```mermaid
 sequenceDiagram
@@ -229,24 +233,22 @@ sequenceDiagram
     participant W as WhiteBIT
 
     U->>P: Sell crypto for fiat
-    P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account id, currency)
-    W-->>P: main, spot and collateral amounts for the ticker
-    P->>P: Check that the main amount covers the sale
-    Note over P,W: A transfer to the main account draws<br/>from the sub-account's Main balance only
-    P->>P: Record the transfer and<br/>the time before the call
+    P->>W: POST /api/v4/main-account/balance<br/>(sub-account key, currency)
+    W-->>P: main_balance and<br/>pending_deposit_amount
+    P->>P: Check that main_balance minus<br/>pending_deposit_amount covers the sale
+    P->>P: Record the transfer and the<br/>expected sub-account main amount
     P->>W: POST /api/v4/sub-account/transfer<br/>(main-account key,<br/>sub-account to main account)
-    alt 200, transfer accepted
-        W-->>P: Transfer ID
-        P->>F: Credit the end user's fiat
-    else Timeout or 5xx
-        P->>W: POST /api/v4/sub-account/transfer/history<br/>(main-account key, sub-account ID,<br/>sub-account to main account)
-        W-->>P: Transfers, newest first
-        alt One clear match on direction, currency and amount, after the request
-            P->>F: Credit the end user's fiat
-        else No match, or an ambiguous match
-            P->>P: Manual check: no resend,<br/>no fiat credit until resolved
+    alt 422 on amount, code 20
+        W-->>P: Held deposit funds cannot move
+        P->>P: No fiat credit. Sell the held part<br/>once the deposit is confirmed
+    else 200, timeout or 5xx
+        loop Until the sub-account's main shows the transfer
+            P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account id, currency)
+            W-->>P: main for the ticker
         end
+        P->>F: Credit the end user's fiat
     end
+    Note over P,W: No resend and no fiat credit<br/>while waiting. A transfer that<br/>never shows is a manual check
 ```
 
 ### Withdrawals

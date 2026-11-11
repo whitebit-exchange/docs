@@ -2672,13 +2672,14 @@ paths:
         identifier. After a timeout or a `5xx` response, the transfer can still complete, so check
         [Get transfer history](/api-reference/account-wallet/get-transfer-history) for a record whose `from_balance`,
         `to_balance`, `currency` and `amount` match the request, created after the failed request was sent. A transfer
-        between the spot and collateral balances appears as two records, `spot → main` and `main → collateral`. The history
-        lists a transfer only after the transfer completes, so repeat the check before resending, and resend only when no
-        matching record exists.
+        between the spot and collateral balances appears as two records, `spot → main` and `main → collateral`. A matching
+        record means the transfer completed. A failed transfer leaves no record, and no record can also mean the transfer
+        is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual
+        check.
 
         The caller cannot attach its own reference to a transfer, so the match is ambiguous when two identical transfers are sent
         close together. An integration that transfers per purchase stores its own record of each transfer before the
-        call, and treats no match or an ambiguous match as a manual check, not an automatic resend.
+        call, and treats an ambiguous match as a manual check, not an automatic resend.
         </Warning>
       operationId: transferBetweenBalances
       requestBody:
@@ -2758,7 +2759,7 @@ paths:
                   nonce: 1594297865000
       responses:
         "201":
-          description: Transfer accepted. The funds move after the response, and the response carries no transfer identifier.
+          description: Transfer accepted. The body is an empty JSON array, `[]`. The funds move after the response, and the response carries no transfer identifier.
           content:
             application/json:
               schema:
@@ -2914,7 +2915,7 @@ paths:
         </Note>
 
         <Note>
-        The API does not cache the response. `POST /api/v4/main-account/transfer` returns `201` as soon as a transfer is queued, so a request sent immediately afterwards can return no records yet. The history also covers transfers the platform performs for the account, such as mining-pool conversions, and transfers in delisted currencies. Every returned transfer is completed.
+        The API does not cache the response. `POST /api/v4/main-account/transfer` returns `201` as soon as a transfer is queued, so a request sent immediately afterwards can return no records yet. A failed transfer leaves no record, so a missing record does not show whether a transfer is still queued or failed: check again, and do not resend automatically. The history also covers transfers the platform performs for the account, such as mining-pool conversions, and transfers in delisted currencies. Every returned transfer is completed.
         </Note>
       operationId: getMainAccountTransferHistory
       requestBody:
@@ -6199,7 +6200,9 @@ paths:
         Transfers between the main account and any sub-account are fee-free in both directions.
 
         A `main_to_sub` transfer credits the sub-account's Main balance, not its Trade balance. A `sub_to_main` transfer
-        draws from the sub-account's Main balance only, never from its Trade balance.
+        draws from the sub-account's Main balance only, never from its Trade balance. A `sub_to_main` transfer can move only
+        the part of that balance not held back for a deposit credited before full network confirmation
+        (`pending_deposit_amount`). An amount that reaches into the held part is refused with `422` and `code` `20`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6210,16 +6213,25 @@ paths:
         </Note>
 
         <Warning>
-        The request takes no idempotency key, and two identical requests move the funds twice. After a timeout or a `5xx`
-        response, the transfer can still complete, so check
-        [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) for a record whose
-        `direction`, `currency` and `amount` match the request's `direction`, `ticker` and `amount`, created after the failed
-        request was sent, before sending the transfer again. The history lists the record as soon as WhiteBIT accepts the
-        transfer. Resend the transfer only when no such record exists.
+        The request takes no idempotency key, and two identical requests move the funds twice. A `200` response means
+        WhiteBIT received the request, and the transfer can still fail after the response. After a timeout or a `5xx`
+        response, the transfer can still complete. A record in
+        [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) shows that the
+        request was received, not that the funds moved, so the history does not confirm a transfer and is not a duplicate
+        check.
 
-        The caller cannot attach its own reference to a transfer, so the match is ambiguous when two identical transfers are sent close
-        together. An integration that transfers per purchase stores its own record of each transfer before the call, and
-        treats no match or an ambiguous match as a manual check, not an automatic resend.
+        Confirm the transfer on the sub-account side: read `main` for the ticker with
+        [Sub-Account Balances](/api-reference/sub-accounts/sub-account-balances) (main-account key, sub-account `id`). A
+        `main_to_sub` transfer raises it by the amount, and a `sub_to_main` transfer lowers it. The main account's own
+        balance changes with transfers to and from every sub-account and does not confirm a single transfer. After a `200`, a timeout or a
+        `5xx`, read the sub-account's `main` until it shows the transfer, and do not resend the transfer while
+        waiting. A transfer that does not show is a manual check, not an automatic resend.
+
+        The caller cannot attach its own reference to a transfer, so an integration stores its own record of each transfer
+        before the call. Other movements on the sub-account, such as deposits and withdrawals, also change `main`, so the
+        integration compares the amount read with the `main` amount its own records expect. To keep the comparison
+        unambiguous, send the next transfer for the same sub-account and ticker only after the previous one shows on the
+        balance.
         </Warning>
       operationId: subAccountTransfer
       requestBody:
@@ -6253,7 +6265,7 @@ paths:
                   example: "ETH"
       responses:
         "200":
-          description: Transfer accepted. The funds move after the response, and the balances change a moment later.
+          description: Transfer request accepted. The transfer can still fail after the response, so confirm it on the sub-account's `main` balance with Sub-Account Balances.
           content:
             application/json:
               schema:
@@ -6261,7 +6273,7 @@ paths:
                 properties:
                   transaction_id:
                     type: string
-                    description: External identifier of the transaction. Correlate transfer history responses using the `transaction_id` value.
+                    description: External identifier of the transfer request. The same value identifies the request's record in Get Sub-Account Transfer History. That record does not confirm that the funds moved.
         "400":
           description: Request validation failed
           content:
@@ -6272,10 +6284,16 @@ paths:
           description: The currency in `ticker` was not found.
         "422":
           description: |
-            The transfer is refused. Every refusal has the top-level `code` field `0`, and the message text varies; the key in
-            `errors` is the only machine-readable signal of the cause:
+            The transfer is refused, and no part of the amount moves. Every refusal has the top-level `code` field `0` except
+            the held-deposit refusal, which has `code` `20`. The message text varies, so read the cause from the key in
+            `errors` together with `code`:
 
-            - `amount`: the source balance does not cover the amount. The message names the available amount.
+            - `amount` with `code` `0`: the source balance does not cover the amount. The message names the available amount.
+            - `amount` with `code` `20`: on a `sub_to_main` transfer, the amount includes funds held back because a deposit
+              to the sub-account was credited before full network confirmation. Send at most `main_balance` minus
+              `pending_deposit_amount`, both read with the sub-account's own key from
+              [Get main balance](/api-reference/account-wallet/main-balance) with `/api/v4/main-account/balance` switched
+              on for that key, and transfer the held part after the deposit is confirmed.
             - `to`: the sub-account does not use shared KYC and the end user has not passed KYC yet. Only a transfer to
               the sub-account is checked against KYC.
             - `from` or `to`: an account on that side cannot take part in the transfer, for example a deleted sub-account.
@@ -6392,9 +6410,15 @@ paths:
       description: |
         The endpoint returns [sub-account](/glossary#sub-account) balances.
 
+        Called with the main-account key, the endpoint confirms that a
+        [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) settled: a `main_to_sub` transfer raises the
+        sub-account's `main` for the ticker by the amount, and a `sub_to_main` transfer lowers it. Compare the amount read
+        with the integration's own record of the transfer.
+
         The `main` amount includes deposits credited before the network fully confirms the deposits. The sub-account's own API key
         reads the part still held back as `pending_deposit_amount` from [Get main balance](/api-reference/account-wallet/main-balance),
-        once `/api/v4/main-account/balance` is switched on for that key.
+        once `/api/v4/main-account/balance` is switched on for that key. The held part cannot be transferred to the main
+        account until the network confirms the deposit.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6468,8 +6492,11 @@ paths:
       description: |
         The endpoint returns history of transfers between main account and [sub-account](/glossary#sub-account).
 
-        The history lists a transfer as soon as WhiteBIT accepts the transfer request, before the balances change, so a
-        listed record does not mean the funds have moved. The caller cannot attach its own reference to a transfer.
+        The history lists a transfer as soon as WhiteBIT receives the transfer request, before the balances change. A
+        listed record shows that the request was received, not that the funds moved, so the history does not confirm a
+        transfer and is not a duplicate check. To confirm a transfer, read the sub-account's `main` balance with
+        [Sub-Account Balances](/api-reference/sub-accounts/sub-account-balances) and compare it with the integration's own
+        record. The caller cannot attach its own reference to a transfer.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -9865,7 +9892,7 @@ components:
           example: "0.5"
         createdAt:
           type: integer
-          description: "Time WhiteBIT accepted the transfer. The record exists before the balances change."
+          description: "Time WhiteBIT received the transfer request. The record exists before the balances change, so it does not confirm that the funds moved."
           example: 1641081600
 
     SubAccountApiKey:

@@ -49,5 +49,5 @@ export const httpStatusCodes = [
   { status: 403, meaning: "Forbidden — insufficient permissions" },
   { status: 404, meaning: "Not found — endpoint does not exist" },
   { status: 429, meaning: "Too Many Requests — rate limit exceeded" },
-  { status: 500, meaning: "Internal server error — retry with backoff; a transfer can still complete after the error, so check the transfer history, repeat the check for a transfer between balances, and resend only when no matching record exists" },
+  { status: 500, meaning: "Internal server error — retry with backoff; a transfer can still complete after the error, so do not resend a transfer automatically, and follow the transfer rows in Retry strategy by error type on the Rate Limits page" },
 ];

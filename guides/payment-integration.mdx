@@ -1061,7 +1061,7 @@ When the currency held in Main balance differs from the currency the end user ne
     **Endpoint:** `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/main-balance)
   </Step>
   <Step title="Transfer the source currency to Trade">
-    Transfer the source currency from Main to Trade. Request the estimate after the transferred amount shows on the [Trade balance](/api-reference/trading/trading-balance). The transfer request takes no idempotency key, and a transfer can still complete after a timeout or a `5xx`, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) before resending a transfer. The history lists a transfer only after the transfer completes, so repeat the check, and resend only when no matching record exists.
+    Transfer the source currency from Main to Trade. Request the estimate after the transferred amount shows on the [Trade balance](/api-reference/trading/trading-balance). The transfer request takes no idempotency key, and a transfer can still complete after a timeout or a `5xx`, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) for the transfer. A matching record means the transfer completed. No record can also mean the transfer is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual check, as the between-balances row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) describes.
 
     **Endpoint:** `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
   </Step>
