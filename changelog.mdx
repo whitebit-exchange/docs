@@ -17,6 +17,66 @@ The Balances concept page now explains balance normalization: when an asset bala
 </CardGroup>
 </Update>
 
+<Update label="November 11, 2026">
+## Deposit webhooks and statuses: corrected mapping
+**`deposit.aml_frozen` reports status 21 only, and a deposit canceled with status 9 sends no webhook**
+
+The webhook and payment integration pages now map deposit events to the statuses the platform sends with each event: `deposit.aml_frozen` reports status 21 only, and `deposit.accepted` and `deposit.updated` report status 22. `deposit.canceled` reports status 4 only, so a deposit canceled with status 9 appears only in the deposit/withdraw history. A crypto deposit below the network minimum is not rejected: it waits in status 22, deposits to the same address add up and are credited together once the total reaches the network minimum, and deposits that stay below it are canceled with status 9 after 7 days. Status 23 is documented as pending. Earlier documentation listed status 22 under `deposit.aml_frozen` and status 9 under `deposit.canceled`, and described below-minimum deposits as rejected.
+
+<CardGroup cols={2}>
+  <Card title="Webhook" href="/platform/webhook" icon="bell" horizontal/>
+  <Card title="Deposit status state machine" href="/guides/payment-integration#deposit-status-state-machine" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="November 11, 2026">
+## Sub-account withdrawals awaiting confirmation: no expiry
+**A sub-account withdrawal that needs the main account's confirmation does not expire**
+
+A sub-account withdrawal that waits for the main account's confirmation does not expire, and no webhook is sent while it waits. After confirmation, the withdrawal follows the standard path, starting with `withdraw.unconfirmed`. The `withdraw.unconfirmed` webhook example now shows status 5. Earlier documentation stated that an unconfirmed withdrawal expires after a retention period and showed status 15 in the example.
+
+<CardGroup cols={2}>
+  <Card title="Confirm sub-account withdrawal" href="/api-reference/sub-accounts/confirm-sub-account-withdrawal" icon="circle-check" horizontal/>
+  <Card title="Webhook" href="/platform/webhook" icon="bell" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="November 11, 2026">
+## Create new deposit address: no address limit
+**Access to the endpoint also removes the address limit, and the in-progress and limit `422` responses do not occur**
+
+`POST /api/v4/main-account/create-new-address` returns `403` until the account manager enables access, and the same access removes the address limit. The "Create address in process" and "Address limit reached" `422` responses are no longer documented for this endpoint. The address is stored before the response is sent, so after a timeout or a `5xx` response the address may exist and still credit deposits, while no endpoint returns it. Store each address from the response before showing it to the end user. Earlier documentation described a per-currency address limit and the two `422` responses.
+
+<CardGroup cols={2}>
+  <Card title="Create new address for deposit" href="/api-reference/account-wallet/create-new-address-for-deposit" icon="wallet" horizontal/>
+  <Card title="Get cryptocurrency deposit address" href="/api-reference/account-wallet/get-cryptocurrency-deposit-address" icon="wallet" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="November 11, 2026">
+## Sub-account API keys: URL access and reactivation
+**Every URL starts switched off on a new sub-account key, and Reset switches a deactivated key back on**
+
+A new sub-account API key starts with every URL switched off, including Convert and the transfer between the Main and Trade balances. Switch on each URL with Edit Sub-Account API Key before the first call; deposit and withdrawal URLs can be switched on for `type: 2` keys only. Reset Sub-Account API Key switches a key that was deactivated after 14 days without requests back on, and the key, its secret, its URL access settings and its IP whitelist stay the same. Earlier documentation described Reset as regenerating the key.
+
+<CardGroup cols={2}>
+  <Card title="Edit sub-account API key" href="/api-reference/sub-accounts/edit-sub-account-api-key" icon="pen-to-square" horizontal/>
+  <Card title="Reset sub-account API key" href="/api-reference/sub-accounts/reset-sub-account-api-key" icon="clock-rotate-left" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="November 11, 2026">
+## Sub-accounts: activation and transfers
+**A sub-account created with `email` stays inactive until the end user sets a password, and a transfer response means accepted**
+
+`POST /api/v4/sub-account/create` with `shareKyc: true` and no `email` creates an active sub-account. A request with `email` sends an invitation, and the sub-account stays inactive until the end user opens the link and sets a password; until then, sub-account balances, transfers, transfer history and the KYC URL return `422`. A `200` from Sub-Account Transfer and a `201` from Transfer between balances mean the transfer is accepted: the funds move after the response, and the balance changes shortly after. Neither request takes an idempotency key, so check the transfer history before resending. Earlier documentation described the KYC URL as the activation step and the Sub-Account Transfer response as a completed transfer.
+
+<CardGroup cols={2}>
+  <Card title="Create sub-account" href="/api-reference/sub-accounts/create-sub-account" icon="layer-group" horizontal/>
+  <Card title="Sub-account transfer" href="/api-reference/sub-accounts/sub-account-transfer" icon="money-bill-transfer" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="November 09, 2026">
 ## WebSocket rate limits: per account
 **The 10,000 order placement and 12,000 other request budgets are counted per account, not per connection**
