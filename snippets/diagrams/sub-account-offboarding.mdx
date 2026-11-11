@@ -9,6 +9,7 @@ sequenceDiagram
     W-->>P: Remaining amount on each balance
     opt Amount on the Trade balance
         P->>W: POST /api/v4/main-account/transfer (sub-account key, Trade to Main)
+        Note over P,W: The transfer is accepted with 201.<br/>Wait until the amount shows on Main
     end
     alt Final withdrawal to the end user's address
         P->>W: POST /api/v4/main-account/withdraw (sub-account key)

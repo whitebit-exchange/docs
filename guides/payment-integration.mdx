@@ -358,7 +358,7 @@ flowchart TD
 
 ## Network confirmations
 
-Each cryptocurrency network has two confirmation counts. At the earlier count, `confirmations_for_trading`, the platform credits the deposit for trading only. At the later count, `confirmations`, the deposit also becomes available for withdrawal, sending as a WhiteBIT Code, transfer to the Collateral balance, and use as collateral. Until the deposit reaches `confirmations`, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. During the hold, the deposit has status 29; the hold clears when the deposit reaches status 3 or 7, which the `deposit.processed` webhook reports.
+Each cryptocurrency network has two confirmation counts. At the earlier count, `confirmations_for_trading`, the platform credits the deposit for trading only. At the later count, `confirmations`, the deposit also becomes available for blockchain withdrawal and for transfer to the Collateral balance. Until the deposit reaches `confirmations`, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. During the hold, the deposit has status 29; the hold clears when the deposit reaches status 3 or 7, which the `deposit.processed` webhook reports.
 
 Webhook payloads include `confirmations.actual` and `confirmations.required` fields. Query the [Asset Status](/api-reference/market-data/asset-status-list) endpoint (`GET /api/v4/public/assets`) for both counts per network.
 
@@ -1061,7 +1061,7 @@ When the currency held in Main balance differs from the currency the end user ne
     **Endpoint:** `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/main-balance)
   </Step>
   <Step title="Transfer the source currency to Trade">
-    Transfer the source currency from Main to Trade. Request the estimate after the transferred amount shows on the [Trade balance](/api-reference/trading/trading-balance). The transfer request takes no idempotency key, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) before resending a transfer.
+    Transfer the source currency from Main to Trade. Request the estimate after the transferred amount shows on the [Trade balance](/api-reference/trading/trading-balance). The transfer request takes no idempotency key, and a transfer can still complete after a timeout or a `5xx`, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) before resending a transfer. The history lists a transfer only after the transfer completes, so repeat the check, and resend only when no matching record exists.
 
     **Endpoint:** `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
   </Step>

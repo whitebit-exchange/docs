@@ -51,7 +51,7 @@ flowchart TB
         Main["Main account, with the<br/>main-account key and the<br/>Main balance for funding"]
         Sub["Sub-account per end user,<br/>with its own API key"]
         Lend["Crypto Lending investments<br/>of the sub-account"]
-        Main <-->|"Fee-free transfers"| Sub
+        Main <-->|"Fee-free transfers to and<br/>from the sub-account's<br/>Main balance"| Sub
         Sub -->|"Invest from its<br/>Main balance"| Lend
         Lend -->|"Flex withdrawals return<br/>to its Main balance"| Sub
     end

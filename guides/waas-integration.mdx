@@ -165,6 +165,12 @@ has no replay, so poll the deposit history of each sub-account on a schedule as 
 Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some stay in status 21 (on hold) or 22 (uncredited) before reaching a final status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
 [rate limits](/api-reference/rate-limits) apply per endpoint.
 
+The `main` amount from `POST /api/v4/sub-account/balances` includes deposits credited before the network fully confirms
+the deposits. The sub-account's key reads the part still held back as `pending_deposit_amount` from
+`POST /api/v4/main-account/balance`, once `/api/v4/main-account/balance` is switched on for the key with
+`POST /api/v4/sub-account/api-key/edit`. The held part cannot be withdrawn to a blockchain address or moved to the
+Collateral balance until the network confirms the deposit.
+
 <SubAccountLimit />
 
 ### Crypto purchases with fiat
@@ -189,27 +195,30 @@ sequenceDiagram
     U->>P: Buy crypto with fiat
     P->>W: POST /api/v4/main-account/balance<br/>(main-account key, currency)
     W-->>P: The main account's Main balance for the ticker
-    Note over P,W: Transfers to a sub-account draw<br/>from the main account's Main balance
+    Note over P,W: Transfers to a sub-account draw<br/>from the main account's Main balance<br/>and credit the sub-account's Main balance
     P->>F: Debit the end<br/>user's fiat
+    P->>P: Record the transfer and<br/>the time before the call
     P->>W: POST /api/v4/sub-account/transfer<br/>(main-account key,<br/>main account to sub-account)
-    alt 200
+    alt 200, transfer accepted
         W-->>P: Transfer ID
         P->>P: Store the transfer ID with the purchase
     else Timeout or 5xx
         P->>W: POST /api/v4/sub-account/transfer/history<br/>(main-account key, sub-account ID,<br/>main account to sub-account)
         W-->>P: Transfers, newest first
-        alt Same direction, currency and amount, created after the request was sent
+        alt One clear match on direction, currency and amount, after the request
             P->>P: Store its transfer ID and do not resend
-        else No such record
-            P->>W: POST /api/v4/sub-account/transfer again (main-account key)
+        else No match, or an ambiguous match
+            P->>P: Manual check,<br/>no automatic resend
         end
     end
 ```
 
 ### Crypto sales for fiat
 
-In a sale, the partner transfers the crypto from the sub-account to the main account and credits the end user's fiat
-once WhiteBIT confirms the transfer. The same transfer-history check applies before any resend.
+In a sale, the partner transfers the crypto from the sub-account's Main balance to the main account and credits the
+end user's fiat once WhiteBIT accepts the transfer with a `200` response; the balances change a moment later. After a
+timeout or a `5xx`, the partner checks the transfer history: one clear match counts as the transfer, and no match or an
+ambiguous match is a manual check, not an automatic resend.
 
 ```mermaid
 sequenceDiagram
@@ -222,18 +231,20 @@ sequenceDiagram
     U->>P: Sell crypto for fiat
     P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account id, currency)
     W-->>P: main, spot and collateral amounts for the ticker
-    P->>P: Check that the balance covers the sale
+    P->>P: Check that the main amount covers the sale
+    Note over P,W: A transfer to the main account draws<br/>from the sub-account's Main balance only
+    P->>P: Record the transfer and<br/>the time before the call
     P->>W: POST /api/v4/sub-account/transfer<br/>(main-account key,<br/>sub-account to main account)
-    alt 200
+    alt 200, transfer accepted
         W-->>P: Transfer ID
         P->>F: Credit the end user's fiat
     else Timeout or 5xx
         P->>W: POST /api/v4/sub-account/transfer/history<br/>(main-account key, sub-account ID,<br/>sub-account to main account)
         W-->>P: Transfers, newest first
-        alt Same direction, currency and amount, created after the request was sent
+        alt One clear match on direction, currency and amount, after the request
             P->>F: Credit the end user's fiat
-        else No such record
-            P->>W: POST /api/v4/sub-account/transfer again (main-account key)
+        else No match, or an ambiguous match
+            P->>P: Manual check: no resend,<br/>no fiat credit until resolved
         end
     end
 ```
@@ -255,7 +266,8 @@ Conversion on a sub-account uses the requests in [Convert balances](/platform/co
 [Conversion in the withdrawal flow](/guides/payment-integration#conversion-in-the-withdrawal-flow), signed with the
 sub-account's key, on the sub-account's Trade balance. The partner transfers the source currency from the Main balance to
 the Trade balance and requests the estimate after the transferred amount shows on the Trade balance. Before a
-withdrawal, the partner transfers the converted amount back to the Main balance. The transfer to Trade needs the
+withdrawal or a sale, the partner transfers the converted amount back to the Main balance, because the withdrawal endpoints
+and a transfer to the main account both draw from the sub-account's Main balance only. The transfer to Trade needs the
 sub-account's spot permission (`spotEnabled`). The main account's one-time acceptance of the Convert terms on whitebit.com
 covers its sub-accounts; sub-accounts do not accept the terms separately.
 

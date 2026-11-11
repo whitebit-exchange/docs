@@ -67,6 +67,7 @@ sequenceDiagram
     Note over P,W: The lending endpoints work on the sub-account<br/>once the account manager enables Crypto Lending on it
     alt Transfer from the main account
         P->>W: POST /api/v4/sub-account/transfer (main-account key, step 2)
+        Note over P,W: The transfer credits the sub-account's<br/>Main balance. Invest once the amount shows there
     else Crypto deposit, where sub-account deposits are enabled
         Note over P,W: Track the deposit with the sub-account key<br/>until a successful final status, as in Deposits
     end
@@ -76,7 +77,8 @@ sequenceDiagram
 ### 2. Fund the sub-account
 
 Move funds from the main account's Main balance to the end user's sub-account with a fee-free transfer, signed with
-the main-account key.
+the main-account key. The transfer credits the sub-account's Main balance, which the first investment draws from; the
+amount shows on that balance a moment after the response.
 
 | Endpoint | Purpose |
 |----------|---------|

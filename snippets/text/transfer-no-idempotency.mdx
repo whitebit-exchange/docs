@@ -6,10 +6,17 @@
       ...
       <TransferNoIdempotency />
     Inline copies that cannot import a block snippet (change these copies with this file): the retry table
-    on REST API rate limits and error codes, the Go-Live Checklist item, and the transfer row in data/error-codes.yaml.
+    and retry flowchart on REST API rate limits and error codes, the Go-Live Checklist item, the transfer row in
+    data/error-codes.yaml, the 500 row in data/rate-limits.yaml, the Main/Trade transfer sentences in platform/convert.mdx,
+    guides/payment-integration.mdx (Conversion in the withdrawal flow) and guides/on-off-ramp-integration.mdx, and the
+    per-purchase branches of the WaaS buy and sell diagrams.
     No links or endpoint names here: the host sentence next to the snippet keeps the links and endpoints.
     See snippets/README.md for the authoring + import convention. */}
 
-The transfer request takes no idempotency key. After a timeout or a `5xx` response, check the transfer history for a
-record that matches the request and was created after the failed request was sent. Resend the transfer only when no
-such record exists.
+The transfer request takes no idempotency key, and two identical requests move the funds twice. After a timeout or a
+`5xx` response, the transfer can still complete, so check the transfer history for a record that matches the request
+and was created after the failed request was sent. Resend the transfer only when no such record exists.
+
+The caller cannot attach its own reference to a transfer, so the match is ambiguous when two identical transfers are sent close
+together. An integration that transfers per purchase stores its own record of each transfer before the call, and
+treats no match or an ambiguous match as a manual check, not an automatic resend.

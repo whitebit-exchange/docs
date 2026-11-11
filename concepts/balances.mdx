@@ -104,7 +104,7 @@ Normalization fills appear on two WebSocket account streams:
 3. Funds arrive in Main balance once the network reaches the asset's `confirmations_for_trading` count.
 4. Transfer from Main to Trade (for spot orders) or to Collateral (for margin/futures positions).
 
-Until the network reaches the full `confirmations` count, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. The account can move the held amount to the Trade balance and trade it. The platform blocks four actions on the held amount: withdrawal, sending as a WhiteBIT Code, transfer to the Collateral balance, and use as collateral. When the two counts are equal, the platform holds nothing. [Asset Status](/api-reference/market-data/asset-status-list) returns both counts per network.
+Until the network reaches the full `confirmations` count, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. The account can move the held amount to the Trade balance and trade it. The platform blocks blockchain withdrawals of the held amount and transfers of the held amount to the Collateral balance. When the two counts are equal, the platform holds nothing. [Asset Status](/api-reference/market-data/asset-status-list) returns both counts per network.
 
 ## Withdrawal flow
 

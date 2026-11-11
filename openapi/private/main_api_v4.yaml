@@ -71,7 +71,7 @@ paths:
 
         An unknown or non-existent `ticker` is not an error: the endpoint returns a zero balance (`{"main_balance": "0"}`) for it. Omitting `ticker` returns balances for every currency.
 
-        `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
+        `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn to a blockchain address or moved to the collateral balance until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
 
         In the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history), a deposit credited before full confirmation has status 29 until the network fully confirms it (status 3 or 7, `deposit.processed` webhook).
 
@@ -168,7 +168,7 @@ paths:
 
         Amounts ending in `Stable` are expressed in a stable-coin equivalent, so figures for different currencies can be summed. `assets` breaks the free amount down per currency, in that currency's own units.
 
-        The held amount is tradable: it can be moved to the trade balance and traded. It cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. Two limits apply at once — the free amount of the currency itself, shown in `assets`, and the free value of the whole account, shown in `availableBalanceStable`. Whichever is smaller decides.
+        The held amount is tradable: it can be moved to the trade balance and traded. It cannot be withdrawn to a blockchain address or moved to the collateral balance until the network confirms the deposit. Two limits apply at once — the free amount of the currency itself, shown in `assets`, and the free value of the whole account, shown in `availableBalanceStable`. Whichever is smaller decides.
 
         `assets` lists a currency when it has a free amount, and lists it with `"0"` when the currency is fully held back. Currencies with neither a balance nor a hold are omitted.
 
@@ -2667,12 +2667,18 @@ paths:
         </Note>
 
         <Warning>
-        The request takes no idempotency key. After a timeout or a `5xx` response, check
+        The request takes no idempotency key, and two identical requests move the funds twice. A `201` response means
+        WhiteBIT accepted the transfer: the funds move after the response, and the response carries no transfer
+        identifier. After a timeout or a `5xx` response, the transfer can still complete, so check
         [Get transfer history](/api-reference/account-wallet/get-transfer-history) for a record whose `from_balance`,
         `to_balance`, `currency` and `amount` match the request, created after the failed request was sent. A transfer
         between the spot and collateral balances appears as two records, `spot → main` and `main → collateral`. The history
         lists a transfer only after the transfer completes, so repeat the check before resending, and resend only when no
         matching record exists.
+
+        The caller cannot attach its own reference to a transfer, so the match is ambiguous when two identical transfers are sent
+        close together. An integration that transfers per purchase stores its own record of each transfer before the
+        call, and treats no match or an ambiguous match as a manual check, not an automatic resend.
         </Warning>
       operationId: transferBetweenBalances
       requestBody:
@@ -2752,13 +2758,13 @@ paths:
                   nonce: 1594297865000
       responses:
         "201":
-          description: All validations succeeded and creating transaction is started
+          description: Transfer accepted. The funds move after the response, and the response carries no transfer identifier.
           content:
             application/json:
               schema:
                 type: array
                 items: {}
-                description: Empty array indicates success
+                description: Empty array, the transfer is accepted
               example: []
         "400":
           description: Request validation failed
@@ -6169,6 +6175,9 @@ paths:
 
         Transfers between the main account and any sub-account are fee-free in both directions.
 
+        A `main_to_sub` transfer credits the sub-account's Main balance, not its Trade balance. A `sub_to_main` transfer
+        draws from the sub-account's Main balance only, never from its Trade balance.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6178,10 +6187,16 @@ paths:
         </Note>
 
         <Warning>
-        The request takes no idempotency key. After a timeout or a `5xx` response, check
+        The request takes no idempotency key, and two identical requests move the funds twice. After a timeout or a `5xx`
+        response, the transfer can still complete, so check
         [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) for a record whose
         `direction`, `currency` and `amount` match the request's `direction`, `ticker` and `amount`, created after the failed
-        request was sent, before sending the transfer again. Resend the transfer only when no such record exists.
+        request was sent, before sending the transfer again. The history lists the record as soon as WhiteBIT accepts the
+        transfer. Resend the transfer only when no such record exists.
+
+        The caller cannot attach its own reference to a transfer, so the match is ambiguous when two identical transfers are sent close
+        together. An integration that transfers per purchase stores its own record of each transfer before the call, and
+        treats no match or an ambiguous match as a manual check, not an automatic resend.
         </Warning>
       operationId: subAccountTransfer
       requestBody:
@@ -6215,7 +6230,7 @@ paths:
                   example: "ETH"
       responses:
         "200":
-          description: Transfer successful
+          description: Transfer accepted. The funds move after the response, and the balances change a moment later.
           content:
             application/json:
               schema:
@@ -6230,6 +6245,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "404":
+          description: The currency in `ticker` was not found.
+        "422":
+          description: |
+            The transfer is refused. Every refusal has the top-level `code` field `0`, and the message text varies; the key in
+            `errors` is the only machine-readable signal of the cause:
+
+            - `amount`: the source balance does not cover the amount. The message names the available amount.
+            - `to`: the sub-account does not use shared KYC and the end user has not passed KYC yet. Only a transfer to
+              the sub-account is checked against KYC.
+            - `from` or `to`: an account on that side cannot take part in the transfer, for example a deleted sub-account.
+
+            A sub-account that is not activated yet returns the message `Account is not confirmed`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInner"
 
   /api/v4/sub-account/block:
     post:
@@ -6331,6 +6363,10 @@ paths:
       description: |
         The endpoint returns [sub-account](/glossary#sub-account) balances.
 
+        The `main` amount includes deposits credited before the network fully confirms the deposits. The sub-account's own API key
+        reads the part still held back as `pending_deposit_amount` from [Get main balance](/api-reference/account-wallet/main-balance),
+        once `/api/v4/main-account/balance` is switched on for that key.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6373,6 +6409,7 @@ paths:
                     properties:
                       main:
                         type: string
+                        description: Main balance, including deposits credited before the network fully confirms the deposits
                       spot:
                         type: string
                       collateral:
@@ -6401,6 +6438,9 @@ paths:
       summary: Get Sub-Account Transfer History
       description: |
         The endpoint returns history of transfers between main account and [sub-account](/glossary#sub-account).
+
+        The history lists a transfer as soon as WhiteBIT accepts the transfer request, before the balances change, so a
+        listed record does not mean the funds have moved. The caller cannot attach its own reference to a transfer.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -9796,7 +9836,7 @@ components:
           example: "0.5"
         createdAt:
           type: integer
-          description: "Transfer creation timestamp"
+          description: "Time WhiteBIT accepted the transfer. The record exists before the balances change."
           example: 1641081600
 
     SubAccountApiKey:
