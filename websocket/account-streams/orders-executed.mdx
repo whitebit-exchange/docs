@@ -72,6 +72,10 @@ The private stream returns executed orders, including orders using Retail Price 
 />
 
 <Note>
+`ordersExecuted_update` events do not include the `source` field. To identify Auto-Deleveraging (ADL) and liquidation orders in updates, match the `client_order_id` prefix: `adl_<order_id>_!` or `liquidation_<order_id>_!`. See [Identifying liquidation and ADL fills](/concepts/auto-deleveraging#identifying-liquidation-and-adl-fills).
+</Note>
+
+<Note>
 Execution events during a disconnection are not replayed. After reconnecting, use `ordersExecuted_request` to query recent executed orders, or call the REST [Executed Order History](/api-reference/trading/query-executed-order-history) endpoint to backfill missed records. See [Reconnection and state recovery](/guides/websocket-quickstart#state-recovery-after-reconnect).
 </Note>
 
