@@ -60,7 +60,7 @@ The following responses leave the outcome open, and the conversion may have exec
 | Auto Confirm: `500` (the API timed out before the conversion service returned an outcome; the conversion can still complete) | With an idempotency key, resend the identical request with the same key within 24 hours. The endpoint returns the original response, or `409` while the conversion is still running; retry later with the same key. Without a key, search Convert History by time window, pair, and amounts. |
 | Auto Confirm: `502` (the conversion service returned no outcome) | Search Convert History by time window, pair, and amounts. A retry with the same key returns the same `502`. |
 
-A record in Convert History means the conversion executed and the converted amount is on the Trade balance. After a confirm that executed, a retry of the same quote returns code `24`, so look up the `quoteId` before requesting a new estimate.
+A record in Convert History means the conversion executed and the converted amount is on the Trade balance. The platform writes the record when the conversion executes, so a conversion that executed appears in the history at once. After a confirm that executed, a retry of the same quote returns code `24`, so look up the `quoteId` before requesting a new estimate.
 
 <Warning>
   A confirm of a new quote, or an auto-confirm with a new idempotency key, can convert the same funds a second time. Check Convert History before converting the same funds again.
