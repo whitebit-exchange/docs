@@ -45,7 +45,7 @@ the full walkthrough (per-customer keys, KYC URLs).
 
 | Endpoint | Purpose |
 |----------|---------|
-| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it) |
+| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it; a sub-account created with `email` gets its API key only after the end user activates it from the invitation email) |
 | `POST /api/v4/sub-account/api-key/create` | Issue the sub-account a key (`type: 2`, `subAccountId`, `title`) |
 
 <KeyCreateNoResponse />
@@ -81,6 +81,8 @@ the main-account key.
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /api/v4/sub-account/transfer` | `id` (sub-account), `direction: main_to_sub`, `ticker`, `amount` |
+
+For a managed sub-account (`shareKyc: false`, created with the end user's `email`), WhiteBIT refuses the transfer until the end user's KYC is approved; the refusal names the `to` field. A sub-account created with `shareKyc: true` and no `email` is never refused on this ground.
 
 <TransferNoIdempotency />
 

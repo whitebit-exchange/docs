@@ -83,24 +83,24 @@ Transfers between the main account and any sub-account are fee-free in both dire
 
 ## Customer onboarding flow
 
-The KYC branch is selected at creation via the `shareKyc` parameter: with `shareKyc: true` the sub-account shares the main account's verification and no separate customer KYC applies; with `shareKyc: false` (or omitted) the `email` field is required and the end customer completes verification individually.
+The `shareKyc` parameter and the `email` field select the KYC branch at creation. With `shareKyc: true` and no `email`, the sub-account shares the main account's verification and is active at creation, and no separate customer KYC applies. With `shareKyc: false` (or omitted), the `email` field is required: WhiteBIT emails the end customer an invitation, and the end customer activates the sub-account and then completes verification individually. A request with `email` starts the invitation flow even with `shareKyc: true`.
 
 <Note>
-  Steps 2–3 apply to the dedicated-KYC branch (`shareKyc: false` or omitted). With `shareKyc: true`, the sub-account shares the main account's verification — skip directly to Step 4 (Fund the account and enable trading) once the sub-account is created.
+  Steps 2–3 apply to the dedicated-KYC branch (`shareKyc: false` or omitted). With `shareKyc: true` and no `email`, the sub-account shares the main account's verification — skip directly to Step 4 (Fund the account and enable trading) once the sub-account is created.
 </Note>
 
 <Steps>
   <Step title="Create the sub-account">
-    Call `POST /api/v4/sub-account/create` with `alias` and the `permissions` object (`spotEnabled`, `collateralEnabled`), plus `email` when `shareKyc` is `false` or omitted — [API Reference](/api-reference/sub-accounts/create-sub-account).
+    Call `POST /api/v4/sub-account/create` with `alias` and the `permissions` object (`spotEnabled`, `collateralEnabled`), plus `email` when `shareKyc` is `false` or omitted; with `shareKyc: true`, leave `email` out — [API Reference](/api-reference/sub-accounts/create-sub-account).
   </Step>
   <Step title="Wait for activation (dedicated-KYC branch)">
-    A KYC URL can be generated only for a sub-account that is activated (has an associated user), active, and does not use shared KYC. Poll `POST /api/v4/sub-account/list` and read the `status` and `userId` fields for the new sub-account — [API Reference](/api-reference/sub-accounts/list-of-sub-accounts). Calling `kyc-url` before activation returns `400 "Account is not confirmed"`.
+    WhiteBIT emails the end customer an invitation, and the sub-account is activated once the customer opens the link and sets a password. Activation is a separate step from KYC. A KYC URL can be generated only for a sub-account that is activated, active, and does not use shared KYC. Poll `POST /api/v4/sub-account/list` and read the `status` and `userId` fields for the new sub-account — [API Reference](/api-reference/sub-accounts/list-of-sub-accounts). Until activation, `kyc-url`, `balances`, `transfer` and `transfer/history` return `422 "Account is not confirmed"`, and an API key cannot be created for the sub-account.
   </Step>
   <Step title="Generate the KYC URL and pass it to the customer">
-    Call `POST /api/v4/sub-account/kyc-url` with the sub-account `id` — [API Reference](/api-reference/sub-accounts/kyc-url). The end customer opens the temporary link and completes the WhiteBIT-branded identity verification, which also confirms the sub-account email address. Track the sub-account state via the list endpoint.
+    Call `POST /api/v4/sub-account/kyc-url` with the sub-account `id` — [API Reference](/api-reference/sub-accounts/kyc-url). The end customer opens the temporary link and completes the WhiteBIT-branded identity verification. Track the verification state via the list endpoint. The API key can be created, deposit addresses requested and deposits credited before the verification completes; transfers from the main account wait for the KYC approval.
   </Step>
   <Step title="Fund the account and enable trading">
-    Transfer initial funds fee-free via `POST /api/v4/sub-account/transfer`, and create a dedicated API key via `POST /api/v4/sub-account/api-key/create` for customers needing direct API access. Dedicated-KYC branch: re-apply the permissions with `POST /api/v4/sub-account/edit` once the sub-account is active, because permissions sent at creation are not kept until the email is confirmed — [API Reference](/api-reference/sub-accounts/edit-sub-account), [FAQ](/faq).
+    Transfer initial funds fee-free via `POST /api/v4/sub-account/transfer`, and create a dedicated API key via `POST /api/v4/sub-account/api-key/create` for customers needing direct API access. Dedicated-KYC branch: WhiteBIT refuses the transfer from the main account until the end customer's KYC is approved, and the refusal names the `to` field, so fund the sub-account after the approval. Apply the permissions with `POST /api/v4/sub-account/edit` once the sub-account is active, because `depositsEnabled` and `withdrawsEnabled` sent at creation with `email` are ignored — [API Reference](/api-reference/sub-accounts/edit-sub-account), [FAQ](/faq).
   </Step>
   <Step title="Handle deposits and withdrawals">
     Once crypto deposits are enabled for the account, the sub-account generates its own deposit address via the [deposit address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address) using its own API key with deposit permission. Sub-account withdrawals require main-account confirmation — see [Account architecture](#account-architecture) above for the unconfirmed-withdrawals list and confirm endpoints.
@@ -197,7 +197,7 @@ WhiteBIT has no public testnet or sandbox. Validate the full flow — sub-accoun
 - [ ] **Main-account KYB** — KYB verification completed for the partner entity.
 - [ ] **Main-account key** — created with appropriate permissions.
 - [ ] **Sub-account creation** — test sub-account created with the intended `permissions` scope and KYC branch.
-- [ ] **Activation and KYC** — sub-account activation observed via `sub-account/list`; KYC URL generated and completed (dedicated-KYC branch).
+- [ ] **Activation and KYC** — invitation email opened and password set by the test customer, activation observed via `sub-account/list`; KYC URL generated and completed; first transfer from the main account sent after the KYC approval (dedicated-KYC branch).
 - [ ] **Deposit enablement** (if per-customer deposits apply) — crypto-deposit enablement requested via the account manager.
 - [ ] **Fund transfer** — fee-free transfer between the main account and the sub-account verified in both directions.
 - [ ] **Per-customer API key** — API key created for a sub-account with IP whitelist configured.

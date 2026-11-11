@@ -5853,14 +5853,19 @@ paths:
         A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
         <Note>
-        The `email` field requirement depends on the `shareKyc` parameter:
-        - When `shareKyc` is `false` or not provided: `email` is **required**
-        - When `shareKyc` is `true`: `email` is **optional**
+        The `email` field, not `shareKyc`, decides whether the sub-account is active at creation:
+        - When `shareKyc` is `false` or not provided: `email` is **required**. WhiteBIT sends an invitation to that email, and the sub-account stays inactive until the end user opens the link and sets a password.
+        - When `shareKyc` is `true`: leave `email` out. The sub-account is active as soon as the request succeeds and shares the main account's verification.
+        - A request with `email` starts the invitation flow even when `shareKyc` is `true`.
         </Note>
 
+        A refused request names the cause by field in `errors`: `alias` for a duplicate alias, and `email` for an invalid or temporary (disposable) email address or the main account's own email. A `422` with "Account creation failed" and no field means the request was valid and the creation failed for an unexpected reason.
+
         <Note>
-        With `shareKyc: false`, permissions sent at creation are not kept until the end customer confirms the email through the [KYC URL](/api-reference/sub-accounts/kyc-url) flow. Re-apply them with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true`, permissions apply at creation. See [FAQ](/faq).
+        Until the end user activates a sub-account created with `email`, sub-account balances, transfers, transfer history and the [KYC URL](/api-reference/sub-accounts/kyc-url) return `422` with "Account is not confirmed", and an API key cannot be created for the sub-account. Activation is a separate step from KYC: transfers from the main account to a sub-account created with `shareKyc: false` are refused until the end user's KYC is approved.
         </Note>
+
+        On a request with `email`, WhiteBIT ignores `depositsEnabled` and `withdrawsEnabled`; set these flags with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true` and no `email`, `spotEnabled` and `collateralEnabled` apply at creation. See [FAQ](/faq).
 
         <Note>
         Crypto deposits to sub-accounts are disabled by default. Once deposits are enabled for the
@@ -5895,11 +5900,11 @@ paths:
                   example: "trading_bot"
                 email:
                   type: string
-                  description: Sub-account email (required when shareKyc is false)
+                  description: End user's email. Required when shareKyc is false or omitted; leave it out when shareKyc is true. Any email starts the invitation flow, and the sub-account stays inactive until the end user sets a password
                   example: "sub@example.com"
                 shareKyc:
                   type: boolean
-                  description: If KYC shared with main account
+                  description: Share the main account's KYC with the sub-account. With true, leave email out; the sub-account is then active at creation
                   example: false
                 permissions:
                   type: object
@@ -5914,6 +5919,14 @@ paths:
                     collateralEnabled:
                       type: boolean
                       description: Enable transfers to collateral balance
+                      example: false
+                    depositsEnabled:
+                      type: boolean
+                      description: Deposit permission for the sub-account. Ignored when the request includes `email`
+                      example: false
+                    withdrawsEnabled:
+                      type: boolean
+                      description: Withdrawal permission for the sub-account. Ignored when the request includes `email`
                       example: false
       responses:
         "201":
@@ -5944,6 +5957,17 @@ paths:
                     message: "Validation failed"
                     errors:
                       email: ["The email field is required."]
+        "422":
+          description: Sub-account creation failed after the request passed validation; the response gives no reason
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                accountCreationFailed:
+                  summary: "Creation failed after validation"
+                  value:
+                    message: "Account creation failed"
 
   /api/v4/sub-account/delete:
     post:
@@ -5999,7 +6023,7 @@ paths:
       description: |
         The endpoint edits [sub-account](/glossary#sub-account).
 
-        Use this endpoint to re-apply permissions to a dedicated-KYC sub-account after email confirmation.
+        Use this endpoint to apply permissions to a dedicated-KYC sub-account once the end user has activated it from the invitation email. On a create request with `email`, `depositsEnabled` and `withdrawsEnabled` are ignored, so set these flags here.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6041,6 +6065,14 @@ paths:
                     collateralEnabled:
                       type: boolean
                       description: Enable transfers to collateral balance
+                      example: false
+                    depositsEnabled:
+                      type: boolean
+                      description: Deposit permission for the sub-account
+                      example: false
+                    withdrawsEnabled:
+                      type: boolean
+                      description: Withdrawal permission for the sub-account
                       example: false
             example:
               id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
@@ -6666,6 +6698,8 @@ paths:
       summary: Create Sub-Account API Key
       description: |
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
+
+        Create the key once the sub-account is activated. A sub-account created with `email` is activated when the end user opens the WhiteBIT invitation email and sets a password; a sub-account created with `shareKyc: true` and no `email` is active at creation. Key creation does not depend on the end user's KYC.
 
         The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too: an
         unused key is disabled, not deleted, and its `isEnabled` field turns `false`. The notice email goes to the sub-account,
@@ -7357,7 +7391,7 @@ paths:
 
         <Note>
         The sub-account must meet all of the following conditions before a KYC URL can be generated:
-        - The sub-account must be activated (have an associated user).
+        - The sub-account must be activated: the end user has opened the WhiteBIT invitation email and set a password. Activation is a separate step from KYC.
         - The sub-account must be active (not locked or blocked).
         - The sub-account must not have shared KYC enabled.
         </Note>
@@ -7421,11 +7455,6 @@ paths:
                     message: "Validation failed"
                     errors:
                       id: ["validation.exists"]
-                subAccountNotActivated:
-                  summary: "Sub-account is not activated"
-                  value:
-                    code: 400
-                    message: "Account is not confirmed"
                 subAccountNotActive:
                   summary: "Sub-account is locked or blocked"
                   value:
@@ -7451,6 +7480,17 @@ paths:
             application/json:
               schema:
                 type: object
+        "422":
+          description: Sub-account is not activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                subAccountNotActivated:
+                  summary: "Sub-account is not activated"
+                  value:
+                    message: "Account is not confirmed"
 
   /api/v4/mining/rewards:
     post:

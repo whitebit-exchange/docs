@@ -21,7 +21,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
 <Steps>
   <Step title="Create a sub-account">
-    Create a new sub-account with an alias and permissions.
+    Create a sub-account that shares the main account's verification, with an alias and permissions.
 
     <Tabs>
       <Tab title="cURL">
@@ -33,7 +33,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
           -d '{
             "alias": "strategy-alpha",
-            "email": "strategy-alpha@example.com",
+            "shareKyc": true,
             "permissions": {"spotEnabled": true, "collateralEnabled": false},
             "request": "/api/v4/sub-account/create",
             "nonce": 1709340000000
@@ -68,7 +68,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
         # Create a sub-account
         response = make_request("/api/v4/sub-account/create", {
             "alias": "strategy-alpha",
-            "email": "strategy-alpha@example.com",
+            "shareKyc": True,
             "permissions": {"spotEnabled": True, "collateralEnabled": False},
         })
         sub_account = response.json()
@@ -79,9 +79,9 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
     For TypeScript and Python SDK examples, see [SDKs](/sdks).
 
-    **Required fields:** `alias` (display name), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required.
+    **Required fields:** `alias` (display name), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required. The example sets `shareKyc: true` and leaves `email` out, so the sub-account shares the main account's verification and is active at creation.
 
-    With `shareKyc: false`, permissions sent at creation are not kept until the end customer confirms the email through the [KYC URL](/api-reference/sub-accounts/kyc-url) flow. Re-apply the permissions with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true`, permissions apply at creation.
+    A request with `email` starts the invitation flow instead: WhiteBIT emails the end customer, and the sub-account stays inactive until the customer opens the link and sets a password. Until then, transfers, balances and API key creation for the sub-account are refused. On a request with `email`, `depositsEnabled` and `withdrawsEnabled` are ignored; apply these flags with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. Transfers from the main account to a sub-account created with `shareKyc: false` also wait for the end customer's KYC approval. See the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow).
 
     **Expected response:**
     ```json
@@ -89,11 +89,10 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
       "alias": "strategy-alpha",
       "userId": "u-12345",
-      "email": "s***@example.com",
       "status": "active",
       "color": "#FF5733",
       "kyc": {
-        "shareKyc": false,
+        "shareKyc": true,
         "kycStatus": "verified"
       },
       "permissions": {

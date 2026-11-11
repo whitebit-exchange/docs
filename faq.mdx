@@ -280,11 +280,11 @@ Colocation is available across EEA/EMEA and APAC regions. Access is limited to a
 </Accordion>
 
 <Accordion title="Sub-account permissions not applied after creation">
-A sub-account created with its own email address (dedicated KYC, `shareKyc: false`) must have that email confirmed before permissions can be configured. The end customer confirms it by opening the personal link from [`POST /api/v4/sub-account/kyc-url`](/api-reference/sub-accounts/kyc-url) and completing verification, which covers both identity verification and email confirmation.
+A sub-account created with an email address (dedicated KYC, `shareKyc: false`) is inactive until the end customer activates it: WhiteBIT sends an invitation to that email, and the sub-account is activated once the customer opens the link and sets a password. Activation is a separate step from identity verification: [`POST /api/v4/sub-account/kyc-url`](/api-reference/sub-accounts/kyc-url) returns `422 "Account is not confirmed"` until the sub-account is activated.
 
-Permissions configured before that confirmation are not retained. Re-apply the permission set with [`POST /api/v4/sub-account/edit`](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active, and send the full `permissions` object on every edit: flags omitted from an edit request are turned off without a warning.
+On a create request with an email, `depositsEnabled` and `withdrawsEnabled` are ignored. Apply the permission set with [`POST /api/v4/sub-account/edit`](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active, and send the full `permissions` object on every edit: flags omitted from an edit request are turned off without a warning.
 
-A sub-account created with `shareKyc: true` accepts permissions immediately at creation. See the [Sub-account integration guide](/guides/sub-account-integration) for the full flow.
+A sub-account created with `shareKyc: true` and no email is active at creation, and its `spotEnabled` and `collateralEnabled` permissions apply at once. A request with an email starts the invitation flow even with `shareKyc: true`. See the [Sub-account integration guide](/guides/sub-account-integration) for the full flow.
 </Accordion>
 </AccordionGroup>
 
