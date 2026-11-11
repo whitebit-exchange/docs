@@ -66,10 +66,10 @@ A sub-account withdrawal that waits for the main account's confirmation does not
 </Update>
 
 <Update label="November 11, 2026">
-## Sub-account API keys: URL access and reactivation
-**Every URL starts switched off on a new sub-account key, and Reset switches a deactivated key back on**
+## Sub-account API keys: URL access, reactivation and blocks
+**Every URL starts switched off on a new sub-account key, Reset switches a deactivated key back on, and a block refuses the key**
 
-A new sub-account API key starts with every URL switched off, including Convert and the transfer between the Main and Trade balances. Switch on each URL with Edit Sub-Account API Key before the first call; deposit and withdrawal URLs can be switched on for `type: 2` keys only. Reset Sub-Account API Key switches a key that was deactivated after 14 days without requests back on, and the key, its secret, its URL access settings and its IP whitelist stay the same. Earlier documentation described Reset as regenerating the key.
+A new sub-account API key starts with every URL switched off, including Convert and the transfer between the Main and Trade balances. Switch on each URL with Edit Sub-Account API Key before the first call; deposit and withdrawal URLs can be switched on for `type: 2` keys only. Reset Sub-Account API Key switches a key that was deactivated after 14 days without requests back on, with the same secret, URL access settings and IP whitelist; earlier documentation described Reset as regenerating the key. Every request signed with the key of a blocked sub-account, or of any sub-account whose main account is blocked, is refused with `401` and `This user is blocked`. Open orders stay on the book, so cancel any that must not fill before the block.
 
 <CardGroup cols={2}>
   <Card title="Edit sub-account API key" href="/api-reference/sub-accounts/edit-sub-account-api-key" icon="pen-to-square" horizontal/>
@@ -78,14 +78,14 @@ A new sub-account API key starts with every URL switched off, including Convert 
 </Update>
 
 <Update label="November 11, 2026">
-## Sub-accounts: activation and transfers
-**A sub-account created with `email` stays inactive until the end user sets a password, and a transfer response means accepted**
+## Sub-accounts: activation, permissions and held funds
+**A sub-account created with `email` stays inactive until the end user sets a password, and its deposit and withdrawal permissions are set after activation**
 
-`POST /api/v4/sub-account/create` with `shareKyc: true` and no `email` creates an active sub-account. A request with `email` sends an invitation, and the sub-account stays inactive until the end user opens the link and sets a password; until then, sub-account balances, transfers, transfer history and the KYC URL return `422`. A `200` from Sub-Account Transfer and a `201` from Transfer between balances mean the transfer is accepted: the funds move after the response, and the balance changes shortly after. Neither request takes an idempotency key, so check the transfer history before resending. Earlier documentation described the KYC URL as the activation step and the Sub-Account Transfer response as a completed transfer.
+A sub-account created with `email` stays inactive until the end user opens the invitation and sets a password; the link expires after three days and can be re-sent on whitebit.com, not through the API. Until then, sub-account balances, transfers, transfer history and the KYC URL return `422`, and List of Sub-Accounts shows `userId` as `null`; afterwards the sub-account's `status` is `active`. Create the sub-account's API key once it is `active`. Each sub-account needs its own `depositsEnabled` and `withdrawsEnabled` permissions: in the create request for a sub-account created with `shareKyc: true` and no `email`, otherwise with Edit Sub-Account after activation, sending the `alias` and the full `permissions` object. Funds held back for a deposit credited before full network confirmation cannot be transferred from a sub-account to its main account (`422` on `amount`, code `20`). Earlier documentation described the KYC URL as the activation step and the account's deposit enablement as covering all of its sub-accounts.
 
 <CardGroup cols={2}>
   <Card title="Create sub-account" href="/api-reference/sub-accounts/create-sub-account" icon="layer-group" horizontal/>
-  <Card title="Sub-account transfer" href="/api-reference/sub-accounts/sub-account-transfer" icon="money-bill-transfer" horizontal/>
+  <Card title="Edit sub-account" href="/api-reference/sub-accounts/edit-sub-account" icon="pen-to-square" horizontal/>
 </CardGroup>
 </Update>
 
@@ -99,6 +99,18 @@ A limit order that sets both `rpi=true` and `retail=true` is rejected with error
   <Card title="Create Limit Order" href="/api-reference/trading/create-limit-order" icon="chart-line" horizontal/>
   <Card title="Collateral Limit Order" href="/api-reference/trading/collateral-limit-order" icon="chart-line" horizontal/>
   <Card title="Retail flag" href="/glossary#retail-flag" icon="tag" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="November 11, 2026">
+## Transfers: confirming the outcome
+**A Sub-Account Transfer is confirmed on the sub-account's balance, and a transfer between balances without a history record can still be queued**
+
+A `200` from Sub-Account Transfer means WhiteBIT received the request, and the transfer can still fail after it. The sub-account transfer history shows the request, not the move: the sub-account's `main` balance, read with Sub-Account Balances and the main-account key, confirms the transfer. After a `200`, a timeout or a `5xx`, read that balance until it shows the transfer, without resending; the WaaS sale and offboarding diagrams now credit the end user's fiat only then. For Transfer between balances (`201`, body `[]`), a matching history record means the transfer completed, and no record can also mean the transfer is still queued, so do not resend automatically. On either endpoint, a transfer that never shows is a manual check. Earlier documentation said to check the transfer history after a timeout or a server error and to resend when no matching record exists.
+
+<CardGroup cols={2}>
+  <Card title="Sub-account transfer" href="/api-reference/sub-accounts/sub-account-transfer" icon="money-bill-transfer" horizontal/>
+  <Card title="Transfer between balances" href="/api-reference/account-wallet/transfer-between-balances" icon="arrow-right-arrow-left" horizontal/>
 </CardGroup>
 </Update>
 
