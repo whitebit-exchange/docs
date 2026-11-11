@@ -79,7 +79,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
     For TypeScript and Python SDK examples, see [SDKs](/sdks).
 
-    **Required fields:** `alias` (display name), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required. The example sets `shareKyc: true` and leaves `email` out, so the sub-account shares the main account's verification and is active at creation.
+    **Required fields:** `alias` (display name, unique among the main account's sub-accounts), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required. The example sets `shareKyc: true` and leaves `email` out, so the sub-account shares the main account's verification and is active at creation.
 
     A request with `email` starts the invitation flow instead: WhiteBIT emails the end customer, and the sub-account stays inactive until the customer opens the link and sets a password. Until then, transfers, balances and API key creation for the sub-account are refused. On a request with `email`, `depositsEnabled` and `withdrawsEnabled` are ignored; apply these flags with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. Transfers from the main account to a sub-account created with `shareKyc: false` also wait for the end customer's KYC approval. See the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow).
 

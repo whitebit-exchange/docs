@@ -5859,6 +5859,8 @@ paths:
 
         A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
+        WhiteBIT refuses a create request over the limit on the `alias` field.
+
         <Note>
         The `email` field, not `shareKyc`, decides whether the sub-account is active at creation:
         - When `shareKyc` is `false` or not provided: `email` is **required**. WhiteBIT sends an invitation to that email, and the sub-account stays inactive until the end user opens the link and sets a password.
@@ -5904,7 +5906,8 @@ paths:
               properties:
                 alias:
                   type: string
-                  description: Name for sub-account
+                  description: Sub-account name, up to 127 characters. Unique among the main account's sub-accounts; the alias of a deleted sub-account can be used again.
+                  maxLength: 127
                   example: "trading_bot"
                 email:
                   type: string
@@ -5984,6 +5987,26 @@ paths:
       summary: Delete Sub-Account
       description: |
         The endpoint deletes [sub-account](/glossary#sub-account).
+
+        The delete is refused while the sub-account has any of the following:
+        - sub-accounts of its own
+        - open spot orders
+        - open margin positions
+        - open borrow positions
+        - a transaction still in progress
+        - a frozen balance
+        - an active Flex investment
+        - an active Fixed investment
+
+        A sub-account that was never activated is marked deleted without these checks.
+
+        After the checks pass, WhiteBIT moves the remaining Trade balance to the sub-account's Main balance, then moves every non-zero Main balance to the main account. If a Main balance is still not empty after that, the delete fails.
+
+        The delete removes every API key of the sub-account. The alias of a deleted sub-account can be used for a new sub-account.
+
+        <Warning>
+        The delete does not remove the sub-account's deposit addresses. A later deposit to one of these addresses is still credited to the deleted sub-account, which no API key can reach. Stop showing and using the sub-account's deposit addresses before the delete.
+        </Warning>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6128,7 +6151,7 @@ paths:
               properties:
                 search:
                   type: string
-                  description: Search term
+                  description: Returns only sub-accounts whose alias or email contains this text. To find one sub-account by alias, compare `alias` in the results exactly, because the search also returns sub-accounts whose alias or email contains the text as part of a longer value.
                   example: "trading"
                 limit:
                   type: integer
@@ -6271,6 +6294,10 @@ paths:
       description: |
         The endpoint blocks [sub-account](/glossary#sub-account).
 
+        A block does not cancel the sub-account's open orders or pending withdrawals. Deposits to the sub-account's addresses are still credited, and a transfer from the main account to the sub-account is not refused.
+
+        The endpoint refuses to block a sub-account that was never activated. A block on the main account applies to every one of its sub-accounts.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6316,6 +6343,8 @@ paths:
       summary: Unblock Sub-Account
       description: |
         The endpoint unblocks [sub-account](/glossary#sub-account).
+
+        The endpoint clears a block set by [Block Sub-Account](/api-reference/sub-accounts/block-sub-account).
 
         <Warning>
         Rate limit: 1000 requests/10 sec.

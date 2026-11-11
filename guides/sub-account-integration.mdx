@@ -77,6 +77,8 @@ Each end customer trades from a dedicated sub-account under the partner's main a
 | KYC URL | `POST /api/v4/sub-account/kyc-url` | [Get Sub-Account KYC URL](/api-reference/sub-accounts/kyc-url) |
 | API keys | `POST /api/v4/sub-account/api-key/create` (+ edit, delete, list, reset, IP-address management) | [Create Sub-Account API Key](/api-reference/sub-accounts/create-sub-account-api-key) |
 
+A block does not stop deposits to the sub-account's addresses or refuse transfers from the main account. A delete is refused while the sub-account has open spot orders, open margin or borrow positions, or active Flex or Fixed investments. The delete moves the remaining Main and Trade balances to the main account and removes the sub-account's API keys, but a later deposit to the sub-account's addresses is still credited to the deleted sub-account. See [Block Sub-Account](/api-reference/sub-accounts/block-sub-account) and [Delete Sub-Account](/api-reference/sub-accounts/delete-sub-account).
+
 The sub-account endpoints in the table above share a rate limit of 1000 requests per 10 seconds; `POST /api/v4/trade-account/executed-history` allows 12000 requests per 10 seconds — see [Rate limits](/api-reference/rate-limits).
 
 Transfers between the main account and any sub-account are fee-free in both directions — main-to-sub for funding a customer account, sub-to-main for revenue collection. See the [Sub-Accounts Overview](/products/sub-accounts/overview) for the full product reference.
