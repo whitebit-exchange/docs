@@ -79,7 +79,7 @@ See the [WebSocket Quickstart](/guides/websocket-quickstart) for connection setu
 - [ ] Webhook nonce tracked — each nonce is strictly greater than the previous.
 - [ ] Idempotency implemented using `uniqueId` to prevent double-processing.
 - [ ] Fallback polling implemented for reconciliation. Webhook delivery is best-effort — a small number of retries spaced roughly hourly over a ~1-day window — so polling must close the gap for extended consumer outages.
-- [ ] Deposits polled without a `status` filter; deposits in non-final statuses (5, 21, 22, 27, 28, 29) stay open until a final status (3, 7, 4, 9).
+- [ ] Deposits polled without a `status` filter; deposits in non-final statuses (5, 21, 22, 23, 27, 28, 29) stay open until a final status (3, 7, 4, 9).
 - [ ] Webhook source IP range obtained from the account manager, if the firewall allowlists inbound traffic.
 - [ ] Server responds with HTTP `200` for successfully processed webhooks.
 
@@ -107,7 +107,7 @@ WhiteBIT does not offer a public testnet. The following approach validates an in
 
 5. **Verify error handling:** Send intentionally malformed requests (invalid ticker, zero amount, duplicate nonce) and verify the application handles error responses correctly.
 
-6. **Test webhook delivery:** Trigger a real (small) deposit or withdrawal and verify the webhook is received, the signature validates, and the application processes the event correctly.
+6. **Test webhook delivery:** Trigger a real (small) deposit at or above the network deposit minimum, or a withdrawal, and verify the webhook is received, the signature validates, and the application processes the event correctly.
 
 7. **Confirm Travel Rule compliance:** For EEA accounts, submit a test crypto withdrawal with the `travelRule` object and verify acceptance before processing customer funds.
 

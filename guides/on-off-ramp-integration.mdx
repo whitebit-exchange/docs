@@ -273,7 +273,7 @@ The identifier appears under different names across the API surface:
 |-------|-----------------|---------|
 | `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters, unique for each deposit or withdrawal |
 | `unique_id` | History filter and records | The deposit/withdraw identifier in history responses |
-| `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the `deposit.canceled` webhook |
+| `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the `deposit.canceled` webhook or the deposit history |
 | `id` | `refund-deposit` response | The same deposit transaction UUID, echoed back — not a refund identifier |
 | `depositId` | `refund-history` filter and records | The same deposit transaction UUID |
 | `refundId` | `refund-history` records | The refund's own UUID, returned only by refund history |
@@ -290,7 +290,8 @@ Build handling for each of these before go-live:
 | Scenario | Documented behavior | Partner action |
 |----------|--------------------|----------------|
 | SEPA deposit against a `fiat-deposit-url` invoice arrives without the `uniqueId` payment reference | The transfer may settle unmatched | Add the reference to every transfer made against a `fiat-deposit-url` invoice |
-| Deposit canceled (status 4 or 9) | The `deposit.canceled` webhook fires; canceled crypto deposits may be refundable | Trigger [`refund-deposit`](/api-reference/account-wallet/refund-deposit) with the transaction UUID and an external refund address. Track the result in [Get refund history](/api-reference/account-wallet/get-refund-history) filtered by `depositId`: `successful` and `canceled` are final; `in_process` is not final, even after a `refund.failed` webhook. See [Refund flow](/guides/payment-integration#refund-flow) |
+| Deposit canceled (status 4) | The `deposit.canceled` webhook fires; canceled crypto deposits may be refundable | Trigger [`refund-deposit`](/api-reference/account-wallet/refund-deposit) with the transaction UUID and an external refund address. Track the result in [Get refund history](/api-reference/account-wallet/get-refund-history) filtered by `depositId`: `successful` and `canceled` are final; `in_process` is not final, even after a `refund.failed` webhook. See [Refund flow](/guides/payment-integration#refund-flow) |
+| Deposit canceled (status 9) | No webhook is sent; the record appears only in the deposit history. A deposit in status 9 that was never frozen cannot be refunded through the API | Detect the status by polling the history. Close the transaction when the deposit was never frozen |
 | Deposit unconfirmed by the user (status 5) | The transaction waits for manual confirmation on the platform | Notify the account holder to complete the manual confirmation at whitebit.com; track the status via history polling |
 | Deposit on hold (status 21) | The record surfaces in the deposit history with status 21 | Wait for the compliance review; escalate to institutional@whitebit.com if the freeze lasts more than 24 hours |
 | Deposit held for Travel Rule (status 27/28) | No webhook fires for Travel Rule transitions; the hold surfaces via history polling. A deposit rejected under the Travel Rule is canceled and eligible for refund | Status 27: submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise notify the account holder to complete verification at whitebit.com. Status 28: wait while the data is under review. After a rejection, return the funds through the [refund flow](/guides/payment-integration#refund-flow) |

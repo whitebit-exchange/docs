@@ -1203,7 +1203,8 @@ components:
           example: "0.1"
         min_deposit:
           type: string
-          description: Min deposit amount
+          description: "Currency-level minimum deposit amount. When the response includes `limits`, a crypto deposit
+            is checked against the network minimum in `limits.deposit`, not against `min_deposit`."
           example: "0.0001"
         max_deposit:
           type: string
@@ -1258,7 +1259,8 @@ components:
           properties:
             deposit:
               type: object
-              description: Deposits limits
+              description: "Deposit limits per network. `min` is the minimum applied to a crypto deposit on
+                that network."
               additionalProperties:
                 type: object
                 properties:

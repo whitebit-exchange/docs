@@ -47,7 +47,7 @@ Each sub-account has a separate crypto deposit address, requested with a call si
 
 ### Reconciliation approach
 
-A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but not replayed, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured. Sign the history call with the sub-account's API key. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
+A sub-account counts as a separate account and can have its own webhook, created at whitebit.com only (not through the API). The main account's webhook does not receive sub-account events, and payloads carry no sub-account identifier. Webhook delivery is retried but not replayed, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured. Sign the history call with the sub-account's API key. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
 
 ### Fiat operations scope
 
@@ -55,7 +55,7 @@ Fiat deposits and withdrawals operate on the partner's main account, from and to
 
 ### Test environment availability
 
-WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts and check per-asset minimums via [Asset Status](/api-reference/market-data/asset-status-list); the WhiteBIT Codes flow in [WaaS Recipes](/guides/waas-recipes) is a low-risk way to try a real signed call.
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts and check per-asset minimums via [Asset Status](/api-reference/market-data/asset-status-list): where the response includes `limits`, a crypto deposit is checked against the network minimum (`limits.deposit.<network>.min`); the WhiteBIT Codes flow in [WaaS Recipes](/guides/waas-recipes) is a low-risk way to try a real signed call.
 
 ## Compliance
 

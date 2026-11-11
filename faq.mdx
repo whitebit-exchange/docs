@@ -100,7 +100,7 @@ Since December 30, 2024, EEA users cannot deposit, withdraw, or create WhiteBIT 
 </Accordion>
 
 <Accordion title="Below-minimum deposit handling">
-Deposits below the minimum amount for a currency are not credited to the account balance. Check the minimum deposit amount via the [Asset Status endpoint](/api-reference/market-data/asset-status-list) before generating deposit addresses. For a multi-network currency, `limits.deposit.<network>` carries each network's limits when the response includes `limits`; the top-level `min_deposit` can differ from the network limits. No mechanism exists to recover below-minimum deposits.
+Crypto deposits are checked against the network minimum, not the currency-level one. Check the minimum via the [Asset Status endpoint](/api-reference/market-data/asset-status-list) before generating deposit addresses: for a multi-network currency, `limits.deposit.<network>.min` carries each network's minimum when the response includes `limits`, and the top-level `min_deposit` can differ from the network limits. A deposit below the network minimum is not rejected and not returned. The deposit history shows the deposit with status 22 (uncredited), further deposits to the same address add up, and once the total reaches the network minimum, the deposits are credited together. Deposits that stay below the minimum are canceled after 7 days and move to status 9, which sends no webhook.
 </Accordion>
 </AccordionGroup>
 

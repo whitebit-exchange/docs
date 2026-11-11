@@ -162,7 +162,9 @@ sequenceDiagram
   [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) reports the hold for the
   whole account, not for each end user.
 - **Unmatched deposits.** Route a deposit that matches no stored address and memo to manual review.
-- **Refunds.** A canceled deposit may be refundable to an external address the end user provides. See
+- **Refunds.** A canceled deposit may be refundable to an external address the end user provides. A deposit in
+  status 9 that was never frozen cannot be refunded through the API. A deposit that stays below the
+  network minimum for 7 days is canceled with status 9. See
   [Refund flow](/guides/payment-integration#refund-flow).
 
 ### Travel Rule holds on deposits

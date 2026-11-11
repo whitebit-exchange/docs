@@ -141,15 +141,17 @@ sequenceDiagram
         P->>P: Skip records whose<br/>status has not<br/>changed
         alt Successful (3, 7), final
             P->>P: Mark credited,<br/>stop tracking
-        else Canceled (4, 9), final
+        else Canceled (4), final
             P->>P: Offer the refund flow
+        else Canceled (9), final
+            P->>P: Mark canceled,<br/>stop tracking
         else Any other status
             P->>P: Act on the status,<br/>keep tracking
         end
     end
 ```
 
-A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
+A sub-account counts as a separate account and can have its own webhook, created at whitebit.com only: the main account switches the session to the sub-account and creates the webhook there. The main account's webhook does not receive sub-account events, and payloads carry no sub-account identifier. Webhook delivery is retried but
 has no replay, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured.
 Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some stay in status 21 (on hold) or 22 (uncredited) before reaching a final status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
 [rate limits](/api-reference/rate-limits) apply per endpoint.
@@ -293,7 +295,8 @@ fetch the VASP list via `travel-rule/vasps` (EEA and Turkey). See [Travel Rule](
 
 WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts,
 and check per-asset minimums via the [Asset Status](/api-reference/market-data/asset-status-list)
-endpoint first. The WhiteBIT Codes flow is a low-risk way to try a real signed call on a small
+endpoint first. Where the response includes `limits`, a crypto deposit is checked against the network minimum (`limits.deposit.<network>.min`). A test deposit below the network
+minimum is not credited at once: it waits in status 22, and unless the deposits to the same address add up to the minimum, it is canceled with status 9 after 7 days. The WhiteBIT Codes flow is a low-risk way to try a real signed call on a small
 amount (see [Recipes](/guides/waas-recipes)).
 
 ## What's next

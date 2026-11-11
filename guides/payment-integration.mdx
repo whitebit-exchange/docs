@@ -47,7 +47,7 @@ sequenceDiagram
     P->>U: Show deposit address<br/>+ QR
     U->>B: Send funds to address
     B-->>W: Deposit detected
-    W->>P: webhook: deposit.accepted (status 15)
+    W->>P: webhook: deposit.accepted<br/>(status 15, not always sent)
     W->>P: webhook: deposit.updated<br/>(confirmation count)
     W->>P: webhook: deposit.processed<br/>(status 3 — terminal)
     P->>P: Match by address<br/>(+ memo if applicable)<br/>/ uniqueId →<br/>credit customer
@@ -299,11 +299,11 @@ After funds arrive at a generated deposit address, the deposit passes through a 
 
 1. Address generated (`POST /api/v4/main-account/address`)
 2. Funds sent by the external party — mempool detection begins
-3. Confirmation tracking begins — `deposit.accepted` webhook fires while `confirmations.actual` is below `confirmations.required`
+3. Confirmation tracking begins — the `deposit.accepted` webhook may fire while `confirmations.actual` is below `confirmations.required`; not every crypto deposit sends `deposit.accepted`, so do not wait for the event
 4. Each confirmation-count change fires the `deposit.updated` webhook with the new `confirmations.actual` — this event tracks progress; it does not signal completion
 5. Where the network's `confirmations_for_trading` count is lower than `confirmations`: funds credited early, and part of the deposit may stay held — status 29, `deposit.updated` webhook fires. See [Network confirmations](#network-confirmations).
 6. Deposit fully confirmed and credited to Main balance (status 3 or 7) — `deposit.processed` webhook fires, and any hold clears — **terminal success state**
-7. OR: Deposit canceled — `deposit.canceled` webhook fires — **terminal failure state**
+7. OR: Deposit canceled — status 4 fires the `deposit.canceled` webhook; status 9 sends no webhook, so read the status from the history — **terminal failure state**
 8. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28). If the Travel Rule API is enabled, submit originator data via API to unfreeze; otherwise manual action at whitebit.com is required. See [Travel Rule](#travel-rule-eea-and-turkey) below.
 
 ## Deposit status state machine
@@ -316,26 +316,30 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 
 | Status | State | Webhook | Terminal? | Partner action | Description |
 |--------|-------|---------|-----------|----------------|-------------|
-| 15 | Pending | `deposit.accepted` | No | Wait for next webhook | Deposit detected, awaiting confirmations |
+| 15 | Pending | `deposit.accepted` (not always sent) | No | Wait for next webhook | Deposit detected, awaiting confirmations |
 | 15 | Updated | `deposit.updated` | No | Wait for next webhook | Confirmation count changed |
 | 29 | Credited, on hold | `deposit.updated` | No | Wait for a final status | Funds credited; part may stay held until the network fully confirms the deposit |
 | 3, 7 | Successful | `deposit.processed` | Yes | Credit end user, close watcher | Funds credited to Main balance |
-| 4, 9 | Canceled | `deposit.canceled` | Yes | Surface refund flow — see [Refund flow](#refund-flow) | Deposit canceled (refund may be available) |
+| 4 | Canceled | `deposit.canceled` | Yes | Surface refund flow — see [Refund flow](#refund-flow) | Deposit canceled (refund may be available) |
+| 9 | Canceled | — | Yes | Read the status from the history (no webhook is sent) and close the watcher. A deposit that was never frozen cannot be refunded through the API | Deposit canceled, for example an uncredited deposit (22) still below the network minimum after 7 days |
 | 5 | Unconfirmed by user | — | No | Notify the account holder — manual action required at whitebit.com | Awaiting user action |
 | 21 | On hold | `deposit.aml_frozen` | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit held for review |
-| 22 | Uncredited | `deposit.aml_frozen` | No | Wait — credit pending. Escalate to support if >24h | Detected, not credited yet |
+| 22 | Uncredited | `deposit.updated` (`deposit.accepted` when sent) | No | Wait — a deposit below the network minimum is credited once the total on the address reaches the minimum, otherwise canceled (status 9) after 7 days | Detected, not credited yet |
+| 23 | Pending | — | No | Wait for a final status (poll history) | Deposit in progress |
 | 27 | Travel Rule frozen | — | No | Submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise notify the account holder to complete verification at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
 
-Every deposit ends in a final status: 3 or 7 (credited) or 4 or 9 (canceled). Statuses 5, 21, 22 and 29 are not final. A deposit in status 29 ends as 3 or 7 when the network fully confirms it, or as 4 if canceled.
+Every deposit ends in a final status: 3 or 7 (credited) or 4 or 9 (canceled). Statuses 5, 21, 22, 23 and 29 are not final. A deposit in status 29 ends as 3 or 7 when the network fully confirms it, or as 4 if canceled.
 
 The flowchart maps each deposit status in the table to the partner action.
 
 ```mermaid
 flowchart TD
     Start["Deposit status, from a webhook<br/>or the history endpoint"] --> Status{"Status"}
-    Status -->|"3, 7"| Credit["Credit the<br/>end user, close<br/>the watcher"]
-    Status -->|"4, 9"| Refund["Offer the<br/>refund flow"]
+    Status -->|"3, 7"| Credit["Credit the<br/>end user"]
+    Status -->|"4"| Refund["Offer the<br/>refund flow"]
+    Credit --> Closed["Close the<br/>watcher"]
+    Status -->|"9"| Closed
     Status -->|"27, Travel Rule<br/>API enabled"| TravelRuleApi["Submit originator<br/>data with the<br/>Travel Rule API"]
     Status -->|"Other statuses<br/>in the table"| Act["Act as the table<br/>describes"]
     TravelRuleApi --> Poll["Keep polling<br/>the history"]
@@ -357,18 +361,18 @@ Confirmation requirements vary by currency and network. Do not hardcode specific
 
 ## Partial / over-payment scenarios
 
-Crypto deposits credit the actual on-chain amount received; the system does not flag deposits as "underpaid" or "overpaid". If a partner expects an exact amount (e.g., for invoice matching), reconciliation logic must compare the deposit amount in the `deposit.processed` webhook against the expected amount and surface mismatches as application-level alerts.
+Crypto deposits credit the actual on-chain amount received; the system does not flag deposits as "underpaid" or "overpaid". A deposit below the network minimum (`limits.deposit.<network>.min` in [Asset Status](/api-reference/market-data/asset-status-list)) is not credited at once: the deposit waits in status 22, deposits to the same address add up, and the deposits are credited together once the total reaches the minimum. Deposits that stay below the minimum are canceled with status 9 after 7 days. If a partner expects an exact amount (e.g., for invoice matching), reconciliation logic must compare the deposit amount in the `deposit.processed` webhook against the expected amount and surface mismatches as application-level alerts.
 
 ## Refund flow
 
-When a deposit is canceled (status 4 or 9), a refund may be available.
+When a deposit is canceled with status 4, a refund may be available. A deposit in status 9 that was never frozen cannot be refunded through the API.
 
 **Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/account-wallet/refund-deposit) for the full specification.
 
 **Prerequisites:**
 
 - The deposit must have status `canceled`.
-- Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface.
+- Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface. A deposit in status 9 sends no webhook, so the history is the only source of the deposit's `transactionId`.
 
 **Parameters:**
 
@@ -400,7 +404,8 @@ sequenceDiagram
     participant P as Partner backend
     participant W as WhiteBIT API
 
-    W->>P: webhook: deposit.canceled (status 4 or 9)
+    W->>P: webhook: deposit.canceled (status 4)
+    Note over P,W: Status 9 sends no webhook:<br/>read the deposit from the history
     P->>U: Request an external<br/>refund address
     U-->>P: Address (+ memo<br/>if applicable)
     P->>W: POST /api/v4/main-account/refund-deposit<br/>(deposit transaction ID,<br/>refund address, memo)
