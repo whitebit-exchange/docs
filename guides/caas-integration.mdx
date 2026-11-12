@@ -114,7 +114,9 @@ own database.
 
 1. Prefetch the currencies, networks, memo rules, deposit limits, and confirmation thresholds from
    [Asset Status](/api-reference/market-data/asset-status-list), and refresh the data on a schedule.
-1. Request an address with `POST /api/v4/main-account/create-new-address`.
+1. Look up the end user's address for the currency and the network in the partner database. When the lookup
+   finds an address, show the address with its memo exactly as issued and send no request.
+1. Only when the lookup finds none, request one with `POST /api/v4/main-account/create-new-address`.
    The endpoint is not available by default; the account manager enables it on request — see
    [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit). Each call creates a new address — even when the last one is unused — with no limit on the
    number of addresses. On memo networks, each call returns the same address with a new memo.
@@ -137,14 +139,19 @@ sequenceDiagram
     P->>W: GET /api/v4/public/assets<br/>(on a schedule)
     W-->>P: Asset status per currency<br/>and network
     P->>P: Check that the currency and<br/>network accept deposits
-    P->>W: POST /api/v4/main-account/<br/>create-new-address<br/>(currency, network)
-    alt 201
-        W-->>P: New address, or new<br/>memo on memo networks
-        P->>P: Store the address and memo<br/>against the end user
-        P->>U: Show the address and memo<br/>exactly as issued
-    else Timeout or 5xx
-        Note over P,W: The address may exist<br/>and still credit the account
-        P->>P: Show no address,<br/>request a new one
+    P->>P: Look up the stored address<br/>for the end user,<br/>currency and network
+    alt Address stored
+        P->>U: Show the stored address<br/>and memo exactly as issued
+    else No address stored
+        P->>W: POST /api/v4/main-account/<br/>create-new-address<br/>(currency, network)
+        alt 201
+            W-->>P: New address, or new<br/>memo on memo networks
+            P->>P: Store the address and memo<br/>against the end user
+            P->>U: Show the address and memo<br/>exactly as issued
+        else Timeout or 5xx
+            Note over P,W: The address may exist<br/>and still credit the account
+            P->>P: Show no address,<br/>request a new one
+        end
     end
 ```
 
@@ -195,8 +202,11 @@ for programmatic verification is enabled per account by the account manager on r
    [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance) for the whole account.
 1. **Record the payout.** Reserve the amount in the end user's ledger
    balance and store a unique withdrawal ID before sending the request.
-1. **Send the withdrawal.** See [Create a withdrawal](/guides/payment-integration#create-a-withdrawal).
-1. **Settle.** Settle the reserved debit when the withdrawal succeeds, and act on each other final status as
+1. **Send the withdrawal.** See [Create a withdrawal](/guides/payment-integration#create-a-withdrawal) for the
+   parameters, including `network` and `memo`. The `201` response body is an empty array (`[]`) and carries no
+   ID. Follow the withdrawal in the history by its unique withdrawal ID, the `uniqueId` sent in the request.
+1. **Settle.** Settle the reserved debit when the withdrawal succeeds (status 3 or 7), and release the reserve
+   when the withdrawal is canceled (status 4). Act on each other status as
    the [Withdrawal status state machine](/guides/payment-integration#withdrawal-status-state-machine)
    describes. When two withdrawals compete for the same balance and one fails processing, that withdrawal is
    retried; if processing still fails, the withdrawal ends as canceled (status 4) and `withdraw.canceled` is sent.
@@ -224,7 +234,7 @@ sequenceDiagram
         P->>P: Reserve the amount in<br/>the end user's ledger balance
         P->>P: Store a unique withdrawal ID
         P->>W: POST /api/v4/main-account/<br/>withdraw<br/>(unique withdrawal ID)
-        W-->>P: 201 — withdrawal creation started
+        W-->>P: 201, empty array<br/>(withdrawal creation started)
         par Webhooks
             W->>P: withdraw.unconfirmed,<br/>withdraw.pending,<br/>then a final event
         and History on a schedule
@@ -234,6 +244,8 @@ sequenceDiagram
         alt withdraw.successful (status 3 or 7)
             P->>P: Settle the reserved debit
         else withdraw.canceled (status 4)
+            P->>P: Release the reserved<br/>amount in the ledger
+        else Any other status
             P->>P: Act as the withdrawal<br/>status state machine<br/>describes
         end
     end
@@ -244,8 +256,9 @@ sequenceDiagram
 
 **Withdrawals.** Fee-inclusive (`/withdraw`) and fee-on-top (`/withdraw-pay`) variants, plus
 withdrawal after conversion using the Convert service. For a withdrawal after conversion, transfer the funds from
-Main to Trade, request a quote, and confirm at the quoted rate. Then transfer the converted amount back to Main and
-withdraw in the destination currency. See
+Main to Trade and wait until the amount shows on the Trade balance. Request a quote and confirm at the quoted rate.
+Then transfer the converted amount back to Main and wait until the amount shows on the Main balance. Withdraw in the
+destination currency. See
 [Payment Integration](/guides/payment-integration) and [Convert](/platform/convert).
 
 ### Fiat
@@ -300,11 +313,24 @@ sequenceDiagram
         P->>P: Ledger entry debiting the crypto from the end user
     end
     opt Convert on the partner's account
-        P->>W: POST /api/v4/main-account/transfer (Main to Trade)
-        P->>W: POST /api/v4/convert/estimate, then POST /api/v4/convert/confirm
-        Note over P,W: After a 200, or a record in Convert History
+        P->>W: POST /api/v4/main-account/transfer<br/>(Main to Trade)
+        W-->>P: 201, empty array<br/>(accepted, not completed)
+        loop Until the amount shows on Trade,<br/>else manual check
+            P->>W: POST /api/v4/trade-account/balance
+            W-->>P: Trade balance
+        end
+        P->>W: POST /api/v4/convert/estimate
+        W-->>P: Quote ID, rate, expiry
+        P->>W: POST /api/v4/convert/confirm<br/>(before the quote expires)
+        W-->>P: 200, final amounts
+        Note over P,W: Outcome known: a 200,<br/>or a record in Convert History
         P->>P: Record the quote ID in the ledger
-        P->>W: POST /api/v4/main-account/transfer (Trade to Main)
+        P->>W: POST /api/v4/main-account/transfer<br/>(Trade to Main)
+        W-->>P: 201, empty array<br/>(accepted, not completed)
+        loop Until the amount shows on Main,<br/>else manual check
+            P->>W: POST /api/v4/main-account/balance
+            W-->>P: Main balance
+        end
     end
 ```
 
