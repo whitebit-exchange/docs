@@ -4057,7 +4057,7 @@ paths:
       description: |
         The endpoint creates a quote for converting one currency to another. Quote lifetime is 10 seconds, then quote will be expired.
 
-        Convert through the API takes the source currency from the trade (spot) balance and puts the converted amount on the same balance. When the source currency is not on the trade balance, the request fails with the insufficient-balance error and no funds move. Transfer the funds to the trade balance first with [Transfer between balances](/api-reference/account-wallet/transfer-between-balances), and transfer the converted amount back to the main balance before a withdrawal.
+        Convert through the API takes the source currency from the trade (spot) balance and puts the converted amount on the same balance. When the source currency is not on the trade balance, the request fails with the insufficient-balance error and no funds move. Transfer the funds to the trade balance first with [Transfer between balances](/api-reference/account-wallet/transfer-between-balances), and transfer the converted amount back to the main balance before a withdrawal. A transfer returns `201` with an empty array. The `201` means the platform accepted the transfer, not that the funds moved, so request the estimate after the amount shows on the trade balance.
 
         A quote executes in full at the quoted amounts or not at all. With `direction: "to"`, the amount received equals the requested amount exactly: the platform builds the fee into the amount given, so the fee never reduces the amount received.
 
@@ -4460,7 +4460,7 @@ paths:
 
         The `id` returned on success is the quote ID of the executed conversion and is accepted as the `quoteId` filter on [Convert History](/api-reference/convert/convert-history).
 
-        [Convert History](/api-reference/convert/convert-history) does not filter by idempotency key. To recover the outcome of a request sent with a key, resend the identical request with the same key within 24 hours; the endpoint returns the original response, including `id`. A request that reuses a key from a different request returns `409`. Without a key, after a `502`, or after 24 hours, search the history by time window, pair, and amounts.
+        [Convert History](/api-reference/convert/convert-history) does not filter by idempotency key. To recover the outcome of a request sent with a key, resend the identical request with the same key within 24 hours; the endpoint returns the original response, including `id`. If processing stops without recording an outcome, the claim on the key lapses after 60 seconds, and a retry with the same key can then convert a second time. Check Convert History by time window, pair, and amounts before any resend that comes more than 60 seconds after the first request. A request that reuses a key from a different request returns `409`. Without a key, after a `502`, or after 24 hours, search the history by time window, pair, and amounts.
 
         The endpoint validates the request in stages. An empty body reports only `from` and `to` under `errors`; the endpoint checks `direction` and `amount` once `from` and `to` are present, so a request that fixes an empty-body `422` can receive a second `422` for the remaining parameters.
 
@@ -4591,7 +4591,7 @@ paths:
                       request: ["Amount too high — try a lower amount"]
         '409':
           description: |
-            Idempotency key conflict. This request executed no conversion. Under `errors.request`, the first request with the key is still running: retry later with the same key. Under `errors.idempotencyKey`, a different request already used the key.
+            Idempotency key conflict. This request executed no conversion. Under `errors.request`, the first request with the key is still running: retry later with the same key. Check Convert History before any resend that comes more than 60 seconds after the first request. Under `errors.idempotencyKey`, a different request already used the key.
           content:
             application/json:
               schema:
@@ -4671,7 +4671,7 @@ paths:
                       from: ["Conversion markets not available"]
         '500':
           description: |
-            The API timed out before the conversion service returned an outcome, and the conversion can still complete. With an idempotency key, resend the identical request with the same key: the endpoint returns the recorded response, or `409` while the conversion is still running. Without a key, search [Convert History](/api-reference/convert/convert-history) by time window, pair, and amounts before converting again.
+            The API timed out before the conversion service returned an outcome, and the conversion can still complete. With an idempotency key, resend the identical request with the same key: the endpoint returns the recorded response, or `409` while the conversion is still running. If processing stops without recording an outcome, the claim on the key lapses after 60 seconds, and a retry with the same key can then convert a second time. Check [Convert History](/api-reference/convert/convert-history) by time window, pair, and amounts before any resend that comes more than 60 seconds after the first request. Without a key, search [Convert History](/api-reference/convert/convert-history) by time window, pair, and amounts before converting again.
         '502':
           description: |
             The conversion service returned no outcome, and the conversion may have executed. A retry with the same key returns the same `502`; a retry with a new key can convert a second time. Search Convert History by time window, pair, and amounts before converting again. A record means the conversion executed. The error text in `errors.request` is not part of the contract and does not change the instruction.

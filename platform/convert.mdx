@@ -25,7 +25,11 @@ Convert provides instant currency conversion at a quoted rate. Unlike [spot trad
 
 ## Balances
 
-Convert through the API uses the Trade balance for both legs: the conversion takes the source currency from the [Trade balance](/api-reference/trading/trading-balance) and puts the converted amount on the Trade balance. When the source currency is not on the Trade balance, the request fails with the insufficient-balance error and no funds move. Transfer the source currency from Main to Trade with [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) before converting, and request the estimate after the transferred amount shows on the Trade balance. The withdrawal endpoints debit the Main balance, so transfer the converted amount back to Main before a withdrawal. The transfer request takes no idempotency key, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) before resending a transfer.
+Convert through the API uses the Trade balance for both legs: the conversion takes the source currency from the [Trade balance](/api-reference/trading/trading-balance) and puts the converted amount on the Trade balance. When the source currency is not on the Trade balance, the request fails with the insufficient-balance error and no funds move. Transfer the source currency from Main to Trade with [Transfer between balances](/api-reference/account-wallet/transfer-between-balances) before converting (in the transfer request, the Trade balance is `spot` in the `from` and `to` fields), and request the estimate after the transferred amount shows on the Trade balance. The withdrawal endpoints debit the Main balance, so transfer the converted amount back to Main and withdraw after the amount shows on the [Main balance](/api-reference/account-wallet/main-balance) (`POST /api/v4/main-account/balance`).
+
+A transfer returns `201` with an empty array (`[]`). The `201` means the platform accepted the transfer, not that the funds moved, so read the Trade balance (`POST /api/v4/trade-account/balance`) until the amount shows.
+
+The transfer request takes no idempotency key, and a transfer can still complete after a timeout or a `5xx`. A matching record in [Get transfer history](/api-reference/account-wallet/get-transfer-history) means the transfer completed. No record can also mean the transfer is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual check, as the between-balances row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) describes.
 
 ## Conversion flow
 
@@ -57,8 +61,15 @@ The following responses leave the outcome open, and the conversion may have exec
 | Response | Find the outcome |
 |----------|------------------|
 | Confirm: `400` with code `0`, or any `5xx` | Look up the `quoteId` in [Convert History](/api-reference/convert/convert-history). |
-| Auto Confirm: `500` (the API timed out before the conversion service returned an outcome; the conversion can still complete) | With an idempotency key, resend the identical request with the same key within 24 hours. The endpoint returns the original response, or `409` while the conversion is still running; retry later with the same key. Without a key, search Convert History by time window, pair, and amounts. |
+| Auto Confirm: `500` (the API timed out before the conversion service returned an outcome; the conversion can still complete) | With an idempotency key, resend the identical request with the same key, as the rules below the table describe. Without a key, search Convert History by time window, pair, and amounts. |
 | Auto Confirm: `502` (the conversion service returned no outcome) | Search Convert History by time window, pair, and amounts. A retry with the same key returns the same `502`. |
+
+A resend with an idempotency key follows these rules:
+
+- Within 24 hours, the endpoint returns the original response, or `409` while the conversion is still running; retry later with the same key.
+- If processing stops without recording an outcome, the claim on the key lapses after 60 seconds, and a retry with the same key can then convert a second time.
+- A resend that comes more than 60 seconds after the first request needs a Convert History check by time window, pair, and amounts first.
+- After 24 hours, a resend with the same key can convert a second time.
 
 A record in Convert History means the conversion executed and the converted amount is on the Trade balance. The platform writes the record when the conversion executes, so a conversion that executed appears in the history at once. After a confirm that executed, a retry of the same quote returns code `24`, so look up the `quoteId` before requesting a new estimate.
 
@@ -181,10 +192,10 @@ The [history endpoint](/api-reference/convert/convert-history) supports filterin
 
 Withdrawal flows commonly use Convert when the currency held in Main balance differs from the currency an end user needs to withdraw. The pattern has five steps:
 
-1. Transfer the source currency from Main to Trade.
+1. Transfer the source currency from Main to Trade, and wait until the amount shows on the Trade balance.
 2. Request an estimate.
 3. Confirm the quote.
-4. Transfer the converted amount from Trade to Main.
+4. Transfer the converted amount from Trade to Main, and wait until the amount shows on the Main balance.
 5. Submit the withdrawal in the destination currency.
 
 No field ties a conversion to the withdrawal that spends it. Store the quote ID of each conversion in the partner's ledger. Put a reference unique to the withdrawal in its `uniqueId` (up to 255 characters), and map that reference to the quote IDs of the conversions the withdrawal spends.
