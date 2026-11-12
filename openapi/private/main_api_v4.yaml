@@ -1514,13 +1514,17 @@ paths:
         - Deposit
       summary: Refund a deposit
       description: |
-        Refund a deposit.
+        Refund a crypto deposit to an external address.
 
-        The system processes refunds only for deposits with status `canceled`. A deposit in status 9 that was never frozen cannot be refunded through this endpoint.
+        Only a deposit in status 9 can be refunded, and only when the deposit was frozen before it was canceled: held for an AML review (status 21) or under the Travel Rule (status 27 or 28). A refund becomes available in this order: the deposit is frozen, WhiteBIT rejects the deposit after review and support allows a refund, and the deposit moves to status 9. Until support allows a refund, the endpoint returns `400` for the deposit, even when the request is valid. When support handles the refund itself, the endpoint keeps returning `400` for that deposit.
 
-        Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability. A deposit in status 9 sends no webhook, so the history is the only source of the deposit's `transactionId`.
+        A deposit in status 4, a deposit in status 9 that was never frozen, and a fiat deposit cannot be refunded through this endpoint.
 
-        The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT address. The refund address can differ from the original deposit sender address.
+        Obtain `transactionId` from the deposit/withdraw history in the WhiteBIT interface. A deposit in status 9 sends no webhook.
+
+        The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT deposit address. The refund address can differ from the original deposit sender address.
+
+        The request needs no email code or 2FA confirmation. A `200` response means the refund request is accepted, not that the refund is sent: every refund passes AML screening and an operator review, and WhiteBIT sends the refund on-chain only after approval. Until then, [Get refund history](/api-reference/account-wallet/get-refund-history) shows the refund as `in_process` with `refundHash` `null`. When the review rejects the refund, the refund history shows `canceled`, the `refund.failed` webhook is sent, and no funds are sent.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -1531,7 +1535,7 @@ paths:
         </Note>
 
         <Note>
-        Refund processing does not complete instantly. Use the [refund.successful](/platform/webhook#whitebit-refund-successful) and [refund.failed](/platform/webhook#whitebit-refund-failed) webhooks to receive refund status updates, or check the current status with [Get refund history](/api-reference/account-wallet/get-refund-history).
+        Refund processing does not complete instantly. Use the [refund.successful](/platform/webhook#whitebit-refund-successful) and [refund.failed](/platform/webhook#whitebit-refund-failed) webhooks to receive refund status updates, or check the current status with [Get refund history](/api-reference/account-wallet/get-refund-history). Refund webhooks go only to the webhook of the account that owns the deposit.
         </Note>
       operationId: refundDeposit
       requestBody:
@@ -1550,12 +1554,12 @@ paths:
                   type: string
                   format: uuid
                   description: |
-                    Transaction UUID of the deposit. Obtain from the [deposit.canceled](/platform/webhook) webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface. A deposit in status 9 sends no webhook, so take the UUID from the history.
+                    Transaction UUID of the deposit. Obtain it from the deposit/withdraw history in the WhiteBIT interface: a deposit in status 9 sends no webhook.
                   example: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
                 address:
                   type: string
                   description: |
-                    Destination wallet address for the refund. The address must support the same network and asset as the original deposit. Cannot be a WhiteBIT address. Does not have to match the original deposit address.
+                    Destination wallet address for the refund. The address must support the same network and asset as the original deposit. Cannot be a WhiteBIT deposit address. Does not have to match the original deposit address.
                   example: "0x1234567890abcdef1234567890abcdef12345678"
                 memo:
                   type: string
@@ -1597,7 +1601,18 @@ paths:
                 example:
                   id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
         "400":
-          description: Validation fails or transaction does not qualify for refund
+          description: |
+            Validation fails or the deposit does not qualify for a refund.
+
+            The endpoint returns `Transaction not refundable` when:
+            - `transactionId` is unknown, is not a deposit of the account that sends the request, or the deposit is not in status 9.
+            - The deposit was never frozen.
+            - WhiteBIT support has not allowed a refund for the deposit, or support handles the refund itself.
+            - An active refund of the deposit already exists.
+            - Refunds are disabled for the currency, or the deposit amount is below the currency's minimum.
+            - The deposit is not a crypto deposit.
+
+            A refund address that is invalid for the network or is a WhiteBIT deposit address, and an invalid `memo`, also fail the request with `400`.
           content:
             application/json:
               schema:
@@ -1616,6 +1631,9 @@ paths:
                     errors:
                       transactionId: ["The transaction id field is required."]
                       address: ["The address field is required."]
+        "423":
+          description: |
+            Another refund request from the same account is in progress. The endpoint processes refund requests from the same account one at a time: a concurrent request waits and fails with `423` if the wait runs out.
 
   /api/v4/main-account/refund-history:
     post:
@@ -1623,7 +1641,7 @@ paths:
         - Deposit
       summary: Get refund history
       description: |
-        The endpoint returns the account's deposit refunds, including refunds requested through the WhiteBIT interface or through the API.
+        The endpoint returns the account's deposit refunds, including refunds requested through the WhiteBIT interface or through the API. Each account sees only its own refunds: a main account does not see the refunds of its sub-accounts, and no endpoint combines them.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -9517,7 +9535,7 @@ components:
           example: "bc1q..."
         refundAmount:
           type: string
-          description: Refund amount
+          description: Refund amount, equal to the deposit amount. The amount sent on-chain and the network fee are returned only in the [refund.successful](/platform/webhook#whitebit-refund-successful) webhook.
           example: "0.5"
         refundHash:
           type: string
@@ -9538,7 +9556,7 @@ components:
             - canceled
           description: |
             Refund status:
-            - `in_process` — the refund is not final. Every non-final state maps to this value.
+            - `in_process` — the refund is not final, for example during the AML screening and operator review. Every non-final state maps to this value.
             - `successful` — the refund is complete.
             - `canceled` — the refund is canceled. Final.
           example: "successful"

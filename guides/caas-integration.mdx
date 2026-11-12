@@ -175,10 +175,11 @@ sequenceDiagram
   history, and sends no webhook. A deposit in an asset WhiteBIT does not list, or on a network the address was not
   issued for, is not matched to an account either. Recovering such a deposit is a manual operation with no API, so
   ask end users to send only listed assets, on the network the address was issued for, with the memo exactly as issued.
-- **Refunds.** A canceled deposit may be refundable to an external address the end user provides. A deposit in
-  status 9 that was never frozen cannot be refunded through the API. A deposit that stays below the
-  network minimum for 7 days is canceled with status 9. See
-  [Refund flow](/guides/payment-integration#refund-flow).
+- **Refunds.** Through the API, only a deposit that was frozen (status 21, 27 or 28) and then canceled with
+  status 9 can be refunded, to an external address the end user provides, and only after WhiteBIT support
+  allows a refund. Every refund passes an operator review before it is sent. A deposit in status 4 cannot be
+  refunded through the API, and neither can a deposit that stays below the network minimum for 7 days and is
+  canceled with status 9. See [Refund flow](/guides/payment-integration#refund-flow).
 
 ### Travel Rule holds on deposits
 

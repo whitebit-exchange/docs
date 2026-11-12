@@ -154,10 +154,11 @@ sequenceDiagram
         P->>P: Skip records whose<br/>status has not<br/>changed
         alt Successful (3, 7), final
             P->>P: Mark credited,<br/>stop tracking
-        else Canceled (4), final
-            P->>P: Offer the refund flow
-        else Canceled (9), final
+        else Canceled (4, 9), final
             P->>P: Mark canceled,<br/>stop tracking
+            opt Status 9, frozen first
+                P->>P: Offer the refund flow
+            end
         else Any other status
             P->>P: Act on the status,<br/>keep tracking
         end

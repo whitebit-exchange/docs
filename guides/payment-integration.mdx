@@ -340,8 +340,8 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 15 | Updated | `deposit.updated` | No | Wait for next webhook | Confirmation count changed |
 | 29 | Credited, on hold | `deposit.updated` | No | Wait for a final status | Funds credited; part may stay held until the network fully confirms the deposit |
 | 3, 7 | Successful | `deposit.processed` | Yes | Credit end user, close watcher | Funds credited to Main balance |
-| 4 | Canceled | `deposit.canceled` | Yes | Surface refund flow — see [Refund flow](#refund-flow) | Deposit canceled (refund may be available) |
-| 9 | Canceled | — | Yes | Read the status from the history (no webhook is sent) and close the watcher. A deposit that was never frozen cannot be refunded through the API | Deposit canceled, for example an uncredited deposit (22) still below the network minimum after 7 days |
+| 4 | Canceled | `deposit.canceled` | Yes | Close the watcher. A deposit in status 4 cannot be refunded through the API | Deposit canceled |
+| 9 | Canceled | — | Yes | Read the status from the history (no webhook is sent). If the deposit was frozen (21, 27 or 28) before it was canceled, see [Refund flow](#refund-flow); otherwise close the watcher | Deposit canceled, for example a frozen deposit rejected after review, or an uncredited deposit (22) still below the network minimum after 7 days |
 | 5 | Unconfirmed by user | — | No | Notify the account holder — manual action required at whitebit.com | Awaiting user action |
 | 21 | On hold | `deposit.aml_frozen` | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit held for review |
 | 22 | Uncredited | `deposit.updated` (`deposit.accepted` when sent) | No | Wait — a deposit below the network minimum is credited once the total on the address reaches the minimum, otherwise canceled (status 9) after 7 days | Detected, not credited yet |
@@ -357,9 +357,10 @@ The flowchart maps each deposit status in the table to the partner action.
 flowchart TD
     Start["Deposit status, from a webhook<br/>or the history endpoint"] --> Status{"Status"}
     Status -->|"3, 7"| Credit["Credit the<br/>end user"]
-    Status -->|"4"| Refund["Offer the<br/>refund flow"]
     Credit --> Closed["Close the<br/>watcher"]
-    Status -->|"9"| Closed
+    Status -->|"4, 9"| Frozen{"9, frozen first<br/>(21, 27, 28)?"}
+    Frozen -->|"Yes"| Refund["Offer the<br/>refund flow"]
+    Frozen -->|"No"| Closed
     Status -->|"27, Travel Rule<br/>API enabled"| TravelRuleApi["Submit originator<br/>data with the<br/>Travel Rule API"]
     Status -->|"Other statuses<br/>in the table"| Act["Act as the table<br/>describes"]
     TravelRuleApi --> Poll["Keep polling<br/>the history"]
@@ -385,14 +386,22 @@ Crypto deposits credit the actual on-chain amount received; the system does not 
 
 ## Refund flow
 
-When a deposit is canceled with status 4, a refund may be available. A deposit in status 9 that was never frozen cannot be refunded through the API.
+Only a crypto deposit in status 9 can be refunded through the API, and only when the deposit was frozen before it was canceled: held for an AML review (status 21) or under the Travel Rule (status 27 or 28). A deposit in status 4 and a deposit in status 9 that was never frozen cannot be refunded through the API.
 
-**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/account-wallet/refund-deposit) for the full specification.
+A refund becomes available in this order:
+
+1. The deposit is frozen (status 21, 27 or 28).
+2. WhiteBIT rejects the deposit after review, and WhiteBIT support allows a refund. The deposit moves to status 9.
+3. The partner sends the refund request.
+
+Until support allows a refund, the endpoint returns `400` for the deposit. When support handles the refund itself, the endpoint keeps returning `400` for that deposit.
+
+**Endpoint:** `POST /api/v4/main-account/refund-deposit` — see the [API Reference](/api-reference/account-wallet/refund-deposit) for the full specification and every reason for a `400` response.
 
 **Prerequisites:**
 
-- The deposit must have status `canceled`.
-- Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface. A deposit in status 9 sends no webhook, so the history is the only source of the deposit's `transactionId`.
+- Support allowed a refund for the deposit, and no active refund of the deposit exists.
+- Obtain `transactionId` from the deposit/withdraw history in the WhiteBIT interface. A deposit in status 9 sends no webhook.
 
 **Parameters:**
 
@@ -408,14 +417,16 @@ The refund `address` must satisfy three constraints:
 - The address must not be a WhiteBIT-generated deposit address (an address created by `/api/v4/main-account/address` or `/api/v4/main-account/create-new-address`) — the endpoint refunds to external addresses only.
 - The address does not need to match the original sender address.
 
-**Webhook events for refund outcomes:**
+**Review after the request:** a `200` response means the refund request is accepted, not that the refund is sent. The request needs no email code or 2FA confirmation. Every refund then passes AML screening and an operator review, and WhiteBIT sends the refund on-chain only after approval. Until then, refund history shows the refund as `in_process` with `refundHash` `null`. A `423` response means another refund request from the same account is still in progress.
 
-- `refund.successful` — refund completed (includes `refundAmount`, `refundNetworkFee`, `refundHash`)
-- `refund.failed` — refund failed (the destination address does not support the required network or asset, or address validation fails; use a different address or contact support)
+**Webhook events for refund outcomes** (sent to the webhook of the account that owns the deposit):
 
-**Track refund status:** [`POST /api/v4/main-account/refund-history`](/api-reference/account-wallet/get-refund-history) returns every refund on the account with its current status. A refund with status `canceled` is final. A refund with status `in_process` is not final yet, including after a `refund.failed` webhook caused by an internal failure. Filter by `depositId` to check one deposit.
+- `refund.successful` — refund completed. Includes `refundAmount` (the amount sent on-chain), `refundNetworkFee` and `refundHash`
+- `refund.failed` — the review rejected the refund, or a refund attempt failed. After a rejection, refund history shows `canceled` and no funds are sent
 
-The sequence shows a refund of a canceled deposit and each refund outcome.
+**Track refund status:** [`POST /api/v4/main-account/refund-history`](/api-reference/account-wallet/get-refund-history) returns every refund on the account with its current status. A refund with status `canceled` is final. A refund with status `in_process` is not final yet, including after a `refund.failed` webhook caused by an internal failure. Filter by `depositId` to check one deposit. The `refundAmount` in refund history is the deposit amount; the amount sent on-chain and the network fee are only in `refund.successful`.
+
+The sequence shows a refund of a deposit in status 9 and each refund outcome.
 
 ```mermaid
 sequenceDiagram
@@ -424,7 +435,7 @@ sequenceDiagram
     participant P as Partner backend
     participant W as WhiteBIT API
 
-    W->>P: webhook: deposit.canceled (status 4)
+    Note over P,W: Frozen (21, 27 or 28), rejected,<br/>support allowed a refund: status 9
     Note over P,W: Status 9 sends no webhook:<br/>read the deposit from the history
     P->>U: Request an external<br/>refund address
     U-->>P: Address (+ memo<br/>if applicable)
@@ -433,13 +444,13 @@ sequenceDiagram
         W-->>P: 400 — transaction not refundable
     else Accepted
         W-->>P: 200 — refund request accepted
-        alt Refund completed
-            W->>P: webhook: refund.successful<br/>(refund amount, network fee,<br/>transaction hash)
-        else Refund failed
+        Note over P,W: AML screening and operator review.<br/>Refund history: in_process
+        alt Approved and sent
+            W->>P: webhook: refund.successful<br/>(amount sent, network fee,<br/>transaction hash)
+        else Rejected or failed
             W->>P: webhook: refund.failed
             P->>W: POST /api/v4/main-account/refund-history<br/>(filtered by deposit)
             W-->>P: status canceled (final)<br/>or in_process (not final yet)
-            Note over P,W: Address without the required<br/>network or asset, or failed<br/>address validation — use<br/>a different address
         end
     end
 ```

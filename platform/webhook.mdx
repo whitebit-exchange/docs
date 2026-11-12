@@ -120,7 +120,7 @@ All web-hook requests are performing with
 - **deposit.accepted**, **deposit.updated**, **deposit.processed**, **deposit.canceled**. These methods report the stages of a deposit; see [WhiteBIT deposit to main balance](#whitebit-deposit-to-main-balance). Not every stage sends a webhook: a deposit canceled with status 9 sends none, so poll the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) as well.
 - **deposit.aml_frozen**. Sent when a deposit enters status 21; see [Deposit and withdrawal status codes](#deposit-and-withdrawal-status-codes).
 - **withdraw.unconfirmed**, **withdraw.pending**, **withdraw.canceled**, **withdraw.successful**. These methods report each stage of a withdrawal; see [WhiteBIT withdraw from main balance](#whitebit-withdraw-from-main-balance).
-- **refund.successful**, **refund.failed**. These methods report the result of a deposit refund; see [WhiteBIT refund successful](#whitebit-refund-successful) and [WhiteBIT refund failed](#whitebit-refund-failed).
+- **refund.successful**, **refund.failed**. These methods report the result of a deposit refund to the webhook of the account that owns the deposit; see [WhiteBIT refund successful](#whitebit-refund-successful) and [WhiteBIT refund failed](#whitebit-refund-failed).
 
 **id** - string. Uuid to identify every request.
 
@@ -266,7 +266,7 @@ Performed when a deposit is canceled with status 4. A deposit canceled with stat
     "status": 4, // transaction status, 4 - canceled
     "ticker": "USDT_ETH", // deposit currency ticker
     "transactionHash": "transaction hash", // deposit transaction hash
-    "uniqueId": "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85", // transaction UUID of the deposit; pass it as transactionId to refund-deposit
+    "uniqueId": "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85", // transaction UUID of the deposit
     "confirmations": {
       // if transaction has confirmations info it will display here
       "actual": 1, // current block confirmations
@@ -292,8 +292,8 @@ Deposit status codes:
 | Code | Status | Description |
 |---|---|---|
 | 3, 7 | Successful | Deposit successful; final state |
-| 4 | Canceled | Deposit canceled; final state (refund may be available) |
-| 9 | Canceled | Deposit canceled; final state. No webhook is sent; read the status from the history. A deposit in status 9 that was never frozen cannot be refunded through the API |
+| 4 | Canceled | Deposit canceled; final state. Cannot be refunded through the API |
+| 9 | Canceled | Deposit canceled; final state. No webhook is sent; read the status from the history. Only a deposit that was frozen (status 21, 27 or 28) before it was canceled can be refunded through the API; see [Refund deposit](/api-reference/account-wallet/refund-deposit) |
 | 15 | Pending | Deposit detected, awaiting confirmations |
 | 21 | On hold | Deposit held for review; not final |
 | 22 | Uncredited | Detected, not credited yet; not final. A deposit below the network minimum waits in this status: deposits to the same address add up and are credited together once the total reaches the minimum; otherwise the deposit is canceled with status 9 after 7 days |
@@ -459,7 +459,7 @@ Performed when withdraw was completed. Request example:
 
 ### WhiteBIT refund successful
 
-Triggered after the system successfully completes a refund. `memo` is the destination memo sent in the [refund request](/api-reference/account-wallet/refund-deposit). Unlike deposit and withdraw webhooks, which send `""`, refund webhooks send `null` when no memo was provided. Request example:
+Triggered after the system successfully completes a refund. In this webhook, `refundAmount` is the amount sent on-chain and `refundNetworkFee` is the network fee. Refund history returns neither value: its `refundAmount` is the deposit amount. `memo` is the destination memo sent in the [refund request](/api-reference/account-wallet/refund-deposit). Unlike deposit and withdraw webhooks, which send `""`, refund webhooks send `null` when no memo was provided. Request example:
 
 ```json
 {
@@ -486,7 +486,7 @@ Triggered after the system successfully completes a refund. `memo` is the destin
 
 ### WhiteBIT refund failed
 
-Triggered after the system fails to complete a refund. The system rejects the refund if the destination address does not support the required network or asset, or if validation fails. Use a different address or contact support. Request example:
+Triggered when a refund fails: the review rejects the refund, or a refund attempt fails. After a rejection, [Get refund history](/api-reference/account-wallet/get-refund-history) shows the refund as `canceled`, which is final, and no funds are sent. Request example:
 
 ```json
 {
@@ -509,7 +509,7 @@ Triggered after the system fails to complete a refund. The system rejects the re
 ```
 
 <Note>
-`refund.failed` is also sent when a refund attempt fails for an internal reason. In that case, [Get refund history](/api-reference/account-wallet/get-refund-history) still shows the refund as `in_process` and the refund is not final. A refund with status `canceled` in the refund history is final.
+When a refund attempt fails for an internal reason, [Get refund history](/api-reference/account-wallet/get-refund-history) still shows the refund as `in_process` and the refund is not final. A refund with status `canceled` in the refund history is final.
 </Note>
 
 ## What's Next

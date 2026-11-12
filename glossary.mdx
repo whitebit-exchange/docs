@@ -448,7 +448,7 @@ The order-matching rule used by the [matching engine](#matching-engine): better-
 
 <AccordionGroup>
 <Accordion title="Refund">
-Refund returns funds for a canceled [deposit](#whitebit-deposit-to-main-balance). The refund address must support the same network and [asset](#assets) as the original deposit. The refund address cannot be a WhiteBIT address. Use the [Refund deposit endpoint](/api-reference/account-wallet/refund-deposit) to request a refund.
+Refund returns a canceled crypto [deposit](/platform/webhook#whitebit-deposit-to-main-balance) to an external address on the same network and [asset](#assets) that is not a WhiteBIT deposit address. The [Refund deposit endpoint](/api-reference/account-wallet/refund-deposit) accepts only a deposit that WhiteBIT froze and then canceled with status 9, after WhiteBIT support allows a refund for the deposit.
 </Accordion>
 
 <Accordion title="Retail Price Improvement (RPI)">
