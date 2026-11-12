@@ -42,23 +42,28 @@ sequenceDiagram
     participant W as WhiteBIT API
     participant B as Blockchain
 
-    P->>W: POST /api/v4/main-account/create-new-address
-    alt 201
-        W-->>P: New address, or new<br/>memo on memo networks
-        P->>P: Store the address<br/>against the end user
-        P->>U: Show deposit address<br/>+ QR
-    else Timeout or 5xx
-        Note over P,W: Address may exist,<br/>show none, request a new one
+    P->>P: Look up the stored<br/>address for the end user,<br/>currency and network
+    alt Address stored
+        P->>U: Show the stored<br/>address (+ memo)<br/>+ QR
+    else No address stored
+        P->>W: POST /api/v4/main-account/<br/>create-new-address
+        alt 201
+            W-->>P: New address, or new<br/>memo on memo networks
+            P->>P: Store the address<br/>and memo against<br/>the end user
+            P->>U: Show deposit address<br/>(+ memo) + QR
+        else Timeout or 5xx
+            Note over P,W: Address may exist,<br/>show none, request a new one
+        end
     end
     U->>B: Send funds to address
     B-->>W: Deposit detected
     W->>P: webhook: deposit.accepted<br/>(status 15, not always sent)
     W->>P: webhook: deposit.updated<br/>(confirmation count)
-    W->>P: webhook: deposit.processed<br/>(status 3 — terminal)
+    W->>P: webhook: deposit.processed<br/>(status 3 or 7, terminal)
     P->>P: Match by address<br/>(+ memo if applicable)<br/>/ uniqueId →<br/>credit customer
 ```
 
-See [Deposit address generation](#deposit-address-generation) for endpoint detail.
+See [Unique address per user](#unique-address-per-user) for endpoint detail.
 
 ### UC2 — EEA crypto withdrawal with Travel Rule
 
@@ -97,7 +102,7 @@ See [Create a withdrawal](#create-a-withdrawal) for endpoint detail.
 
 ### UC3 — Crypto payout with conversion
 
-When the partner holds one currency on the Main balance but needs to send another, transfer the source currency to the Trade balance and convert it. Then transfer the converted amount back to the Main balance and submit the withdrawal. Convert through the API uses the Trade balance for both legs; see [Convert](/platform/convert#balances).
+When the partner holds one currency on the Main balance but needs to send another, transfer the source currency to the Trade balance, wait until the amount shows, and convert it. Then transfer the converted amount back to the Main balance, wait until the amount shows, and submit the withdrawal. Convert through the API uses the Trade balance for both legs; see [Convert](/platform/convert#balances).
 
 ```mermaid
 sequenceDiagram
@@ -108,16 +113,24 @@ sequenceDiagram
 
     P->>W: POST /api/v4/main-account/balance
     W-->>P: Available balance
-    P->>W: POST /api/v4/main-account/transfer (Main to Trade, source currency)
-    W-->>P: HTTP 201
+    P->>W: POST /api/v4/main-account/transfer<br/>(Main to Trade, source currency)
+    W-->>P: 201, empty array<br/>(accepted, not completed)
+    loop Until the amount shows on Trade,<br/>else manual check
+        P->>W: POST /api/v4/trade-account/balance
+        W-->>P: Trade balance
+    end
     P->>W: POST /api/v4/convert/estimate
     W-->>P: Quote identifier + rate + expiry
     P->>W: POST /api/v4/convert/confirm
-    W-->>P: Converted amount
-    P->>W: POST /api/v4/main-account/transfer (Trade to Main, converted currency)
-    W-->>P: HTTP 201
-    P->>W: POST /api/v4/main-account/withdraw (converted currency, destination address)
-    W-->>P: HTTP 201
+    W-->>P: 200, final amounts
+    P->>W: POST /api/v4/main-account/transfer<br/>(Trade to Main, converted currency)
+    W-->>P: 201, empty array<br/>(accepted, not completed)
+    loop Until the amount shows on Main,<br/>else manual check
+        P->>W: POST /api/v4/main-account/balance
+        W-->>P: Main balance
+    end
+    P->>W: POST /api/v4/main-account/withdraw<br/>(converted currency,<br/>destination address)
+    W-->>P: 201, empty array
     W->>B: On-chain broadcast
     W->>P: webhook: withdraw.successful (terminal)
 ```
@@ -151,6 +164,8 @@ See [Express Withdraw payments](#express-withdraw-payments) for endpoint detail.
 Generate deposit addresses, track the deposit lifecycle, handle refunds, and clear Travel Rule holds.
 
 ## Deposit address generation
+
+This section covers one shared wallet per ticker and network. For a customer's own address, see [Unique address per user](#unique-address-per-user).
 
 Generate a deposit address by calling `POST /api/v4/main-account/address`. See the [API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address) for the full endpoint specification.
 
@@ -243,7 +258,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 
 ## Unique address per user
 
-The `POST /api/v4/main-account/address` endpoint above returns the same address for the same ticker and network combination on every call. For payment provider integrations that assign a unique deposit address per end user, use `POST /api/v4/main-account/create-new-address` instead — each successful call generates a fresh address, even when the previous address is unused; on memo networks, each call returns the same address with a new memo. The address is stored before the response is sent: after a timeout or a `5xx` response, the address may already exist and still credit deposits to the account, but no endpoint returns the address. Store the address before showing it, and after a timeout show no address and request a new one. See the [API Reference](/api-reference/account-wallet/create-new-address-for-deposit) for the full specification.
+The `POST /api/v4/main-account/address` endpoint above returns the same address for the same ticker and network combination on every call. For payment provider integrations that assign a unique deposit address per end user, use `POST /api/v4/main-account/create-new-address` instead — each successful call generates a fresh address, even when the previous address is unused; on memo networks, each call returns the same address with a new memo. The address is stored before the response is sent: after a timeout or a `5xx` response, the address may already exist and still credit deposits to the account, but no endpoint returns the address. Store the address before showing it, and after a timeout show no address and request a new one. Before calling the endpoint, look up the address stored for the end user, the currency, and the network. Call the endpoint only when none is stored (see [Address issuance and end-user mapping](/guides/caas-integration#address-issuance-and-end-user-mapping)). See the [API Reference](/api-reference/account-wallet/create-new-address-for-deposit) for the full specification.
 
 <Warning>
   The `/create-new-address` endpoint is not available by default and returns `403` until access is enabled. Request access through the account manager. Access to the endpoint also removes the address limit.
@@ -302,7 +317,7 @@ The `POST /api/v4/main-account/address` endpoint above returns the same address 
 
 After funds arrive at a generated deposit address, the deposit passes through a defined sequence of states before crediting to the Main balance.
 
-1. Address generated (`POST /api/v4/main-account/address`)
+1. Address issued: `POST /api/v4/main-account/create-new-address` for a customer's own address (a new memo on memo networks), or `POST /api/v4/main-account/address` for one shared wallet per ticker and network (see [Unique address per user](#unique-address-per-user))
 2. Funds sent by the external party — mempool detection begins
 3. Confirmation tracking begins — the `deposit.accepted` webhook may fire while `confirmations.actual` is below `confirmations.required`; not every crypto deposit sends `deposit.accepted`, so do not wait for the event
 4. Each confirmation-count change fires the `deposit.updated` webhook with the new `confirmations.actual` — this event tracks progress; it does not signal completion
@@ -524,7 +539,7 @@ Two withdrawal endpoints are available:
 | `address` | string | Destination wallet address |
 | `uniqueId` | string | Unique transaction identifier — any unique string up to 255 characters per request. The endpoint does not validate the value as a UUID. |
 
-**Optional parameters:** `network` (required for multi-network currencies), `memo` (for currencies requiring a memo or destination tag).
+**Optional parameters:** `network` (for a multi-network currency, send it on every withdrawal, with the value from the [Asset Status](/api-reference/market-data/asset-status-list) response; when `network` is omitted, the default for USDT is `ERC20`), `memo` (for currencies requiring a memo or destination tag).
 
 **Rate limit:** subject to platform-level rate limits — see [Rate Limits](/api-reference/rate-limits) for current enforced values.
 
@@ -592,7 +607,7 @@ See [Travel Rule — Legacy format](/concepts/travel-rule#legacy-format-withdraw
 
 After a withdrawal request is submitted, the system validates the request and begins processing.
 
-The `POST /api/v4/main-account/withdraw` endpoint returns HTTP 201 when validation succeeds. **The platform confirms and processes API-initiated withdrawals immediately** — the signed request is the authentication. There is no interactive 2FA step between the POST response and the processing start.
+The `POST /api/v4/main-account/withdraw` endpoint returns HTTP 201 when validation succeeds. The 201 body is an empty array and carries no withdrawal ID, so follow the withdrawal by the `uniqueId` sent in the request, in the [deposit and withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history). **The platform confirms and processes API-initiated withdrawals immediately** — the signed request is the authentication. There is no interactive 2FA step between the POST response and the processing start.
 
 **Exceptions to immediate processing:**
 
@@ -809,9 +824,9 @@ Common synchronous rejections from `/fiat-deposit-url` and the recovery for each
 
 Create a fiat withdrawal using the same `POST /api/v4/main-account/withdraw` endpoint used for crypto, specifying a fiat ticker.
 
-The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Pass the currency in `ticker` (for example `EUR` or `USD`) and the payment provider in `provider` (for example `VISAMASTER`). Do not pass `USD_VISAMASTER` or `EUR_VISAMASTER` as `ticker`.
+The same withdrawal endpoints apply (`/withdraw` and `/withdraw-pay`). Pass the currency in `ticker` (for example `EUR` or `USD`) and the payment provider from the [Asset Status](/api-reference/market-data/asset-status-list) response in `provider` (for example `VISAMASTER`). Do not pass `USD_VISAMASTER` or `EUR_VISAMASTER` as `ticker`.
 
-A bank payout (IBAN, SEPA) goes only to the partner's own KYB'd bank account. Card payouts use the card token flow below.
+A bank payout (IBAN, SEPA) goes only to the partner's own KYB'd bank account. The IBAN goes in `address`. The [Create withdraw request](/api-reference/account-wallet/create-withdraw-request) reference lists the providers that also need `bankBic`, and the [On/Off-Ramp guide](/guides/on-off-ramp-integration#off-ramp-flow-crypto-in-fiat-out) shows a complete SEPA request body. Card payouts use the card token flow below.
 
 For a card withdrawal with `provider: "VISAMASTER"`, pass the card token returned by [Issue card token](/api-reference/account-wallet/issue-card-token) in `address`. The Issue card token call authenticates with a JWT from [Issue JWT token](/api-reference/account-wallet/issue-jwt-token). The Issue card token reference page lists the required headers. The API does not accept a card number (PAN) and does not read a card token from `beneficiary`.
 
@@ -1050,7 +1065,7 @@ Convert the source currency before withdrawing, using the Convert service.
 
 ## Conversion in the withdrawal flow
 
-When the currency held in Main balance differs from the currency the end user needs to withdraw, convert the funds before the withdrawal. Convert through the API uses the Trade balance for both legs. Transfer the source currency from Main to Trade before the conversion, and transfer the converted amount back to Main before the withdrawal. See [Convert balances](/platform/convert#balances).
+When the currency held in Main balance differs from the currency the end user needs to withdraw, convert the funds before the withdrawal. Convert through the API uses the Trade balance for both legs. Transfer the source currency from Main to Trade and wait until the amount shows on the Trade balance before the conversion. Then transfer the converted amount back to Main and wait until the amount shows on the Main balance before the withdrawal. See [Convert balances](/platform/convert#balances).
 
 ## Step-by-step flow
 
@@ -1061,7 +1076,7 @@ When the currency held in Main balance differs from the currency the end user ne
     **Endpoint:** `POST /api/v4/main-account/balance` — [API Reference](/api-reference/account-wallet/main-balance)
   </Step>
   <Step title="Transfer the source currency to Trade">
-    Transfer the source currency from Main to Trade. Request the estimate after the transferred amount shows on the [Trade balance](/api-reference/trading/trading-balance). The transfer request takes no idempotency key, and a transfer can still complete after a timeout or a `5xx`, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) for the transfer. A matching record means the transfer completed. No record can also mean the transfer is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual check, as the between-balances row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) describes.
+    Transfer the source currency from Main to Trade. The transfer returns `201` with an empty array (`[]`). The `201` means accepted, not completed. Request the estimate after the transferred amount shows on the [Trade balance](/api-reference/trading/trading-balance) (`POST /api/v4/trade-account/balance`). The transfer request takes no idempotency key, and a transfer can still complete after a timeout or a `5xx`, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) for the transfer. A matching record means the transfer completed. No record can also mean the transfer is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual check, as the between-balances row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) describes.
 
     **Endpoint:** `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
   </Step>
@@ -1076,7 +1091,7 @@ When the currency held in Main balance differs from the currency the end user ne
     **Endpoint:** `POST /api/v4/convert/confirm` — [API Reference](/api-reference/convert/convert-confirm)
   </Step>
   <Step title="Transfer the converted amount to Main">
-    Transfer the converted currency from Trade to Main. The withdrawal endpoints debit the Main balance, so withdraw after the transfer shows on the Main balance.
+    Transfer the converted currency from Trade to Main. The withdrawal endpoints debit the Main balance, so withdraw after the transferred amount shows on the [Main balance](/api-reference/account-wallet/main-balance) (`POST /api/v4/main-account/balance`). A transfer that never shows is a manual check, as the between-balances row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) describes.
 
     **Endpoint:** `POST /api/v4/main-account/transfer` — [API Reference](/api-reference/account-wallet/transfer-between-balances)
   </Step>
@@ -1125,19 +1140,30 @@ sequenceDiagram
     Partner->>WB: POST /api/v4/main-account/balance
     WB-->>Partner: Main balance for the source currency
     Partner->>WB: POST /api/v4/main-account/transfer (Main to Trade)
-    WB-->>Partner: transfer queued
+    WB-->>Partner: 201, empty array (accepted, not completed)
+    loop Until the amount shows on Trade,<br/>else manual check
+        Partner->>WB: POST /api/v4/trade-account/balance
+        WB-->>Partner: Trade balance
+    end
     Partner->>WB: POST /api/v4/convert/estimate
     WB-->>Partner: conversion quote with rate and expiry
     alt confirmed before quote expiry
         Partner->>WB: POST /api/v4/convert/confirm
-        WB-->>Partner: final converted amounts
+        WB-->>Partner: 200, final amounts
     else quote expired
         Partner->>WB: POST /api/v4/convert/estimate (new quote)
+        WB-->>Partner: new quote with rate and expiry
+        Partner->>WB: POST /api/v4/convert/confirm (new quote)
+        WB-->>Partner: 200, final amounts
     end
     Partner->>WB: POST /api/v4/main-account/transfer (Trade to Main)
-    WB-->>Partner: transfer queued
+    WB-->>Partner: 201, empty array (accepted, not completed)
+    loop Until the amount shows on Main,<br/>else manual check
+        Partner->>WB: POST /api/v4/main-account/balance
+        WB-->>Partner: Main balance
+    end
     Partner->>WB: POST /api/v4/main-account/withdraw
-    WB-->>Partner: withdrawal accepted
+    WB-->>Partner: 201, empty array (withdrawal creation started)
     WB->>Partner: withdraw.successful webhook
 ```
 
