@@ -3288,7 +3288,7 @@ paths:
         - Deposit
       summary: Create new address for deposit
       description: |
-        The endpoint creates a new address even when the last created address is not used; on memo networks, each call returns the same address with a new memo. The endpoint is not available by default and returns `403` until access is enabled; request access through the account manager. Access to the endpoint also removes the address limit, so the number of addresses is not capped. The API provides no way to close or deactivate an issued address, and an issued address keeps crediting deposits to the account with no expiry.
+        The endpoint creates a new address even when the last created address is not used; on memo networks, each call returns the same address with a new memo. The endpoint is not available by default and returns `403` until access is enabled; request access through the account manager. The number of addresses is not capped. The API provides no way to close or deactivate an issued address, and an issued address keeps crediting deposits to the account with no expiry.
 
         <Warning>
         After a timeout or a `5xx` response, the address may already exist and credit deposits to the account, but no endpoint returns the address, including [Get cryptocurrency deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address). Store the address from the response before showing the address to the end user. After a timeout or a `5xx` response, show no address and request a new one, which creates another address.
