@@ -261,7 +261,7 @@ For Go and PHP examples, see [SDKs](/sdks).
 The `POST /api/v4/main-account/address` endpoint above returns the same address for the same ticker and network combination on every call. For payment provider integrations that assign a unique deposit address per end user, use `POST /api/v4/main-account/create-new-address` instead — each successful call generates a fresh address, even when the previous address is unused; on memo networks, each call returns the same address with a new memo. The address is stored before the response is sent: after a timeout or a `5xx` response, the address may already exist and still credit deposits to the account, but no endpoint returns the address. Store the address before showing it, and after a timeout show no address and request a new one. Before calling the endpoint, look up the address stored for the end user, the currency, and the network. Call the endpoint only when none is stored (see [Address issuance and end-user mapping](/guides/caas-integration#address-issuance-and-end-user-mapping)). See the [API Reference](/api-reference/account-wallet/create-new-address-for-deposit) for the full specification.
 
 <Warning>
-  The `/create-new-address` endpoint is not available by default and returns `403` until access is enabled. Request access through the account manager. Access to the endpoint also removes the address limit.
+  The `/create-new-address` endpoint is not available by default and returns `403` until access is enabled. Request access through the account manager. The number of addresses is not capped.
 </Warning>
 
 <Note>
