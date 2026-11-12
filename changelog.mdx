@@ -5,6 +5,18 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ---
 
 
+<Update label="November 12, 2026">
+## Deposit refunds: eligible deposits, support approval, and review
+**Only a crypto deposit that was frozen and then canceled with status 9 can be refunded through the API, and every refund passes an operator review**
+
+Refund deposit accepts a deposit in status 9 that was frozen for an AML review (status 21) or under the Travel Rule (status 27 or 28) before it was canceled, after WhiteBIT support allows a refund for it; a deposit in status 4 cannot be refunded through the API. A `200` response means the request is accepted: every refund passes AML screening and an operator review before WhiteBIT sends it on-chain, refund history shows `in_process` until then, and a rejected refund shows `canceled`, sends `refund.failed` and sends no funds. The endpoint page now lists the reasons for `400` `Transaction not refundable` and documents `423` for concurrent requests from the same account. Refund history and refund webhooks cover only the account that owns the deposit, and the `refundAmount` in refund history is the deposit amount. Earlier documentation offered a refund for deposits in status 4 and named the `deposit.canceled` webhook as a source of `transactionId`; start the refund flow from a status-9 deposit in the deposit history instead.
+
+<CardGroup cols={2}>
+  <Card title="Refund deposit" href="/api-reference/account-wallet/refund-deposit" icon="rotate-left" horizontal/>
+  <Card title="Refund flow" href="/guides/payment-integration#refund-flow" icon="list" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="November 11, 2026">
 ## WebSocket rate limits: connection limit per account and error codes
 **The limit of 1,000 new connections per minute is counted per account, and error codes `10000` and `10001` identify the exhausted request budget**
