@@ -71,7 +71,7 @@ paths:
 
         An unknown or non-existent `ticker` is not an error: the endpoint returns a zero balance (`{"main_balance": "0"}`) for it. Omitting `ticker` returns balances for every currency.
 
-        `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
+        `main_balance` already includes deposits credited before the network fully confirms them. The part of it that is still held back is reported separately as `pending_deposit_amount`: that amount is tradable but cannot be withdrawn to a blockchain address, moved to the collateral balance, or transferred from a sub-account to its main account until the network confirms the deposit. To see the held amount across the whole account, and what remains withdrawable, use [Withdrawable balance](/api-reference/account-wallet/withdrawable-balance).
 
         In the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history), a deposit credited before full confirmation has status 29 until the network fully confirms it (status 3 or 7, `deposit.processed` webhook).
 
@@ -123,7 +123,7 @@ paths:
                     pending_deposit_amount:
                       type: string
                       description: |
-                        Part of `main_balance` that comes from deposits credited before the network fully confirmed them. Tradable, but not withdrawable until confirmation completes. `0` when nothing is held back.
+                        Part of `main_balance` that comes from deposits credited before the network fully confirmed them. Tradable, but until confirmation completes it cannot be withdrawn or, on a sub-account, transferred to the main account. `0` when nothing is held back.
               example:
                 BSV:
                   main_balance: "0"
@@ -168,7 +168,9 @@ paths:
 
         Amounts ending in `Stable` are expressed in a stable-coin equivalent, so figures for different currencies can be summed. `assets` breaks the free amount down per currency, in that currency's own units.
 
-        The held amount is tradable: it can be moved to the trade balance and traded. It cannot be withdrawn, sent as a WhiteBIT Code, or moved to the collateral balance until the network confirms the deposit. Two limits apply at once — the free amount of the currency itself, shown in `assets`, and the free value of the whole account, shown in `availableBalanceStable`. Whichever is smaller decides.
+        The held amount is tradable: it can be moved to the trade balance and traded. It cannot be withdrawn to a blockchain address or moved to the collateral balance until the network confirms the deposit. Two limits apply at once — the free amount of the currency itself, shown in `assets`, and the free value of the whole account, shown in `availableBalanceStable`. Whichever is smaller decides.
+
+        A sub-account cannot transfer the held amount to its main account until the network confirms the deposit.
 
         `assets` lists a currency when it has a free amount, and lists it with `"0"` when the currency is fully held back. Currencies with neither a balance nor a hold are omitted.
 
@@ -238,10 +240,10 @@ paths:
         - Deposit
       summary: Get cryptocurrency deposit address
       description: |
-        Get an existing cryptocurrency deposit address for a given currency and network.
+        Get the cryptocurrency deposit address for a given currency and network. The endpoint creates the address when none exists, and repeated calls return the same address. All tokens on one network share the address for that network. The endpoint does not return addresses created with [Create new address for deposit](/api-reference/account-wallet/create-new-address-for-deposit).
 
         <Note>
-        Sub-accounts use this endpoint with a sub-account API key once sub-account deposits are enabled for the account. Crypto deposits to sub-accounts are disabled by default. To enable deposits, contact the assigned account manager.
+        Sub-accounts use this endpoint with a sub-account `type: 2` API key once the assigned account manager enables sub-account crypto deposits, which are disabled by default. The key's `/api/v4/main-account/address` URL starts as `enable: false`, like every URL on a new sub-account key; enable the URL with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) before the first call.
         </Note>
 
         <Warning>
@@ -317,10 +319,10 @@ paths:
                             description: Percent of deposit as fee
                       maxAmount:
                         type: string
-                        description: Max amount of deposit accepted by the exchange. Deposits exceeding this amount are rejected.
+                        description: Maximum deposit amount. Crediting a crypto deposit does not check this maximum.
                       minAmount:
                         type: string
-                        description: Min amount of deposit accepted by the exchange. Deposits below this amount are rejected.
+                        description: Minimum deposit amount. A crypto deposit below the network minimum is not rejected. The deposit is recorded with status 22 (uncredited), deposits to the same address add up, and the deposits are credited together once the total reaches the minimum. Deposits that stay below the minimum are canceled with status 9 after 7 days.
               example:
                 account:
                   address: "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN"
@@ -1512,13 +1514,17 @@ paths:
         - Deposit
       summary: Refund a deposit
       description: |
-        Refund a deposit.
+        Refund a crypto deposit to an external address.
 
-        The system processes refunds only for deposits with status `canceled`.
+        Only a deposit in status 9 can be refunded, and only when the deposit was frozen before it was canceled: held for an AML review (status 21) or under the Travel Rule (status 27 or 28). A refund becomes available in this order: the deposit is frozen, WhiteBIT rejects the deposit after review and support allows a refund, and the deposit moves to status 9. Until support allows a refund, the endpoint returns `400` for the deposit, even when the request is valid. When support handles the refund itself, the endpoint keeps returning `400` for that deposit.
 
-        Obtain `transactionId` from the `deposit.canceled` webhook (`uniqueId`) or from the deposit/withdraw history in the WhiteBIT interface after support confirms refund availability.
+        A deposit in status 4, a deposit in status 9 that was never frozen, and a fiat deposit cannot be refunded through this endpoint.
 
-        The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT address. The refund address can differ from the original deposit sender address.
+        Obtain `transactionId` from the deposit/withdraw history in the WhiteBIT interface. A deposit in status 9 sends no webhook.
+
+        The refund address must support the same network and asset as the original deposit. The refund address must not be a WhiteBIT deposit address. The refund address can differ from the original deposit sender address.
+
+        The request needs no email code or 2FA confirmation. A `200` response means the refund request is accepted, not that the refund is sent: every refund passes AML screening and an operator review, and WhiteBIT sends the refund on-chain only after approval. Until then, [Get refund history](/api-reference/account-wallet/get-refund-history) shows the refund as `in_process` with `refundHash` `null`. When the review rejects the refund, the refund history shows `canceled`, the `refund.failed` webhook is sent, and no funds are sent.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -1529,7 +1535,7 @@ paths:
         </Note>
 
         <Note>
-        Refund processing does not complete instantly. Use the [refund.successful](/platform/webhook#whitebit-refund-successful) and [refund.failed](/platform/webhook#whitebit-refund-failed) webhooks to receive refund status updates, or check the current status with [Get refund history](/api-reference/account-wallet/get-refund-history).
+        Refund processing does not complete instantly. Use the [refund.successful](/platform/webhook#whitebit-refund-successful) and [refund.failed](/platform/webhook#whitebit-refund-failed) webhooks to receive refund status updates, or check the current status with [Get refund history](/api-reference/account-wallet/get-refund-history). Refund webhooks go only to the webhook of the account that owns the deposit.
         </Note>
       operationId: refundDeposit
       requestBody:
@@ -1548,12 +1554,12 @@ paths:
                   type: string
                   format: uuid
                   description: |
-                    Transaction UUID of the deposit. Obtain from the [deposit.canceled](/platform/webhook) webhook (`uniqueId` field) or from the deposit/withdraw history in the WhiteBIT interface.
+                    Transaction UUID of the deposit. Obtain it from the deposit/withdraw history in the WhiteBIT interface: a deposit in status 9 sends no webhook.
                   example: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
                 address:
                   type: string
                   description: |
-                    Destination wallet address for the refund. The address must support the same network and asset as the original deposit. Cannot be a WhiteBIT address. Does not have to match the original deposit address.
+                    Destination wallet address for the refund. The address must support the same network and asset as the original deposit. Cannot be a WhiteBIT deposit address. Does not have to match the original deposit address.
                   example: "0x1234567890abcdef1234567890abcdef12345678"
                 memo:
                   type: string
@@ -1595,7 +1601,18 @@ paths:
                 example:
                   id: "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85"
         "400":
-          description: Validation fails or transaction does not qualify for refund
+          description: |
+            Validation fails or the deposit does not qualify for a refund.
+
+            The endpoint returns `Transaction not refundable` when:
+            - `transactionId` is unknown, is not a deposit of the account that sends the request, or the deposit is not in status 9.
+            - The deposit was never frozen.
+            - WhiteBIT support has not allowed a refund for the deposit, or support handles the refund itself.
+            - An active refund of the deposit already exists.
+            - Refunds are disabled for the currency, or the deposit amount is below the currency's minimum.
+            - The deposit is not a crypto deposit.
+
+            A refund address that is invalid for the network or is a WhiteBIT deposit address, and an invalid `memo`, also fail the request with `400`.
           content:
             application/json:
               schema:
@@ -1614,6 +1631,9 @@ paths:
                     errors:
                       transactionId: ["The transaction id field is required."]
                       address: ["The address field is required."]
+        "423":
+          description: |
+            Another refund request from the same account is in progress. The endpoint processes refund requests from the same account one at a time: a concurrent request waits and fails with `423` if the wait runs out.
 
   /api/v4/main-account/refund-history:
     post:
@@ -1621,7 +1641,7 @@ paths:
         - Deposit
       summary: Get refund history
       description: |
-        The endpoint returns the account's deposit refunds, including refunds requested through the WhiteBIT interface or through the API.
+        The endpoint returns the account's deposit refunds, including refunds requested through the WhiteBIT interface or through the API. Each account sees only its own refunds: a main account does not see the refunds of its sub-accounts, and no endpoint combines them.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -1780,7 +1800,7 @@ paths:
         The endpoint creates withdraw for the specified ticker.
 
         <Note>
-        A withdrawal created with a [sub-account](/glossary#sub-account) API key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and is held until the main account approves it. List the pending withdrawals with [`POST /api/v4/sub-account/withdraw/unconfirmed-list`](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and approve each one by transaction id with [`POST /api/v4/sub-account/withdraw/confirm`](/api-reference/sub-accounts/confirm-sub-account-withdrawal).
+        A withdrawal created with a [sub-account](/glossary#sub-account) API key does not settle immediately: the transaction enters `unconfirmed_by_main_account` status and waits, with no webhook and no expiry, until the main account approves it. List the pending withdrawals with [`POST /api/v4/sub-account/withdraw/unconfirmed-list`](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) and approve each one by transaction id with [`POST /api/v4/sub-account/withdraw/confirm`](/api-reference/sub-accounts/confirm-sub-account-withdrawal). After confirmation, the withdrawal follows the standard path, and the first webhook event is `withdraw.unconfirmed` (status 5).
         </Note>
 
         <Warning>
@@ -2335,8 +2355,8 @@ paths:
             Additional account-state outcomes are also returned here with `code: 0`
             (the message is localized, so match on the condition rather than the exact string):
             - **Daily / monthly withdrawal limit reached** — on field `amount`.
-            - **Withdrawals temporarily restricted** — after a security event (e.g. password
-              change); on field `error`, e.g. `Withdrawals restricted until {time}`.
+            - **Withdrawals temporarily restricted** — for 72 hours after a password change or a
+              2FA setting change; on field `error`, e.g. `Withdrawals restricted until {time}`.
             - **Address blocked by compliance** — the request is accepted but the withdrawal
               transitions to an `AML_FROZEN` state (no distinct error body); check the request
               status by `uniqueId` in deposit/withdraw history.
@@ -2381,8 +2401,9 @@ paths:
         "401":
           description: |
             The API key is not authorized for this endpoint. Occurs with a [sub-account](/glossary#sub-account)
-            key whose `/api/v4/main-account/withdraw` URL is still `enable: false`. Enable it with
-            [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key), then retry.
+            key whose `/api/v4/main-account/withdraw` URL is still `enable: false`, the default for every URL on a new sub-account key.
+            Enable it with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) (withdrawal URLs
+            can be enabled only on a `type: 2` key), then retry.
           content:
             application/json:
               schema:
@@ -2666,12 +2687,19 @@ paths:
         </Note>
 
         <Warning>
-        The request takes no idempotency key. After a timeout or a `5xx` response, check
+        The request takes no idempotency key, and two identical requests move the funds twice. A `201` response means
+        WhiteBIT accepted the transfer: the funds move after the response, and the response carries no transfer
+        identifier. After a timeout or a `5xx` response, the transfer can still complete, so check
         [Get transfer history](/api-reference/account-wallet/get-transfer-history) for a record whose `from_balance`,
         `to_balance`, `currency` and `amount` match the request, created after the failed request was sent. A transfer
-        between the spot and collateral balances appears as two records, `spot → main` and `main → collateral`. The history
-        lists a transfer only after the transfer completes, so repeat the check before resending, and resend only when no
-        matching record exists.
+        between the spot and collateral balances appears as two records, `spot → main` and `main → collateral`. A matching
+        record means the transfer completed. A failed transfer leaves no record, and no record can also mean the transfer
+        is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual
+        check.
+
+        The caller cannot attach its own reference to a transfer, so the match is ambiguous when two identical transfers are sent
+        close together. An integration that transfers per purchase stores its own record of each transfer before the
+        call, and treats an ambiguous match as a manual check, not an automatic resend.
         </Warning>
       operationId: transferBetweenBalances
       requestBody:
@@ -2751,13 +2779,13 @@ paths:
                   nonce: 1594297865000
       responses:
         "201":
-          description: All validations succeeded and creating transaction is started
+          description: Transfer accepted. The body is an empty JSON array, `[]`. The funds move after the response, and the response carries no transfer identifier.
           content:
             application/json:
               schema:
                 type: array
                 items: {}
-                description: Empty array indicates success
+                description: Empty array, the transfer is accepted
               example: []
         "400":
           description: Request validation failed
@@ -2907,7 +2935,7 @@ paths:
         </Note>
 
         <Note>
-        The API does not cache the response. `POST /api/v4/main-account/transfer` returns `201` as soon as a transfer is queued, so a request sent immediately afterwards can return no records yet. The history also covers transfers the platform performs for the account, such as mining-pool conversions, and transfers in delisted currencies. Every returned transfer is completed.
+        The API does not cache the response. `POST /api/v4/main-account/transfer` returns `201` as soon as a transfer is queued, so a request sent immediately afterwards can return no records yet. A failed transfer leaves no record, so a missing record does not show whether a transfer is still queued or failed: check again, and do not resend automatically. The history also covers transfers the platform performs for the account, such as mining-pool conversions, and transfers in delisted currencies. Every returned transfer is completed.
         </Note>
       operationId: getMainAccountTransferHistory
       requestBody:
@@ -3043,15 +3071,15 @@ paths:
 
         **Deposit status codes:**
         - `Successful` - 3, 7
-        - `Canceled` - 4, 9
+        - `Canceled` - 4, 9 (status 9 sends no webhook)
         - `Unconfirmed by user` - 5
         - `On hold` - 21
-        - `Uncredited` - 22
+        - `Uncredited` - 22 (a deposit below the network minimum waits in this status; deposits to the same address add up and are credited together once the total reaches the minimum, otherwise the deposit is canceled with status 9 after 7 days)
         - `Pending` - 15
 
-        The history also returns status 29 (`Credited, on hold`): the funds are credited, and part may stay held until the network fully confirms the deposit.
+        The history also returns status 29 (`Credited, on hold`): the funds are credited, and part may stay held until the network fully confirms the deposit. Status 23 is also reported as `Pending`: the deposit is in progress and not final.
 
-        `Successful` (3, 7) and `Canceled` (4, 9) are final states. A deposit in status 5, 21, 22 or 29 is not final and later ends as 3, 7, 4 or 9. A successful deposit (3, 7) does not later transition to `On hold` (21) or `Uncredited` (22).
+        `Successful` (3, 7) and `Canceled` (4, 9) are final states. A deposit in status 5, 21, 22, 23 or 29 is not final and later ends as 3, 7, 4 or 9. A successful deposit (3, 7) does not later transition to `On hold` (21) or `Uncredited` (22).
 
         **Travel Rule Deposit check status codes:**
         - `Awaiting verification` - 27: the deposit is frozen because data required under the Travel Rule is missing. Where the Travel Rule API is enabled for the account, submit the data with [Submit deposit originator data](/api-reference/travel-rule/submit-deposit-verification); otherwise the account holder provides it at whitebit.com.
@@ -3164,7 +3192,6 @@ paths:
               ticker: "BTC"
               offset: 0
               limit: 100
-              status: [3, 7]
               request: "{{request}}"
               nonce: 1594297865000
       responses:
@@ -3279,7 +3306,11 @@ paths:
         - Deposit
       summary: Create new address for deposit
       description: |
-        The endpoint creates a new address even when the last created address is not used. The endpoint is not available by default; request access through the account manager. The number of addresses is limited; the account manager can discuss and adjust the limit for the account. The API provides no way to close or deactivate an issued address.
+        The endpoint creates a new address even when the last created address is not used; on memo networks, each call returns the same address with a new memo. The endpoint is not available by default and returns `403` until access is enabled; request access through the account manager. The number of addresses is not capped. The API provides no way to close or deactivate an issued address, and an issued address keeps crediting deposits to the account with no expiry.
+
+        <Warning>
+        After a timeout or a `5xx` response, the address may already exist and credit deposits to the account, but no endpoint returns the address, including [Get cryptocurrency deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address). Store the address from the response before showing the address to the end user. After a timeout or a `5xx` response, show no address and request a new one, which creates another address.
+        </Warning>
 
         <Note>
         For sub-accounts, crypto deposits must also be enabled for the account (disabled by
@@ -3357,7 +3388,7 @@ paths:
                   nonce: 1594297865000
       responses:
         "201":
-          description: All validations succeeded and creating transaction is started
+          description: Address created. The address is stored before the response is sent.
           content:
             application/json:
               schema:
@@ -3377,10 +3408,10 @@ paths:
                     properties:
                       maxAmount:
                         type: string
-                        description: Max amount of deposit accepted by the exchange. Deposits exceeding this amount are rejected.
+                        description: Maximum deposit amount. Crediting a crypto deposit does not check this maximum.
                       minAmount:
                         type: string
-                        description: Min amount of deposit accepted by the exchange. Deposits below this amount are rejected.
+                        description: Minimum deposit amount. A crypto deposit below the network minimum is not rejected. The deposit is recorded with status 22 (uncredited), deposits to the same address add up, and the deposits are credited together once the total reaches the minimum. Deposits that stay below the minimum are canceled with status 9 after 7 days.
                       fixedFee:
                         type: string
                         description: Fixed deposit fee
@@ -3459,6 +3490,8 @@ paths:
                     errors:
                       network: ["The network must be a string."]
                       ticker: ["The ticker must be a string."]
+        "403":
+          description: The endpoint is not enabled for the account. The account manager enables the endpoint on request.
         "422":
           description: |
             Inner validation failed. Returned with `code: 0`; the `errors` field carries the
@@ -3499,20 +3532,6 @@ paths:
                     message: "Inner validation failed"
                     errors:
                       error: ["KYC required"]
-                addressInProgress:
-                  summary: "Address generation already in progress"
-                  value:
-                    code: 0
-                    message: "Inner validation failed"
-                    errors:
-                      message: ["Create address in process"]
-                addressLimitReached:
-                  summary: "Per-currency address limit reached"
-                  value:
-                    code: 0
-                    message: "Inner validation failed"
-                    errors:
-                      message: ["Address limit reached"]
 
   /api/v4/main-account/codes:
     post:
@@ -5860,23 +5879,32 @@ paths:
 
         A main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
-        <Note>
-        The `email` field requirement depends on the `shareKyc` parameter:
-        - When `shareKyc` is `false` or not provided: `email` is **required**
-        - When `shareKyc` is `true`: `email` is **optional**
-        </Note>
+        WhiteBIT refuses a create request over the limit on the `alias` field.
 
         <Note>
-        With `shareKyc: false`, permissions sent at creation are not kept until the end customer confirms the email through the [KYC URL](/api-reference/sub-accounts/kyc-url) flow. Re-apply them with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true`, permissions apply at creation. See [FAQ](/faq).
+        The `email` field, not `shareKyc`, decides whether the sub-account is active at creation:
+        - When `shareKyc` is `false` or not provided: `email` is **required**. WhiteBIT sends an invitation to that email, and the sub-account stays inactive until the end user opens the link and sets a password. The link expires after three days and can be re-sent on whitebit.com, not through the API.
+        - When `shareKyc` is `true`: leave `email` out. The sub-account is active as soon as the request succeeds and shares the main account's verification.
+        - A request with `email` starts the invitation flow even when `shareKyc` is `true`.
         </Note>
 
+        A refused request names the cause by field in `errors`: `alias` for a duplicate alias, and `email` for an invalid or temporary (disposable) email address or the main account's own email. A `422` with "Account creation failed" and no field means the request was valid and the creation failed for an unexpected reason.
+
         <Note>
-        Crypto deposits to sub-accounts are disabled by default. Once deposits are enabled for the
-        account, the capability applies to all of its sub-accounts; enablement is not available via
-        API. To request it, contact the assigned account manager.
+        Until the end user activates a sub-account created with `email`, sub-account balances, transfers, transfer history and the [KYC URL](/api-reference/sub-accounts/kyc-url) return `422` with "Account is not confirmed". Create the sub-account's API key once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows its `status` as `active`. Activation is a separate step from KYC: transfers from the main account to a sub-account created with `shareKyc: false` are refused until the end user's KYC is approved.
+        </Note>
+
+        On a request with `email`, `spotEnabled` and `collateralEnabled` are kept after activation. Set `depositsEnabled` and `withdrawsEnabled` with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`; Edit is refused before activation. Send the sub-account's `alias` and the full `permissions` object: `spotEnabled` and `collateralEnabled` with the values used at creation, plus `depositsEnabled` and `withdrawsEnabled`. With `shareKyc: true` and no `email`, `spotEnabled` and `collateralEnabled` apply at creation, and `depositsEnabled` and `withdrawsEnabled` go in the same request. See [FAQ](/faq).
+
+        <Note>
+        Crypto deposits to sub-accounts are disabled by default. Enablement for the account is not
+        available via API. To request it, contact the assigned account manager.
         Once enabled, a sub-account generates deposit addresses through the standard
         [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
-        using its own API key with deposit permission.
+        using its own `type: 2` API key, after `/api/v4/main-account/address` is enabled on the key with
+        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) (every URL group starts switched off on a new key).
+        Each sub-account also needs its own deposit permission, `depositsEnabled`, and withdrawal
+        permission, `withdrawsEnabled`.
         </Note>
 
         <Warning>
@@ -5899,15 +5927,16 @@ paths:
               properties:
                 alias:
                   type: string
-                  description: Name for sub-account
+                  description: Sub-account name, up to 127 characters. Unique among the main account's sub-accounts; the alias of a deleted sub-account can be used again.
+                  maxLength: 127
                   example: "trading_bot"
                 email:
                   type: string
-                  description: Sub-account email (required when shareKyc is false)
+                  description: End user's email. Required when shareKyc is false or omitted; leave it out when shareKyc is true. Any email starts the invitation flow, and the sub-account stays inactive until the end user sets a password
                   example: "sub@example.com"
                 shareKyc:
                   type: boolean
-                  description: If KYC shared with main account
+                  description: Share the main account's KYC with the sub-account. With true, leave email out; the sub-account is then active at creation
                   example: false
                 permissions:
                   type: object
@@ -5922,6 +5951,14 @@ paths:
                     collateralEnabled:
                       type: boolean
                       description: Enable transfers to collateral balance
+                      example: false
+                    depositsEnabled:
+                      type: boolean
+                      description: Deposit permission for the sub-account. On a request with `email`, set it with Edit Sub-Account after activation
+                      example: false
+                    withdrawsEnabled:
+                      type: boolean
+                      description: Withdrawal permission for the sub-account. On a request with `email`, set it with Edit Sub-Account after activation
                       example: false
       responses:
         "201":
@@ -5952,6 +5989,17 @@ paths:
                     message: "Validation failed"
                     errors:
                       email: ["The email field is required."]
+        "422":
+          description: Sub-account creation failed after the request passed validation; the response gives no reason
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                accountCreationFailed:
+                  summary: "Creation failed after validation"
+                  value:
+                    message: "Account creation failed"
 
   /api/v4/sub-account/delete:
     post:
@@ -5960,6 +6008,26 @@ paths:
       summary: Delete Sub-Account
       description: |
         The endpoint deletes [sub-account](/glossary#sub-account).
+
+        The delete is refused while the sub-account has any of the following:
+        - sub-accounts of its own
+        - open spot orders
+        - open margin positions
+        - open borrow positions
+        - a transaction still in progress
+        - a frozen balance
+        - an active Flex investment
+        - an active Fixed investment
+
+        A sub-account that was never activated is marked deleted without these checks.
+
+        After the checks pass, WhiteBIT moves the remaining Trade balance to the sub-account's Main balance, then moves every non-zero Main balance to the main account. If a Main balance is still not empty after that, the delete fails.
+
+        The delete removes every API key of the sub-account. The alias of a deleted sub-account can be used for a new sub-account.
+
+        <Warning>
+        The delete does not remove the sub-account's deposit addresses. A later deposit to one of these addresses is still credited to the deleted sub-account, which no API key can reach. Stop showing and using the sub-account's deposit addresses before the delete.
+        </Warning>
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6007,7 +6075,7 @@ paths:
       description: |
         The endpoint edits [sub-account](/glossary#sub-account).
 
-        Use this endpoint to re-apply permissions to a dedicated-KYC sub-account after email confirmation.
+        Use this endpoint to set `depositsEnabled` and `withdrawsEnabled` on a sub-account created with `email`, once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`. The endpoint refuses the edit before activation. Send the sub-account's `alias` and the full `permissions` object: `spotEnabled` and `collateralEnabled` with the values used at creation, plus `depositsEnabled` and `withdrawsEnabled`.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6050,12 +6118,22 @@ paths:
                       type: boolean
                       description: Enable transfers to collateral balance
                       example: false
+                    depositsEnabled:
+                      type: boolean
+                      description: Deposit permission for the sub-account
+                      example: false
+                    withdrawsEnabled:
+                      type: boolean
+                      description: Withdrawal permission for the sub-account
+                      example: false
             example:
               id: "8e667b4a-0b71-4988-8af5-9474dbfaeb51"
               alias: training
               permissions:
                 spotEnabled: true
                 collateralEnabled: false
+                depositsEnabled: true
+                withdrawsEnabled: true
       responses:
         "200":
           description: Sub-account edited successfully
@@ -6079,6 +6157,8 @@ paths:
       description: |
         The endpoint returns list of current user [sub-accounts](/glossary#sub-account).
 
+        A sub-account created with `email` shows `status` `active` once the end user has set the password from the invitation email; until then `userId` is `null`. Poll this endpoint for `active` before editing the sub-account's permissions, creating its API key or requesting its KYC URL. A sub-account created without an email (`shareKyc: true`) is `active` from the first call.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6096,7 +6176,7 @@ paths:
               properties:
                 search:
                   type: string
-                  description: Search term
+                  description: Returns only sub-accounts whose alias or email contains this text. To find one sub-account by alias, compare `alias` in the results exactly, because the search also returns sub-accounts whose alias or email contains the text as part of a longer value.
                   example: "trading"
                 limit:
                   type: integer
@@ -6143,6 +6223,11 @@ paths:
 
         Transfers between the main account and any sub-account are fee-free in both directions.
 
+        A `main_to_sub` transfer credits the sub-account's Main balance, not its Trade balance. A `sub_to_main` transfer
+        draws from the sub-account's Main balance only, never from its Trade balance. A `sub_to_main` transfer can move only
+        the part of that balance not held back for a deposit credited before full network confirmation
+        (`pending_deposit_amount`). An amount that reaches into the held part is refused with `422` and `code` `20`.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6152,10 +6237,25 @@ paths:
         </Note>
 
         <Warning>
-        The request takes no idempotency key. After a timeout or a `5xx` response, check
-        [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) for a record whose
-        `direction`, `currency` and `amount` match the request's `direction`, `ticker` and `amount`, created after the failed
-        request was sent, before sending the transfer again. Resend the transfer only when no such record exists.
+        The request takes no idempotency key, and two identical requests move the funds twice. A `200` response means
+        WhiteBIT received the request, and the transfer can still fail after the response. After a timeout or a `5xx`
+        response, the transfer can still complete. A record in
+        [Get Sub-Account Transfer History](/api-reference/sub-accounts/get-sub-account-transfer-history) shows that the
+        request was received, not that the funds moved, so the history does not confirm a transfer and is not a duplicate
+        check.
+
+        Confirm the transfer on the sub-account side: read `main` for the ticker with
+        [Sub-Account Balances](/api-reference/sub-accounts/sub-account-balances) (main-account key, sub-account `id`). A
+        `main_to_sub` transfer raises it by the amount, and a `sub_to_main` transfer lowers it. The main account's own
+        balance changes with transfers to and from every sub-account and does not confirm a single transfer. After a `200`, a timeout or a
+        `5xx`, read the sub-account's `main` until it shows the transfer, and do not resend the transfer while
+        waiting. A transfer that does not show is a manual check, not an automatic resend.
+
+        The caller cannot attach its own reference to a transfer, so an integration stores its own record of each transfer
+        before the call. Other movements on the sub-account, such as deposits and withdrawals, also change `main`, so the
+        integration compares the amount read with the `main` amount its own records expect. To keep the comparison
+        unambiguous, send the next transfer for the same sub-account and ticker only after the previous one shows on the
+        balance.
         </Warning>
       operationId: subAccountTransfer
       requestBody:
@@ -6189,7 +6289,7 @@ paths:
                   example: "ETH"
       responses:
         "200":
-          description: Transfer successful
+          description: Transfer request accepted. The transfer can still fail after the response, so confirm it on the sub-account's `main` balance with Sub-Account Balances.
           content:
             application/json:
               schema:
@@ -6197,13 +6297,36 @@ paths:
                 properties:
                   transaction_id:
                     type: string
-                    description: External identifier of the transaction. Correlate transfer history responses using the `transaction_id` value.
+                    description: External identifier of the transfer request. The same value identifies the request's record in Get Sub-Account Transfer History. That record does not confirm that the funds moved.
         "400":
           description: Request validation failed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "404":
+          description: The currency in `ticker` was not found.
+        "422":
+          description: |
+            The transfer is refused, and no part of the amount moves. Every refusal has the top-level `code` field `0` except
+            the held-deposit refusal, which has `code` `20`. The message text varies, so read the cause from the key in
+            `errors` together with `code`:
+
+            - `amount` with `code` `0`: the source balance does not cover the amount. The message names the available amount.
+            - `amount` with `code` `20`: on a `sub_to_main` transfer, the amount includes funds held back because a deposit
+              to the sub-account was credited before full network confirmation. Send at most `main_balance` minus
+              `pending_deposit_amount`, both read with the sub-account's own key from
+              [Get main balance](/api-reference/account-wallet/main-balance) with `/api/v4/main-account/balance` switched
+              on for that key, and transfer the held part after the deposit is confirmed.
+            - `to`: the sub-account does not use shared KYC and the end user has not passed KYC yet. Only a transfer to
+              the sub-account is checked against KYC.
+            - `from` or `to`: an account on that side cannot take part in the transfer, for example a deleted sub-account.
+
+            A sub-account that is not activated yet returns the message `Account is not confirmed`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInner"
 
   /api/v4/sub-account/block:
     post:
@@ -6212,6 +6335,12 @@ paths:
       summary: Block Sub-Account
       description: |
         The endpoint blocks [sub-account](/glossary#sub-account).
+
+        After the block, every request signed with the sub-account's API key is refused with `401` and the message `This user is blocked`.
+
+        A block does not cancel the sub-account's open orders or pending withdrawals. After the block, a cancel request signed with the sub-account's key is refused too, so cancel any order that must not fill before sending the block. Deposits to the sub-account's addresses are still credited, and a transfer from the main account to the sub-account is not refused.
+
+        The endpoint refuses to block a sub-account that was never activated. A block on the main account applies to every one of its sub-accounts, and requests signed with the key of any of its sub-accounts are refused the same way.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6259,6 +6388,8 @@ paths:
       description: |
         The endpoint unblocks [sub-account](/glossary#sub-account).
 
+        The endpoint clears a block set by [Block Sub-Account](/api-reference/sub-accounts/block-sub-account).
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6305,6 +6436,16 @@ paths:
       description: |
         The endpoint returns [sub-account](/glossary#sub-account) balances.
 
+        Called with the main-account key, the endpoint confirms that a
+        [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) settled: a `main_to_sub` transfer raises the
+        sub-account's `main` for the ticker by the amount, and a `sub_to_main` transfer lowers it. Compare the amount read
+        with the integration's own record of the transfer.
+
+        The `main` amount includes deposits credited before the network fully confirms the deposits. The sub-account's own API key
+        reads the part still held back as `pending_deposit_amount` from [Get main balance](/api-reference/account-wallet/main-balance),
+        once `/api/v4/main-account/balance` is switched on for that key. The held part cannot be transferred to the main
+        account until the network confirms the deposit.
+
         <Warning>
         Rate limit: 1000 requests/10 sec.
         </Warning>
@@ -6347,6 +6488,7 @@ paths:
                     properties:
                       main:
                         type: string
+                        description: Main balance, including deposits credited before the network fully confirms the deposits
                       spot:
                         type: string
                       collateral:
@@ -6375,6 +6517,12 @@ paths:
       summary: Get Sub-Account Transfer History
       description: |
         The endpoint returns history of transfers between main account and [sub-account](/glossary#sub-account).
+
+        The history lists a transfer as soon as WhiteBIT receives the transfer request, before the balances change. A
+        listed record shows that the request was received, not that the funds moved, so the history does not confirm a
+        transfer and is not a duplicate check. To confirm a transfer, read the sub-account's `main` balance with
+        [Sub-Account Balances](/api-reference/sub-accounts/sub-account-balances) and compare it with the integration's own
+        record. The caller cannot attach its own reference to a transfer.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -6449,7 +6597,8 @@ paths:
       description: |
         The endpoint returns a paginated list of withdrawal transactions in `unconfirmed_by_main_account` status,
         created by [sub-accounts](/glossary#sub-account) of the authenticated main account and awaiting main account confirmation.
-        Results are ordered by creation time, newest first.
+        Results are ordered by creation time, newest first. No webhook is sent while a withdrawal waits for confirmation, and a
+        waiting withdrawal does not expire, so this list is how the main account finds the withdrawals to confirm.
 
         <Note>
         The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.
@@ -6581,7 +6730,7 @@ paths:
         Identify the target transaction by its external id, obtained from
         [List Unconfirmed Sub-Account Withdrawals](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals).
         Confirmation is the only main account action on an unconfirmed withdrawal; a withdrawal left unconfirmed
-        expires after a retention period. A successful call returns an empty object.
+        does not expire. A successful call returns an empty object.
 
         <Note>
         The sub-account withdrawal endpoints are not available by default. To request access, contact the assigned account manager.
@@ -6674,15 +6823,24 @@ paths:
       description: |
         The endpoint creates a new API key for a [sub-account](/glossary#sub-account). Each sub-account supports up to 50 API keys, independent from the main account and from other sub-accounts.
 
-        The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too.
+        Create the key once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`. A sub-account created with `email` becomes `active` when the end user opens the WhiteBIT invitation email and sets a password; a sub-account created with `shareKyc: true` and no `email` is active at creation. Key creation does not depend on the end user's KYC.
+
+        The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too: an
+        unused key is disabled, not deleted, and its `isEnabled` field turns `false`. The notice email goes to the sub-account,
+        not to the main account, so read `isEnabled` with [List Sub-Account API Keys](/api-reference/sub-accounts/list-sub-account-api-keys)
+        and switch a disabled key back on with [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key).
 
         <Note>
-        A `type: 2` key includes the withdrawal permission group, but its URLs default to `enable: false`.
-        Enable the ones the key uses (for example `/api/v4/main-account/withdraw`) with
-        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); until then
-        `/api/v4/main-account/withdraw` returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
+        Every URL group on a new key starts with its URLs set to `enable: false`, including the deposit, withdrawal,
+        convert (`/api/v4/convert/estimate`, `/api/v4/convert/confirm`), and balance transfer (`/api/v4/main-account/transfer`)
+        groups. Enable the URLs the key uses with
+        [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) before the first call; until then
+        `/api/v4/main-account/withdraw`, for example, returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
+        Deposit and withdrawal URLs can be enabled only on a `type: 2` key.
         Crypto deposits additionally require sub-account deposits to be enabled for the account (disabled by
         default); to enable sub-account deposits, contact the assigned account manager.
+        The sub-account also needs its own deposit permission, `depositsEnabled`; see
+        [Create Sub-Account](/api-reference/sub-accounts/create-sub-account).
         </Note>
 
         <Warning>
@@ -6706,7 +6864,7 @@ paths:
               properties:
                 type:
                   type: integer
-                  description: Type of API key (1 - info and trading; 2 - info, trading, deposits, withdraws)
+                  description: Type of API key (1 - info and trading; 2 - info, trading, deposits, withdraws). A webhook key cannot be created through this endpoint; create a sub-account webhook at whitebit.com.
                   enum: [1, 2]
                   example: 1
                 subAccountId:
@@ -6730,7 +6888,10 @@ paths:
 
             Response error codes:
             - 0 - request validation failed (missing field, wrong type)
-            - 5 - business-rule violation (API-key limit reached, key type not allowed)
+            - 5 - business-rule violation, such as the API-key limit reached
+
+            The `Type isn't allowed` message does not occur for `type: 1` and `type: 2` keys. If a `type: 1` or `type: 2`
+            request returns it, check the raw request body for the `type` value actually sent.
           content:
             application/json:
               schema:
@@ -6751,7 +6912,7 @@ paths:
                     code: 5
                     message: "Limit of API keys is reached. Maximum allowed: 50"
                 typeNotAllowed:
-                  summary: "Requested key type is not allowed"
+                  summary: "Key type not allowed (not returned for type 1 or type 2)"
                   value:
                     code: 5
                     message: "Type isn't allowed"
@@ -6839,7 +7000,7 @@ paths:
 
             Response error codes:
             - 0 - request validation failed
-            - 5 - business-rule violation (restricted URL for sub-account API keys)
+            - 5 - business-rule violation (restricted URL for sub-account API keys): `urls` enables a URL from a group the key cannot use. Sub-account management URLs are restricted on every sub-account key; deposit and withdrawal URLs, such as `/api/v4/main-account/address`, are restricted on `type: 1` keys and can be enabled on a `type: 2` key.
           content:
             application/json:
               schema:
@@ -6855,7 +7016,7 @@ paths:
                       title: ["validation.required"]
                       urls: ["validation.required"]
                 restrictedUrl:
-                  summary: "Restricted URL"
+                  summary: "Restricted URL (deposit URL on a type 1 key)"
                   value:
                     code: 5
                     message: "The following URLs are restricted for sub-account API keys: /api/v4/main-account/address"
@@ -7026,7 +7187,10 @@ paths:
         - Sub-Account API Keys
       summary: Reset Sub-Account API Key
       description: |
-        The endpoint resets (regenerates) an existing [sub-account](/glossary#sub-account) API key.
+        The endpoint switches a disabled [sub-account](/glossary#sub-account) API key back on, for example after the
+        [14-day deactivation of unused keys](/best-practices/security#key-rotation), and restarts the key's 14-day inactivity period.
+        The call does not issue a new secret: the key, its secret, its URL access settings, and its IP whitelist stay the
+        same, and the integration needs no replacement key.
 
         <Warning>
         Rate limit: 1000 requests/10 sec.
@@ -7355,7 +7519,7 @@ paths:
 
         <Note>
         The sub-account must meet all of the following conditions before a KYC URL can be generated:
-        - The sub-account must be activated (have an associated user).
+        - The sub-account must be activated: the end user has opened the WhiteBIT invitation email and set a password, and [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows `status` `active`. Activation is a separate step from KYC.
         - The sub-account must be active (not locked or blocked).
         - The sub-account must not have shared KYC enabled.
         </Note>
@@ -7419,11 +7583,6 @@ paths:
                     message: "Validation failed"
                     errors:
                       id: ["validation.exists"]
-                subAccountNotActivated:
-                  summary: "Sub-account is not activated"
-                  value:
-                    code: 400
-                    message: "Account is not confirmed"
                 subAccountNotActive:
                   summary: "Sub-account is locked or blocked"
                   value:
@@ -7449,6 +7608,17 @@ paths:
             application/json:
               schema:
                 type: object
+        "422":
+          description: Sub-account is not activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                subAccountNotActivated:
+                  summary: "Sub-account is not activated"
+                  value:
+                    message: "Account is not confirmed"
 
   /api/v4/mining/rewards:
     post:
@@ -9365,7 +9535,7 @@ components:
           example: "bc1q..."
         refundAmount:
           type: string
-          description: Refund amount
+          description: Refund amount, equal to the deposit amount. The amount sent on-chain and the network fee are returned only in the [refund.successful](/platform/webhook#whitebit-refund-successful) webhook.
           example: "0.5"
         refundHash:
           type: string
@@ -9386,7 +9556,7 @@ components:
             - canceled
           description: |
             Refund status:
-            - `in_process` — the refund is not final. Every non-final state maps to this value.
+            - `in_process` — the refund is not final, for example during the AML screening and operator review. Every non-final state maps to this value.
             - `successful` — the refund is complete.
             - `canceled` — the refund is canceled. Final.
           example: "successful"
@@ -9685,7 +9855,8 @@ components:
           example: "trading_bot"
         userId:
           type: string
-          description: "User identifier associated with account"
+          description: "User identifier associated with account. In List of Sub-Accounts, `null` for a sub-account created with `email` until the end user sets the password"
+          nullable: true
           example: "u-12345"
         email:
           type: string
@@ -9693,7 +9864,7 @@ components:
           example: "s***@example.com"
         status:
           type: string
-          description: "Sub-account status"
+          description: "Sub-account status. In List of Sub-Accounts, `active` once the end user of a sub-account created with `email` has set the password; a sub-account created without an email (`shareKyc: true`) is `active` from the first list call"
           example: "active"
         color:
           type: string
@@ -9750,7 +9921,7 @@ components:
           example: "0.5"
         createdAt:
           type: integer
-          description: "Transfer creation timestamp"
+          description: "Time WhiteBIT received the transfer request. The record exists before the balances change, so it does not confirm that the funds moved."
           example: 1641081600
 
     SubAccountApiKey:
@@ -9770,7 +9941,7 @@ components:
           example: "Trading Bot Key"
         isEnabled:
           type: boolean
-          description: "Whether the API key is enabled"
+          description: "Whether the API key is enabled. Turns `false` after 14 days without requests; [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key) sets it back to `true`."
           example: true
         apiKey:
           type: string
@@ -9837,6 +10008,7 @@ components:
           example: "Trading Bot Key"
         isEnabled:
           type: boolean
+          description: "Whether the API key is enabled. Turns `false` after 14 days without requests; [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key) sets it back to `true`."
           example: true
         apiKey:
           type: string

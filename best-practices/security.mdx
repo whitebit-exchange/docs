@@ -48,7 +48,8 @@ Store API secrets using environment variables or a dedicated secrets management 
 
 Rotate API keys regularly and monitor for inactive key auto-deactivation.
 
-- **Auto-deactivation:** API keys, including sub-account keys, that remain unused for **14 consecutive days** are automatically deactivated. An IP whitelist does not exempt a key from this rule
+- **Auto-deactivation:** API keys, including sub-account keys, that remain unused for **14 consecutive days** are automatically deactivated. An IP whitelist does not exempt a key from this rule. Webhook keys do not deactivate
+- **Disabled sub-account keys:** an unused sub-account key is disabled, not deleted, and the notice email goes to the sub-account, not to the main account. Read the key's `isEnabled` field with [List Sub-Account API Keys](/api-reference/sub-accounts/list-sub-account-api-keys) and switch a disabled key back on with [Reset Sub-Account API Key](/api-reference/sub-accounts/reset-sub-account-api-key). The key, its secret, its URL access settings and its IP whitelist stay the same
 - **Reserve keys:** Send one authenticated request from each standby key every 14 days to keep it active — any authenticated endpoint resets the timer
 - **Rotation strategy:**
   1. Create a new API key with the same permissions and IP whitelist

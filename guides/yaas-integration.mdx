@@ -45,7 +45,7 @@ the full walkthrough (per-customer keys, KYC URLs).
 
 | Endpoint | Purpose |
 |----------|---------|
-| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it) |
+| `POST /api/v4/sub-account/create` | Create a sub-account (`alias`, `permissions`, and `email` where the endpoint requires it; a sub-account created with `email` gets its deposit and withdrawal permissions with `POST /api/v4/sub-account/edit`, and then its API key, once `sub-account/list` shows its `status` as `active` after the end user sets a password from the invitation email) |
 | `POST /api/v4/sub-account/api-key/create` | Issue the sub-account a key (`type: 2`, `subAccountId`, `title`) |
 
 <KeyCreateNoResponse />
@@ -67,7 +67,8 @@ sequenceDiagram
     Note over P,W: The lending endpoints work on the sub-account<br/>once the account manager enables Crypto Lending on it
     alt Transfer from the main account
         P->>W: POST /api/v4/sub-account/transfer (main-account key, step 2)
-    else Crypto deposit, where sub-account deposits are enabled
+        Note over P,W: The transfer credits the sub-account's<br/>Main balance. Invest once the amount shows there
+    else Crypto deposit, where deposits are enabled for the sub-account
         Note over P,W: Track the deposit with the sub-account key<br/>until a successful final status, as in Deposits
     end
     P->>W: First investment (sub-account key, step 3)
@@ -76,15 +77,18 @@ sequenceDiagram
 ### 2. Fund the sub-account
 
 Move funds from the main account's Main balance to the end user's sub-account with a fee-free transfer, signed with
-the main-account key.
+the main-account key. The transfer credits the sub-account's Main balance, which the first investment draws from.
+Invest once the amount shows on the sub-account's `main` balance and matches the partner's own record of the transfer.
 
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /api/v4/sub-account/transfer` | `id` (sub-account), `direction: main_to_sub`, `ticker`, `amount` |
 
+For a managed sub-account (`shareKyc: false`, created with the end user's `email`), WhiteBIT refuses the transfer until the end user's KYC is approved; the refusal names the `to` field. A sub-account created with `shareKyc: true` and no `email` is never refused on this ground.
+
 <TransferNoIdempotency />
 
-Run the check with `POST /api/v4/sub-account/transfer/history`, as in WaaS
+Read the sub-account's `main` balance with `POST /api/v4/sub-account/balances`, as in WaaS
 [Crypto purchases with fiat](/guides/waas-integration#crypto-purchases-with-fiat).
 
 For crypto deposits to a sub-account, the partner's backend polls the deposit history with the sub-account's key, as in the [deposit flow](/guides/waas-integration#deposits). Webhooks are optional.
@@ -246,7 +250,8 @@ the WaaS [payment and payout flows](/guides/waas-integration#payment-and-payout-
   [Crypto sales for fiat](/guides/waas-integration#crypto-sales-for-fiat).
 - **Crypto withdrawal** — created with the sub-account's key and confirmed by the main account, as in
   [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). Available where
-  the account manager has enabled sub-account withdrawals.
+  the account manager has enabled sub-account withdrawals. The sub-account also needs its own withdrawal permission,
+  `withdrawsEnabled`.
 - **Payout in another currency** — [Convert](/platform/convert) on the sub-account first, as in
   [Conversion](/guides/waas-integration#conversion).
 
@@ -254,13 +259,18 @@ the WaaS [payment and payout flows](/guides/waas-integration#payment-and-payout-
 
 Invested funds do not show in `POST /api/v4/sub-account/balances` (see
 [Reconcile earnings per user](#4-reconcile-earnings-per-user)). Offboarding therefore starts with the sub-account's
-key. The partner's backend lists and closes every active investment, then follows
-[End-user offboarding](/guides/waas-integration#end-user-offboarding) to empty and block the sub-account. A Fixed
+key, before the block refuses that key with `401`. The partner's backend lists and closes every active investment, then follows
+[End-user offboarding](/guides/waas-integration#end-user-offboarding) to empty and block the sub-account. The wait for held deposits in that flow reads `POST /api/v4/main-account/balance`
+with the sub-account's key, so the partner first switches that URL on for the key with
+`POST /api/v4/sub-account/api-key/edit`, as in WaaS [Wallet creation](/guides/waas-integration#wallet-creation). A Fixed
 investment closed before maturity follows the early-withdrawal terms in
 [Crypto Lending plan types](/products/lending/overview#plan-types). The sub-account's key creates the final withdrawal
 and the main account confirms it, as in
 [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval). The final
-withdrawal is available where the account manager has enabled sub-account withdrawals.
+withdrawal is available where the account manager has enabled sub-account withdrawals. The sub-account also needs its
+own withdrawal permission. A later
+[Delete Sub-Account](/api-reference/sub-accounts/delete-sub-account) call is refused while any Flex or Fixed investment
+stays active.
 
 ```mermaid
 sequenceDiagram

@@ -13,6 +13,7 @@ export const errorCodes = [
   { code: 6, httpStatus: 422, meaning: "Amount less than or equal to fee", action: "Increase the withdrawal amount to cover the network fee" },
   { code: 9, httpStatus: 422, meaning: "Address unavailable", action: "Cannot withdraw to own deposit address" },
   { code: 10, httpStatus: 422, meaning: "Market not found or disabled", action: "Verify the market name via `GET /api/v4/public/markets`" },
+  { code: 20, httpStatus: 422, meaning: "Amount held back by a deposit awaiting full network confirmation", action: "Returned on the `amount` field by withdrawals and by transfers from a sub-account to its main account. Wait for the deposit to confirm (status 3 or 7), or send a smaller amount: for a withdrawal, check `POST /api/v4/main-account/withdrawable-balance`; for a sub-account transfer, send at most `main_balance` minus `pending_deposit_amount` from `POST /api/v4/main-account/balance` (sub-account key, with that URL switched on for the key)" },
   { code: 37, httpStatus: 422, meaning: "IOC and post-only conflict", action: "`ioc: true` and `postOnly: true` cannot be used together" },
 ];
 
@@ -27,6 +28,7 @@ export const authErrors = [
   { message: "Your nonce is more than 5 seconds lesser than the current nonce", cause: "Invalid timestamp when using nonceWindow", resolution: "Use current Unix timestamp in milliseconds" },
   { message: "Invalid nonceWindow.", cause: "nonceWindow is not a boolean", resolution: "Set nonceWindow to `true` or `false`" },
   { message: "Request not provided.", cause: "Missing request path in body", resolution: "Include the request path in all requests" },
+  { message: "This user is blocked", cause: "Using a sub-account key (HTTP 401) while the sub-account or its main account is blocked", resolution: "Do not retry the request. See Block Sub-Account in the API reference" },
 ];
 
 export const depositStatusCodes = [
@@ -41,6 +43,7 @@ export const retryStrategies = [
   { errorType: "Insufficient balance", retry: false, strategy: "Check the account balance and wait for pending operations to settle before retrying. For a conversion, transfer the source currency to the Trade balance; see [Convert balances](/platform/convert#balances)." },
   { errorType: "Server error (5xx)", retry: true, strategy: "Exponential backoff. If persistent, check platform status." },
   { errorType: "Server error or confirm code 0 on a conversion", retry: false, strategy: "The conversion may have executed. Follow Results and retries on the Convert page before converting again." },
-  { errorType: "Timeout or server error on a transfer", retry: false, strategy: "Transfer between balances and Sub-Account Transfer take no idempotency key. Check the transfer history first, and resend only when no matching record exists." },
+  { errorType: "Timeout or server error on a transfer between balances", retry: false, strategy: "Transfer between balances takes no idempotency key, and a transfer can still complete after a timeout or a server error. A matching record in Get transfer history means the transfer completed. No record can also mean the transfer is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual check." },
+  { errorType: "Timeout, server error or 200 on a sub-account transfer", retry: false, strategy: "Sub-Account Transfer takes no idempotency key. A transfer can still complete after a timeout or a server error, and can still fail after a 200. The transfer history shows that the request was received, not that the funds moved. Store a record of each transfer before the call, then read `main` for the ticker with Sub-Account Balances until it shows the transfer, and do not resend while waiting. A transfer that does not show is a manual check." },
   { errorType: "Timeout or server error on a withdrawal", retry: false, strategy: "Look up the stored unique withdrawal ID in the deposit and withdrawal history before sending any new withdrawal request." },
 ];

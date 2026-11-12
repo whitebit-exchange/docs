@@ -68,7 +68,7 @@ Webhooks deliver real-time HTTP notifications when events occur on a WhiteBIT ac
 
 A webhook is a separate entity with its own generated key and secret. It is not a property of a trading API key, and a trading API key never carries a webhook URL.
 
-An account has at most one webhook. The platform enforces this limit, so a second webhook cannot be created on the same account. A sub-account counts as a separate account, so the main account and each sub-account can have one webhook.
+An account has at most one webhook. The platform enforces this limit, so a second webhook cannot be created on the same account. A sub-account counts as a separate account, so the main account and each sub-account can have one webhook. Each deposit and withdrawal event goes to the webhook of the account that owns the transaction: the main account's webhook does not receive sub-account events, and the payload carries no sub-account identifier. A sub-account webhook can be created only at whitebit.com, not through the API. To track sub-account deposits from an integration, poll the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) of each sub-account with the sub-account's API key.
 
 Event types are selected on the webhook itself, so a single URL receives every event type subscribed on it.
 
@@ -77,6 +77,8 @@ Event types are selected on the webhook itself, so a single URL receives every e
 3. Select the web-hook configuration tab.
 4. Paste the correct URI for the web server to process web-hook calls.
 5. Press Generate a new key button and toggle the activation switcher to "Activated".
+
+To create a sub-account webhook, log in to the main account at whitebit.com, switch the session to the sub-account, and then follow steps 2 to 5.
 
 <Warning>
 The secret key is shown only once. Save it in a secure key store.
@@ -90,9 +92,9 @@ Before using webhooks, verify ownership of the domain set as the webhook destina
 
 1. Add a TXT DNS record to the domain with the webhook public key.
 2. Add the plain text file `whiteBIT-verification.txt` to the root domain folder and provide public web access. Place the public webhook key in the file.
-3. Implement the `/whiteBIT-verification` endpoint to respond with 200 OK and return a JSON array containing the public webhook key. Example: `["<public-webhook-key>"]`
+3. Implement the `/whiteBIT-verification` endpoint to respond with 200 OK and return a JSON array of public webhook keys. Example: `["<public-webhook-key>"]`
 
-Passing one of these checks enables the webhook.
+Passing one of these checks enables the webhook. Verification runs per webhook key. The `/whiteBIT-verification` endpoint can return the public keys of several webhooks, such as the main account's and each sub-account's, so every key verifies against the same domain without a new DNS record.
 
 ### For processing web-hook requests
 
@@ -115,10 +117,10 @@ All web-hook requests are performing with
 **method** - string. The name of method which was evaluated. Webhook methods include the following:
 
 - **code.apply**. Performs when code owned by a customer was applied.
-- **deposit.accepted**, **deposit.updated**, **deposit.processed**, **deposit.canceled**. These methods report each stage of a deposit; see [WhiteBIT deposit to main balance](#whitebit-deposit-to-main-balance).
-- **deposit.aml_frozen**. Sent when a deposit enters status 21 or 22; see [Deposit and withdrawal status codes](#deposit-and-withdrawal-status-codes).
+- **deposit.accepted**, **deposit.updated**, **deposit.processed**, **deposit.canceled**. These methods report the stages of a deposit; see [WhiteBIT deposit to main balance](#whitebit-deposit-to-main-balance). Not every stage sends a webhook: a deposit canceled with status 9 sends none, so poll the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history) as well.
+- **deposit.aml_frozen**. Sent when a deposit enters status 21; see [Deposit and withdrawal status codes](#deposit-and-withdrawal-status-codes).
 - **withdraw.unconfirmed**, **withdraw.pending**, **withdraw.canceled**, **withdraw.successful**. These methods report each stage of a withdrawal; see [WhiteBIT withdraw from main balance](#whitebit-withdraw-from-main-balance).
-- **refund.successful**, **refund.failed**. These methods report the result of a deposit refund; see [WhiteBIT refund successful](#whitebit-refund-successful) and [WhiteBIT refund failed](#whitebit-refund-failed).
+- **refund.successful**, **refund.failed**. These methods report the result of a deposit refund to the webhook of the account that owns the deposit; see [WhiteBIT refund successful](#whitebit-refund-successful) and [WhiteBIT refund failed](#whitebit-refund-failed).
 
 **id** - string. Uuid to identify every request.
 
@@ -160,7 +162,7 @@ Performed when [code](/glossary#whitebit-codes) was applied. Request example:
 
 ### WhiteBIT deposit to main balance
 
-Performed when deposit was accepted. Request example:
+Performed when a deposit is accepted. Every fiat deposit sends `deposit.accepted`; a crypto deposit does not always send `deposit.accepted`, so do not wait for the event before handling `deposit.updated` or `deposit.processed`. Request example:
 
 ```json
 {
@@ -189,7 +191,7 @@ Performed when deposit was accepted. Request example:
 }
 ```
 
-Performed when the deposit changes: a new confirmation count, or an early credit (status 29) where the network's `confirmations_for_trading` is lower than `confirmations`. Request example:
+Performed when a crypto deposit changes (fiat deposits do not send `deposit.updated`): a new confirmation count, a deposit recorded as uncredited (status 22), or an early credit (status 29) where the network's `confirmations_for_trading` is lower than `confirmations`. Request example:
 
 ```json
 {
@@ -246,7 +248,7 @@ Performed when the deposit is processed and available on the balance (status 3 o
 }
 ```
 
-Performed when deposit was canceled. Request example:
+Performed when a deposit is canceled with status 4. A deposit canceled with status 9 sends no webhook; the deposit appears only in the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). Request example:
 
 ```json
 {
@@ -261,10 +263,10 @@ Performed when deposit was canceled. Request example:
     "memo": "", // deposit memo
     "method": 1, // called method 1 - deposit, 2 - withdraw
     "network": "ERC20", // if currency is multi network, "null" if no multi network
-    "status": 4, // transaction status, 4 or 9 - canceled
+    "status": 4, // transaction status, 4 - canceled
     "ticker": "USDT_ETH", // deposit currency ticker
     "transactionHash": "transaction hash", // deposit transaction hash
-    "uniqueId": "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85", // transaction UUID of the deposit; pass it as transactionId to refund-deposit
+    "uniqueId": "54bffeb7-7a8f-43f8-bcd8-f14ec10fee85", // transaction UUID of the deposit
     "confirmations": {
       // if transaction has confirmations info it will display here
       "actual": 1, // current block confirmations
@@ -290,10 +292,12 @@ Deposit status codes:
 | Code | Status | Description |
 |---|---|---|
 | 3, 7 | Successful | Deposit successful; final state |
-| 4, 9 | Canceled | Deposit canceled; final state (refund may be available) |
+| 4 | Canceled | Deposit canceled; final state. Cannot be refunded through the API |
+| 9 | Canceled | Deposit canceled; final state. No webhook is sent; read the status from the history. Only a deposit that was frozen (status 21, 27 or 28) before it was canceled can be refunded through the API; see [Refund deposit](/api-reference/account-wallet/refund-deposit) |
 | 15 | Pending | Deposit detected, awaiting confirmations |
 | 21 | On hold | Deposit held for review; not final |
-| 22 | Uncredited | Detected, not credited yet; not final |
+| 22 | Uncredited | Detected, not credited yet; not final. A deposit below the network minimum waits in this status: deposits to the same address add up and are credited together once the total reaches the minimum; otherwise the deposit is canceled with status 9 after 7 days |
+| 23 | Pending | Deposit in progress; not final |
 | 27 | Travel Rule frozen | Deposit frozen; the account holder must complete Travel Rule verification (EEA) |
 | 28 | Travel Rule processing | Travel Rule data submitted, verification in progress (EEA) |
 | 29 | Credited, on hold | Funds credited; part may stay held until the network fully confirms the deposit; not final |
@@ -305,6 +309,7 @@ Withdrawal status codes:
 | 1, 2, 6, 10–17 | Pending | Withdrawal in progress |
 | 3, 7 | Successful | Withdrawal completed, funds sent |
 | 4 | Canceled | Withdrawal canceled; final state; the amount returns to the balance |
+| 5 | Unconfirmed | Withdrawal created; reported with `withdraw.unconfirmed`; not final |
 | 18 | Partially successful | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | Withdrawal frozen by AML controls |
 
@@ -356,7 +361,7 @@ Delivery follows the retry policy in [Processing webhook requests](#for-processi
 
 ### WhiteBIT withdraw from main balance
 
-Performed when withdraw was created. Request example:
+Performed when withdraw was created (status 5). A sub-account withdrawal that waits for main-account confirmation sends no webhook while it waits; after the main account confirms it, `withdraw.unconfirmed` is sent to the webhook of the sub-account that owns the withdrawal. Request example:
 
 ```json
 {
@@ -372,7 +377,7 @@ Performed when withdraw was created. Request example:
     "memo": "", // withdraw memo
     "method": 2, // called method 1 - deposit, 2 - withdraw
     "network": "TRC20", // if currency is multi network, "null" if no multi network
-    "status": 15, // transaction status
+    "status": 5, // transaction status
     "transactionHash": "transaction hash", // withdraw transaction hash
     "uniqueId": null // unique Id of withdraw
   },
@@ -454,7 +459,7 @@ Performed when withdraw was completed. Request example:
 
 ### WhiteBIT refund successful
 
-Triggered after the system successfully completes a refund. `memo` is the destination memo sent in the [refund request](/api-reference/account-wallet/refund-deposit). Unlike deposit and withdraw webhooks, which send `""`, refund webhooks send `null` when no memo was provided. Request example:
+Triggered after the system successfully completes a refund. In this webhook, `refundAmount` is the amount sent on-chain and `refundNetworkFee` is the network fee. Refund history returns neither value: its `refundAmount` is the deposit amount. `memo` is the destination memo sent in the [refund request](/api-reference/account-wallet/refund-deposit). Unlike deposit and withdraw webhooks, which send `""`, refund webhooks send `null` when no memo was provided. Request example:
 
 ```json
 {
@@ -481,7 +486,7 @@ Triggered after the system successfully completes a refund. `memo` is the destin
 
 ### WhiteBIT refund failed
 
-Triggered after the system fails to complete a refund. The system rejects the refund if the destination address does not support the required network or asset, or if validation fails. Use a different address or contact support. Request example:
+Triggered when a refund fails: the review rejects the refund, or a refund attempt fails. After a rejection, [Get refund history](/api-reference/account-wallet/get-refund-history) shows the refund as `canceled`, which is final, and no funds are sent. Request example:
 
 ```json
 {
@@ -504,7 +509,7 @@ Triggered after the system fails to complete a refund. The system rejects the re
 ```
 
 <Note>
-`refund.failed` is also sent when a refund attempt fails for an internal reason. In that case, [Get refund history](/api-reference/account-wallet/get-refund-history) still shows the refund as `in_process` and the refund is not final. A refund with status `canceled` in the refund history is final.
+When a refund attempt fails for an internal reason, [Get refund history](/api-reference/account-wallet/get-refund-history) still shows the refund as `in_process` and the refund is not final. A refund with status `canceled` in the refund history is final.
 </Note>
 
 ## What's Next

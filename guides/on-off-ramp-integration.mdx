@@ -40,31 +40,39 @@ sequenceDiagram
     participant W as WhiteBIT API
     participant B as Blockchain
 
-    Note over P,W: The main account's HMAC key<br/>signs every request
-    U->>P: Card and billing details
-    P->>W: POST /api/v4/main-account/fiat-deposit-url<br/>(card number, billing details,<br/>new unique deposit ID)
+    Note over P,W: The main account's<br/>HMAC key signs<br/>every request
+    U->>P: Card and billing<br/>details
+    P->>W: POST /api/v4/<br/>main-account/<br/>fiat-deposit-url<br/>(card number,<br/>billing details,<br/>new unique<br/>deposit ID)
     W-->>P: Hosted payment URL
     P->>U: Payment URL
-    Note over U,W: The browser must send the Referer header<br/>when opening the URL
+    Note over U,W: The browser must send the<br/>Referer header when<br/>opening the URL
     U->>W: Complete the card checkout
-    W-->>P: Deposit status change<br/>(webhook / history record)
-    Note over P: Match the credited deposit<br/>to the stored deposit request
-    P->>W: POST /api/v4/main-account/transfer<br/>(Main to Trade)
-    W-->>P: 201
-    P->>W: POST /api/v4/convert/estimate
-    W-->>P: Quote ID, rate, expiry
-    P->>W: POST /api/v4/convert/confirm<br/>(before the quote expires)
-    W-->>P: 200, converted amount<br/>on the Trade balance
-    P->>W: POST /api/v4/main-account/transfer<br/>(Trade to Main)
-    W-->>P: 201
-    P->>W: POST /api/v4/main-account/withdraw<br/>(crypto, new unique withdrawal ID,<br/>Travel Rule data on EEA accounts)
-    W-->>P: 201, withdrawal creation started
+    W-->>P: Deposit status change<br/>(webhook /<br/>history record)
+    Note over P: Continue only<br/>at status 3 or 7.<br/>Match the credited<br/>deposit to the stored<br/>deposit request
+    P->>W: POST /api/v4/<br/>main-account/<br/>transfer<br/>(Main to Trade)
+    W-->>P: 201, empty array<br/>(accepted,<br/>not completed)
+    loop Until the amount<br/>shows on Trade,<br/>else manual check
+        P->>W: POST /api/v4/<br/>trade-account/<br/>balance
+        W-->>P: Trade balance
+    end
+    P->>W: POST /api/v4/<br/>convert/estimate
+    W-->>P: Quote ID, rate,<br/>expiry
+    P->>W: POST /api/v4/<br/>convert/confirm<br/>(before the quote<br/>expires)
+    W-->>P: 200, final amounts<br/>(on the Trade<br/>balance)
+    P->>W: POST /api/v4/<br/>main-account/<br/>transfer<br/>(Trade to Main)
+    W-->>P: 201, empty array<br/>(accepted,<br/>not completed)
+    loop Until the amount<br/>shows on Main,<br/>else manual check
+        P->>W: POST /api/v4/<br/>main-account/<br/>balance
+        W-->>P: Main balance
+    end
+    P->>W: POST /api/v4/<br/>main-account/<br/>withdraw (crypto,<br/>new unique<br/>withdrawal ID,<br/>Travel Rule data<br/>on EEA accounts)
+    W-->>P: 201, empty array<br/>(withdrawal<br/>creation started)
     W->>B: Crypto withdrawal
-    W-->>P: Withdrawal status change<br/>(webhook / history record)
+    W-->>P: Withdrawal status<br/>change (webhook /<br/>history record)
     alt Status 3 or 7
-        Note over P: Mark the withdrawal complete
+        Note over P: Mark the<br/>withdrawal complete
     else Any other status
-        Note over P: Act as the withdrawal status<br/>state machine describes
+        Note over P: Act as the<br/>withdrawal status<br/>state machine describes
     end
 ```
 
@@ -132,7 +140,7 @@ Operational rules for the deposit leg:
 - **Card flows.** Card funding in USD or EUR (the VISAMASTER provider) requires a `customer` billing block, and the browser must send the `Referer` header when opening the invoice link — messengers and email clients often strip it. See [Card-provider flows](/guides/payment-integration#card-provider-flows).
 - **Web-only currencies.** Not every fiat ticker is depositable via API; confirm `can_deposit` in the [Asset Status](/api-reference/market-data/asset-status-list) response before generating an invoice, and route unsupported tickers through the WhiteBIT web interface.
 
-To complete the on-ramp, reach the currency for the crypto withdrawal through Convert where a conversion is needed. Convert through the API uses the Trade balance: transfer the source currency from Main to Trade, request a quote via `POST /api/v4/convert/estimate` after the transferred amount shows on the Trade balance, and execute it with `POST /api/v4/convert/confirm` before the quote expires. Then transfer the converted amount back to Main before the withdrawal (see [Convert balances](/platform/convert#balances)). The transfer request takes no idempotency key, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) before resending a transfer. Honor the per-quote expiry returned in the response rather than assuming a fixed window. Convert accepts the supported fiat currencies as either leg of a conversion. The crypto withdrawal step is documented in [Crypto Withdrawals](/guides/payment-integration#create-a-withdrawal); for EEA accounts the crypto withdrawal carries a Travel Rule payload — see [Travel Rule](/concepts/travel-rule) and the [EEA crypto withdrawal with Travel Rule use case](/guides/payment-integration#use-cases) (UC2).
+To complete the on-ramp, reach the currency for the crypto withdrawal through Convert where a conversion is needed. Convert through the API uses the Trade balance: transfer the source currency from Main to Trade, request a quote via `POST /api/v4/convert/estimate` after the transferred amount shows on the Trade balance, and execute it with `POST /api/v4/convert/confirm` before the quote expires. Then transfer the converted amount back to Main, and withdraw after the amount shows on the Main balance (see [Convert balances](/platform/convert#balances)). The transfer request takes no idempotency key, and a transfer can still complete after a timeout or a `5xx`, so check [Get transfer history](/api-reference/account-wallet/get-transfer-history) for the transfer. A matching record means the transfer completed. No record can also mean the transfer is still queued, so repeat the check and do not resend automatically. A transfer that never shows is a manual check, as the between-balances row in [Retry strategy by error type](/api-reference/rate-limits#retry-strategy-by-error-type) describes. Honor the per-quote expiry returned in the response rather than assuming a fixed window. Convert accepts the supported fiat currencies as either leg of a conversion. The crypto withdrawal step is documented in [Crypto Withdrawals](/guides/payment-integration#create-a-withdrawal); for EEA accounts the crypto withdrawal carries a Travel Rule payload — see [Travel Rule](/concepts/travel-rule) and the [EEA crypto withdrawal with Travel Rule use case](/guides/payment-integration#use-cases) (UC2).
 
 ### SEPA deposit from the partner's bank account
 
@@ -170,6 +178,7 @@ sequenceDiagram
         end
     end
     W-->>P: Deposit status change<br/>(webhook / history record)
+    Note over P: Continue only at status 3 or 7
 ```
 
 ## Off-ramp flow: crypto in, fiat out
@@ -191,17 +200,25 @@ sequenceDiagram
     Note over W: Travel Rule hold<br/>may apply<br/>(EEA and Turkey)
     W-->>P: deposit.processed,<br/>status 3 or 7<br/>(webhook /<br/>history record)
     P->>W: POST /api/v4/<br/>main-account/<br/>transfer<br/>(Main to Trade)
-    W-->>P: 201
+    W-->>P: 201, empty array<br/>(accepted,<br/>not completed)
+    loop Until the amount<br/>shows on Trade,<br/>else manual check
+        P->>W: POST /api/v4/<br/>trade-account/<br/>balance
+        W-->>P: Trade balance
+    end
     P->>W: POST /api/v4/<br/>convert/estimate
     W-->>P: Quote ID, rate,<br/>expiry
     P->>W: POST /api/v4/<br/>convert/confirm<br/>(quote ID)
-    W-->>P: EUR on the<br/>Trade balance
+    W-->>P: 200, final amounts<br/>(EUR on the<br/>Trade balance)
     Note over P: Store the quote ID
     P->>W: POST /api/v4/<br/>main-account/<br/>transfer<br/>(Trade to Main)
-    W-->>P: 201
+    W-->>P: 201, empty array<br/>(accepted,<br/>not completed)
+    loop Until the amount<br/>shows on Main,<br/>else manual check
+        P->>W: POST /api/v4/<br/>main-account/<br/>balance
+        W-->>P: Main balance
+    end
     alt Bank payout to the partner's own account
         P->>W: POST /api/v4/<br/>main-account/<br/>withdraw<br/>or /withdraw-pay<br/>(EUR)
-        W-->>P: 201
+        W-->>P: 201, empty array
         W->>F: EUR to the partner's<br/>own KYB'd account
     else Card payout to an end user
         U->>P: Card number
@@ -210,7 +227,7 @@ sequenceDiagram
         P->>W: POST /api/<br/>card-token<br/>on fgw.whitebit.com<br/>(JWT)
         W-->>P: Card token
         P->>W: POST /api/v4/<br/>main-account/<br/>withdraw<br/>(EUR, card token)
-        W-->>P: 201
+        W-->>P: 201, empty array
         W->>U: EUR to the card
     end
     W-->>P: Withdrawal<br/>status change<br/>(webhook /<br/>history record)
@@ -229,7 +246,7 @@ Statuses follow the [deposit lifecycle](/guides/payment-integration#deposit-life
 
 Receive the crypto leg on a [deposit address](/api-reference/account-wallet/get-cryptocurrency-deposit-address) of the main account; dedicated per-transaction addresses via [`/create-new-address`](/api-reference/account-wallet/create-new-address-for-deposit) require per-account permission from the account manager. Inbound deposits for EEA and Turkey accounts are held until Travel Rule verification completes — see [Travel Rule](/concepts/travel-rule).
 
-Convert the crypto to the fiat currency through the Trade balance: transfer the source currency from Main to Trade, convert it, and transfer the converted amount back to Main before the fiat withdrawal (see [Convert balances](/platform/convert#balances)).
+Convert the crypto to the fiat currency through the Trade balance. Transfer the source currency from Main to Trade, and wait until the amount shows on the Trade balance. Convert it. Then transfer the converted amount back to Main, and wait until the amount shows on the Main balance before the fiat withdrawal (see [Convert balances](/platform/convert#balances)).
 
 For the fiat leg, choose the fee semantics: `POST /api/v4/main-account/withdraw` treats `amount` as including the fee, while `POST /api/v4/main-account/withdraw-pay` charges the fee on top so the recipient receives the specified amount. USD and EUR withdrawals require a `beneficiary` object; the required sub-fields vary by ticker and provider, so verify the current contract on the [Create Withdraw Request](/api-reference/account-wallet/create-withdraw-request) reference before integration. A `customerIp` field is additionally required for USD or EUR with the VISAMASTER provider.
 
@@ -273,7 +290,7 @@ The identifier appears under different names across the API surface:
 |-------|-----------------|---------|
 | `uniqueId` | `fiat-deposit-url` and withdrawal requests | Client-side transaction identifier, up to 255 characters, unique for each deposit or withdrawal |
 | `unique_id` | History filter and records | The deposit/withdraw identifier in history responses |
-| `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the `deposit.canceled` webhook |
+| `transactionId` | `refund-deposit` request, refund webhooks | Deposit transaction UUID, sourced from the deposit history |
 | `id` | `refund-deposit` response | The same deposit transaction UUID, echoed back — not a refund identifier |
 | `depositId` | `refund-history` filter and records | The same deposit transaction UUID |
 | `refundId` | `refund-history` records | The refund's own UUID, returned only by refund history |
@@ -290,10 +307,11 @@ Build handling for each of these before go-live:
 | Scenario | Documented behavior | Partner action |
 |----------|--------------------|----------------|
 | SEPA deposit against a `fiat-deposit-url` invoice arrives without the `uniqueId` payment reference | The transfer may settle unmatched | Add the reference to every transfer made against a `fiat-deposit-url` invoice |
-| Deposit canceled (status 4 or 9) | The `deposit.canceled` webhook fires; canceled crypto deposits may be refundable | Trigger [`refund-deposit`](/api-reference/account-wallet/refund-deposit) with the transaction UUID and an external refund address. Track the result in [Get refund history](/api-reference/account-wallet/get-refund-history) filtered by `depositId`: `successful` and `canceled` are final; `in_process` is not final, even after a `refund.failed` webhook. See [Refund flow](/guides/payment-integration#refund-flow) |
+| Deposit canceled (status 4) | The `deposit.canceled` webhook fires. A deposit in status 4 cannot be refunded through the API | Close the transaction |
+| Deposit canceled (status 9) | No webhook is sent; the record appears only in the deposit history. Only a deposit that was frozen (status 21, 27 or 28) before it was canceled can be refunded through the API, after WhiteBIT support allows a refund. Every refund passes an operator review before it is sent | Detect the status by polling the history. For a deposit that was frozen before it was canceled, trigger [`refund-deposit`](/api-reference/account-wallet/refund-deposit) with the transaction UUID and an external refund address. Track the result in [Get refund history](/api-reference/account-wallet/get-refund-history) filtered by `depositId`: `successful` and `canceled` are final; `in_process` is not final, even after a `refund.failed` webhook. Otherwise close the transaction. See [Refund flow](/guides/payment-integration#refund-flow) |
 | Deposit unconfirmed by the user (status 5) | The transaction waits for manual confirmation on the platform | Notify the account holder to complete the manual confirmation at whitebit.com; track the status via history polling |
 | Deposit on hold (status 21) | The record surfaces in the deposit history with status 21 | Wait for the compliance review; escalate to institutional@whitebit.com if the freeze lasts more than 24 hours |
-| Deposit held for Travel Rule (status 27/28) | No webhook fires for Travel Rule transitions; the hold surfaces via history polling. A deposit rejected under the Travel Rule is canceled and eligible for refund | Status 27: submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise notify the account holder to complete verification at whitebit.com. Status 28: wait while the data is under review. After a rejection, return the funds through the [refund flow](/guides/payment-integration#refund-flow) |
+| Deposit held for Travel Rule (status 27/28) | No webhook fires for Travel Rule transitions; the hold surfaces via history polling. A deposit rejected under the Travel Rule is canceled. It can be refunded through the API only when it is canceled with status 9 and WhiteBIT support allows a refund | Status 27: submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise notify the account holder to complete verification at whitebit.com. Status 28: wait while the data is under review. After a rejection, follow the row for the canceled status (4 or 9); see the [refund flow](/guides/payment-integration#refund-flow) |
 | Partial fiat withdrawal (status 18, with `partialEnable`) | Part of the withdrawal succeeds | Reconcile `requestAmount` against `processedAmount` and surface the remainder to operations |
 | Conversion returns `400` code `0` or a `5xx` | The conversion may have executed | Follow [Results and retries](/platform/convert#results-and-retries) before converting again |
 | Quote expires before the confirm request, or the platform refuses the confirm request after a price move (rare) | Nothing converts | Request a new estimate — see [Conversion flow](/platform/convert#conversion-flow) and [Results and retries](/platform/convert#results-and-retries) |

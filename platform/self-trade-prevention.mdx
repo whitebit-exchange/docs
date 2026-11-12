@@ -6,7 +6,7 @@ description: "Self Trade Prevention (STP) is a mechanism to prevent traders from
 
 ## Overview
 
-When placing [orders](/glossary#orders), specify how the system should handle potential self-trades using the `stp` parameter. This parameter determines the behavior when an order would match against another order from the same account.
+When placing [orders](/glossary#orders), specify how the system should handle potential self-trades using the `stp` parameter. This parameter determines the behavior when an order would match against another order from the same account. System-generated [balance normalization](/concepts/balances#balance-normalization) orders are not subject to STP and can match the account's own resting orders.
 
 <Warning>
 Deprecation notice: the long-form mode values `cancel_both`, `cancel_new`, and `cancel_old` are deprecated. The long-form values remain accepted and behave identically to the abbreviated equivalents (`cb`, `cn`, `co`) until a migration deadline is announced, after which the API rejects the long-form values. Responses already return only the abbreviated values. Migrate integrations to the abbreviated forms now.

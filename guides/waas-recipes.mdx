@@ -24,8 +24,8 @@ A runnable Python starter that packages these flows is planned.
 
 <CardGroup cols={2}>
   <Card title="Per-user deposit address" icon="wallet" href="/products/sub-accounts/overview">
-    Create a sub-account per end user; once crypto deposits are enabled for the account, get each sub-account's deposit address with its own API key.
-    <br />**Endpoints:** `sub-account/create`, `main-account/address`
+    Create a sub-account per end user and give it its own deposit permission (in the create request for a sub-account created without an email, otherwise with Edit Sub-Account once it is `active`); once crypto deposits are enabled for the account, get each sub-account's deposit address with its own `type: 2` API key after enabling the key's deposit-address URL.
+    <br />**Endpoints:** `sub-account/create`, `sub-account/edit`, `sub-account/api-key/edit`, `main-account/address`
   </Card>
   <Card title="Reconcile deposits" icon="arrows-rotate" href="/guides/payment-integration#webhook-reconciliation">
     Credit users from deposit webhooks, with history polling as the required fallback.
@@ -46,7 +46,7 @@ A runnable Python starter that packages these flows is planned.
     <br />**Endpoints:** `main-account/transfer`, `convert/estimate`, `convert/confirm`, `main-account/withdraw`
   </Card>
   <Card title="Refund a canceled deposit" icon="rotate-left" href="/guides/payment-integration#refund-flow">
-    Return funds from a canceled deposit (status 4/9) to an address.
+    Return funds from a refundable canceled deposit to an address.
     <br />**Endpoints:** `main-account/refund-deposit`
   </Card>
   <Card title="Exact-amount payout" icon="coins" href="/guides/payment-integration#create-a-withdrawal">

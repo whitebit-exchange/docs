@@ -496,7 +496,7 @@ def send_request_with_retry(path, data=None, max_retries=5):
 | HTTP `5xx` | — | Backoff and retry | Yes |
 
 <Warning>
-  Never auto-retry `401` authentication errors. A failed auth indicates an incorrect signature, expired key, or IP whitelist mismatch — retrying floods the API without resolving the root cause.
+  Never auto-retry `401` authentication errors. A failed auth indicates an incorrect signature, expired key, IP whitelist mismatch, or a block on the key's sub-account or its main account (`This user is blocked`) — retrying floods the API without resolving the root cause.
 </Warning>
 
 See [Rate Limits & Error Codes](/api-reference/rate-limits) for the complete error reference.

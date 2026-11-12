@@ -11,9 +11,10 @@ import { signerFields } from '/snippets/signer-fields/sub-account-create.jsx';
 
 
 <Note>
-The `email` field requirement depends on the `shareKyc` parameter:
-- When `shareKyc` is `false` or not provided: `email` is **required**
-- When `shareKyc` is `true`: `email` is **optional**
+The `email` field, not `shareKyc`, decides whether the sub-account is active at creation:
+- When `shareKyc` is `false` or not provided: `email` is **required**. WhiteBIT sends an invitation to that email, and the sub-account stays inactive until the end user opens the link and sets a password. The link expires after three days and can be re-sent on whitebit.com, not through the API.
+- When `shareKyc` is `true`: leave `email` out. The sub-account is active as soon as the request succeeds and shares the main account's verification.
+- A request with `email` starts the invitation flow even when `shareKyc` is `true`.
 </Note>
 
 ## Used in these guides

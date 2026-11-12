@@ -30,14 +30,15 @@ the wallet flows on top.
 
 - **Approved WaaS partner enrollment** — see the [WaaS overview](/guides/waas-overview) for what WaaS provides and how to apply.
 - **A chosen verification variant** — managed sub-accounts, KYC reliance, or shared-KYC sub-accounts; see [Build path per variant](#build-path-per-variant).
-- **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account; crypto deposits to sub-accounts and the sub-account withdrawal endpoints enabled for the account by the account manager.
+- **API access** — [HMAC-signed requests](/api-reference/authentication); a `type: 2` API key (deposits and withdrawals) on each sub-account, with the URLs the integration calls enabled (every URL group starts switched off on a new key); crypto deposits to sub-accounts and the sub-account withdrawal endpoints enabled for the account by the account manager.
+- **Sub-account permissions** — each sub-account also needs its own deposit and withdrawal permissions (`depositsEnabled`, `withdrawsEnabled`). For a sub-account created without an email, both go in the create request; for a sub-account created with an email, set both with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once its `status` is `active`. See [Wallet creation](#wallet-creation).
 - **Sub-account limit** — a main account holds up to 50 sub-accounts by default; the assigned account manager raises the limit on request.
 
 ## Build path per variant
 
-- **Managed sub-accounts.** The partner creates a sub-account per end user under the main account (`POST /api/v4/sub-account/create` with `shareKyc: false`), and WhiteBIT verifies each end user through a KYC URL. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow) for the KYC URL and per-customer API keys.
-- **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed variant, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. Build with the same [Embedded Trading integration guide](/guides/sub-account-integration); complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
-- **Shared-KYC sub-accounts.** The partner creates a sub-account per end user with `shareKyc: true`, and each sub-account carries the main account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB); the partner verifies its own end users. No KYC URL or email confirmation applies, and the sub-account accepts permissions at creation. Build with [Sub-Accounts](/products/sub-accounts/overview) and the [Embedded Trading integration guide](/guides/sub-account-integration), skipping its end-customer KYC steps.
+- **Managed sub-accounts.** The partner creates a sub-account per end user under the main account (`POST /api/v4/sub-account/create` with `shareKyc: false` and the end user's `email`). WhiteBIT emails the end user an invitation, and the sub-account is activated once the end user opens the link and sets a password. The link expires after three days and can be re-sent on whitebit.com, not through the API. Once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`, the partner sets the deposit and withdrawal permissions with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account), sending the `alias` and the full `permissions` object. WhiteBIT then verifies each end user through a KYC URL; transfers from the main account to the sub-account are refused until the KYC is approved. Build with [Sub-Accounts](/products/sub-accounts/overview) for account creation and management, and the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow) for the KYC URL and per-customer API keys.
+- **Sub-accounts with KYC reliance.** The same sub-account architecture as the managed variant, but the partner performs end-user KYC instead of WhiteBIT, under a Compliance-approved agreement. The partner creates each sub-account with `shareKyc: true` and no `email`, so the sub-account is active at creation with no invitation step, and the deposit and withdrawal permissions go in the create request; a request with `email` starts the invitation flow instead. Build with the same [Embedded Trading integration guide](/guides/sub-account-integration); complete [Institutional Onboarding](/institutional/onboarding) first to establish the reliance agreement. See [KYC reliance eligibility](#kyc-reliance-eligibility) below for the conditions.
+- **Shared-KYC sub-accounts.** The partner creates a sub-account per end user with `shareKyc: true`, and each sub-account carries the main account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB); the partner verifies its own end users. Leave `email` out of the create request: a request with `email` starts the invitation flow even with `shareKyc: true`. No invitation, activation or KYC URL step applies: the sub-account is active at creation, `spotEnabled` and `collateralEnabled` apply at once, and the deposit and withdrawal permissions go in the create request. Build with [Sub-Accounts](/products/sub-accounts/overview) and the [Embedded Trading integration guide](/guides/sub-account-integration), skipping its end-customer KYC steps.
 
 Commercial terms for the program:
 
@@ -69,9 +70,13 @@ names the key that signs each request: the main-account key or the sub-account's
 
 ### Wallet creation
 
-Wallet creation runs once per end user: the sub-account, its `type: 2` API key, and a deposit address per ticker and
-network. Managed sub-accounts add the KYC URL step from the
-[customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow), and shared-KYC sub-accounts skip it.
+Wallet creation runs once per end user: the sub-account with its deposit and withdrawal permissions, its `type: 2` API key with the deposit-address and Main balance URLs enabled, and a deposit address per ticker and
+network. Managed sub-accounts add the activation and KYC URL steps from the
+[customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow): once
+[List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`, the partner sets the deposit and
+withdrawal permissions with Edit Sub-Account, then creates the API key and the deposit addresses. Only transfers from
+the main account wait for the KYC approval. Shared-KYC sub-accounts skip both steps and carry all four permissions in
+the create request.
 WhiteBIT and the partner agree the KYC reliance setup during onboarding; see
 [Build path per variant](#build-path-per-variant).
 
@@ -83,23 +88,18 @@ sequenceDiagram
     participant W as WhiteBIT
 
     alt Managed sub-accounts
-        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC off,<br/>end user's email, permission set)
+        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC off,<br/>end user's email, spot and collateral)
         W-->>P: Sub-account id
-        loop Until the sub-account is activated
+        W->>U: Invitation email<br/>(valid for three days)
+        U->>W: Open the link<br/>and set a password
+        loop Until status is active
             P->>W: POST /api/v4/sub-account/list<br/>(main-account key)
-            W-->>P: Sub-account activation state
+            W-->>P: Sub-account status
         end
-        P->>W: POST /api/v4/sub-account/kyc-url<br/>(main-account key, sub-account id)
-        W-->>P: Temporary KYC URL
-        P->>U: Pass the KYC URL
-        U->>W: Complete the WhiteBIT verification,<br/>which also confirms the email
-        loop Until the verification is complete and the sub-account is active
-            P->>W: POST /api/v4/sub-account/list<br/>(main-account key)
-            W-->>P: Verification and activation state
-        end
-        P->>W: POST /api/v4/sub-account/edit<br/>(main-account key, full permission set)
+        P->>W: POST /api/v4/sub-account/edit<br/>(main-account key, alias,<br/>full permission set with<br/>deposits and withdrawals on)
+        W-->>P: Sub-account edited
     else Shared-KYC sub-accounts
-        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC on,<br/>permission set)
+        P->>W: POST /api/v4/sub-account/create<br/>(main-account key, shared KYC on,<br/>no email, full permission set<br/>with deposits and withdrawals on)
         W-->>P: Sub-account id
     end
     P->>W: POST /api/v4/sub-account/api-key/create<br/>(main-account key, key name,<br/>deposit and withdrawal key)
@@ -107,6 +107,8 @@ sequenceDiagram
     opt Restrict the key to known IPs
         P->>W: POST<br/>/api/v4/sub-account/api-key/ip-address/create<br/>(main-account key, IP address for the key)
     end
+    P->>W: POST /api/v4/sub-account/api-key/edit<br/>(main-account key, switch on<br/>/api/v4/main-account/address<br/>and /api/v4/main-account/balance)
+    W-->>P: Key updated
     P->>W: GET /api/v4/public/assets<br/>(public, no key)
     W-->>P: Deposit availability<br/>and networks per ticker
     loop Each depositable ticker and network to offer
@@ -115,6 +117,17 @@ sequenceDiagram
     end
     P->>P: Store end user, sub-account id,<br/>key, addresses and memos
     Note over P,W: Crypto deposits to sub-accounts work<br/>once the account manager enables<br/>sub-account deposits for the account
+    opt Managed sub-accounts
+        P->>W: POST /api/v4/sub-account/kyc-url<br/>(main-account key, sub-account id)
+        W-->>P: Temporary KYC URL
+        P->>U: Pass the KYC URL
+        U->>W: Complete the WhiteBIT verification
+        loop Until the verification is complete
+            P->>W: POST /api/v4/sub-account/list<br/>(main-account key)
+            W-->>P: Verification state
+        end
+        Note over P,W: Transfers from the main account<br/>to the sub-account work only<br/>after the KYC is approved
+    end
 ```
 
 ### Deposits
@@ -142,24 +155,37 @@ sequenceDiagram
         alt Successful (3, 7), final
             P->>P: Mark credited,<br/>stop tracking
         else Canceled (4, 9), final
-            P->>P: Offer the refund flow
+            P->>P: Mark canceled,<br/>stop tracking
+            opt Status 9, frozen first
+                P->>P: Offer the refund flow
+            end
         else Any other status
             P->>P: Act on the status,<br/>keep tracking
         end
     end
 ```
 
-A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but
+A sub-account counts as a separate account and can have its own webhook, created at whitebit.com only: the main account switches the session to the sub-account and creates the webhook there. The main account's webhook does not receive sub-account events, and payloads carry no sub-account identifier. Webhook delivery is retried but
 has no replay, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured.
 Use `POST /api/v4/main-account/history` with `transactionMethod: 1`, signed with the sub-account's API key. Deduplicate by `uniqueId`. Act on each deposit status as the [Deposit status state machine](/guides/payment-integration#deposit-status-state-machine) describes. Not every deposit ends credited: some end canceled, and some stay in status 21 (on hold) or 22 (uncredited) before reaching a final status. See [Webhooks](/platform/webhook) for signatures and delivery semantics. API
 [rate limits](/api-reference/rate-limits) apply per endpoint.
+
+The `main` amount from `POST /api/v4/sub-account/balances` includes deposits credited before the network fully confirms
+the deposits. The sub-account's key reads the part still held back as `pending_deposit_amount` from
+`POST /api/v4/main-account/balance`, once `/api/v4/main-account/balance` is switched on for the key with
+`POST /api/v4/sub-account/api-key/edit`. The held part cannot be withdrawn to a blockchain address, moved to the
+Collateral balance, or transferred to the main account until the network confirms the deposit. The hold stays on the
+sub-account that received the deposit. A `sub_to_main` [transfer](/api-reference/sub-accounts/sub-account-transfer) can
+move at most `main_balance` minus `pending_deposit_amount`, both read for the currency in one
+`POST /api/v4/main-account/balance` call with the sub-account's key. A request that reaches into the held part is refused as a whole with `422` on `amount`, code `20`.
 
 <SubAccountLimit />
 
 ### Crypto purchases with fiat
 
 In a purchase, the partner debits the end user's fiat in the partner's own system and transfers the crypto from the
-main account to the sub-account.
+main account to the sub-account. For a managed sub-account, WhiteBIT refuses the transfer until the end user's KYC is
+approved, and the refusal names the `to` field; offer purchases only after the approval.
 
 <TransferNoIdempotency />
 
@@ -177,27 +203,34 @@ sequenceDiagram
     U->>P: Buy crypto with fiat
     P->>W: POST /api/v4/main-account/balance<br/>(main-account key, currency)
     W-->>P: The main account's Main balance for the ticker
-    Note over P,W: Transfers to a sub-account draw<br/>from the main account's Main balance
+    Note over P,W: Transfers to a sub-account draw<br/>from the main account's Main balance<br/>and credit the sub-account's Main balance
     P->>F: Debit the end<br/>user's fiat
+    P->>P: Record the transfer and the<br/>expected sub-account main amount
     P->>W: POST /api/v4/sub-account/transfer<br/>(main-account key,<br/>main account to sub-account)
-    alt 200
+    alt 200, request received
         W-->>P: Transfer ID
         P->>P: Store the transfer ID with the purchase
     else Timeout or 5xx
-        P->>W: POST /api/v4/sub-account/transfer/history<br/>(main-account key, sub-account ID,<br/>main account to sub-account)
-        W-->>P: Transfers, newest first
-        alt Same direction, currency and amount, created after the request was sent
-            P->>P: Store its transfer ID and do not resend
-        else No such record
-            P->>W: POST /api/v4/sub-account/transfer again (main-account key)
-        end
+        Note over P,W: The transfer can still complete
     end
+    loop Until the sub-account's main shows the transfer
+        P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account id, currency)
+        W-->>P: main for the ticker
+    end
+    Note over P,W: No resend while waiting. A transfer<br/>that never shows is a manual check
 ```
 
 ### Crypto sales for fiat
 
-In a sale, the partner transfers the crypto from the sub-account to the main account and credits the end user's fiat
-once WhiteBIT confirms the transfer. The same transfer-history check applies before any resend.
+In a sale, the partner transfers the crypto from the sub-account's Main balance to the main account. The sale amount
+is at most the sub-account's `main_balance` minus `pending_deposit_amount`, both read in one
+`POST /api/v4/main-account/balance` call with the sub-account's key. A transfer that reaches into the held part is refused with `422` on
+`amount`, code `20`, and nothing moves: the held part can be sold once the deposit is confirmed.
+
+A `200` response means WhiteBIT received the request, and the transfer can still fail after it. After a `200`, a
+timeout or a `5xx`, the partner reads the sub-account's `main` with `POST /api/v4/sub-account/balances` (main-account
+key) until it shows the transfer, and credits the end user's fiat only then. The partner sends no second transfer while
+waiting. A transfer that does not show is a manual check, not an automatic resend.
 
 ```mermaid
 sequenceDiagram
@@ -208,29 +241,31 @@ sequenceDiagram
     participant W as WhiteBIT
 
     U->>P: Sell crypto for fiat
-    P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account id, currency)
-    W-->>P: main, spot and collateral amounts for the ticker
-    P->>P: Check that the balance covers the sale
+    P->>W: POST /api/v4/main-account/balance<br/>(sub-account key, currency)
+    W-->>P: main_balance and<br/>pending_deposit_amount
+    P->>P: Check that main_balance minus<br/>pending_deposit_amount covers the sale
+    P->>P: Record the transfer and the<br/>expected sub-account main amount
     P->>W: POST /api/v4/sub-account/transfer<br/>(main-account key,<br/>sub-account to main account)
-    alt 200
-        W-->>P: Transfer ID
-        P->>F: Credit the end user's fiat
-    else Timeout or 5xx
-        P->>W: POST /api/v4/sub-account/transfer/history<br/>(main-account key, sub-account ID,<br/>sub-account to main account)
-        W-->>P: Transfers, newest first
-        alt Same direction, currency and amount, created after the request was sent
-            P->>F: Credit the end user's fiat
-        else No such record
-            P->>W: POST /api/v4/sub-account/transfer again (main-account key)
+    alt 422 on amount, code 20
+        W-->>P: Held deposit funds cannot move
+        P->>P: No fiat credit. Sell the held part<br/>once the deposit is confirmed
+    else 200, timeout or 5xx
+        loop Until the sub-account's main shows the transfer
+            P->>W: POST /api/v4/sub-account/balances<br/>(main-account key, sub-account id, currency)
+            W-->>P: main for the ticker
         end
+        P->>F: Credit the end user's fiat
     end
+    Note over P,W: No resend and no fiat credit<br/>while waiting. A transfer that<br/>never shows is a manual check
 ```
 
 ### Withdrawals
 
 The sub-account's `type: 2` key creates each withdrawal, and the main-account key confirms it before processing
 starts. The account manager enables the sub-account withdrawal endpoints.
+The sub-account also needs its own withdrawal permission (`withdrawsEnabled`), set as in [Wallet creation](#wallet-creation).
 [Sub-account withdrawal approval](/products/sub-accounts/quickstart#sub-account-withdrawal-approval) gives the request for each approval step.
+A waiting withdrawal does not expire and sends no webhook: find it in the [unconfirmed-withdrawals list](/api-reference/sub-accounts/list-unconfirmed-sub-account-withdrawals) with the main-account key.
 
 <SubAccountWithdrawal />
 
@@ -242,14 +277,20 @@ Conversion on a sub-account uses the requests in [Convert balances](/platform/co
 [Conversion in the withdrawal flow](/guides/payment-integration#conversion-in-the-withdrawal-flow), signed with the
 sub-account's key, on the sub-account's Trade balance. The partner transfers the source currency from the Main balance to
 the Trade balance and requests the estimate after the transferred amount shows on the Trade balance. Before a
-withdrawal, the partner transfers the converted amount back to the Main balance. The transfer to Trade needs the
+withdrawal or a sale, the partner transfers the converted amount back to the Main balance, because the withdrawal endpoints
+and a transfer to the main account both draw from the sub-account's Main balance only. The transfer to Trade needs the
 sub-account's spot permission (`spotEnabled`). The main account's one-time acceptance of the Convert terms on whitebit.com
 covers its sub-accounts; sub-accounts do not accept the terms separately.
+
+Every URL group starts switched off on a new sub-account key, so before the first conversion the partner enables
+`/api/v4/convert/estimate`, `/api/v4/convert/confirm`, and the balance transfer `/api/v4/main-account/transfer` on the
+sub-account's key with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key), signed with the main-account key.
 
 ## API key lifecycle
 
 The [14-day deactivation of unused keys](/best-practices/security#key-rotation) applies to sub-account keys too, and any
-authenticated request, such as a deposit history poll, resets the timer.
+authenticated request, such as a deposit history poll, resets the timer. A request refused with `401` and
+`This user is blocked` means the sub-account or its main account is blocked, not that the key was deactivated.
 
 <KeyCreateNoResponse />
 
@@ -267,16 +308,19 @@ flowchart TD
     Ip --> Use["Signed requests with the key,<br/>such as the deposit history polls,<br/>each reset the 14-day timer"]
     Use -->|"POST /api/v4/sub-account/api-key/list, main-account key"| Check{"Key enabled?"}
     Check -->|"Yes"| Use
-    Check -->|"No"| Replace["Key not enabled: create a replacement<br/>with the same permissions and IP whitelist,<br/>then delete the old key"]
-    Replace --> Create
+    Check -->|"No"| Reset["POST /api/v4/sub-account/api-key/reset<br/>main-account key, same key and secret,<br/>URL access and IP whitelist kept"]
+    Reset --> Use
 ```
 
 ## End-user offboarding
 
 Offboarding empties the sub-account through a final withdrawal or a sale, then the main-account key blocks it. The
 sub-account's key creates the final withdrawal and the main account confirms it, as in [Withdrawals](#withdrawals).
-A sale follows [Crypto sales for fiat](#crypto-sales-for-fiat). The partner keeps the end user's mapping to the
-sub-account and its addresses.
+A sale follows [Crypto sales for fiat](#crypto-sales-for-fiat). After the block, every request signed with the
+sub-account's key is refused with `401` and `This user is blocked`, so any Trade-to-Main transfer, the final withdrawal
+and its status checks run before the block. A block does not stop deposits: a later deposit to one of the sub-account's
+addresses is still credited to the sub-account, but the blocked sub-account's key cannot move
+the deposit. The partner therefore keeps the end user's mapping to the sub-account and its addresses.
 
 <SubAccountOffboarding />
 
@@ -293,7 +337,8 @@ fetch the VASP list via `travel-rule/vasps` (EEA and Turkey). See [Travel Rule](
 
 WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts,
 and check per-asset minimums via the [Asset Status](/api-reference/market-data/asset-status-list)
-endpoint first. The WhiteBIT Codes flow is a low-risk way to try a real signed call on a small
+endpoint first. Where the response includes `limits`, a crypto deposit is checked against the network minimum (`limits.deposit.<network>.min`). A test deposit below the network
+minimum is not credited at once: it waits in status 22, and unless the deposits to the same address add up to the minimum, it is canceled with status 9 after 7 days. The WhiteBIT Codes flow is a low-risk way to try a real signed call on a small
 amount (see [Recipes](/guides/waas-recipes)).
 
 ## What's next
