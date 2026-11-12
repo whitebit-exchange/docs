@@ -1203,7 +1203,8 @@ components:
           example: "0.1"
         min_deposit:
           type: string
-          description: Min deposit amount
+          description: "Currency-level minimum deposit amount. When the response includes `limits`, a crypto deposit
+            is checked against the network minimum in `limits.deposit`, not against `min_deposit`."
           example: "0.0001"
         max_deposit:
           type: string
@@ -1258,7 +1259,8 @@ components:
           properties:
             deposit:
               type: object
-              description: Deposits limits
+              description: "Deposit limits per network. `min` is the minimum applied to a crypto deposit on
+                that network."
               additionalProperties:
                 type: object
                 properties:
@@ -1295,7 +1297,8 @@ components:
           description: "Blockchain confirmations after which a deposit is credited for trading,
             mapped by network name (e.g., {\"BTC\": 1}). Until the count in confirmations is
             reached, the credited amount can be traded but not withdrawn, transferred to a
-            collateral balance, or used as collateral. This map carries exactly the same network
+            collateral balance, transferred from a sub-account to its main account, or used as
+            collateral. This map carries exactly the same network
             keys as confirmations. Where a network has no earlier threshold configured, or while
             the platform has early trading availability switched off, the value repeats the
             confirmations count, because trading then opens at the same point as withdrawal."

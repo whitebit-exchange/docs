@@ -7,7 +7,7 @@ sequenceDiagram
     WB-->>Main: 200
     Sub->>WB: POST /api/v4/main-account/<br/>withdraw<br/>(Travel Rule data<br/>where required)
     WB-->>Sub: 201, creation started
-    Note over WB: Held until the main<br/>account confirms it,<br/>expires if left unconfirmed,<br/>no reject request
+    Note over WB: Held until the main<br/>account confirms it,<br/>does not expire,<br/>no webhook while held,<br/>no reject request
     Main->>WB: POST /api/v4/sub-account/<br/>withdraw/unconfirmed-list
     WB-->>Main: Withdrawals awaiting<br/>confirmation
     Main->>WB: POST /api/v4/sub-account/<br/>withdraw/confirm<br/>(withdrawal ID)

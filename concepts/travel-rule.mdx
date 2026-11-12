@@ -100,7 +100,7 @@ Verification is performed against the originator (sender) address the deposit ca
 
 Status 28 means the submitted data is under review; it resolves either to a successful credit or to a rejection.
 
-A rejected deposit is canceled rather than refunded automatically. To return the funds, submit a separate refund request via [Refund deposit](/api-reference/account-wallet/refund-deposit) (`POST /api/v4/main-account/refund-deposit`). Deposits canceled under Travel Rule are eligible for refund.
+A rejected deposit is canceled rather than refunded automatically. A refund through the API is available only when the deposit is canceled with status 9 and WhiteBIT support allows a refund for it; until then, [Refund deposit](/api-reference/account-wallet/refund-deposit) returns `400`. Once a refund is available, return the funds with a separate request via Refund deposit (`POST /api/v4/main-account/refund-deposit`). Every refund passes an operator review before WhiteBIT sends it.
 
 ### Deposit examples
 

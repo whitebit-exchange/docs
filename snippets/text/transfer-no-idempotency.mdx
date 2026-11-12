@@ -1,15 +1,37 @@
-{/* Shared text: a balance or sub-account transfer takes no idempotency key.
-    One home per fact (RULES §3.6 invariant 4). Owner: the Warnings on the Transfer between balances
-    and Sub-Account Transfer reference pages; change those Warnings and this file together.
+{/* Shared text: a sub-account transfer takes no idempotency key, and the sub-account's balance confirms it.
+    One home per fact (RULES §3.6 invariant 4). Owner: the Warning on the Sub-Account Transfer reference page;
+    change that Warning and this file together.
     Edit the wording only in this file; pages import it by reference:
       import TransferNoIdempotency from '/snippets/text/transfer-no-idempotency.mdx';
       ...
       <TransferNoIdempotency />
-    Inline copies that cannot import a block snippet (change these copies with this file): the retry table
-    on REST API rate limits and error codes, the Go-Live Checklist item, and the transfer row in data/error-codes.yaml.
+    Importers: guides/waas-integration.mdx (Crypto purchases with fiat) and guides/yaas-integration.mdx (Fund the
+    sub-account), both for the sub-account transfer only.
+    Inline copies of the sub-account rule (change these copies with this file): the sub-account row and branch of the
+    retry table and flowchart on REST API rate limits and error codes, the Go-Live Checklist item, the sub-account entry
+    in data/error-codes.yaml, the WaaS buy and sale diagrams and sale prose, the sale step of
+    snippets/diagrams/sub-account-offboarding.mdx, and the transfer step of products/sub-accounts/quickstart.mdx.
+    Transfer between balances follows a different rule (a matching record in its history means the transfer completed,
+    no record can also mean it is still queued, no automatic resend). Copies of that rule: the Warning on the Transfer
+    between balances reference page, the between-balances row and branch on REST API rate limits and error codes, the
+    Go-Live Checklist item, the between-balances entry in data/error-codes.yaml, the 500 row in data/rate-limits.yaml,
+    guides/payment-integration.mdx (Conversion in the withdrawal flow), guides/on-off-ramp-integration.mdx, and
+    platform/convert.mdx (Balances).
     No links or endpoint names here: the host sentence next to the snippet keeps the links and endpoints.
     See snippets/README.md for the authoring + import convention. */}
 
-The transfer request takes no idempotency key. After a timeout or a `5xx` response, check the transfer history for a
-record that matches the request and was created after the failed request was sent. Resend the transfer only when no
-such record exists.
+The transfer request takes no idempotency key, and two identical requests move the funds twice. A `200` response
+means WhiteBIT received the request, and the transfer can still fail after the response. After a timeout or a `5xx`
+response, the transfer can still complete. A record in the transfer history shows that the request was received, not
+that the funds moved, so the history does not confirm a transfer.
+
+The sub-account's own balance confirms a transfer: read `main` for the ticker on the sub-account. A transfer to the
+sub-account raises it by the amount, and a transfer to the main account lowers it. The main account's balance
+changes with transfers to and from every sub-account and does not confirm a single transfer. After a `200`, a timeout or a `5xx`,
+read the sub-account's `main` until it shows the transfer, and do not resend while waiting. A transfer that does
+not show is a manual check, not an automatic resend.
+
+The caller cannot attach its own reference to a transfer, so an integration stores its own record of each transfer
+before the call and compares the sub-account's `main` with the amount expected from its records of every movement on
+the sub-account, including deposits and withdrawals. Send the next transfer for the same sub-account and ticker only
+after the previous one shows.

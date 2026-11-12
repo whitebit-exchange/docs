@@ -70,6 +70,33 @@ USDTB enters futures margin calculations through the futures-specific parameters
 - `futuresFreeMargin` = `freeMargin` + USDTB. Returned by [Collateral account summary](/api-reference/trading/collateral-account-summary).
 - Futures Margin Fraction — includes the USDTB bonus balance. Used in the [ADL execution price](/concepts/auto-deleveraging#execution-price) formula.
 
+## Balance normalization
+
+Balance normalization is an automatic conversion inside the Collateral balance. When the balance of an asset in the Collateral balance goes negative, the platform places a system-generated order of [type `14`](/websocket/account-streams/overview#order-types) to settle the negative amount. A negative asset balance is the only trigger. Typical causes are realized funding, realized negative [PnL](/glossary#pnl), and fees on collateral orders.
+
+Opening a position does not trigger normalization by itself, but the fee on the opening order can. Example: the Collateral balance holds only BTC and 0 USDT. An order on `BTC_USDT` charges the fee in USDT, the USDT balance goes negative, and a normalization order follows.
+
+A borrow on its own does not trigger normalization. When the account closes a borrow, normalization runs as part of the closure.
+
+Normalization always trades on a USDT-quoted market, `<ASSET>_USDT`. The side depends on which asset balance is negative:
+
+| Negative balance | Normalization orders |
+|------------------|----------------------|
+| USDT | The platform sells a positive collateral asset for USDT on the `<ASSET>_USDT` market of that asset. |
+| Another asset, for example BTC or ETH | The platform buys the missing asset with USDT on the market of that asset, such as `BTC_USDT` or `ETH_USDT`. |
+| Another asset, with too little USDT to buy the asset | Two orders: the platform sells a positive asset for USDT on the `<ASSET>_USDT` market of that asset, then buys the missing asset with the proceeds. |
+
+A normalization order always executes as the [taker](/glossary#taker), and the platform charges the account's taker fee. The order is not subject to [self-trade prevention](/platform/self-trade-prevention), so the order can match the account's own resting order. In that case, both sides of the trade belong to the account.
+
+To avoid normalization, keep a buffer in the Collateral balance of each asset that fees, funding, and realized PnL settle in, such as USDT. Holding other assets, such as BTC, does not stop the USDT balance from going negative.
+
+Normalization fills appear on two WebSocket account streams:
+
+| Channel | How to identify a normalization fill |
+|---------|--------------------------------------|
+| [Orders Executed](/websocket/account-streams/orders-executed) | `type` `14` and an empty `client_order_id`. No `liquidation_` or `adl_` prefix. |
+| [Deals](/websocket/account-streams/deals) | `deals_update` has no order-type field. Match the order ID in `params[3]` to the order `id` on `ordersExecuted_update`. |
+
 ## Deposit flow
 
 1. Generate a deposit address. Use `POST /api/v4/main-account/create-new-address` ([API Reference](/api-reference/account-wallet/create-new-address-for-deposit)) to generate a unique address per request, or `POST /api/v4/main-account/address` ([API Reference](/api-reference/account-wallet/get-cryptocurrency-deposit-address)) to retrieve a persistent reusable address. Alternatively, create an address through the platform UI.
@@ -77,7 +104,7 @@ USDTB enters futures margin calculations through the futures-specific parameters
 3. Funds arrive in Main balance once the network reaches the asset's `confirmations_for_trading` count.
 4. Transfer from Main to Trade (for spot orders) or to Collateral (for margin/futures positions).
 
-Until the network reaches the full `confirmations` count, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. The account can move the held amount to the Trade balance and trade it. The platform blocks four actions on the held amount: withdrawal, sending as a WhiteBIT Code, transfer to the Collateral balance, and use as collateral. When the two counts are equal, the platform holds nothing. [Asset Status](/api-reference/market-data/asset-status-list) returns both counts per network.
+Until the network reaches the full `confirmations` count, the [Main balance](/api-reference/account-wallet/main-balance) endpoint reports the held amount as `pending_deposit_amount`. The account can move the held amount to the Trade balance and trade it. The platform blocks blockchain withdrawals of the held amount, transfers of it to the Collateral balance, and transfers of it from a sub-account to its main account. When the two counts are equal, the platform holds nothing. [Asset Status](/api-reference/market-data/asset-status-list) returns both counts per network.
 
 ## Withdrawal flow
 

@@ -21,7 +21,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
 <Steps>
   <Step title="Create a sub-account">
-    Create a new sub-account with an alias and permissions.
+    Create a sub-account that shares the main account's verification, with an alias and permissions.
 
     <Tabs>
       <Tab title="cURL">
@@ -33,7 +33,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
           -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
           -d '{
             "alias": "strategy-alpha",
-            "email": "strategy-alpha@example.com",
+            "shareKyc": true,
             "permissions": {"spotEnabled": true, "collateralEnabled": false},
             "request": "/api/v4/sub-account/create",
             "nonce": 1709340000000
@@ -68,7 +68,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
         # Create a sub-account
         response = make_request("/api/v4/sub-account/create", {
             "alias": "strategy-alpha",
-            "email": "strategy-alpha@example.com",
+            "shareKyc": True,
             "permissions": {"spotEnabled": True, "collateralEnabled": False},
         })
         sub_account = response.json()
@@ -79,9 +79,9 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
 
     For TypeScript and Python SDK examples, see [SDKs](/sdks).
 
-    **Required fields:** `alias` (display name), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required.
+    **Required fields:** `alias` (display name, unique among the main account's sub-accounts), `permissions` (object with `spotEnabled` and `collateralEnabled`). When `shareKyc` is `false` or omitted, `email` is also required. The example sets `shareKyc: true` and leaves `email` out, so the sub-account shares the main account's verification and is active at creation.
 
-    With `shareKyc: false`, permissions sent at creation are not kept until the end customer confirms the email through the [KYC URL](/api-reference/sub-accounts/kyc-url) flow. Re-apply the permissions with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is active. With `shareKyc: true`, permissions apply at creation.
+    A request with `email` starts the invitation flow instead: WhiteBIT emails the end customer, and the sub-account stays inactive until the customer opens the link and sets a password. Until then, transfers and balances for the sub-account are refused. The invitation link expires after three days and can be re-sent on whitebit.com, not through the API. Once [List of Sub-Accounts](/api-reference/sub-accounts/list-of-sub-accounts) shows the sub-account's `status` as `active`, set `depositsEnabled` and `withdrawsEnabled` with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account), sending the `alias` and the full `permissions` object (`spotEnabled` and `collateralEnabled` as set at creation), then create the sub-account's API key. Transfers from the main account to a sub-account created with `shareKyc: false` also wait for the end customer's KYC approval. See the [customer onboarding flow](/guides/sub-account-integration#customer-onboarding-flow).
 
     **Expected response:**
     ```json
@@ -89,11 +89,10 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
       "alias": "strategy-alpha",
       "userId": "u-12345",
-      "email": "s***@example.com",
       "status": "active",
       "color": "#FF5733",
       "kyc": {
-        "shareKyc": false,
+        "shareKyc": true,
         "kycStatus": "verified"
       },
       "permissions": {
@@ -141,7 +140,7 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       </Tab>
     </Tabs>
 
-    **Required fields:** `id` (sub-account UUID), `direction` (`main_to_sub` or `sub_to_main`), `ticker`, `amount`. Transfers are instant and fee-free.
+    **Required fields:** `id` (sub-account UUID), `direction` (`main_to_sub` or `sub_to_main`), `ticker`, `amount`. Transfers are fee-free. The response means WhiteBIT accepted the request, and the transfer can still fail after it. Confirm the transfer on the sub-account's `main` balance with `POST /api/v4/sub-account/balances`, as in the Check sub-account balances step below, before acting on it.
 
     **Expected response:**
     ```json
@@ -194,9 +193,13 @@ Each sub-account holds its own balance and API keys. Funds and signing scopes ar
       To receive crypto deposits directly, the sub-account needs a `type: 2` key (deposits and
       withdrawals) **and** the account must have sub-account deposits enabled. Crypto deposits to sub-accounts are disabled
       by default — to enable deposits for the account's sub-accounts, contact the assigned account
-      manager. Once enabled, generate the address via the
+      manager. Once deposits are enabled, use
+      [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key) to enable `/api/v4/main-account/address`
+      on the `type: 2` key (every URL group starts switched off on a new key), then generate the address via the
       standard [deposit-address endpoint](/api-reference/account-wallet/get-cryptocurrency-deposit-address)
-      signed with the sub-account's own key.
+      signed with the sub-account's own key. The sub-account also needs its own deposit permission,
+      `depositsEnabled`: in the create request for a sub-account created without `email`, otherwise with
+      [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is `active`.
     </Note>
   </Step>
 
@@ -250,22 +253,24 @@ The sub-account now has an isolated balance and a dedicated API key. To restrict
 
 ## Sub-account withdrawal approval
 
-When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal.
+A sub-account withdrawal needs the sub-account's own withdrawal permission, `withdrawsEnabled`: set in the create request for a sub-account created without `email`, otherwise with [Edit Sub-Account](/api-reference/sub-accounts/edit-sub-account) once the sub-account is `active`. When the sub-account withdrawal feature is enabled, a withdrawal created with a sub-account key does not settle immediately. The transaction enters `unconfirmed_by_main_account` status and waits for main account approval, giving the main account a control point over every sub-account withdrawal. No webhook is sent while the withdrawal waits. After confirmation, the withdrawal follows the standard path: the first webhook event is `withdraw.unconfirmed` (status 5), then `withdraw.pending` and a final event. These events go to the webhook of the sub-account that owns the withdrawal, not to the main account's webhook.
 
 <SubAccountWithdrawal />
 
 <Note>
   The sub-account withdrawal endpoints are not available by default. To request access, contact
-  the assigned account manager. Without main account confirmation, an unconfirmed withdrawal
-  expires after a retention period.
+  the assigned account manager. An unconfirmed withdrawal does not expire.
 </Note>
 
 <Steps>
   <Step title="Enable the withdrawal endpoint on the sub-account key">
     A newly created `type: 2` key lists the `withdraw` and `deposit` groups in `accessEndpoints`,
-    but each URL defaults to `enable: false`. Until the withdraw URL is enabled, `POST /api/v4/main-account/withdraw`
+    but each URL defaults to `enable: false`, as in every other URL group on a new key. Until the withdraw URL is enabled, `POST /api/v4/main-account/withdraw`
     returns `401` with `{"code":4,"message":"This API Key is not authorized to perform this action."}`.
-    Enable it from the main account with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key)
+    Only a `type: 2` key accepts the withdraw URL: on a `type: 1` key, such as the trading key created earlier in this guide,
+    the edit returns `400` with code `5` (`The following URLs are restricted for sub-account API keys`).
+    If the sub-account has no `type: 2` key yet, create one with [Create Sub-Account API Key](/api-reference/sub-accounts/create-sub-account-api-key) as in the API key step above, with `"type": 2`.
+    Enable the withdraw URL from the main account with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key)
     (`POST /api/v4/sub-account/api-key/edit`):
 
     ```bash
@@ -276,7 +281,7 @@ When the sub-account withdrawal feature is enabled, a withdrawal created with a 
       -H "X-TXC-SIGNATURE: YOUR_SIGNATURE" \
       -d '{
         "apiKeyId": "SUB_ACCOUNT_API_KEY_ID",
-        "title": "Trading Bot Key",
+        "title": "Withdrawal Key",
         "urls": [
           { "url": "/api/v4/main-account/withdraw", "enable": true }
         ],
@@ -365,7 +370,7 @@ When the sub-account withdrawal feature is enabled, a withdrawal created with a 
     </Tabs>
 
     Confirmation is the only main-account action on an unconfirmed withdrawal — no reject endpoint
-    exists, and an unconfirmed withdrawal that is never confirmed expires automatically.
+    exists, and an unconfirmed withdrawal does not expire.
   </Step>
 </Steps>
 

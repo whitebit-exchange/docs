@@ -27,7 +27,7 @@ KYC reliance is gated: it requires a supervised, AML-obligated entity and an ind
 
 ### Shared-KYC sub-accounts
 
-A shared-KYC sub-account is created with `shareKyc: true` and carries the main account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB) and does not verify the end users; the partner verifies its own end users. The partner still gets a separate balance, deposit address, and API keys per end user, fee-free transfers, and the main account's approval of each sub-account withdrawal. See [Build path per variant](/guides/waas-integration#build-path-per-variant).
+A shared-KYC sub-account is created with `shareKyc: true` and no `email`, is active at creation, and carries the main account's verification. WhiteBIT verifies the partner during [Institutional Onboarding](/institutional/onboarding) (KYB) and does not verify the end users; the partner verifies its own end users. The partner still gets a separate balance, deposit address, and API keys per end user, fee-free transfers, and the main account's approval of each sub-account withdrawal. See [Build path per variant](/guides/waas-integration#build-path-per-variant).
 
 ### Pooled account
 
@@ -41,13 +41,13 @@ Institutional onboarding has two phases: Phase 1 grants crypto operations access
 
 ### Deposit address per end user
 
-Each sub-account has a separate crypto deposit address, requested with a call signed by the sub-account's API key. Crypto deposits to sub-accounts are disabled by default; the account manager enables these deposits for the account. See [Sub-Accounts](/products/sub-accounts/overview) and the [Developer guide](/guides/waas-integration#prerequisites).
+Each sub-account has a separate crypto deposit address, requested with a call signed by the sub-account's `type: 2` API key, after `/api/v4/main-account/address` is enabled on the key with [Edit Sub-Account API Key](/api-reference/sub-accounts/edit-sub-account-api-key); every URL group starts switched off on a new key. Crypto deposits to sub-accounts are disabled by default; the account manager enables these deposits for the account. Each sub-account also needs its own deposit permission, `depositsEnabled`. See [Sub-Accounts](/products/sub-accounts/overview) and the [Developer guide](/guides/waas-integration#prerequisites).
 
 ## Integration
 
 ### Reconciliation approach
 
-A sub-account counts as a separate account and can have its own webhook. Webhook delivery is retried but not replayed, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured. Sign the history call with the sub-account's API key. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
+A sub-account counts as a separate account and can have its own webhook, created at whitebit.com only (not through the API). The main account's webhook does not receive sub-account events, and payloads carry no sub-account identifier. Webhook delivery is retried but not replayed, so poll the deposit history of each sub-account on a schedule as well, even when a webhook is configured. Sign the history call with the sub-account's API key. Deduplicate by `uniqueId`. See [Payment and payout flows](/guides/waas-integration#payment-and-payout-flows).
 
 ### Fiat operations scope
 
@@ -55,7 +55,7 @@ Fiat deposits and withdrawals operate on the partner's main account, from and to
 
 ### Test environment availability
 
-WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts and check per-asset minimums via [Asset Status](/api-reference/market-data/asset-status-list); the WhiteBIT Codes flow in [WaaS Recipes](/guides/waas-recipes) is a low-risk way to try a real signed call.
+WhiteBIT does not offer a public testnet or sandbox. Test on the live API with minimum amounts and check per-asset minimums via [Asset Status](/api-reference/market-data/asset-status-list): where the response includes `limits`, a crypto deposit is checked against the network minimum (`limits.deposit.<network>.min`); the WhiteBIT Codes flow in [WaaS Recipes](/guides/waas-recipes) is a low-risk way to try a real signed call.
 
 ## Compliance
 

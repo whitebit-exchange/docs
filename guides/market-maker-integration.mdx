@@ -294,7 +294,7 @@ The server answers with one frame echoing `id`: `result` holds the order object 
 
 **When REST still wins.** Two market-making primitives run over REST, so a socket-first quoter keeps a REST client alongside the connection:
 
-- **Atomic ladder placement.** `POST /api/v4/order/bulk` places up to 20 limit orders in one request with same-timestamp atomicity. The WebSocket methods place one order per frame — the per-connection budget of 10,000 order placements per 10 seconds absorbs a 20-level requote easily, but the levels land as separate engine events rather than at one timestamp. Refresh a full ladder over REST bulk when same-timestamp placement matters; place and cancel individual quotes over the socket.
+- **Atomic ladder placement.** `POST /api/v4/order/bulk` places up to 20 limit orders in one request with same-timestamp atomicity. The WebSocket methods place one order per frame — the per-account budget of 10,000 order placements per 10 seconds — shared by the main account, its sub-accounts, and every connection — absorbs a 20-level requote easily, but the levels land as separate engine events rather than at one timestamp. Refresh a full ladder over REST bulk when same-timestamp placement matters; place and cancel individual quotes over the socket.
 - **The deadman timer.** The kill-switch (`POST /api/v4/order/kill-switch`) that cancels a market's orders when the client stops calling in is a REST endpoint. Arm it over REST no matter which transport places the quotes — the WebSocket `order_cancel_all` method cancels one market on demand but does not run a timer.
 
 **Correlation and errors.** Each order method answers with a single frame carrying the request `id`; responses interleave with subscription pushes, so match answers by `id`, not by arrival order. `order_modify` over the socket is cancel-and-replace exactly as the REST modify is — a new engine order id, `client_order_id` preserved, queue priority lost. The `rpi` flag is accepted on `order_limit_place`, so RPI quoting works over either transport.
@@ -320,7 +320,9 @@ Worked example: run the BTC_USDT spot MM book in one sub-account funded with its
 
 **Rate limit management:**
 
-All limits are per IP address. Order placement, cancellation, and modification sit at 10,000 requests per 10 seconds per endpoint; `trade-account` reads allow 12,000. The outlier is `POST /api/v4/profile/websocket_token` at 10 requests per 60 seconds. Full reference: [Rate Limits](/api-reference/rate-limits).
+REST limits are per IP address. Order placement, cancellation, and modification sit at 10,000 requests per 10 seconds per endpoint; `trade-account` reads allow 12,000. The outlier is `POST /api/v4/profile/websocket_token` at 10 requests per 60 seconds. Full reference: [Rate Limits](/api-reference/rate-limits).
+
+WebSocket order flow is limited per account instead: 10,000 order placements and 12,000 other requests per 10 seconds, shared by the main account and all its sub-accounts across every connection. Throttle the quoter against that shared budget, not per connection. Full reference: [WebSocket Rate Limits](/websocket/rate-limits).
 
 <ConceptTable
   title="Per-endpoint rate limits — common market-making operations"

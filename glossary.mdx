@@ -51,12 +51,17 @@ An account designation for business-to-business (B2B) institutional partner serv
 
 <Accordion title="Balance Collateral">
 
-Balance for [margin](#margin-trading) and [futures trading](#futures-trading)
+Balance for [margin](#margin-trading) and [futures trading](#futures-trading). A negative asset balance in the Balance Collateral triggers [balance normalization](#balance-normalization).
 </Accordion>
 
 <Accordion title="Balance Main">
 
 A balance accepting deposits and withdrawals of cryptocurrency and national currency.
+</Accordion>
+
+<Accordion title="Balance normalization">
+
+An automatic conversion that settles a negative asset balance in the [Balance Collateral](#balance-collateral) through a system-generated order of type 14 on a USDT-quoted market. See [Balance normalization](/concepts/balances#balance-normalization).
 </Accordion>
 
 <Accordion title="Balance Spot (Balance Trade)">
@@ -322,7 +327,7 @@ The core system of an exchange pairing buy and sell [orders](#orders). In [coloc
 
 <Accordion title="Memo (destination tag)">
 
-A special identifier some cryptocurrency networks require for transactions. Depositing and withdrawing some cryptocurrencies, such as Ripple (XRP) and Stellar (XLM), requires specifying a memo.
+A special identifier some cryptocurrency networks require for transactions. Depositing and withdrawing some cryptocurrencies, such as Ripple (XRP) and Stellar (XLM), requires specifying a memo; on deposits to WhiteBIT, the memo identifies the receiving account, so the platform does not credit a deposit without the issued memo to that account.
 </Accordion>
 
 <Accordion title="MiCA">
@@ -443,7 +448,7 @@ The order-matching rule used by the [matching engine](#matching-engine): better-
 
 <AccordionGroup>
 <Accordion title="Refund">
-Refund returns funds for a canceled [deposit](#whitebit-deposit-to-main-balance). The refund address must support the same network and [asset](#assets) as the original deposit. The refund address cannot be a WhiteBIT address. Use the [Refund deposit endpoint](/api-reference/account-wallet/refund-deposit) to request a refund.
+Refund returns a canceled crypto [deposit](/platform/webhook#whitebit-deposit-to-main-balance) to an external address on the same network and [asset](#assets) that is not a WhiteBIT deposit address. The [Refund deposit endpoint](/api-reference/account-wallet/refund-deposit) accepts only a deposit that WhiteBIT froze and then canceled with status 9, after WhiteBIT support allows a refund for the deposit.
 </Accordion>
 
 <Accordion title="Retail Price Improvement (RPI)">
@@ -549,7 +554,7 @@ A price set in advance to trigger a stop order.
 
 A [main account](#main-account) manages a sub-account. The main account assigns specific permissions to the sub-account (for example, the main account disables [margin trading](#margin-trading)).
 
-Crypto deposits to a sub-account are off by default and require separate enablement through the assigned account manager. Once the account manager enables crypto deposits for the account, the capability covers all of the account's sub-accounts.
+Crypto deposits to a sub-account are off by default and require separate enablement through the assigned account manager. Each sub-account also needs its own deposit permission, set in the create request or, for a sub-account created with an email, with Edit Sub-Account once it is `active`.
 
 A sub-account can use a custom trading [fee](#fee) or rebate model defined for the sub-account. Use [`Query Market Fees`](/api-reference/trading/query-market-fee) to retrieve effective fees when an API key belongs to a sub-account.
 

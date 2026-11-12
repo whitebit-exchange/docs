@@ -47,20 +47,30 @@ user uses `create-new-address`, which the account manager enables on request. Se
 
 ### Address limits
 
-Each `create-new-address` call creates a new address, within a per-currency address limit, so store every address against its end
-user. The account manager can discuss and adjust the limit for the account. See
+Each `create-new-address` call creates a new address, with no limit on the number of addresses, so store every
+address against its end user. See
+[Address issuance and end-user mapping](/guides/caas-integration#address-issuance-and-end-user-mapping).
+
+### Lost address responses
+
+After a timeout or a `5xx` response from `create-new-address`, the address may already exist and still credit
+deposits to the account, but no endpoint returns the address. Store each address before showing it, show no
+address after a timeout, and request a new one. See
 [Address issuance and end-user mapping](/guides/caas-integration#address-issuance-and-end-user-mapping).
 
 ### Memo networks
 
-On memo networks, store the memo together with the address, show both exactly as issued, and match each
-deposit by address plus memo. See the [Integration guide](/guides/caas-integration#address-issuance-and-end-user-mapping).
+On memo networks, each `create-new-address` call returns the same address with a new memo, so the memo
+identifies the end user. Store the memo together with the address, show both exactly as issued, and match each
+deposit by address plus memo. A deposit with a wrong memo is credited to whichever account owns that memo; a
+deposit without a memo, or with a memo no account owns, is not credited to any account and appears in no history. See the [Integration guide](/guides/caas-integration#address-issuance-and-end-user-mapping).
 
 ### End-user offboarding
 
 When an end user leaves the service, allow a reasonable period to withdraw or convert the end user's crypto, then
 convert what remains and credit the proceeds to the end user in the partner ledger. The API provides no way to
-close or deactivate an issued deposit address, so keep the address mapped to the end user. See
+close or deactivate an issued deposit address, and the address keeps crediting deposits with no expiry, so keep
+the address mapped to the end user. See
 [End-user offboarding](/guides/caas-integration#end-user-offboarding).
 
 ## Deposits and reconciliation
