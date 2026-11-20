@@ -1,0 +1,199 @@
+---
+title: "Order performance measurement"
+description: "Rules for measuring order creation and cancellation latency over REST and WebSocket, and the report format for sending the results to WhiteBIT."
+sidebarTitle: "Performance measurement"
+---
+
+import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
+
+<RegionBaseUrl />
+
+Measure order creation and cancellation latency on WhiteBIT by one method, and report the results in one format. Market makers, high-frequency trading desks, and other latency-sensitive API clients follow the method before sending latency figures to the account manager.
+
+## Measured intervals
+
+A report covers up to two intervals for each operation.
+
+| Interval | Start | End | Clocks compared |
+|----------|-------|-----|-----------------|
+| Round trip | Request sent | Response received | Client clock only |
+| Request to engine | Request sent | [Matching engine](/glossary#matching-engine) time in the response | Client clock and WhiteBIT clock |
+
+The request-to-engine interval requires a client clock synchronized to UTC. A client without a synchronized clock reports the round trip only and marks the request-to-engine rows as `not measured`. A response without a matching-engine time field gives a round-trip sample only.
+
+## Test setup
+
+<Warning>
+  Test orders are live orders on production markets and use real funds. A resting order executes when the market reaches the order price, and an executed order on a margin or futures market opens a position. Use the smallest order amount the market accepts.
+</Warning>
+
+Tests run on production markets. WhiteBIT does not accept results from the Demo Tokens pair `DBTC_DUSDT`: the pair does not carry production order flow.
+
+Prepare the following before the first test order:
+
+- **API key:** an API key used only for the test. See [Security Best Practices](/best-practices/security).
+- **Account:** a main account or sub-account with no other open orders on the tested market.
+- **Order amount:** the smallest amount the market accepts at the test price. `GET /api/v4/public/markets` returns `minAmount`, and `minTotal` for the amount multiplied by the price.
+- **Clock:** a client clock synchronized to UTC by a time service such as NTP or PTP. Record the synchronization method and the offset the time service reports. The server time from `GET /api/v4/public/time` and from the WebSocket `time` method has whole-second precision and cannot measure the offset.
+- **Connection:** a persistent connection, opened before the first sample. A WebSocket connection is also authorized before the first sample. REST requests are signed per request; see [Private HTTP API Authentication](/api-reference/authentication).
+- **Request rate:** a rate inside the documented limits. See [REST API rate limits](/api-reference/rate-limits) and [WebSocket Rate Limits](/websocket/rate-limits).
+- **Safeguard (optional):** a [kill-switch timer](/glossary#kill-switch-timer) on the tested market (`POST /api/v4/order/kill-switch`), reset by the test client. The timer cancels the open test orders if the client stops.
+
+## Test rules
+
+One test covers one transport, one market, one order type, and one cancel mode. Creation and cancellation samples come from the same orders on the same connection.
+
+- **Markets:** spot, margin, and futures markets are separate tests. Name the market and the market type. Create spot orders through the [Spot Trading](/api-reference/trading/spot-overview) endpoints, and margin and futures orders through the [Collateral Trading](/api-reference/trading/collateral-overview) endpoints. Cancel orders of every market type through `POST /api/v4/order/cancel`, listed under Spot Trading.
+- **Order type:** name the order type and the flags set on the test orders, such as `postOnly` (`post_only` over WebSocket) or `ioc`. Keep the flags the same for every order of the test.
+- **Client order ID:** send a client order ID with every test order, unique within the test.
+- **Resting orders:** price limit orders so that the orders rest in the order book and do not execute.
+- **Cancel mode:** in an immediate-cancel test, send the cancel as soon as the create response is received. In a delayed-cancel test, send the cancel a fixed delay after the create response is received. Count the delay on a monotonic clock and keep the delay the same for every order. Immediate and delayed cancellation are separate tests.
+- **Pacing:** send one order at a time, or one batch at a time in a bulk test. Send the next create request only after the last response for the previous order is received and a fixed pause has passed. The pause does not apply between a create response and the cancel request for the same order.
+- **Response timeout:** set one timeout for every request of the test. After a request left without a response within the timeout, continue with the next order after the pause.
+- **Test size:** send at least 1,000 orders per test; 10,000 orders are recommended. In a bulk test, the minimum is 1,000 batches.
+- **Failed requests:** a request rejected by the API, or left without a response within the timeout, is a failed request. Do not send a failed request again. Keep the failed request in the sample file, leave the failed request out of the percentiles, and report the count.
+- **Orders executed on arrival:** a market order, or any other order executed on arrival, gives creation samples only. Every such test order is a trade with a fee, and on a margin or futures market every test order opens or changes a position.
+
+## Test stop and cleanup
+
+Stop a test, and send no further order, at the first of the following events:
+
+- A response reported a rate limit.
+- In a test of resting orders, a test order executed in whole or in part.
+
+An execution shows in the create response, in the cancel response, or as a cancel rejected because the order is already finished.
+
+Samples collected before the stop stay in the report, and the test conditions state the stop reason. A test stopped before 1,000 orders were sent does not meet the minimum test size; run the test again.
+
+After the last sample, and after any stop or interruption:
+
+1. Read the active orders on the tested market (`POST /api/v4/orders`) and cancel every remaining order. The cancellations are not samples.
+2. On a margin or futures market, read the open positions (`POST /api/v4/collateral-account/positions/open`). An executed test order opened or changed a position; closing the position is the client's decision.
+
+## REST measurement
+
+1. Record the send time immediately before the signed request is written to the connection.
+2. Record the receive time when the full response body is read.
+3. Compute the round trip from a monotonic clock.
+4. Read the matching-engine time from the response.
+
+The measured operations use the following endpoints:
+
+| Operation | Endpoint |
+|-----------|----------|
+| Create | Endpoint of the tested order type, for example `POST /api/v4/order/new` or `POST /api/v4/order/collateral/limit` |
+| Cancel | `POST /api/v4/order/cancel` |
+| Bulk create | `POST /api/v4/order/bulk` or `POST /api/v4/order/collateral/bulk` |
+| Bulk cancel | `POST /api/v4/order/cancel/bulk` |
+
+{/* needs verification */}
+On a create response, `timestamp` is the time the matching engine created the order.
+
+On a single-cancel response, `mtime` is the time the matching engine processed the cancellation. The cancel response also carries `timestamp`, the order creation time; do not read `timestamp` as the cancellation time.
+
+```json
+{
+  "orderId": 4180284841,
+  "clientOrderId": "order1987111",
+  "market": "BTC_USDT",
+  "timestamp": 1595792396.165973,
+  "mtime": 1595792412.443301
+}
+```
+
+Both fields are Unix seconds with a microsecond fraction.
+
+Bulk creation and bulk cancellation exist over REST only, and bulk creation accepts limit orders only.
+
+{/* needs verification */}
+A bulk test creates each batch with one bulk-create request and cancels the same orders with one bulk-cancel request, on spot, margin, and futures markets. Keep the batch size the same for every request. Bulk rows report the round trip only. A bulk request answered with HTTP `200` is one sample regardless of the item results; an item returned with an error has the status `rejected` in the sample file.
+
+## WebSocket measurement
+
+Order management over WebSocket is available on the global platform only and has no bulk methods. [Colocation](/platform/colocation) serves REST only, so WebSocket tests run on the public endpoint. See [Order Management](/websocket/order-management/overview).
+
+1. Open the connection and authorize. Connection and authorization are not samples.
+2. Record the send time immediately before the request frame is written to the socket.
+3. Match each response to the request by the JSON-RPC `id`.
+4. Record the receive time when the complete response frame carrying the `id` is read, before further parsing.
+5. Compute the round trip from a monotonic clock.
+6. Read the matching-engine time from the response.
+
+{/* needs verification */}
+On a place response, `ctime` is the time the matching engine created the order.
+
+{/* needs verification */}
+On an `order_cancel` response, `mtime` is the time the matching engine processed the cancellation, and `ctime` stays at the placement time.
+
+## Percentile calculation
+
+Use the nearest-rank method on the raw samples:
+
+1. Take the successful samples of one test, one operation, and one interval.
+2. Sort the samples in ascending order.
+3. Read the p-th percentile at position `ceil(p / 100 × n)`, where `n` is the number of samples.
+
+Report p50, p90, p99, and `n` for every row. With 1,000 samples, p99 is the value at position 990. Do not remove, clamp, or adjust samples, and do not average percentiles across tests.
+
+## Report contents
+
+A report has four parts: a summary table, the test conditions, one sample file per test, and the requirement. The report and the sample files must not contain an API key, an API secret, a request signature, or a WebSocket token.
+
+### Summary table
+
+The summary table has one row per test, operation, and interval.
+
+| Column | Content |
+|--------|---------|
+| `test` | Label assigned by the client. The same label heads the test conditions and names the sample file. |
+| `transport` | REST or WebSocket |
+| `market type` | Spot, margin, or futures |
+| `market` | Market name |
+| `operation` | Create, cancel, bulk create, or bulk cancel |
+| `endpoint or method` | REST endpoint path or WebSocket method name |
+| `order type` | Order type and the flags set |
+| `cancel delay` | `immediate`, or the delay in milliseconds, on every row of the test. Empty in a test without cancellation. |
+| `interval` | Round trip, or request to engine |
+| `samples` | Number of successful samples behind the percentiles (`n`) |
+| `p50`, `p90`, `p99` | Milliseconds, 3 decimal places |
+| `failed requests` | Count of failed requests, not included in `samples` |
+
+### Test conditions
+
+State the conditions for each test. State a value shared by every test once.
+
+- Test window start and end in UTC, in ISO 8601 format, to the second
+- Account ID or sub-account ID
+- Client location: cloud provider and region, or data center and city
+- Connection: public endpoint or colocation
+- API host name the requests were sent to
+- Clock synchronization method and the offset the time service reports
+- Pause between orders
+- Response timeout
+- Batch size, for a bulk test
+- Stop reason, for a test stopped early
+
+### Sample file
+
+Provide one CSV file per test, named with the test label, with one row per request. An order created and then canceled has two rows with the same `order_id`.
+
+| Column | Content |
+|--------|---------|
+| `order_id` | Order ID from the response. Empty when a create request was rejected or received no response. |
+| `client_order_id` | Client order ID sent with the order |
+| `operation` | Create, cancel, bulk create, or bulk cancel |
+| `sent_at` | Send time, UTC Unix seconds with a microsecond fraction |
+| `received_at` | Receive time in the same format. Empty when `status` is `no_response`. |
+| `round_trip_ms` | Round trip in milliseconds. Empty when `status` is `no_response`. |
+| `engine_time` | Matching-engine time field from the response, unchanged. Empty when the response carries no such field. |
+| `status` | `ok`, `rejected`, `rate_limited`, or `no_response` |
+
+In a bulk test, the file has one row per order and operation, and one more column, `batch_id`. The rows of one request share `batch_id`, `sent_at`, `received_at`, and `round_trip_ms`, and `engine_time` stays empty.
+
+### Requirement
+
+State the latency the client needs: operation, interval, percentile, and value in milliseconds. State the gap to the measured value.
+
+## Report submission
+
+Send the report and the sample files to the account manager.
