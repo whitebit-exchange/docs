@@ -5267,7 +5267,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderResponse'
+                $ref: '#/components/schemas/LimitOrderCreateResponse'
         '400':
           description: |
             The trading engine rejected the request.
@@ -8393,6 +8393,126 @@ components:
           type: string
           description: "Currency ticker of the asset used to pay the trading fee. Omitted when empty."
           example: "USDT"
+        price:
+          type: string
+          description: "Limit price per unit in quote currency. Present for orders that carry a price (limit and stop-limit shapes); omitted on market and stop-market order shapes."
+          example: "40000"
+        postOnly:
+          type: boolean
+          description: "Post-only flag. When `true`, the order executes only as a maker order and is rejected if it would match immediately. Omitted when not set."
+          example: false
+        ioc:
+          type: boolean
+          description: "Immediate-or-cancel flag. When `true`, the order executes available quantity immediately and cancels the unfilled remainder. Default: `false`."
+          example: false
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        stp:
+          type: string
+          description: "Self-trade prevention mode applied to the order. Possible values: `no`, `cb`, `cn`, `co`. The response always returns the abbreviated form, even when the request used a legacy value. Default: `no`."
+          example: "no"
+        positionSide:
+          type: string
+          description: "Position side (for collateral orders). Returned on the cancel, active-orders list, and modify responses; omitted when not set. Spot order-creation responses do not include the field."
+          example: "LONG"
+        oto:
+          type: object
+          description: "OTO order data. Present only when the order belongs to an [OTO](/glossary#one-triggers-the-other-oto) group — returned on the cancel, active-orders list, and modify responses."
+          properties:
+            otoId:
+              type: integer
+              description: OTO order identifier
+              example: 29457221
+            takeProfit:
+              type: string
+              description: Take profit order price
+              example: "50000"
+            stopLoss:
+              type: string
+              description: Stop loss order price
+              example: "30000"
+        rpi:
+          type: boolean
+          description: "Indicates Retail Price Improvement (RPI) mode for the order."
+          example: true
+        retail:
+          type: boolean
+          description: "Retail-source taker flag. The field is present only when the order was placed with `retail=true`. See [Retail flag](/glossary#retail-flag)."
+          example: true
+        reduceOnly:
+          type: boolean
+          description: "Reduce-only flag. When `true`, the order can only reduce or close an existing position. Returned on the cancel, active-orders list, and modify responses; spot order-creation responses do not include the field. See [reduce-only](/glossary#reduce-only)."
+          example: false
+        activated:
+          type: integer
+          description: "Activation status of the stop order. 0 = not yet triggered
+            (waiting for the activation_price condition to be met). 1 = triggered
+            (the stop condition has been met and the order is now active).
+            Returned for stop orders; omitted on other order shapes."
+          example: 0
+        activationCondition:
+          type: string
+          enum: [lte, gte]
+          description: |
+            Trigger condition for the stop order. Response-only — not accepted in the request body, and cannot be overridden. Derived from `side`:
+
+            - `side = buy` → `gte`. The order activates when the market price rises to or above `activation_price`.
+            - `side = sell` → `lte`. The order activates when the market price falls to or below `activation_price`.
+          example: "lte"
+        activation_price:
+          type: string
+          description: "The trigger price for the stop order. Always equals the
+            activation_price value submitted in the request. Returned for stop
+            orders; omitted on other order shapes."
+          example: "40000"
+    LimitOrderCreateResponse:
+      type: object
+      description: "Order shape returned by the create limit order endpoint. Same as the shared order response, without `feeAsset`: the field is not returned for a newly created order."
+      properties:
+        orderId:
+          type: integer
+          description: "Unique identifier assigned to the order by the matching engine."
+          example: 4180284841
+        clientOrderId:
+          type: string
+          description: "Custom client order identifier supplied in the request. Returns an empty string when not specified."
+          example: "order1987111"
+        market:
+          type: string
+          description: "Trading pair for the order. Format: `BASE_QUOTE` (e.g., `BTC_USDT`)."
+          example: "BTC_USDT"
+        side:
+          type: string
+          description: "Order side. Possible values: `buy`, `sell`."
+          example: "buy"
+        type:
+          type: string
+          description: "Order type. Possible values: `limit`, `market`, `stock market`, `stop limit`, `stop market`."
+          example: "limit"
+        timestamp:
+          type: number
+          description: "Unix timestamp in seconds (UTC) of order creation, with microsecond precision."
+          example: 1595792396.165973
+        dealMoney:
+          type: string
+          description: "Filled amount in quote currency. Returns `\"0\"` while the order remains unfilled."
+          example: "0"
+        dealStock:
+          type: string
+          description: "Filled amount in base currency. Returns `\"0\"` while the order remains unfilled."
+          example: "0"
+        amount:
+          type: string
+          description: "Order quantity in base currency for limit and stop-limit orders, or in quote currency for buy market orders."
+          example: "0.01"
+        left:
+          type: string
+          description: "Remaining unfilled quantity. Equals `amount` for new orders and `\"0\"` for fully filled orders."
+          example: "0.001"
+        dealFee:
+          type: string
+          description: "Cumulative trading fee charged for filled portions, denominated in the fee asset."
+          example: "0"
         price:
           type: string
           description: "Limit price per unit in quote currency. Present for orders that carry a price (limit and stop-limit shapes); omitted on market and stop-market order shapes."
