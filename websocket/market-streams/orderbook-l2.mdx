@@ -39,11 +39,15 @@ This channel does **NOT** support query operations — only subscribe, update, a
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://wss.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
+<Note>Connect to `wss://wss.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements. Colocated clients connect through the colocation base URL; see [Colocation endpoint](#colocation-endpoint).</Note>
 
 ## Rate limits
 
 <WsRateLimits {...channelMeta.rateLimits} />
+
+## Colocation endpoint
+
+`orderbook_l2` is the only WebSocket method accessed through the colocation base URL. Contact the designated account manager for that URL. Every other WebSocket method, including [`depth`](/websocket/market-streams/depth), uses the standard public endpoint. See [Colocation](/platform/colocation).
 
 ## Subscribe to order book L2
 
@@ -145,9 +149,23 @@ function applyL2(book, limit, params) {
 
 ## Ordering guarantees
 
-- Apply updates in the order of arrival.
+- Apply updates in the order of arrival. Within one connection, messages arrive in order and without gaps.
 - Asks are sorted ascending and bids descending. The best ask must be strictly greater than the best bid. A crossed book indicates desynchronization — re-subscribe to receive a fresh snapshot.
 - After a connection loss, re-subscribe and wait for a new snapshot before applying updates.
+- Re-subscribe to receive a fresh snapshot: the server sends one only in response to a subscription.
+
+## Message granularity
+
+The server does not batch updates over an interval. Every trade, every order placement and every cancel is sent as its own message. A trade that sweeps several price levels arrives as several messages; the local book can be partly updated between the messages of one trade. Apply each message as it arrives.
+
+## Comparison with depth
+
+| Behavior | `orderbook_l2` | [`depth`](/websocket/market-streams/depth) |
+|---|---|---|
+| Sequence numbers | None | `update_id` and `past_update_id` |
+| Snapshots | Once, on subscription | On subscription, and as a keepalive after 10 seconds without an update |
+| Batching | No interval batching — one message per trade, order placement or cancel | Deltas pushed every 100 ms |
+| Timestamps | One `timestamp` per record, Unix seconds with a fractional part; no `event_time` | `timestamp` and `event_time` |
 
 ## Data exclusions
 
@@ -156,6 +174,10 @@ Retail Price Improvement (RPI) orders are not included in the snapshot or in upd
 ## Error codes
 
 <WsErrorCodes errorCodes={channelMeta.errorCodes} />
+
+## Used in these guides
+
+- [Market Maker integration](/guides/market-maker-integration#colocation-setup) — colocation setup, where `orderbook_l2` is the one WebSocket stream on the colocation base URL.
 
 <RelatedResources>
 - [Order book depth](/websocket/market-streams/depth) — WebSocket order book with `update_id` sequencing, a one-time query, and price intervals.

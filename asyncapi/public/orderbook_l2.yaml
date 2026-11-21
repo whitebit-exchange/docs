@@ -38,6 +38,14 @@ channels:
       Retail Price Improvement (RPI) orders are not included in the snapshot or in updates.
       </Note>
 
+      <Note>
+      Within one connection, messages arrive in order and without gaps. The channel has no sequence numbers and sends a snapshot only in response to a subscription. Updates are not batched: every trade, order placement, and cancel is sent as its own message.
+      </Note>
+
+      <Note>
+      `orderbook_l2` is the only WebSocket method accessed through the colocation base URL. All other WebSocket methods use the standard public endpoint.
+      </Note>
+
     messages:
       orderbookL2Subscribe:
         $ref: '#/components/messages/orderbookL2Subscribe'

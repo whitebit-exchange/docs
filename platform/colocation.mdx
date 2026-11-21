@@ -52,12 +52,12 @@ import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 
 ## Available Connectivity
 
-Colocation provides REST API access only. The standard public WebSocket endpoint serves WebSocket streams. The REST API provides access to a subset of endpoints optimized for low-latency trading.
+Colocation provides REST API access and one WebSocket stream, [Order book L2](/websocket/market-streams/orderbook-l2) (`orderbook_l2`), through the colocation base URL. Every other WebSocket method uses the standard public WebSocket endpoint. The REST API provides access to a subset of endpoints optimized for low-latency trading.
 
 For the full list of 35 available colocation endpoints, quoting strategies, and infrastructure best practices, see the [Market Maker Integration Guide](/guides/market-maker-integration).
 
 <Warning>
-  Colocation provides a **subset** of the full WhiteBIT API. Only specific trading, collateral, and utility endpoints are available via the colocation infrastructure. See the [Market Maker Integration Guide](/guides/market-maker-integration#available-colocation-endpoints) for the complete endpoint list.
+  Colocation provides a **subset** of the full WhiteBIT API. Only specific trading, collateral, and utility endpoints, plus the `orderbook_l2` WebSocket stream, are available via the colocation infrastructure. See the [Market Maker Integration Guide](/guides/market-maker-integration#available-colocation-endpoints) for the complete endpoint list.
 </Warning>
 
 ## Contact Options
