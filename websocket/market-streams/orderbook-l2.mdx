@@ -4,7 +4,6 @@ tag: "WSS"
 description: "Subscribe to the level 2 order book of a trading pair — a snapshot followed by incremental price-level updates — via WhiteBIT WebSocket."
 ---
 
-import { RegionBaseUrl } from '/snippets/RegionBaseUrl.jsx';
 import { WsChannelOverview } from '/snippets/WsChannelOverview.jsx'
 import { WsMessageExample } from '/snippets/WsMessageExample.jsx'
 import { WsSubscribeSteps } from '/snippets/WsSubscribeSteps.jsx'
@@ -27,8 +26,6 @@ import {
 } from '/snippets/ws-data/orderbook_l2.jsx'
 import { RelatedResources } from '/snippets/RelatedResources.jsx'
 
-<RegionBaseUrl protocol="wss" />
-
 Level 2 order book stream: volumes are aggregated by price level, and each level carries the total amount at that price. After subscription, the server sends a **snapshot** of the order book, then **incremental updates** that the client applies to a local copy. Use this channel to maintain a live local order book for trading logic or display.
 
 <Note>
@@ -39,7 +36,7 @@ This channel does **NOT** support query operations — only subscribe, update, a
 
 <WsAuthBadge required={channelMeta.authRequired} />
 
-<Note>Connect to `wss://wss.whitebit.com/ws` — see [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements. Colocated clients connect through the colocation base URL; see [Colocation endpoint](#colocation-endpoint).</Note>
+<Note>Order book L2 is in closed beta and is served only through the colocation base URL. Contact the designated account manager to request access and receive the base URL. See [WebSocket Overview](/websocket/overview) for protocol details and keepalive requirements.</Note>
 
 ## Rate limits
 
@@ -47,7 +44,7 @@ This channel does **NOT** support query operations — only subscribe, update, a
 
 ## Colocation endpoint
 
-`orderbook_l2` is the only WebSocket method accessed through the colocation base URL. Contact the designated account manager for that URL. Every other WebSocket method, including [`depth`](/websocket/market-streams/depth), uses the standard public endpoint. See [Colocation](/platform/colocation).
+`orderbook_l2` is served only through the colocation base URL, and it is the only WebSocket method accessed there. Every other WebSocket method, including [`depth`](/websocket/market-streams/depth), uses the standard public endpoint. See [Colocation](/platform/colocation).
 
 ## Subscribe to order book L2
 

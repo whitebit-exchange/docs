@@ -12,16 +12,6 @@ info:
     connections-per-minute: 1000
     requests-per-10-seconds: 12000
 
-servers:
-  production:
-    host: wss.whitebit.com
-    protocol: wss
-    description: WhiteBIT Global Server
-  eu:
-    host: api.whitebit.eu
-    protocol: wss
-    description: WhiteBIT EU Server
-
 channels:
   /ws:
     address: /ws
@@ -43,7 +33,7 @@ channels:
       </Note>
 
       <Note>
-      `orderbook_l2` is the only WebSocket method accessed through the colocation base URL. All other WebSocket methods use the standard public endpoint.
+      `orderbook_l2` is in closed beta and is served only through the colocation base URL, the only WebSocket method accessed there. All other WebSocket methods use the standard public endpoint.
       </Note>
 
     messages:
