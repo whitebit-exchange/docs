@@ -149,8 +149,9 @@ Every private endpoint in this guide is signed with HMAC-SHA512. The `send_reque
 
 <Note>
   `send_request` uses a millisecond nonce. If multiple threads call the helper
-  in the same millisecond, the server rejects the duplicate via its nonceWindow
-  (±5 seconds). The helper below uses a monotonic counter protected by a lock
+  in the same millisecond, two requests can carry the same nonce, and the server refuses the
+  second request with `Nonce must be greater than the previous one.`. The
+  helper below uses a monotonic counter protected by a lock
   — safe under concurrent callers (for example, the kill-switch heartbeat
   thread and the strategy thread placing orders simultaneously).
 </Note>
@@ -488,7 +489,8 @@ def send_request_with_retry(path, data=None, max_retries=5):
 
 | Signal | Example | Action | Auto-retry? |
 |--------|---------|--------|-------------|
-| HTTP `429` | — | Exponential backoff (1s → 2s → 4s → max 30s, with jitter) | Yes |
+| HTTP `429` + `Too many requests.` | Rate limit | Exponential backoff (1s → 2s → 4s → max 30s, with jitter) | Yes |
+| HTTP `429` + a nonce error message | `Nonce must be greater than the previous one.` | Resend with a new nonce. `send_request_with_retry` handles it, as each attempt signs a new nonce | Yes |
 | HTTP `401` | — | Stop trading, investigate — never auto-retry auth failures | No |
 | HTTP `422` + body `code: 5` | Not enough balance | Log, skip order, re-check balance | No |
 | HTTP `422` + body `code: 30/31/32/33` | Validation failed (field-specific) | Fix the request — inspect the `errors` map | No |

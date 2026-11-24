@@ -323,7 +323,7 @@ When using REST polling, align the interval with the use case and the endpoint r
 
 `POST /api/v4/main-account/history` has a much smaller rate budget (200 requests/10 s) than the trade endpoints (12,000 requests/10 s) — keep its polling interval in minutes, not seconds.
 
-Polling loops need failure handling. On HTTP `429`, back off and resume — see [Building a Trading Bot — Rate limit backoff](/guides/building-a-trading-bot#rate-limit-backoff); retried requests need a new, larger `nonce` (see [Authentication](/api-reference/authentication)). On WebSocket, check the `error` field on every response before treating a subscription as active.
+Polling loops need failure handling. On HTTP `429` with `Too many requests.`, back off and resume — see [Building a Trading Bot — Rate limit backoff](/guides/building-a-trading-bot#rate-limit-backoff); retried requests need a new, larger `nonce` (see [Authentication](/api-reference/authentication)). A `429` with a nonce error message is a refused nonce, not a rate limit: resend at once with a new, larger `nonce`. On WebSocket, check the `error` field on every response before treating a subscription as active.
 
 ## What's next
 

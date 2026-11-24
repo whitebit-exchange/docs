@@ -24,10 +24,17 @@ CORS requests to the ticker endpoint are forbidden for security reasons. Make th
 </Accordion>
 
 <Accordion title="Nonce error troubleshooting">
-Nonce errors occur when timestamps or request ordering are invalid. To resolve:
+A nonce error returns HTTP `429` with code `0`, the same status as a rate limit. The `message` field distinguishes the two:
+
+- `Nonce must be greater than the previous one.` — the nonce is not greater than the last nonce used with the API key.
+- `Your nonce is more than 5 seconds lesser than the current nonce.` — with `nonceWindow` set to `true`, the nonce is more than 5 seconds from the server time.
+- `This nonce is already been used.` — with `nonceWindow` set to `true`, the nonce was already used with the API key.
+- `Too many requests.` — a rate limit, not a nonce error.
+
+Resend a request refused for its nonce at once with a new, higher nonce. Do not back off as for a rate limit. If nonce errors repeat:
 
 1. Debug the code implementation
-2. Recreate API keys
+2. Recreate API keys — a nonce sent too high leaves no way to lower the last nonce of the key
 3. Ensure system time is properly synchronized
 
 For details on nonce requirements, see the [Authentication guide](/api-reference/authentication). For full details on HMAC-SHA512 signing and nonce requirements, see [Authentication](/api-reference/authentication).

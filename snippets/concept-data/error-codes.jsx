@@ -19,13 +19,14 @@ export const errorCodes = [
 
 export const authErrors = [
   { message: "Payload not provided.", cause: "X-TXC-PAYLOAD header missing or empty", resolution: "Include the base64-encoded request body as X-TXC-PAYLOAD" },
-  { message: "Too many requests.", cause: "Nonce value is not greater than previous request", resolution: "Use incrementing nonce values" },
+  { message: "Nonce must be greater than the previous one.", cause: "HTTP 429, code 0. Without nonceWindow, the nonce is not greater than the last nonce used with this API key", resolution: "Resend the request with a new, higher nonce. This is not a rate limit, so do not back off" },
+  { message: "Your nonce is more than 5 seconds lesser than the current nonce.", cause: "HTTP 429, code 0. With nonceWindow set to true, the nonce is more than 5 seconds from the server time", resolution: "Synchronize the system clock and resend the request with the current Unix time in milliseconds as the nonce" },
+  { message: "This nonce is already been used.", cause: "HTTP 429, code 0. With nonceWindow set to true, the nonce was already used with this API key", resolution: "Resend the request with a new nonce" },
   { message: "This action is unauthorized. Enable your key in API settings", cause: "Using a disabled API key", resolution: "Enable the key in API settings or check IP restrictions" },
   { message: "You don't have permission to use this endpoint.", cause: "Endpoint access is restricted", resolution: "Update endpoint access in API key settings" },
   { message: "Invalid payload", cause: "Payload does not match the decoded value", resolution: "Ensure proper base64 encoding of the request body" },
   { message: "Unauthorized request.", cause: "Request signed incorrectly", resolution: "Verify the signature creation process" },
   { message: "Nonce not provided.", cause: "Missing nonce in request body", resolution: "Include nonce in all requests" },
-  { message: "Your nonce is more than 5 seconds lesser than the current nonce", cause: "Invalid timestamp when using nonceWindow", resolution: "Use current Unix timestamp in milliseconds" },
   { message: "Invalid nonceWindow.", cause: "nonceWindow is not a boolean", resolution: "Set nonceWindow to `true` or `false`" },
   { message: "Request not provided.", cause: "Missing request path in body", resolution: "Include the request path in all requests" },
   { message: "This user is blocked", cause: "Using a sub-account key (HTTP 401) while the sub-account or its main account is blocked", resolution: "Do not retry the request. See Block Sub-Account in the API reference" },
@@ -37,7 +38,8 @@ export const depositStatusCodes = [
 ];
 
 export const retryStrategies = [
-  { errorType: "Rate limit (429)", retry: true, strategy: "Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter to avoid thundering herd." },
+  { errorType: "Rate limit (429, Too many requests.)", retry: true, strategy: "Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter to avoid thundering herd." },
+  { errorType: "Nonce error (429 with a nonce error message)", retry: true, strategy: "Resend at once with a new, higher nonce. Do not back off." },
   { errorType: "Authentication error", retry: false, strategy: "Fix the root cause: check API key validity, signature computation, and header names." },
   { errorType: "Validation error", retry: false, strategy: "Fix the request parameters. Read the `errors` field for field-level feedback. Do not retry the same request." },
   { errorType: "Insufficient balance", retry: false, strategy: "Check the account balance and wait for pending operations to settle before retrying. For a conversion, transfer the source currency to the Trade balance; see [Convert balances](/platform/convert#balances)." },

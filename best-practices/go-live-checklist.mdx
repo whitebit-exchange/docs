@@ -33,6 +33,7 @@ See [Authentication](/api-reference/authentication) and [Security Best Practices
 
 - [ ] HTTP status codes handled: `200` (success), `400` (validation), `401` (auth), `403` (forbidden), `422` (unprocessable), `429` (rate limit), `500`/`503` (server error).
 - [ ] Rate limit responses (`429`) handled with exponential backoff and retry.
+- [ ] Nonce errors (a `429` whose `message` is not `Too many requests.`) resent at once with a new nonce, without a backoff.
 - [ ] Authentication errors (`401`) do NOT trigger automatic retry — investigate the cause.
 - [ ] Validation errors (`400`, `422`) logged with the full response body for debugging.
 - [ ] Server errors (`500`, `503`) handled with retry and exponential backoff.

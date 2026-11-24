@@ -5,6 +5,18 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ---
 
 
+<Update label="Coming soon">
+## Distinct message for a nonce that is not greater
+**Private v1 and v4 endpoints return `Nonce must be greater than the previous one.` for a nonce that is not greater than the previous one**
+
+Private v1 and v4 endpoints called with an API key return HTTP `429` with code `0` and the message `Nonce must be greater than the previous one.` when the nonce is not greater than the last nonce used with the key. The rate limit keeps the message `Too many requests.`, so the `message` field now tells a nonce error from a rate limit. Resend a request refused for its nonce at once with a new, higher nonce; back off only on `Too many requests.`. An integration that matches `Too many requests.` to detect a nonce error must match the new message.
+
+<CardGroup cols={2}>
+  <Card title="Rate limits and errors" href="/api-reference/rate-limits" icon="gauge-high" horizontal/>
+  <Card title="Authentication" href="/api-reference/authentication" icon="key" horizontal/>
+</CardGroup>
+</Update>
+
 <Update label="November 10, 2026">
 ## RPI and retail flags cannot be combined
 **`POST /api/v4/order/new`, `/order/bulk`, `/order/collateral/limit` and `/order/collateral/bulk` reject `rpi=true` together with `retail=true`**

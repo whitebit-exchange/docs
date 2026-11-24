@@ -48,9 +48,15 @@ authErrors:
   - message: "Payload not provided."
     cause: "X-TXC-PAYLOAD header missing or empty"
     resolution: "Include the base64-encoded request body as X-TXC-PAYLOAD"
-  - message: "Too many requests."
-    cause: "Nonce value is not greater than previous request"
-    resolution: "Use incrementing nonce values"
+  - message: "Nonce must be greater than the previous one."
+    cause: "HTTP 429, code 0. Without nonceWindow, the nonce is not greater than the last nonce used with this API key"
+    resolution: "Resend the request with a new, higher nonce. This is not a rate limit, so do not back off"
+  - message: "Your nonce is more than 5 seconds lesser than the current nonce."
+    cause: "HTTP 429, code 0. With nonceWindow set to true, the nonce is more than 5 seconds from the server time"
+    resolution: "Synchronize the system clock and resend the request with the current Unix time in milliseconds as the nonce"
+  - message: "This nonce is already been used."
+    cause: "HTTP 429, code 0. With nonceWindow set to true, the nonce was already used with this API key"
+    resolution: "Resend the request with a new nonce"
   - message: "This action is unauthorized. Enable your key in API settings"
     cause: "Using a disabled API key"
     resolution: "Enable the key in API settings or check IP restrictions"
@@ -66,9 +72,6 @@ authErrors:
   - message: "Nonce not provided."
     cause: "Missing nonce in request body"
     resolution: "Include nonce in all requests"
-  - message: "Your nonce is more than 5 seconds lesser than the current nonce"
-    cause: "Invalid timestamp when using nonceWindow"
-    resolution: "Use current Unix timestamp in milliseconds"
   - message: "Invalid nonceWindow."
     cause: "nonceWindow is not a boolean"
     resolution: "Set nonceWindow to `true` or `false`"
@@ -88,9 +91,12 @@ depositStatusCodes:
     meaning: "Deposit frozen — Travel Rule verification in progress"
 
 retryStrategies:
-  - errorType: "Rate limit (429)"
+  - errorType: "Rate limit (429, Too many requests.)"
     retry: true
     strategy: "Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter to avoid thundering herd."
+  - errorType: "Nonce error (429 with a nonce error message)"
+    retry: true
+    strategy: "Resend at once with a new, higher nonce. Do not back off."
   - errorType: "Authentication error"
     retry: false
     strategy: "Fix the root cause: check API key validity, signature computation, and header names."

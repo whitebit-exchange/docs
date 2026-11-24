@@ -86,6 +86,7 @@ The request body must be a JSON object containing:
 	- Timestamp must be within ±5 seconds of server time
 	- Each nonce must be unique to prevent double processing
 	- Useful for high-frequency trading systems with concurrent requests
+- A refused nonce returns HTTP `429` with code `0` and a nonce error message, listed in [Common Errors](#common-errors). Resend the request at once with a new nonce
 
 ### Required Headers
 
