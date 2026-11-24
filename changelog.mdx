@@ -6,6 +6,29 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 
 
 <Update label="Coming soon">
+## AML wait status in deposit and withdrawal history
+**Breaking change: `POST /api/v4/main-account/history` returns status 26 for transactions waiting for an AML check**
+
+The endpoint returned deposits and withdrawals that wait for the AML provider's check result as `Pending` (15 for deposits, 2 for withdrawals) and now returns these transactions with status 26 (`AML wait`). The `status` filter accepts 26, and a filter on `Pending` codes alone does not return these transactions. While a deposit waits for the result, `deposit.accepted` carries status 26. The OAuth2 route `POST /api/v4/accounts/transactions` returns the same codes.
+
+**Migration guide:**
+- Handle status 26 as a non-final status for deposits and withdrawals, and wait for a final status.
+- To find transactions that wait for an AML check, filter on 26 or omit `status`. Do not rely on 15 or 2.
+- Expect status 26 in `deposit.accepted`.
+
+**Sunset date:** the release date of this change. Until the release, the endpoint returns 15 and 2 for these transactions.
+
+**Replacement:** status 26 in [Get deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history).
+
+**Impact:** integrations that read deposit status 15 or withdrawal status 2 as pending, or that filter the history by those codes, must handle 26. Other status codes and the record fields do not change.
+
+<CardGroup cols={2}>
+  <Card title="Get deposit/withdraw history" href="/api-reference/account-wallet/get-deposit-withdraw-history" icon="clock-rotate-left" horizontal/>
+  <Card title="Deposit and withdrawal status codes" href="/platform/webhook#deposit-and-withdrawal-status-codes" icon="bell" horizontal/>
+</CardGroup>
+</Update>
+
+<Update label="Coming soon">
 ## Distinct message for a nonce that is not greater
 **Private v1 and v4 endpoints return `Nonce must be greater than the previous one.` for a nonce that is not greater than the previous one**
 

@@ -325,6 +325,7 @@ After funds arrive at a generated deposit address, the deposit passes through a 
 6. Deposit fully confirmed and credited to Main balance (status 3 or 7) — `deposit.processed` webhook fires, and any hold clears — **terminal success state**
 7. OR: Deposit canceled — status 4 fires the `deposit.canceled` webhook; status 9 sends no webhook, so read the status from the history — **terminal failure state**
 8. OR (EEA/Turkey): Travel Rule hold — deposit frozen (status 27 or 28). If the Travel Rule API is enabled, submit originator data via API to unfreeze; otherwise manual action at whitebit.com is required. See [Travel Rule](#travel-rule-eea-and-turkey) below.
+9. OR: AML check — where an AML check applies, the confirmed deposit waits in status 26 for the provider's result and is not credited. `deposit.accepted` carries status 26 when sent. From 26 the deposit moves to 3 or 7, 21, 27 or 9.
 
 ## Deposit status state machine
 
@@ -346,10 +347,11 @@ The deposit/withdraw history endpoint returns numeric status codes. The followin
 | 21 | On hold | `deposit.aml_frozen` | No | Wait — under compliance review. Escalate to institutional team if >24h | Deposit held for review |
 | 22 | Uncredited | `deposit.updated` (`deposit.accepted` when sent) | No | Wait — a deposit below the network minimum is credited once the total on the address reaches the minimum, otherwise canceled (status 9) after 7 days | Detected, not credited yet |
 | 23 | Pending | — | No | Wait for a final status (poll history) | Deposit in progress |
+| 26 | AML wait | `deposit.accepted` (when sent) | No | Wait for a final status (poll history) | Waiting for the AML check result from the provider; not credited |
 | 27 | Travel Rule frozen | — | No | Submit originator data via the [deposit verification endpoint](/api-reference/travel-rule/submit-deposit-verification) where the Travel Rule API is enabled; otherwise notify the account holder to complete verification at whitebit.com | Awaiting Travel Rule data (EEA / Turkey) |
 | 28 | Travel Rule processing | — | No | Wait — Travel Rule data under review | Travel Rule data submitted |
 
-Every deposit ends in a final status: 3 or 7 (credited) or 4 or 9 (canceled). Statuses 5, 21, 22, 23 and 29 are not final. A deposit in status 29 ends as 3 or 7 when the network fully confirms it, or as 4 if canceled.
+Every deposit ends in a final status: 3 or 7 (credited) or 4 or 9 (canceled). Statuses 5, 21, 22, 23, 26 and 29 are not final. A deposit in status 29 ends as 3 or 7 when the network fully confirms it, or as 4 if canceled.
 
 The flowchart maps each deposit status in the table to the partner action.
 
@@ -387,6 +389,8 @@ Crypto deposits credit the actual on-chain amount received; the system does not 
 ## Refund flow
 
 Only a crypto deposit in status 9 can be refunded through the API, and only when the deposit was frozen before it was canceled: held for an AML review (status 21) or under the Travel Rule (status 27 or 28). A deposit in status 4 and a deposit in status 9 that was never frozen cannot be refunded through the API.
+
+{/* SME pending (2026-11-24, CEX-10470 Q2): whether a deposit canceled (9) from AML wait (26) is refundable through the API. */}
 
 A refund becomes available in this order:
 
@@ -644,6 +648,7 @@ The withdrawal lifecycle progresses through the following states.
 | 4 | Canceled | `withdraw.canceled` | Yes | Release any payout reserve in the partner ledger: the amount returns to the account balance | Withdrawal canceled |
 | 18 | Partially successful | `withdraw.partial_successful` | No | Reconcile against `requestAmount` / `processedAmount`; surface remainder to operations | Part of the withdrawal succeeded (fiat with `partialEnable: true`) |
 | 21 | AML frozen | — | No | Wait: under compliance review | Withdrawal frozen by AML controls |
+| 26 | AML wait | — | No | Wait for a final status (poll history); the amount is already held | Waiting for the AML check result from the provider |
 
 The flowchart maps each withdrawal status in the table to the partner action.
 
