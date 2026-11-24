@@ -234,7 +234,7 @@ Make a first WhiteBIT API call — public data with no authentication, then a pr
     If the API key has IP whitelisting enabled, the request must come from a whitelisted IP address. Add the current IP at [whitebit.com/settings/api](https://whitebit.com/settings/api).
   </Accordion>
   <Accordion title="Nonce is too small">
-    The `nonce` must be greater than the previous request's nonce for the same API key. Use `int(time.time() * 1000)` to generate a millisecond-precision Unix timestamp. Avoid reusing nonces across requests.
+    The `nonce` must be greater than the previous request's nonce for the same API key. Otherwise, the API returns HTTP `429` with the message `Nonce must be greater than the previous one.`; resend the request with a new nonce. Use `int(time.time() * 1000)` to generate a millisecond-precision Unix timestamp. Avoid reusing nonces across requests.
   </Accordion>
 </AccordionGroup>
 

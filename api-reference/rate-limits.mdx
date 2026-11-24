@@ -25,6 +25,8 @@ Scope-specific limits override the default where listed. Some endpoints have tig
 
 When the rate limit is exceeded, the API returns HTTP status `429` (Too Many Requests). Use exponential backoff before retrying (see Best practices below).
 
+On private endpoints called with an API key, a `429` with code `0` can also be a nonce error. The `message` field tells the two apart: `Too many requests.` is the rate limit, and the three nonce error messages in the [Authentication error reference](#authentication-error-reference) are nonce errors. Resend a request refused for its nonce at once with a new, higher nonce, without a backoff.
+
 ## REST API error format
 
 All v4 endpoints return errors as JSON. The format differs between public and private APIs.
@@ -54,7 +56,7 @@ All v4 endpoints return errors as JSON. The format differs between public and pr
 
 ## Authentication error reference
 
-The following errors are returned by private REST endpoints when the request signature or credentials are invalid, or when the key belongs to a sub-account that is blocked or whose main account is blocked.
+The following errors are returned by private REST endpoints when the request signature or credentials are invalid, when the nonce is refused, or when the key belongs to a sub-account that is blocked or whose main account is blocked.
 
 <ConceptTable
   columns={[
@@ -82,7 +84,8 @@ The following errors are returned by private REST endpoints when the request sig
 
 | Error type | Retry? | Strategy |
 |-----------|--------|----------|
-| Rate limit (429) | Yes | Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter. |
+| Rate limit (`429`, `Too many requests.`) | Yes | Exponential backoff: start at 1s, double on each retry, cap at 30s. Add jitter. |
+| Nonce error (`429` with a nonce error message) | Yes | Resend at once with a new, higher nonce. Do not back off. |
 | Authentication error | No | Fix the root cause: check API key validity, signature computation, and header names. |
 | Validation error | No | Fix the request parameters. Read the `errors` field for field-level feedback. |
 | Insufficient balance | No | Check the account balance and wait for pending operations to settle. For a conversion, transfer the source currency to the Trade balance; see [Convert balances](/platform/convert#balances). |
@@ -92,12 +95,12 @@ The following errors are returned by private REST endpoints when the request sig
 | Timeout, server error or `200` on a sub-account transfer | No | [Sub-Account Transfer](/api-reference/sub-accounts/sub-account-transfer) takes no idempotency key. A transfer can still complete after a timeout or a server error, and can still fail after a `200`. The transfer history shows that the request was received, not that the funds moved. Store a record of each transfer before the call, then read `main` for the ticker with [Sub-Account Balances](/api-reference/sub-accounts/sub-account-balances) until it shows the transfer, and do not resend while waiting. A transfer that does not show is a manual check. |
 | Timeout or server error on a withdrawal | Only after a check | Look up the stored unique withdrawal ID in the [deposit and withdrawal history](/api-reference/account-wallet/get-deposit-withdraw-history) before sending any new withdrawal request. |
 
-The flowchart shows the check that each operation needs after a failed request.
+The flowchart shows the check that each operation needs after a failed request. A `429` with a nonce error message needs no check: resend the request at once with a new nonce.
 
 ```mermaid
 flowchart TD
     Failed["Failed request"] --> Response{"Response"}
-    Response -->|"429, or 5xx on a<br/>read-only request"| Backoff["Retry with<br/>exponential<br/>backoff"]
+    Response -->|"429 rate limit, or<br/>5xx on a read-only<br/>request"| Backoff["Retry with<br/>exponential<br/>backoff"]
     Response -->|"Timeout or 5xx<br/>on a transfer"| Transfer{"Transfer type"}
     Response -->|"Error on<br/>a conversion"| Convert["Follow Results<br/>and retries on<br/>the Convert page"]
     Response -->|"Timeout or 5xx<br/>on a withdrawal"| Withdrawal["POST /api/v4/<br/>main-account/history<br/>by the stored<br/>withdrawal ID"]
@@ -122,7 +125,7 @@ Combine multiple operations when the API supports batch endpoints. Use [Bulk Lim
 
 ### Nonce management
 
-For private endpoints, ensure each request uses a unique, incrementing nonce. Use Unix timestamp in milliseconds when `nonceWindow` is enabled. Avoid concurrent requests with the same nonce.
+For private endpoints, ensure each request uses a unique, incrementing nonce. Use Unix timestamp in milliseconds when `nonceWindow` is enabled. Avoid concurrent requests with the same nonce. A refused nonce is not a rate limit: resend the request at once with a new nonce.
 
 ### Reduce REST polling
 
