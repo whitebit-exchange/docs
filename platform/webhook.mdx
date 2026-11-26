@@ -162,7 +162,7 @@ Performed when [code](/glossary#whitebit-codes) was applied. Request example:
 
 ### WhiteBIT deposit to main balance
 
-Performed when a deposit is accepted. Every fiat deposit sends `deposit.accepted`; a crypto deposit does not always send `deposit.accepted`, so do not wait for the event before handling `deposit.updated` or `deposit.processed`. While the deposit waits for an AML check result, `deposit.accepted` carries status 26 instead of 2. No dedicated webhook reports a transaction entering or leaving status 26. To follow the status, poll the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). Request example:
+Performed when a deposit is accepted. Every fiat deposit sends `deposit.accepted`; a crypto deposit does not always send `deposit.accepted`, so do not wait for the event before handling `deposit.updated` or `deposit.processed`. While the deposit waits for an AML check result, `deposit.accepted` carries status 26. No dedicated webhook reports a transaction entering or leaving status 26. To follow the status, poll the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). Request example:
 
 ```json
 {
@@ -302,6 +302,8 @@ Deposit status codes:
 | 27 | Travel Rule frozen | Deposit frozen; the account holder must complete Travel Rule verification (EEA) |
 | 28 | Travel Rule processing | Travel Rule data submitted, verification in progress (EEA) |
 | 29 | Credited, on hold | Funds credited; part may stay held until the network fully confirms the deposit; not final |
+
+Deposit webhooks (`deposit.accepted`, `deposit.updated`) can carry status 2 (`Pending`) for a deposit that is not credited yet, while the history returns 15 for the same deposit. Handle 2 in a deposit webhook as a non-final status.
 
 Withdrawal status codes:
 

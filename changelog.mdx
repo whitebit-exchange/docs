@@ -9,12 +9,12 @@ description: "Track updates, improvements, and fixes to the WhiteBIT API platfor
 ## AML wait status in deposit and withdrawal history
 **Breaking change: `POST /api/v4/main-account/history` returns status 26 for transactions waiting for an AML check**
 
-The endpoint returned deposits and withdrawals that wait for the AML provider's check result as `Pending` (15 for deposits, 2 for withdrawals) and now returns these transactions with status 26 (`AML wait`). The `status` filter accepts 26, and a filter on `Pending` codes alone does not return these transactions. While a deposit waits for the result, `deposit.accepted` carries status 26. The OAuth2 route `POST /api/v4/accounts/transactions` returns the same codes.
+The endpoint returned deposits and withdrawals that wait for the AML provider's check result as `Pending` (15 for deposits, 2 for withdrawals). After the release, it returns these transactions with status 26 (`AML wait`). The `status` filter accepts 26, and a filter on `Pending` codes alone does not return these transactions. While a deposit waits for the result, `deposit.accepted` carries status 26 instead of 2 (`Pending`). The OAuth2 route `POST /api/v4/accounts/transactions` returns the same codes.
 
 **Migration guide:**
 - Handle status 26 as a non-final status for deposits and withdrawals, and wait for a final status.
 - To find transactions that wait for an AML check, filter on 26 or omit `status`. Do not rely on 15 or 2.
-- Expect status 26 in `deposit.accepted`.
+- Expect status 26 instead of 2 in `deposit.accepted`.
 
 **Sunset date:** the release date of this change. Until the release, the endpoint returns 15 and 2 for these transactions.
 
