@@ -162,7 +162,7 @@ Performed when [code](/glossary#whitebit-codes) was applied. Request example:
 
 ### WhiteBIT deposit to main balance
 
-Performed when a deposit is accepted. Every fiat deposit sends `deposit.accepted`; a crypto deposit does not always send `deposit.accepted`, so do not wait for the event before handling `deposit.updated` or `deposit.processed`. While the deposit waits for an AML check result, `deposit.accepted` carries status 26. No dedicated webhook reports a transaction entering or leaving status 26. To follow the status, poll the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). Request example:
+Performed when a deposit is accepted. Every fiat deposit sends `deposit.accepted`; a crypto deposit does not always send `deposit.accepted`, so do not wait for the event before handling `deposit.updated` or `deposit.processed`. While the deposit waits for an AML check result, `deposit.accepted` carries status 26. No webhook reports the move into status 26 on its own. To follow the status, poll the [deposit/withdraw history](/api-reference/account-wallet/get-deposit-withdraw-history). Request example:
 
 ```json
 {
